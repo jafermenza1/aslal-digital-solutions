@@ -4,12 +4,13 @@ import { db } from "./db";
 
 const VISITOR_COOKIE = "aslal_visitor";
 const REFERRAL_COOKIE = "aslal_referral";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function getOrCreateVisitor() {
   const jar = await cookies();
   let anonymousId = jar.get(VISITOR_COOKIE)?.value;
 
-  if (!anonymousId) {
+  if (!anonymousId || !UUID_RE.test(anonymousId)) {
     anonymousId = randomUUID();
     jar.set(VISITOR_COOKIE, anonymousId, {
       httpOnly: true,
@@ -33,12 +34,15 @@ export async function getOrCreateVisitor() {
 
 export async function getReferralCode() {
   const jar = await cookies();
-  return jar.get(REFERRAL_COOKIE)?.value || null;
+  const value = jar.get(REFERRAL_COOKIE)?.value;
+  return value && value.length <= 100 ? value : null;
 }
 
 export async function setReferralCode(code: string) {
+  const normalized = code.trim().slice(0, 100);
+  if (!normalized) return;
   const jar = await cookies();
-  jar.set(REFERRAL_COOKIE, code, {
+  jar.set(REFERRAL_COOKIE, normalized, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
