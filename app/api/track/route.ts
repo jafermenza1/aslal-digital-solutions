@@ -11,8 +11,11 @@ export async function POST(request: NextRequest) {
     const pagePath = body.pagePath ? String(body.pagePath).slice(0, 500) : null;
     const productSlug = body.productSlug ? String(body.productSlug).slice(0, 160) : null;
     const metadataObject = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
-    const metadataJson = JSON.stringify(metadataObject);
-    const metadata = metadataJson.length <= MAX_METADATA_BYTES ? metadataJson : metadataJson.slice(0, MAX_METADATA_BYTES);
+    const metadata = JSON.stringify(metadataObject);
+    if (metadata.length > MAX_METADATA_BYTES) {
+      return NextResponse.json({ ok: false, error: "Event metadata is too large." }, { status: 413 });
+    }
+
     const visitorId = await getOrCreateVisitor();
     const referral = await getReferralCode();
     const utmSource = typeof metadataObject.utmSource === "string" ? metadataObject.utmSource.slice(0, 100) : null;
