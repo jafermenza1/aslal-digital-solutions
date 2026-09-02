@@ -1,0 +1,13 @@
+# Deployment is intentionally left provider-specific.
+# Emerald/cPanel deployments can be connected after the hosting panel's
+# application path and restart mechanism are confirmed.
+name: Deployment Gate
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deployment-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Run CI and deploy the approved main branch through Emerald/cPanel."

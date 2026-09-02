@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --aslal-blue: #0F3E8A;
+  --aslal-gold: #E2B02A;
+  --aslal-slate: #1E293B;
+  --aslal-ice: #F8FAFC;
+  --aslal-blue-dark: #092d69;
+  --aslal-border: rgba(15, 62, 138, 0.12);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--aslal-ice);
+  color: var(--aslal-slate);
+  font-family: Inter, Arial, Helvetica, sans-serif;
+}
+
+::selection { background: var(--aslal-gold); color: var(--aslal-slate); }
+
+a { color: inherit; text-decoration: none; }
+button, input, textarea, select { font: inherit; }
+
+.container-aslal { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
+
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.hero-glow {
+  background:
+    radial-gradient(circle at 72% 22%, rgba(226,176,42,.22), transparent 26%),
+    radial-gradient(circle at 20% 60%, rgba(60,125,220,.22), transparent 30%);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #E2B02A, #f3cc5b);
+}
+
+.blue-gradient {
+  background: linear-gradient(135deg, #0F3E8A, #164fa9);
+}
+
+.card-shadow { box-shadow: 0 18px 60px rgba(15,62,138,.09); }
+
+@keyframes floatNode { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.float-node { animation: floatNode 5s ease-in-out infinite; }
+
+@keyframes pulseRing { 0%,100% { opacity: .3; transform: scale(.95); } 50% { opacity: .75; transform: scale(1.03); } }
+.pulse-ring { animation: pulseRing 4s ease-in-out infinite; }

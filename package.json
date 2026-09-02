@@ -1,0 +1,32 @@
+{
+  "name": "aslal-digital-solutions",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && node scripts/prepare-standalone.mjs",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build",
+    "db:check": "node scripts/db-check.mjs",
+    "db:seed": "node scripts/seed.mjs"
+  },
+  "dependencies": {
+    "mysql2": "3.24.3",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.0",
+    "@types/node": "22.18.0",
+    "@types/react": "19.1.12",
+    "@types/react-dom": "19.1.9",
+    "postcss": "8.5.6",
+    "tailwindcss": "4.3.0",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.8.0"
+  }
+}
