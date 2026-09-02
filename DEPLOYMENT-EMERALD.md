@@ -44,16 +44,28 @@ Required:
 - `ADMIN_PASSWORD`
 - `SESSION_SECRET`
 
-## D. Build
+## D. Build compatibility on Emerald
 
-From the project root:
+The production build uses Webpack explicitly:
 
 ```bash
 npm install --no-audit --no-fund
 npm run build
 ```
 
-The build creates `.next/standalone` and prepares `public` and `.next/static` for the standalone server.
+This avoids the Turbopack/native-SWC problem on hosts whose glibc is too old for the native Next.js compiler binary. Next.js documents Webpack as the alternative when Turbopack is not supported on a platform.
+
+The project still declares Node.js `>=22.8.0` as its supported runtime. If the Emerald terminal reports Node 20.x, do not treat that as the application environment being correct. Configure/activate the cPanel Node.js 22.8.0 environment before production startup and builds.
+
+To verify the shell environment:
+
+```bash
+node -v
+npm -v
+which node
+```
+
+The exact cPanel activation path varies by account and is shown by the Node.js application manager.
 
 ## E. Start/restart
 
