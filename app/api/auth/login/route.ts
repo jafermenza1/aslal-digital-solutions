@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     const configuredEmail = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
     const configuredPassword = String(process.env.ADMIN_PASSWORD || "");
 
-    if (process.env.NODE_ENV === "production" && (!configuredEmail || !configuredPassword)) {
+    if (!configuredEmail || !configuredPassword) {
       return NextResponse.json({ error: "Admin authentication is not configured." }, { status: 503 });
     }
 
