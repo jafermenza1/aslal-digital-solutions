@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/prepare-standalone.mjs",
+    "build": "next build --webpack && node scripts/prepare-standalone.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run build",
@@ -27,6 +27,6 @@
     "typescript": "5.9.3"
   },
   "engines": {
-    "node": ">=22.8.0"
+    "node": ">=20.9.0"
   }
 }
