@@ -4,12 +4,7 @@ export const siteConfig = {
   email: "info@aslaldigital.com",
   phone: "+251 911-276682",
   location: "Addis Ababa, Ethiopia",
-  colors: {
-    blue: "#0F3E8A",
-    gold: "#E2B02A",
-    slate: "#1E293B",
-    ice: "#F8FAFC",
-  },
+  colors: { blue: "#0F3E8A", gold: "#E2B02A", slate: "#1E293B", ice: "#F8FAFC" },
 };
 
 export const navItems = [
@@ -17,5 +12,7 @@ export const navItems = [
   { href: "/products", label: "Products" },
   { href: "/work", label: "Work" },
   { href: "/demo", label: "Automation Lab" },
+  { href: "/about", label: "About" },
+  { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
 ];
