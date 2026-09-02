@@ -23,21 +23,30 @@
 - [x] Referral redirect and click logging
 - [x] Lead association to visitor
 - [x] Referral association to lead
+- [x] First-touch UTM/source attribution on visitors and leads
 - [x] MySQL schema for partners/referrals/commissions
 
 ### Operations
 
 - [x] Admin login foundation
+- [x] Admin login attempt rate limiting
+- [x] Hardened signed admin sessions
 - [x] Admin overview dashboard
 - [x] Database health endpoint
+- [x] Baseline HTTP security headers
 - [x] GitHub CI
 - [x] Dependabot configuration
 - [x] Emerald standalone startup adapter
 
+### Validation
+
+- [x] GitHub Actions typecheck
+- [x] GitHub Actions production build
+
 ### Not yet production-ready
 
 - [ ] Proper password hashing / user table authentication
-- [ ] CSRF/rate limiting on public forms
+- [ ] Persistent rate limiting / abuse protection on public forms and tracking endpoints
 - [ ] Full CRM UI
 - [ ] Partner portal UI
 - [ ] Commission approval workflow
