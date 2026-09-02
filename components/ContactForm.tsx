@@ -37,6 +37,10 @@ export function ContactForm() {
 
   return (
     <form onSubmit={submit} className="grid gap-4">
+      <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <label htmlFor="website">Website</label>
+        <input id="website" name="website" tabIndex={-1} autoComplete="off" />
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <input required name="name" maxLength={160} placeholder="Your name" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 outline-none focus:border-[#0F3E8A]" />
         <input name="company" maxLength={190} placeholder="Company" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 outline-none focus:border-[#0F3E8A]" />
