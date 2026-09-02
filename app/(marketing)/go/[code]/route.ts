@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateVisitor, setReferralCode } from "@/lib/tracking";
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
+
+function hashIp(value: string) {
+  const secret = process.env.SESSION_SECRET || "development-only-change-me";
+  return createHmac("sha256", secret).update(value).digest("hex");
+}
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
@@ -11,8 +16,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const visitorId = await getOrCreateVisitor();
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
-  const ipHash = forwarded ? createHash("sha256").update(forwarded).digest("hex") : null;
-  await db.execute("INSERT INTO referral_clicks (referral_link_id, visitor_id, ip_hash, user_agent) VALUES (?, ?, ?, ?)", [link.id, visitorId, ipHash, request.headers.get("user-agent")?.slice(0, 500) || null]);
+  const ipHash = forwarded ? hashIp(forwarded) : null;
+  await db.execute(
+    "INSERT INTO referral_clicks (referral_link_id, visitor_id, ip_hash, user_agent) VALUES (?, ?, ?, ?)",
+    [link.id, visitorId, ipHash, request.headers.get("user-agent")?.slice(0, 500) || null]
+  );
   await setReferralCode(code);
 
   const destination = String(link.destination_path || "/").startsWith("/") ? link.destination_path : "/";
