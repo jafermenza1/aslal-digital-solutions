@@ -4,14 +4,47 @@ import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { randomUUID } from "node:crypto";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const attempts = new Map<string, { count: number; resetAt: number }>();
+const WINDOW_MS = 10 * 60 * 1000;
+const MAX_SUBMISSIONS = 5;
 
 function clean(value: unknown, maxLength: number) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 }
 
+function getClientKey(request: NextRequest) {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+}
+
+function isRateLimited(key: string) {
+  const current = attempts.get(key);
+  if (!current || current.resetAt <= Date.now()) {
+    attempts.delete(key);
+    return false;
+  }
+  return current.count >= MAX_SUBMISSIONS;
+}
+
+function recordSubmission(key: string) {
+  const now = Date.now();
+  const current = attempts.get(key);
+  if (!current || current.resetAt <= now) {
+    attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
+  } else {
+    current.count += 1;
+  }
+}
+
 export async function POST(request: NextRequest) {
+  const key = getClientKey(request);
+  if (isRateLimited(key)) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+  }
+
   try {
     const body = await request.json();
+    if (clean(body.website, 200)) return NextResponse.json({ ok: true });
+
     const name = clean(body.name, 160);
     const email = clean(body.email, 190).toLowerCase();
     const phone = clean(body.phone, 40);
@@ -24,12 +57,11 @@ export async function POST(request: NextRequest) {
     if (email && !EMAIL_RE.test(email)) return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     if (!email && !phone) return NextResponse.json({ error: "Please provide an email or phone number so we can contact you." }, { status: 400 });
 
+    recordSubmission(key);
     const visitorId = await getOrCreateVisitor();
     const referralCode = await getReferralCode();
     const id = randomUUID();
-    const [[visitorRows]] = await Promise.all([
-      db.query("SELECT first_source, first_medium, first_campaign FROM visitors WHERE id=? LIMIT 1", [visitorId]),
-    ]);
+    const [visitorRows] = await db.query("SELECT first_source, first_medium, first_campaign FROM visitors WHERE id=? LIMIT 1", [visitorId]);
     const visitor = (visitorRows as Array<{ first_source: string | null; first_medium: string | null; first_campaign: string | null }>)[0];
     const source = referralCode ? "partner" : visitor?.first_source || "website";
 
