@@ -1,10 +1,64 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { EventTracker } from "@/components/EventTracker";
 
-const products: Record<string, {name:string; type:string; description:string; features:string[]}> = {
-  "crm-pro": { name: "CRM Pro", type: "Affiliate / implementation", description: "A practical customer and sales management foundation that Aslal can market, implement, integrate and customize around your workflows.", features: ["Lead management", "Sales pipeline", "Customer records", "Reports and dashboards", "Workflow customization", "Integration planning"] },
-  "commerce-stack": { name: "Commerce Stack", type: "Custom solution", description: "A commerce foundation connecting catalog, customer journeys, checkout and localized payment requirements.", features: ["Product catalog", "Checkout experience", "Payment integration", "Order workflow", "Customer notifications", "Custom integrations"] },
-  "sales-automation": { name: "Sales Automation", type: "Custom solution", description: "Conversational sales systems across website, WhatsApp and Telegram, with human handoff when needed.", features: ["Lead qualification", "WhatsApp flows", "Telegram flows", "Website assistant", "Sales handoff", "CRM connection"] }
+const products: Record<string, { name: string; type: string; description: string; features: string[] }> = {
+  "crm-pro": {
+    name: "CRM Pro",
+    type: "Affiliate / implementation",
+    description: "A practical customer and sales management foundation that Aslal can market, implement, integrate and customize around your workflows.",
+    features: ["Lead management", "Sales pipeline", "Customer records", "Reports and dashboards", "Workflow customization", "Integration planning"],
+  },
+  "commerce-stack": {
+    name: "Commerce Stack",
+    type: "Custom solution",
+    description: "A commerce foundation connecting catalog, customer journeys, checkout and localized payment requirements.",
+    features: ["Product catalog", "Checkout experience", "Payment integration", "Order workflow", "Customer notifications", "Custom integrations"],
+  },
+  "sales-automation": {
+    name: "Sales Automation",
+    type: "Custom solution",
+    description: "Conversational sales systems across website, WhatsApp and Telegram, with human handoff when needed.",
+    features: ["Lead qualification", "WhatsApp flows", "Telegram flows", "Website assistant", "Sales handoff", "CRM connection"],
+  },
 };
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) { const { slug } = await params; const product = products[slug] ?? products["crm-pro"]; return <main><EventTracker eventName="product_viewed" productSlug={slug} /><section className="bg-[#0F3E8A] py-24 text-white"><div className="container-aslal max-w-5xl"><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">{product.type}</div><h1 className="mt-4 text-5xl font-black tracking-[-.05em] sm:text-7xl">{product.name}</h1><p className="mt-6 max-w-3xl text-xl leading-8 text-white/70">{product.description}</p><div className="mt-8 flex flex-wrap gap-4"><Link href="/contact" className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">Request a demo</Link><Link href="/demo" className="rounded-full border border-white/20 px-6 py-4 font-bold">Experience automation</Link></div></div></section><section className="py-24"><div className="container-aslal grid gap-14 lg:grid-cols-[.8fr_1.2fr]"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Solution fit</div><h2 className="mt-3 text-4xl font-black">Designed for implementation, not just a license.</h2><p className="mt-5 leading-8 text-slate-600">If the standard product is not enough, Aslal can assess customization, integration and local implementation requirements.</p></div><div className="grid gap-4 sm:grid-cols-2">{product.features.map((f,i)=><div key={f} className="rounded-3xl border border-slate-200 bg-[#F8FAFC] p-6"><div className="text-xs font-black text-[#E2B02A]">0{i+1}</div><div className="mt-4 text-lg font-black">{f}</div></div>)}</div></div></section></main> }
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const product = products[slug];
+  if (!product) notFound();
+
+  return (
+    <main>
+      <EventTracker eventName="product_viewed" productSlug={slug} />
+      <section className="bg-[#0F3E8A] py-24 text-white">
+        <div className="container-aslal max-w-5xl">
+          <div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">{product.type}</div>
+          <h1 className="mt-4 text-5xl font-black tracking-[-.05em] sm:text-7xl">{product.name}</h1>
+          <p className="mt-6 max-w-3xl text-xl leading-8 text-white/70">{product.description}</p>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link href="/contact" className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">Request a demo</Link>
+            <Link href="/demo" className="rounded-full border border-white/20 px-6 py-4 font-bold">Experience automation</Link>
+          </div>
+        </div>
+      </section>
+      <section className="py-24">
+        <div className="container-aslal grid gap-14 lg:grid-cols-[.8fr_1.2fr]">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Solution fit</div>
+            <h2 className="mt-3 text-4xl font-black">Designed for implementation, not just a license.</h2>
+            <p className="mt-5 leading-8 text-slate-600">If the standard product is not enough, Aslal can assess customization, integration and local implementation requirements.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {product.features.map((feature, index) => (
+              <div key={feature} className="rounded-3xl border border-slate-200 bg-[#F8FAFC] p-6">
+                <div className="text-xs font-black text-[#E2B02A]">0{index + 1}</div>
+                <div className="mt-4 text-lg font-black">{feature}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
