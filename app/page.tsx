@@ -28,7 +28,7 @@ export default function Home() {
           <div className="relative mx-auto w-full max-w-xl">
             <div className="absolute inset-10 rounded-full border border-[#E2B02A]/20 pulse-ring" />
             <div className="relative rounded-[2rem] border border-white/10 bg-white/[.06] p-6 shadow-2xl backdrop-blur-xl">
-              <div className="mb-5 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[.18em] text-white/50">Aslal Growth Graph</span><span className="rounded-full bg-[#E2B02A] px-3 py-1 text-xs font-black text-[#1E293B]">LIVE MODEL</span></div>
+              <div className="mb-5 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[.18em] text-white/50">Aslal Growth Graph</span><span className="rounded-full bg-[#E2B02A] px-3 py-1 text-xs font-black text-[#1E293B]">GROWTH MODEL</span></div>
               <div className="grid grid-cols-2 gap-3">
                 {["VISITOR", "INTEREST", "LEAD", "CONVERSATION", "OPPORTUNITY", "REVENUE"].map((x, i) => <div key={x} className={`rounded-2xl border border-white/10 p-5 ${i === 5 ? "bg-[#E2B02A] text-[#1E293B]" : "bg-white/[.05]"} ${i % 2 === 0 ? "float-node" : ""}`}><div className="text-[10px] font-bold tracking-[.2em] opacity-50">0{i + 1}</div><div className="mt-2 text-lg font-black">{x}</div></div>)}
               </div>
