@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { LeadStatus, prisma } from "@/lib/prisma";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { randomUUID } from "node:crypto";
 
@@ -28,18 +28,13 @@ function isRateLimited(key: string) {
 function recordSubmission(key: string) {
   const now = Date.now();
   const current = attempts.get(key);
-  if (!current || current.resetAt <= now) {
-    attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-  } else {
-    current.count += 1;
-  }
+  if (!current || current.resetAt <= now) attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
+  else current.count += 1;
 }
 
 export async function POST(request: NextRequest) {
   const key = getClientKey(request);
-  if (isRateLimited(key)) {
-    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
-  }
+  if (isRateLimited(key)) return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
 
   try {
     const body = await request.json();
@@ -51,6 +46,7 @@ export async function POST(request: NextRequest) {
     const company = clean(body.company, 190);
     const businessType = clean(body.businessType, 100);
     const message = clean(body.message, 5000);
+    const productSlug = clean(body.productSlug, 160);
 
     if (!name) return NextResponse.json({ error: "Name is required." }, { status: 400 });
     if (!message) return NextResponse.json({ error: "Message is required." }, { status: 400 });
@@ -60,23 +56,45 @@ export async function POST(request: NextRequest) {
     recordSubmission(key);
     const visitorId = await getOrCreateVisitor();
     const referralCode = await getReferralCode();
-    const id = randomUUID();
-    const [visitorRows] = await db.query("SELECT first_source, first_medium, first_campaign FROM visitors WHERE id=? LIMIT 1", [visitorId]);
-    const visitor = (visitorRows as Array<{ first_source: string | null; first_medium: string | null; first_campaign: string | null }>)[0];
-    const source = referralCode ? "partner" : visitor?.first_source || "website";
+    const visitor = await prisma.visitor.findUnique({ where: { id: visitorId } });
+    const source = referralCode ? "partner" : visitor?.firstSource || "website";
 
-    await db.execute(
-      `INSERT INTO leads (id, visitor_id, name, email, phone, company, business_type, message, score, source, medium, campaign, referral_code)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, visitorId, name, email || null, phone || null, company || null, businessType || null, message, 25, source, visitor?.first_medium || null, visitor?.first_campaign || null, referralCode]
-    );
+    const leadId = randomUUID();
+    await prisma.$transaction(async (tx) => {
+      await tx.lead.create({
+        data: {
+          id: leadId,
+          visitorId,
+          name,
+          email: email || null,
+          phone: phone || null,
+          company: company || null,
+          businessType: businessType || null,
+          message,
+          status: LeadStatus.NEW,
+          score: 25,
+          source,
+          medium: visitor?.firstMedium || null,
+          campaign: visitor?.firstCampaign || null,
+          referralCode: referralCode || null,
+        },
+      });
 
-    await db.execute(
-      "INSERT INTO events (visitor_id, event_name, page_path, metadata) VALUES (?, 'lead_submitted', '/contact', ?)",
-      [visitorId, JSON.stringify({ leadId: id, referralCode })]
-    );
+      await tx.leadStageHistory.create({
+        data: { leadId, fromStage: null, toStage: LeadStatus.NEW, changedBy: "website" },
+      });
 
-    return NextResponse.json({ ok: true, leadId: id });
+      if (productSlug) {
+        const product = await tx.product.findUnique({ where: { slug: productSlug } });
+        if (product) {
+          await tx.leadProductInterest.create({
+            data: { id: randomUUID(), leadId, productId: product.id, source: "contact_form", interestScore: 10 },
+          });
+        }
+      }
+    });
+
+    return NextResponse.json({ ok: true, leadId });
   } catch (error) {
     console.error("LEAD_CREATE_ERROR", error);
     return NextResponse.json({ error: "Unable to submit the request right now." }, { status: 500 });
