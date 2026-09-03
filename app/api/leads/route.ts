@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { randomUUID } from "node:crypto";
+import type { RowDataPacket } from "mysql2";
 
-type VisitorRow = {
+type VisitorRow = RowDataPacket & {
   first_source: string | null;
   first_medium: string | null;
   first_campaign: string | null;
 };
 
-type ProductRow = { id: string };
+type ProductRow = RowDataPacket & { id: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map<string, { count: number; resetAt: number }>();
