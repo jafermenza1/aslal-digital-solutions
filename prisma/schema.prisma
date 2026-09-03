@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DEMO
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum PartnerType {
+  AGENT
+  INFLUENCER
+  AFFILIATE
+  RESELLER
+}
+
+enum PartnerStatus {
+  ACTIVE
+  PAUSED
+  PENDING
+}
+
+enum ProductRelationship {
+  OWNED
+  AFFILIATE
+  RESELLER
+  IMPLEMENTATION_PARTNER
+  CUSTOM
+}
+
+enum CommissionStatus {
+  PENDING
+  QUALIFIED
+  APPROVED
+  PAYABLE
+  PAID
+  VOID
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Visitor {
+  id                  String   @id @db.Char(36)
+  anonymousId         String   @unique @map("anonymous_id") @db.Char(36)
+  firstSeenAt         DateTime @default(now()) @map("first_seen_at") @db.DateTime(0)
+  lastSeenAt          DateTime @default(now()) @map("last_seen_at") @db.DateTime(0)
+  firstSource         String?  @map("first_source") @db.VarChar(100)
+  firstMedium         String?  @map("first_medium") @db.VarChar(100)
+  firstCampaign       String?  @map("first_campaign") @db.VarChar(150)
+  firstReferralCode   String?  @map("first_referral_code") @db.VarChar(100)
+  leads               Lead[]
+  events              Event[]
+  referralClicks      ReferralClick[]
+
+  @@index([lastSeenAt], map: "idx_visitors_last_seen")
+  @@index([firstReferralCode], map: "idx_visitors_referral")
+  @@map("visitors")
+}
+
+model Lead {
+  id                String             @id @db.Char(36)
+  visitorId         String?            @map("visitor_id") @db.Char(36)
+  name              String             @db.VarChar(160)
+  email             String?            @db.VarChar(190)
+  phone             String?            @db.VarChar(40)
+  company           String?            @db.VarChar(190)
+  businessType      String?            @map("business_type") @db.VarChar(100)
+  message           String?            @db.Text
+  status            LeadStatus         @default(NEW)
+  score             Int                @default(0)
+  source            String?            @db.VarChar(100)
+  medium            String?            @db.VarChar(100)
+  campaign          String?            @db.VarChar(150)
+  referralCode      String?            @map("referral_code") @db.VarChar(100)
+  dealValue         Decimal?           @map("deal_value") @db.Decimal(15, 2)
+  wonAt             DateTime?          @map("won_at") @db.DateTime(0)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.DateTime(0)
+  visitor           Visitor?           @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+  notes             LeadNote[]
+  tasks             LeadTask[]
+  stageHistory      LeadStageHistory[]
+  productInterests  LeadProductInterest[]
+  commissions       Commission[]
+
+  @@index([status], map: "idx_leads_status")
+  @@index([score], map: "idx_leads_score")
+  @@index([createdAt], map: "idx_leads_created")
+  @@index([referralCode], map: "idx_leads_referral")
+  @@map("leads")
+}
+
+model Event {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  visitorId   String?   @map("visitor_id") @db.Char(36)
+  eventName   String    @map("event_name") @db.VarChar(100)
+  pagePath    String?   @map("page_path") @db.VarChar(500)
+  productSlug String?   @map("product_slug") @db.VarChar(160)
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  visitor     Visitor?  @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+
+  @@index([visitorId], map: "idx_events_visitor")
+  @@index([eventName], map: "idx_events_name")
+  @@index([productSlug], map: "idx_events_product")
+  @@index([createdAt], map: "idx_events_created")
+  @@map("events")
+}
+
+model Partner {
+  id             String          @id @db.Char(36)
+  name           String          @db.VarChar(160)
+  email          String?         @db.VarChar(190)
+  type           PartnerType     @default(AGENT)
+  status         PartnerStatus   @default(ACTIVE)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.DateTime(0)
+  referralLinks  ReferralLink[]
+  commissions    Commission[]
+
+  @@index([status], map: "idx_partners_status")
+  @@map("partners")
+}
+
+model ReferralLink {
+  id              String          @id @db.Char(36)
+  partnerId       String          @map("partner_id") @db.Char(36)
+  code            String          @unique @db.VarChar(100)
+  campaign        String?         @db.VarChar(150)
+  productSlug     String?         @map("product_slug") @db.VarChar(160)
+  destinationPath String          @default("/") @map("destination_path") @db.VarChar(500)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.DateTime(0)
+  partner         Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  clicks          ReferralClick[]
+  commissions     Commission[]
+
+  @@index([partnerId], map: "idx_referral_partner")
+  @@map("referral_links")
+}
+
+model ReferralClick {
+  id             BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  referralLinkId String       @map("referral_link_id") @db.Char(36)
+  visitorId      String?      @map("visitor_id") @db.Char(36)
+  ipHash         String?      @map("ip_hash") @db.Char(64)
+  userAgent      String?      @map("user_agent") @db.VarChar(500)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.DateTime(0)
+  referralLink   ReferralLink @relation(fields: [referralLinkId], references: [id], onDelete: Cascade)
+  visitor        Visitor?     @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+
+  @@index([referralLinkId], map: "idx_click_link")
+  @@index([visitorId], map: "idx_click_visitor")
+  @@map("referral_clicks")
+}
+
+model Product {
+  id               String              @id @db.Char(36)
+  slug             String              @unique @db.VarChar(160)
+  name             String              @db.VarChar(190)
+  providerName     String?             @map("provider_name") @db.VarChar(190)
+  relationshipType ProductRelationship @default(OWNED) @map("relationship_type")
+  shortDescription String              @map("short_description") @db.VarChar(500)
+  description      String?             @db.Text
+  startingPrice    String?             @map("starting_price") @db.VarChar(100)
+  featured         Boolean             @default(false)
+  active           Boolean             @default(true)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+  interests        LeadProductInterest[]
+
+  @@index([featured], map: "idx_products_featured")
+  @@index([active], map: "idx_products_active")
+  @@map("products")
+}
+
+model Commission {
+  id             String           @id @db.Char(36)
+  partnerId      String           @map("partner_id") @db.Char(36)
+  leadId         String?          @map("lead_id") @db.Char(36)
+  referralLinkId String?          @map("referral_link_id") @db.Char(36)
+  amount         Decimal          @default(0) @db.Decimal(15, 2)
+  currency       String           @default("ETB") @db.VarChar(10)
+  status         CommissionStatus @default(PENDING)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  partner        Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  lead           Lead?            @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  referralLink   ReferralLink?    @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
+
+  @@index([partnerId], map: "idx_commission_partner")
+  @@index([status], map: "idx_commission_status")
+  @@map("commissions")
+}
+
+model LeadNote {
+  id        String   @id @db.Char(36)
+  leadId    String   @map("lead_id") @db.Char(36)
+  body      String   @db.Text
+  author    String?  @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt], map: "idx_lead_notes_lead_created")
+  @@map("lead_notes")
+}
+
+model LeadTask {
+  id          String       @id @db.Char(36)
+  leadId      String       @map("lead_id") @db.Char(36)
+  title       String       @db.VarChar(190)
+  description String?      @db.Text
+  status      TaskStatus   @default(OPEN)
+  priority    TaskPriority @default(NORMAL)
+  dueAt       DateTime?    @map("due_at") @db.DateTime(0)
+  completedAt DateTime?    @map("completed_at") @db.DateTime(0)
+  assignedTo  String?      @map("assigned_to") @db.VarChar(190)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.DateTime(0)
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, status], map: "idx_lead_tasks_lead_status")
+  @@index([dueAt, status], map: "idx_lead_tasks_due_status")
+  @@map("lead_tasks")
+}
+
+model LeadStageHistory {
+  id        BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  leadId    String     @map("lead_id") @db.Char(36)
+  fromStage LeadStatus? @map("from_stage")
+  toStage   LeadStatus @map("to_stage")
+  note      String?    @db.VarChar(500)
+  changedBy String?    @map("changed_by") @db.VarChar(190)
+  createdAt DateTime   @default(now()) @map("created_at") @db.DateTime(0)
+  lead      Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt], map: "idx_lead_stage_history_lead_created")
+  @@map("lead_stage_history")
+}
+
+model LeadProductInterest {
+  id          String   @id @db.Char(36)
+  leadId      String   @map("lead_id") @db.Char(36)
+  productId   String   @map("product_id") @db.Char(36)
+  source      String?  @db.VarChar(100)
+  interestScore Int    @default(1) @map("interest_score")
+  firstSeenAt DateTime @default(now()) @map("first_seen_at") @db.DateTime(0)
+  lastSeenAt  DateTime @default(now()) @map("last_seen_at") @db.DateTime(0)
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, productId], map: "uq_lead_product_interest")
+  @@index([productId, interestScore], map: "idx_product_interest_score")
+  @@map("lead_product_interest")
+}
