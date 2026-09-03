@@ -1,6 +1,6 @@
 {
   "name": "aslal-digital-solutions",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,9 +9,12 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run build",
     "db:check": "node scripts/db-check.mjs",
-    "db:seed": "node scripts/seed.mjs"
+    "db:seed": "node scripts/seed.mjs",
+    "prisma:generate": "prisma generate",
+    "prisma:deploy": "prisma migrate deploy"
   },
   "dependencies": {
+    "@prisma/client": "6.19.0",
     "mysql2": "3.24.3",
     "next": "16.3.4",
     "react": "19.2.8",
@@ -23,6 +26,7 @@
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "postcss": "8.5.6",
+    "prisma": "6.19.0",
     "tailwindcss": "4.3.0",
     "typescript": "5.9.3"
   },
