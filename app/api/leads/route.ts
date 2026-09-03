@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LeadStatus, prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { randomUUID } from "node:crypto";
+
+type VisitorRow = {
+  first_source: string | null;
+  first_medium: string | null;
+  first_campaign: string | null;
+};
+
+type ProductRow = { id: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map<string, { count: number; resetAt: number }>();
@@ -56,43 +64,66 @@ export async function POST(request: NextRequest) {
     recordSubmission(key);
     const visitorId = await getOrCreateVisitor();
     const referralCode = await getReferralCode();
-    const visitor = await prisma.visitor.findUnique({ where: { id: visitorId } });
-    const source = referralCode ? "partner" : visitor?.firstSource || "website";
-
+    const [visitorRows] = await db.execute<VisitorRow[]>(
+      "SELECT first_source, first_medium, first_campaign FROM visitors WHERE id = ? LIMIT 1",
+      [visitorId]
+    );
+    const visitor = visitorRows[0];
+    const source = referralCode ? "partner" : visitor?.first_source || "website";
     const leadId = randomUUID();
-    await prisma.$transaction(async (tx) => {
-      await tx.lead.create({
-        data: {
-          id: leadId,
+    const connection = await db.getConnection();
+
+    try {
+      await connection.beginTransaction();
+      await connection.execute(
+        `INSERT INTO leads
+          (id, visitor_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, referral_code)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?)`,
+        [
+          leadId,
           visitorId,
           name,
-          email: email || null,
-          phone: phone || null,
-          company: company || null,
-          businessType: businessType || null,
+          email || null,
+          phone || null,
+          company || null,
+          businessType || null,
           message,
-          status: LeadStatus.NEW,
-          score: 25,
           source,
-          medium: visitor?.firstMedium || null,
-          campaign: visitor?.firstCampaign || null,
-          referralCode: referralCode || null,
-        },
-      });
+          visitor?.first_medium || null,
+          visitor?.first_campaign || null,
+          referralCode || null,
+        ]
+      );
 
-      await tx.leadStageHistory.create({
-        data: { leadId, fromStage: null, toStage: LeadStatus.NEW, changedBy: "website" },
-      });
+      await connection.execute(
+        `INSERT INTO lead_stage_history (lead_id, from_stage, to_stage, changed_by)
+         VALUES (?, NULL, 'NEW', 'website')`,
+        [leadId]
+      );
 
       if (productSlug) {
-        const product = await tx.product.findUnique({ where: { slug: productSlug } });
+        const [productRows] = await connection.execute<ProductRow[]>(
+          "SELECT id FROM products WHERE slug = ? LIMIT 1",
+          [productSlug]
+        );
+        const product = productRows[0];
         if (product) {
-          await tx.leadProductInterest.create({
-            data: { id: randomUUID(), leadId, productId: product.id, source: "contact_form", interestScore: 10 },
-          });
+          await connection.execute(
+            `INSERT INTO lead_product_interest
+              (id, lead_id, product_id, source, interest_score)
+             VALUES (?, ?, ?, 'contact_form', 10)`,
+            [randomUUID(), leadId, product.id]
+          );
         }
       }
-    });
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
 
     return NextResponse.json({ ok: true, leadId });
   } catch (error) {
