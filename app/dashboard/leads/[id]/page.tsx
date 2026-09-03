@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -79,7 +80,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
   if (!lead) notFound();
 
   return <main className="min-h-screen bg-[#F8FAFC] py-10"><div className="container-aslal">
-    <a href="/dashboard/leads" className="text-sm font-bold text-[#0F3E8A]">← Back to pipeline</a>
+    <Link href="/dashboard/leads" className="text-sm font-bold text-[#0F3E8A]">← Back to pipeline</Link>
     <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Opportunity</div><h1 className="mt-2 text-4xl font-black">{lead.name}</h1><p className="mt-2 text-slate-500">{lead.company || lead.businessType || "Prospect"} · {lead.email || lead.phone || "No contact details"}</p></div><div className="rounded-2xl bg-[#0F3E8A] px-5 py-4 text-white"><div className="text-xs font-bold uppercase tracking-[.14em] text-white/60">Lead score</div><div className="mt-1 text-3xl font-black text-[#E2B02A]">{lead.score}</div></div></div>
 
     <div className="mt-8 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
