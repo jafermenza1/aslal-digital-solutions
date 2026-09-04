@@ -30,17 +30,13 @@ export function getLeadScoreBand(score: number): LeadScoreBand {
   return "Cold";
 }
 
-function eventNameList(names: string[]) {
-  return names.map(() => "?").join(", ");
-}
-
 export async function calculateLeadScore(leadId: string): Promise<LeadScoreBreakdown> {
   const [rows] = await db.execute<LeadSignalsRow[]>(
     `SELECT
-       (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND LOWER(e.event_name) IN (${eventNameList(["contact_form_submit", "lead_created", "contact_submit"])}) ) AS contact_submissions,
+       (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND LOWER(e.event_name) IN ('contact_form_submit', 'lead_created', 'contact_submit')) AS contact_submissions,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND (LOWER(e.event_name) LIKE '%product%view%' OR LOWER(e.event_name) IN ('product_view', 'view_product'))) AS product_views,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND (LOWER(e.event_name) LIKE '%pricing%' OR LOWER(e.event_name) LIKE '%price%')) AS pricing_interactions,
-       (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND (LOWER(e.event_name) LIKE '%demo%')) AS demo_interactions,
+       (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND LOWER(e.event_name) LIKE '%demo%') AS demo_interactions,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND (LOWER(e.event_name) LIKE '%referral%' OR LOWER(e.event_name) = 'referral_visit')) AS referral_visits,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id) AS event_count,
        (SELECT COUNT(*) FROM lead_product_interest lpi
@@ -50,7 +46,7 @@ export async function calculateLeadScore(leadId: string): Promise<LeadScoreBreak
      FROM leads l
      WHERE l.id = ?
      LIMIT 1`,
-    ["contact_form_submit", "lead_created", "contact_submit", leadId]
+    [leadId]
   );
 
   const signals = rows[0];
