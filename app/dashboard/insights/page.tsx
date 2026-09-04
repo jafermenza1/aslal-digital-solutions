@@ -22,12 +22,13 @@ type SourceRow = RowDataPacket & { source: string; visitors: number; leads: numb
 type ReferralRow = RowDataPacket & { referral_code: string; clicks: number; leads: number; won_deals: number; revenue: number | string | null };
 type ActivityRow = RowDataPacket & { id: string; event_name: string; page_path: string | null; product_slug: string | null; created_at: Date };
 type FollowUpRow = RowDataPacket & { id: string; lead_id: string; name: string; title: string; priority: string; due_at: Date | null; score: number };
+type ClockRow = RowDataPacket & { now: Date };
 
 export default async function InsightsPage() {
   const session = verifySession((await cookies()).get("aslal_session")?.value);
   if (!session) redirect("/login");
 
-  const [productRows, sourceRows, referralRows, activityRows, followUpRows] = await Promise.all([
+  const [productRows, sourceRows, referralRows, activityRows, followUpRows, clockRows] = await Promise.all([
     db.query<ProductDemandRow[]>(
       `SELECT
         p.slug AS product_slug,
@@ -118,6 +119,7 @@ export default async function InsightsPage() {
        ORDER BY (t.due_at < NOW()) DESC, t.due_at ASC
        LIMIT 10`
     ),
+    db.query<ClockRow[]>(`SELECT NOW() AS now`),
   ]);
 
   const products = productRows[0];
@@ -125,6 +127,7 @@ export default async function InsightsPage() {
   const referrals = referralRows[0];
   const activity = activityRows[0];
   const followUps = followUpRows[0];
+  const now = new Date(clockRows[0][0]?.now ?? 0).getTime();
 
   return <main className="min-h-screen bg-[#F8FAFC] py-10"><div className="container-aslal">
     <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Growth OS / Insights</div><h1 className="mt-2 text-4xl font-black tracking-tight">Demand intelligence</h1><p className="mt-2 max-w-3xl text-slate-500">Connect product interest, acquisition, referrals, sales outcomes, and follow-up so the team can act on demand instead of only reporting it.</p></div><Link href="/dashboard" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-[#0F3E8A]">← Dashboard</Link></div>
@@ -138,7 +141,7 @@ export default async function InsightsPage() {
 
     <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
       <Panel title="Live demand activity"><div className="space-y-2">{activity.map(x => <div key={String(x.id)} className="flex items-center justify-between gap-4 rounded-xl bg-[#F8FAFC] px-4 py-3"><div className="min-w-0"><div className="truncate font-bold">{x.event_name}{x.product_slug ? ` · ${x.product_slug}` : ""}</div><div className="truncate text-xs text-slate-500">{x.page_path || "Unknown page"}</div></div><time className="shrink-0 text-xs font-semibold text-slate-400">{new Date(x.created_at).toLocaleString()}</time></div>)}{activity.length === 0 && <Empty text="Tracked activity will appear here." />}</div></Panel>
-      <Panel title="Follow-up queue"><div className="space-y-2">{followUps.map(x => { const overdue = x.due_at ? new Date(x.due_at).getTime() < Date.now() : false; return <Link key={x.id} href={`/dashboard/leads/${x.lead_id}`} className="block rounded-xl bg-[#F8FAFC] px-4 py-3 hover:bg-slate-100"><div className="flex items-center justify-between gap-3"><span className="font-bold">{x.name}</span><span className={`text-xs font-black uppercase ${overdue ? "text-red-600" : "text-[#0F3E8A]"}`}>{overdue ? "Overdue" : x.priority}</span></div><div className="mt-1 text-sm text-slate-600">{x.title}</div><div className="mt-1 text-xs text-slate-400">Score {x.score} · {x.due_at ? new Date(x.due_at).toLocaleString() : "No due date"}</div></Link>})}{followUps.length === 0 && <Empty text="No dated open follow-ups are waiting." />}</div></Panel>
+      <Panel title="Follow-up queue"><div className="space-y-2">{followUps.map(x => { const overdue = x.due_at ? new Date(x.due_at).getTime() < now : false; return <Link key={x.id} href={`/dashboard/leads/${x.lead_id}`} className="block rounded-xl bg-[#F8FAFC] px-4 py-3 hover:bg-slate-100"><div className="flex items-center justify-between gap-3"><span className="font-bold">{x.name}</span><span className={`text-xs font-black uppercase ${overdue ? "text-red-600" : "text-[#0F3E8A]"}`}>{overdue ? "Overdue" : x.priority}</span></div><div className="mt-1 text-sm text-slate-600">{x.title}</div><div className="mt-1 text-xs text-slate-400">Score {x.score} · {x.due_at ? new Date(x.due_at).toLocaleString() : "No due date"}</div></Link>})}{followUps.length === 0 && <Empty text="No dated open follow-ups are waiting." />}</div></Panel>
     </div>
 
     <div className="mt-6 rounded-[2rem] bg-[#0F3E8A] p-7 text-white"><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Operating rule</div><h2 className="mt-3 text-2xl font-black">Prioritize demand that can become revenue.</h2><p className="mt-2 max-w-3xl leading-7 text-white/70">Use product demand, lead quality, referral attribution, and overdue follow-ups together. High-interest products and high-score leads should shape the next sales action, campaign, and partner conversation.</p></div>
