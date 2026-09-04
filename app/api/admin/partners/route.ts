@@ -6,12 +6,12 @@ import { verifySession } from "@/lib/security";
 const PARTNER_TYPES = new Set(["AGENT", "INFLUENCER", "AFFILIATE", "RESELLER"]);
 const PARTNER_STATUSES = new Set(["ACTIVE", "PAUSED", "PENDING"]);
 
-function auth() {
-  return verifySession((cookies() as unknown as { get(name: string): { value?: string } | undefined }).get("aslal_session")?.value);
+async function isAuthorized() {
+  return Boolean(verifySession((await cookies()).get("aslal_session")?.value));
 }
 
 export async function POST(request: Request) {
-  if (!auth()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAuthorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const body = await request.json();
     const name = String(body.name ?? "").trim();
