@@ -10,7 +10,6 @@ export type LeadScoreBreakdown = {
 };
 
 type LeadSignalsRow = RowDataPacket & {
-  contact_submissions: number;
   product_views: number;
   pricing_interactions: number;
   demo_interactions: number;
@@ -33,7 +32,6 @@ export function getLeadScoreBand(score: number): LeadScoreBand {
 export async function calculateLeadScore(leadId: string): Promise<LeadScoreBreakdown> {
   const [rows] = await db.execute<LeadSignalsRow[]>(
     `SELECT
-       (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND LOWER(e.event_name) IN ('contact_form_submit', 'lead_created', 'contact_submit')) AS contact_submissions,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND (LOWER(e.event_name) LIKE '%product%view%' OR LOWER(e.event_name) IN ('product_view', 'view_product'))) AS product_views,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND (LOWER(e.event_name) LIKE '%pricing%' OR LOWER(e.event_name) LIKE '%price%')) AS pricing_interactions,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND LOWER(e.event_name) LIKE '%demo%') AS demo_interactions,
@@ -52,13 +50,9 @@ export async function calculateLeadScore(leadId: string): Promise<LeadScoreBreak
   const signals = rows[0];
   if (!signals) return { score: 0, band: "Cold", reasons: ["Lead not found"] };
 
-  let score = 0;
-  const reasons: string[] = [];
+  let score = 25;
+  const reasons: string[] = ["Contact form submission +25"];
 
-  if (signals.contact_submissions > 0) {
-    score += 25;
-    reasons.push("Contact form submission +25");
-  }
   if (signals.product_views > 0) {
     score += 10;
     reasons.push("Product interest +10");
