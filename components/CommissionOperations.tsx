@@ -44,7 +44,27 @@ export default function CommissionOperations() {
     setCommissions(data.commissions ?? []);
   }
 
-  useEffect(() => { load().catch((e) => setError(e instanceof Error ? e.message : "Could not load commission operations.")); }, []);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadInitialData() {
+      try {
+        const response = await fetch("/api/admin/commissions", { cache: "no-store" });
+        if (!response.ok) throw new Error("Could not load commission operations.");
+        const data = await response.json();
+        if (cancelled) return;
+        setPartners(data.partners ?? []);
+        setLeads(data.leads ?? []);
+        setLinks(data.links ?? []);
+        setCommissions(data.commissions ?? []);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Could not load commission operations.");
+      }
+    }
+
+    void loadInitialData();
+    return () => { cancelled = true; };
+  }, []);
 
   async function createCommission(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
