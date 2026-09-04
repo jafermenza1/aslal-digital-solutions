@@ -32,26 +32,44 @@ export default async function InsightsPage() {
       `SELECT
         p.slug AS product_slug,
         p.name AS product_name,
-        COUNT(e.id) AS views,
-        COUNT(DISTINCT e.visitor_id) AS unique_visitors,
-        COUNT(DISTINCT CASE WHEN v.visitor_event_count > 1 THEN e.visitor_id END) AS repeat_visitors,
-        COUNT(DISTINCT lpi.lead_id) AS leads_generated,
-        COUNT(DISTINCT CASE WHEN lpi.lead_id IS NOT NULL AND l.status IN ('QUALIFIED','DEMO','PROPOSAL','NEGOTIATION','WON') THEN l.id END) AS qualified_leads,
-        COUNT(DISTINCT CASE WHEN LOWER(e.event_name) LIKE '%demo%' THEN e.visitor_id END) AS demo_interactions,
-        COUNT(DISTINCT CASE WHEN l.status = 'WON' THEN l.id END) AS won_deals,
-        SUM(CASE WHEN l.status = 'WON' THEN COALESCE(l.deal_value, 0) ELSE 0 END) AS attributed_revenue
+        COALESCE(e.views, 0) AS views,
+        COALESCE(e.unique_visitors, 0) AS unique_visitors,
+        COALESCE(e.repeat_visitors, 0) AS repeat_visitors,
+        COALESCE(i.leads_generated, 0) AS leads_generated,
+        COALESCE(i.qualified_leads, 0) AS qualified_leads,
+        COALESCE(e.demo_interactions, 0) AS demo_interactions,
+        COALESCE(i.won_deals, 0) AS won_deals,
+        COALESCE(i.attributed_revenue, 0) AS attributed_revenue
       FROM products p
-      LEFT JOIN events e ON e.product_slug = p.slug
       LEFT JOIN (
-        SELECT visitor_id, COUNT(*) AS visitor_event_count
-        FROM events
-        WHERE visitor_id IS NOT NULL
-        GROUP BY visitor_id
-      ) v ON v.visitor_id = e.visitor_id
-      LEFT JOIN lead_product_interest lpi ON lpi.product_id = p.id
-      LEFT JOIN leads l ON l.id = lpi.lead_id
+        SELECT
+          e.product_slug,
+          COUNT(*) AS views,
+          COUNT(DISTINCT e.visitor_id) AS unique_visitors,
+          COUNT(DISTINCT CASE WHEN v.visitor_event_count > 1 THEN e.visitor_id END) AS repeat_visitors,
+          COUNT(DISTINCT CASE WHEN LOWER(e.event_name) LIKE '%demo%' THEN e.visitor_id END) AS demo_interactions
+        FROM events e
+        LEFT JOIN (
+          SELECT visitor_id, COUNT(*) AS visitor_event_count
+          FROM events
+          WHERE visitor_id IS NOT NULL
+          GROUP BY visitor_id
+        ) v ON v.visitor_id = e.visitor_id
+        WHERE e.product_slug IS NOT NULL
+        GROUP BY e.product_slug
+      ) e ON e.product_slug = p.slug
+      LEFT JOIN (
+        SELECT
+          lpi.product_id,
+          COUNT(DISTINCT lpi.lead_id) AS leads_generated,
+          COUNT(DISTINCT CASE WHEN l.status IN ('QUALIFIED','DEMO','PROPOSAL','NEGOTIATION','WON') THEN l.id END) AS qualified_leads,
+          COUNT(DISTINCT CASE WHEN l.status = 'WON' THEN l.id END) AS won_deals,
+          SUM(CASE WHEN l.status = 'WON' THEN COALESCE(l.deal_value, 0) ELSE 0 END) AS attributed_revenue
+        FROM lead_product_interest lpi
+        INNER JOIN leads l ON l.id = lpi.lead_id
+        GROUP BY lpi.product_id
+      ) i ON i.product_id = p.id
       WHERE p.active = 1
-      GROUP BY p.id, p.slug, p.name
       ORDER BY leads_generated DESC, views DESC
       LIMIT 20`
     ),
@@ -70,14 +88,18 @@ export default async function InsightsPage() {
     db.query<ReferralRow[]>(
       `SELECT
         COALESCE(l.referral_code, 'direct') AS referral_code,
-        COUNT(DISTINCT rc.id) AS clicks,
+        COALESCE(c.clicks, 0) AS clicks,
         COUNT(DISTINCT l.id) AS leads,
         COUNT(DISTINCT CASE WHEN l.status = 'WON' THEN l.id END) AS won_deals,
         SUM(CASE WHEN l.status = 'WON' THEN COALESCE(l.deal_value, 0) ELSE 0 END) AS revenue
       FROM leads l
-      LEFT JOIN referral_links rl ON rl.code = l.referral_code
-      LEFT JOIN referral_clicks rc ON rc.referral_link_id = rl.id
-      GROUP BY COALESCE(l.referral_code, 'direct')
+      LEFT JOIN (
+        SELECT rl.code, COUNT(DISTINCT rc.id) AS clicks
+        FROM referral_links rl
+        LEFT JOIN referral_clicks rc ON rc.referral_link_id = rl.id
+        GROUP BY rl.code
+      ) c ON c.code = l.referral_code
+      GROUP BY COALESCE(l.referral_code, 'direct'), c.clicks
       ORDER BY leads DESC, clicks DESC
       LIMIT 10`
     ),
