@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/security";
+import type { RowDataPacket } from "mysql2/promise";
 
 const transitions: Record<string, string[]> = {
   PENDING: ["QUALIFIED", "VOID"],
@@ -11,6 +12,8 @@ const transitions: Record<string, string[]> = {
   PAID: [],
   VOID: [],
 };
+
+type CommissionStatusRow = RowDataPacket & { status: string };
 
 async function authorized() {
   return Boolean(verifySession((await cookies()).get("aslal_session")?.value));
@@ -29,7 +32,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return NextResponse.json({ error: "Invalid commission status." }, { status: 400 });
     }
 
-    const [rows] = await db.query<{ status: string }[]>(`SELECT status FROM commissions WHERE id=? LIMIT 1`, [id]);
+    const [rows] = await db.query<CommissionStatusRow[]>(`SELECT status FROM commissions WHERE id=? LIMIT 1`, [id]);
     const current = rows[0]?.status;
     if (!current) return NextResponse.json({ error: "Commission not found." }, { status: 404 });
     if (!transitions[current]?.includes(nextStatus)) {
