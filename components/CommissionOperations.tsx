@@ -62,6 +62,7 @@ export default function CommissionOperations() {
       }
     }
 
+    // Initial data is loaded asynchronously; cancellation prevents stale updates after unmount.
     void loadInitialData();
     return () => { cancelled = true; };
   }, []);
