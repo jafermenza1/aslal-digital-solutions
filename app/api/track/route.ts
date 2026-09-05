@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
+import { recalculateLeadScore } from "@/lib/lead-scoring";
 
 const MAX_METADATA_BYTES = 8000;
+
+type LeadRow = RowDataPacket & { id: string };
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +41,20 @@ export async function POST(request: NextRequest) {
       "INSERT INTO events (visitor_id, event_name, page_path, product_slug, metadata) VALUES (?, ?, ?, ?, ?)",
       [visitorId, eventName, pagePath, productSlug, metadata]
     );
+
+    const [leadRows] = await db.execute<LeadRow[]>(
+      "SELECT id FROM leads WHERE visitor_id = ? AND status NOT IN ('WON', 'LOST') ORDER BY created_at DESC LIMIT 1",
+      [visitorId]
+    );
+    const lead = leadRows[0];
+    if (lead) {
+      try {
+        await recalculateLeadScore(lead.id);
+      } catch (error) {
+        console.error("LEAD_SCORE_ERROR", error);
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("TRACKING_ERROR", error);

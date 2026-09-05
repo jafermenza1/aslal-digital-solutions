@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
+import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 
@@ -124,6 +125,12 @@ export async function POST(request: NextRequest) {
       throw error;
     } finally {
       connection.release();
+    }
+
+    try {
+      await recalculateLeadScore(leadId);
+    } catch (error) {
+      console.error("LEAD_SCORE_ERROR", error);
     }
 
     return NextResponse.json({ ok: true, leadId });
