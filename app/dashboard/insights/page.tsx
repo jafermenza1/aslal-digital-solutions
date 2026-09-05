@@ -127,6 +127,7 @@ export default async function InsightsPage() {
   const referrals = referralRows[0];
   const activity = activityRows[0];
   const followUps = followUpRows[0];
+  // Use one database clock value for the whole render so overdue classification is deterministic.
   const now = new Date(clockRows[0][0]?.now ?? 0).getTime();
 
   return <main className="min-h-screen bg-[#F8FAFC] py-10"><div className="container-aslal">
