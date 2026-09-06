@@ -8,28 +8,30 @@ export function ContactForm() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setSubmitting(true);
     setStatus("Sending…");
 
     try {
-      const form = new FormData(event.currentTarget);
-      const body = Object.fromEntries(form.entries());
+      const body = Object.fromEntries(new FormData(form).entries());
       const response = await fetch("/api/leads", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify(body),
       });
-      const data = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        setStatus(data.error || "Something went wrong. Please try again.");
+      if (response.ok && data?.ok === true) {
+        form.reset();
+        setStatus("Thank you. Your request is now in our sales pipeline.");
         return;
       }
 
-      setStatus("Thank you. Your request is now in our sales pipeline.");
-      event.currentTarget.reset();
-    } catch {
-      setStatus("We couldn't send your request. Please check your connection and try again.");
+      setStatus(typeof data?.error === "string" ? data.error : "We couldn't confirm your request. Please try again.");
+    } catch (error) {
+      console.error("CONTACT_FORM_SUBMIT_FAILED", error);
+      setStatus("We couldn't confirm the submission. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
