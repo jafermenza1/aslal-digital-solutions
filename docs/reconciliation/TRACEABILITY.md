@@ -10,18 +10,18 @@ The acceptance evidence column defines what must be demonstrated before the requ
 
 | ID | PRD outcome | Current repository evidence | Current status | Required reconciliation evidence | Planned phase |
 |---|---|---|---|---|---|
-| R01 | First-party visitor tracking | Visitor/Event/tracking foundation exists | PARTIAL | Verified page, product, referral and meaningful-event journeys persist correctly | 3 |
-| R02 | Anonymous identity protection | Anonymous visitor identifier exists | PARTIAL | Verified anonymous activity never becomes a claimed person without legitimate identification | 3 |
-| R03 | Controlled business event taxonomy | Generic Event model/tracking exists | PARTIAL | Canonical event constants plus instrumentation and tests cover required events | 3 |
-| R04 | Growth Opportunity | No dedicated commercial opportunity for anonymous high-intent activity | MISSING | High-intent anonymous signal can be reviewed without false identity assignment | 3 |
-| R05 | Lead capture | Lead API and Lead model exist | PARTIAL | Persistence, response, attribution, duplicate behavior and failure paths verified | 2 |
-| R06 | Transparent lead scoring | Lead scoring utility exists | PARTIAL | Required PRD scoring semantics are reconciled and tested against actual events | 2/3 |
-| R07 | Lead ownership | Task assignment exists; no canonical lead owner | MISSING | Active lead has one explicit owner and ownership changes are audited | 2 |
-| R08 | Required next action | LeadTask exists | PARTIAL | Active lead cannot remain operationally orphaned without a next action or explicit terminal reason | 2 |
-| R09 | Sales stages | LeadStatus and stage history exist | PARTIAL | Stage transitions, reasons, ownership and next actions satisfy PRD acceptance rules | 2 |
-| R10 | Opportunity entity | Lead currently carries commercial state | MISSING | Opportunity supports one or more commercial pursuits independently of Lead identity | 3 |
-| R11 | Customer entity | WON is represented on Lead | MISSING | Customer record is created from a verified sale and linked to the originating journey | 3 |
-| R12 | Unified customer timeline | Events, notes and stage history are separate | PARTIAL | Chronological activity timeline combines all relevant activity without duplicate semantics | 3 |
+| R01 | First-party visitor tracking | Visitor/Event/tracking foundation plus canonical taxonomy and journey linkage | IMPLEMENTED-UNVERIFIED | Verified page, product, referral and meaningful-event journeys persist correctly | 3 |
+| R02 | Anonymous identity protection | Anonymous visitor plus explicit Growth Opportunity boundary | IMPLEMENTED-UNVERIFIED | Verified anonymous activity never becomes a claimed person without legitimate identification | 3 |
+| R03 | Controlled business event taxonomy | Canonical business-event taxonomy enforced at tracking boundary | IMPLEMENTED-UNVERIFIED | Canonical event constants plus instrumentation and tests cover required events | 3 |
+| R04 | Growth Opportunity | GrowthOpportunity records high-intent anonymous signals without Person identity | IMPLEMENTED-UNVERIFIED | High-intent anonymous signal can be reviewed without false identity assignment | 3 |
+| R05 | Lead capture | Lead API persists attribution, phone normalization, Person identity, and sales triage fields | IMPLEMENTED-UNVERIFIED | Persistence, response, attribution, duplicate behavior and failure paths verified | 2 |
+| R06 | Transparent lead scoring | Existing transparent scoring preserved and recalculated on tracked lead activity | IMPLEMENTED-UNVERIFIED | Required PRD scoring semantics are reconciled and tested against actual events | 2/3 |
+| R07 | Lead ownership | Canonical owner plus configured sales-queue owner on new capture | IMPLEMENTED-UNVERIFIED | Active lead has one explicit owner and ownership changes are audited | 2 |
+| R08 | Required next action | Active-state enforcement plus capture-time triage action/deadline | IMPLEMENTED-UNVERIFIED | Active lead cannot remain operationally orphaned without a next action or explicit terminal reason | 2 |
+| R09 | Sales stages | Stage changes remain explicit and auditable with execution controls | IMPLEMENTED-UNVERIFIED | Stage transitions, reasons, ownership and next actions satisfy PRD acceptance rules | 2 |
+| R10 | Opportunity entity | Distinct Opportunity model linked to Lead | IMPLEMENTED-UNVERIFIED | Opportunity supports one or more commercial pursuits independently of Lead identity | 3 |
+| R11 | Customer entity | Distinct Customer created through controlled WON conversion | IMPLEMENTED-UNVERIFIED | Customer record is created from a verified sale and linked to the originating journey | 3 |
+| R12 | Unified customer timeline | Chronological timeline combines visitor events, activities, stage history, notes, and tasks | IMPLEMENTED-UNVERIFIED | Chronological activity timeline combines all relevant activity without duplicate semantics | 3 |
 | R13 | Email channel | No unified messaging subsystem | MISSING | Inbound/outbound email is stored, attributable, permission-aware and human-readable in timeline | 4 |
 | R14 | SMS channel | No SMS adapter | MISSING | Provider adapter supports Ethiopian numbers, delivery state and opt-out | 4 |
 | R15 | Telegram sales channel | Telegram entry point exists | PARTIAL | Bot qualification, lead update, attribution, history and handoff are verified | 4 |
@@ -36,8 +36,8 @@ The acceptance evidence column defines what must be demonstrated before the requ
 | R24 | Commission lifecycle | Commission statuses and operations exist | PARTIAL | All transitions are auditable and linked to the actual commercial outcome | 6 |
 | R25 | Revenue model | Deal value/WON fields exist | PARTIAL | Revenue is separated from pipeline value and can link to payment/order evidence | 6 |
 | R26 | Payment abstraction | No payment/order model | MISSING | ETB payment provider adapter and reconciliation flow are verified | 6 |
-| R27 | Ethiopian phone normalization | Phone is stored as free text | MISSING | Canonical Ethiopian phone representation is applied consistently | 2/4 |
-| R28 | English/Amharic/Afaan Oromoo | Current locale support is incomplete | PARTIAL | All three languages can be selected and customer preference is stored | 2/4 |
+| R27 | Ethiopian phone normalization | Capture normalizes valid Ethiopian numbers to canonical +251 form | IMPLEMENTED-UNVERIFIED | Canonical Ethiopian phone representation is applied consistently | 2/4 |
+| R28 | English/Amharic/Afaan Oromoo | Shared locale contract includes English, Amharic, and Afaan Oromoo | IMPLEMENTED-UNVERIFIED | All three languages can be selected and customer preference is stored | 2/4 |
 | R29 | Communication preferences | No canonical preference model | MISSING | Channel consent/opt-out/preferences are stored and enforced | 4/5 |
 | R30 | Privacy lifecycle | Basic security/tracking boundaries exist | PARTIAL | Retention, export, deletion/anonymization and purpose controls are demonstrated | 6/7 |
 | R31 | RBAC | Single-admin authentication exists | PARTIAL | Users, roles and permissions enforce access to CRM, partner, finance and system data | 2/7 |
