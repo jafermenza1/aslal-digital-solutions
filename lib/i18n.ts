@@ -1,4 +1,4 @@
-export type Locale = "en" | "am";
+export type Locale = "en" | "am" | "om";
 
 export const localeCookie = "aslal_locale";
 
@@ -22,6 +22,16 @@ export const copy = {
     graph: { label: "ASLAL የእድገት ግራፍ", badge: "የእድገት ሞዴል", roi: "የሚለካ ROI", flow: "ገንባ → አስተካክል → አሳድግ" },
     difference: { eyebrow: "የASLAL ልዩነት", title: "ድረ-ገጽዎ መኖሩ ብቻ በቂ አይደለም።", body: "ዲጂታል መገኘትን፣ ምርቶችን፣ ማርኬቲንግን፣ ሽያጭን እና Automationን በአንድ የእድገት ስርዓት እናገናኛለን—ትኩረት ወደ ገቢ እንዲመራ።" },
     sections: { solutions: "የእድገት ሞተርዎ የሚፈልገው ሁሉ።", automation: "ቃላችንን ብቻ አትመኑ። ቴክኖሎጂውን ይሞክሩ።", ready: "ለንግድዎ ትክክለኛውን ዲጂታል ስርዓት እንገንባ።" },
+  },
+  om: {
+    language: "AM",
+    languageName: "Afaan Oromoo",
+    nav: { solutions: "Furmaata", products: "Oomishaalee", work: "Hojii", lab: "Automation Lab", contact: "Nu qunnamaa", about: "Waa'ee keenya", resources: "Qabeenya" },
+    actions: { start: "Pirojektii jalqabi", expert: "Ogeessa waliin haasa'i", build: "Sirna guddinaa koo ijaari", demo: "Automation yaali →" },
+    hero: { eyebrow: "ITOOPHIYAA • ENGINEERING GUDDINAA", title: "Sirnoota dijitaalaa kan", highlight: "xiyyeeffannoo", end: "gara guddinaatti jijjiiran.", body: "Aslal Digital Solutions dhaabbilee guddachuu barbaadaniif marsariitii, software, e-commerce, marketing fi automation ijaara." },
+    graph: { label: "ASLAL GROWTH GRAPH", badge: "GROWTH MODEL", roi: "ROI SAFARU", flow: "IJAARI → AUTOMATE GODHI → GUDDADHU" },
+    difference: { eyebrow: "GARAAGARUMMAA ASLAL", title: "Marsariitiin kee jiraachuu qofa caalaa hojjechuu qaba.", body: "Argama dijitaalaa, oomisha, marketing, gurgurtaa fi automation sirna guddinaa tokko keessatti walitti hidha." },
+    sections: { solutions: "Wanti sirna guddinaa kee barbaadu hundi.", automation: "Jechoota keenya qofa hin amaniin. Teeknooloojicha yaali.", ready: "Sirna dijitaalaa hojii kee dhugaa barbaadu haa ijaarru." },
   },
 } as const;
 
