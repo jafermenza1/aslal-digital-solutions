@@ -95,6 +95,9 @@ model Lead {
   source            String?            @db.VarChar(100)
   medium            String?            @db.VarChar(100)
   campaign          String?            @db.VarChar(150)
+  ownerEmail        String?            @map("owner_email") @db.VarChar(190)
+  nextAction        String?            @map("next_action") @db.VarChar(190)
+  nextActionDueAt   DateTime?          @map("next_action_due_at") @db.DateTime(0)
   referralCode      String?            @map("referral_code") @db.VarChar(100)
   dealValue         Decimal?           @map("deal_value") @db.Decimal(15, 2)
   wonAt             DateTime?          @map("won_at") @db.DateTime(0)
@@ -111,6 +114,8 @@ model Lead {
   @@index([score], map: "idx_leads_score")
   @@index([createdAt], map: "idx_leads_created")
   @@index([referralCode], map: "idx_leads_referral")
+  @@index([ownerEmail, status], map: "idx_leads_owner_status")
+  @@index([nextActionDueAt, status], map: "idx_leads_next_action_due_status")
   @@map("leads")
 }
 
