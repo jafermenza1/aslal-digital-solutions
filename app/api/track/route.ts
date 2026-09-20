@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { RowDataPacket } from "mysql2";
+import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
+import { growthOpportunityFor, isBusinessEvent } from "@/lib/event-taxonomy";
 
 const MAX_METADATA_BYTES = 8000;
 
@@ -11,7 +13,8 @@ type LeadRow = RowDataPacket & { id: string };
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const eventName = String(body.eventName || "unknown").trim().slice(0, 100) || "unknown";
+    const eventName = String(body.eventName || "").trim().slice(0, 100);
+    if (!isBusinessEvent(eventName)) return NextResponse.json({ ok: false, error: "Unsupported business event." }, { status: 400 });
     const pagePath = body.pagePath ? String(body.pagePath).slice(0, 500) : null;
     const productSlug = body.productSlug ? String(body.productSlug).slice(0, 160) : null;
     const metadataObject = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
@@ -41,6 +44,22 @@ export async function POST(request: NextRequest) {
       "INSERT INTO events (visitor_id, event_name, page_path, product_slug, metadata) VALUES (?, ?, ?, ?, ?)",
       [visitorId, eventName, pagePath, productSlug, metadata]
     );
+
+    const growthSignal = growthOpportunityFor(eventName, productSlug);
+    if (growthSignal) {
+      const [existingRows] = await db.execute<RowDataPacket[]>(
+        "SELECT id FROM growth_opportunities WHERE visitor_id = ? AND interest = ? AND status = 'OPEN' LIMIT 1",
+        [visitorId, growthSignal.interest]
+      );
+      if (!existingRows[0]) {
+        await db.execute(
+          `INSERT INTO growth_opportunities
+            (id, visitor_id, interest, engagement_level, source, medium, campaign, recommended_next_action)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [randomUUID(), visitorId, growthSignal.interest, growthSignal.engagementLevel, utmSource, utmMedium, utmCampaign, growthSignal.recommendedNextAction]
+        );
+      }
+    }
 
     const [leadRows] = await db.execute<LeadRow[]>(
       "SELECT id FROM leads WHERE visitor_id = ? AND status NOT IN ('WON', 'LOST') ORDER BY created_at DESC LIMIT 1",
