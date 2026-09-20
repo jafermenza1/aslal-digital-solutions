@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { RowDataPacket } from "mysql2";
+import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
