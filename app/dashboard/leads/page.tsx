@@ -18,8 +18,10 @@ async function changeStatus(formData: FormData) {
   const leadId = String(formData.get("leadId") || "");
   const status = String(formData.get("status") || "") as LeadStatus;
   if (!leadId || !stages.includes(status)) return;
-  const lead = await prisma.lead.findUnique({ where: { id: leadId }, select: { status: true } });
+  const lead = await prisma.lead.findUnique({ where: { id: leadId }, select: { status: true, ownerEmail: true, nextAction: true, nextActionDueAt: true } });
   if (!lead || lead.status === status) return;
+  const activeTarget = status !== LeadStatus.WON && status !== LeadStatus.LOST;
+  if (activeTarget && (!lead.ownerEmail || !lead.nextAction || !lead.nextActionDueAt)) return;
   await prisma.$transaction([
     prisma.lead.update({ where: { id: leadId }, data: { status, ...(status === LeadStatus.WON ? { wonAt: new Date() } : {}) } }),
     prisma.leadStageHistory.create({ data: { leadId, fromStage: lead.status, toStage: status, changedBy: session.email } }),
