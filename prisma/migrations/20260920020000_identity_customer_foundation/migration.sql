@@ -53,6 +53,7 @@ CREATE TABLE `customers` (
   INDEX `idx_customer_email` (`email`),
   INDEX `idx_customer_phone` (`phone`),
   INDEX `idx_customer_status` (`status`),
+  UNIQUE INDEX `uq_customer_opportunity` (`opportunity_id`),
   CONSTRAINT `fk_customer_person` FOREIGN KEY (`person_id`) REFERENCES `persons`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_customer_opportunity` FOREIGN KEY (`opportunity_id`) REFERENCES `opportunities`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
