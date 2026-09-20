@@ -4,6 +4,7 @@ export const siteConfig = {
   email: "info@aslaldigital.com",
   phone: "+251 911-276682",
   location: "Addis Ababa, Ethiopia",
+  defaultLeadOwnerEmail: process.env.ASLAL_DEFAULT_LEAD_OWNER_EMAIL || "info@aslaldigital.com",
   colors: { blue: "#0F3E8A", gold: "#E2B02A", slate: "#1E293B", ice: "#F8FAFC" },
 };
 
