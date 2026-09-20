@@ -73,17 +73,25 @@ export async function POST(request: NextRequest) {
     const visitor = visitorRows[0];
     const source = referralCode ? "partner" : visitor?.first_source || "website";
     const leadId = randomUUID();
+    const personId = randomUUID();
     const connection = await db.getConnection();
 
     try {
       await connection.beginTransaction();
       await connection.execute(
+        `INSERT INTO persons (id, name, email, phone)
+         VALUES (?, ?, ?, ?)`,
+        [personId, name, email || null, phone || null]
+      );
+
+      await connection.execute(
         `INSERT INTO leads
-          (id, visitor_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, referral_code)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?)`,
+          (id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, referral_code)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?)`,
         [
           leadId,
           visitorId,
+          personId,
           name,
           email || null,
           phone || null,
