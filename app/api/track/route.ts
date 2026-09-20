@@ -3,6 +3,7 @@ import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
+import { growthOpportunityFor, isBusinessEvent } from "@/lib/event-taxonomy";
 
 const MAX_METADATA_BYTES = 8000;
 
@@ -11,7 +12,8 @@ type LeadRow = RowDataPacket & { id: string };
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const eventName = String(body.eventName || "unknown").trim().slice(0, 100) || "unknown";
+    const eventName = String(body.eventName || "").trim().slice(0, 100);
+    if (!isBusinessEvent(eventName)) return NextResponse.json({ ok: false, error: "Unsupported business event." }, { status: 400 });
     const pagePath = body.pagePath ? String(body.pagePath).slice(0, 500) : null;
     const productSlug = body.productSlug ? String(body.productSlug).slice(0, 160) : null;
     const metadataObject = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
