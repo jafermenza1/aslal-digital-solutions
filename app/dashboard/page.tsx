@@ -8,7 +8,7 @@ const stages=["NEW","CONTACTED","QUALIFIED","DEMO","PROPOSAL","NEGOTIATION","WON
 export default async function DashboardPage(){
  const session=verifySession((await cookies()).get("aslal_session")?.value); if(!session) redirect("/login");
  const [visitors,leads,opportunities,customers,pipeline,won,overdue,growth,recent,stageCounts]=await Promise.all([
-  prisma.visitor.count(),prisma.lead.count(),prisma.opportunity.count(),prisma.customer.count(),
+  prisma.visitor.count(),prisma.lead.count(),prisma.opportunity.count({where:{stage:{notIn:["WON","LOST"]}}}),prisma.customer.count(),
   prisma.opportunity.aggregate({where:{stage:{notIn:["WON","LOST"]}},_sum:{expectedValue:true}}),
   prisma.opportunity.aggregate({where:{stage:"WON"},_count:{_all:true},_sum:{expectedValue:true}}),
   prisma.leadTask.count({where:{status:{in:["OPEN","IN_PROGRESS"]},dueAt:{lt:new Date()}}}),
