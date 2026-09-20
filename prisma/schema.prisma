@@ -75,6 +75,7 @@ model Visitor {
   leads               Lead[]
   events              Event[]
   referralClicks      ReferralClick[]
+  growthOpportunities GrowthOpportunity[]
 
   @@index([lastSeenAt], map: "idx_visitors_last_seen")
   @@index([firstReferralCode], map: "idx_visitors_referral")
@@ -84,6 +85,7 @@ model Visitor {
 model Lead {
   id                String             @id @db.Char(36)
   visitorId         String?            @map("visitor_id") @db.Char(36)
+  personId          String?            @map("person_id") @db.Char(36)
   name              String             @db.VarChar(160)
   email             String?            @db.VarChar(190)
   phone             String?            @db.VarChar(40)
@@ -109,11 +111,14 @@ model Lead {
   stageHistory      LeadStageHistory[]
   productInterests  LeadProductInterest[]
   commissions       Commission[]
+  person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
+  opportunities     Opportunity[]
 
   @@index([status], map: "idx_leads_status")
   @@index([score], map: "idx_leads_score")
   @@index([createdAt], map: "idx_leads_created")
   @@index([referralCode], map: "idx_leads_referral")
+  @@index([personId], map: "idx_leads_person")
   @@index([ownerEmail, status], map: "idx_leads_owner_status")
   @@index([nextActionDueAt, status], map: "idx_leads_next_action_due_status")
   @@map("leads")
@@ -276,4 +281,107 @@ model LeadProductInterest {
   @@unique([leadId, productId], map: "uq_lead_product_interest")
   @@index([productId, interestScore], map: "idx_product_interest_score")
   @@map("lead_product_interest")
+}
+
+
+model Person {
+  id          String    @id @db.Char(36)
+  name        String    @db.VarChar(160)
+  email       String?   @db.VarChar(190)
+  phone       String?   @db.VarChar(40)
+  language    String?   @db.VarChar(20)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  leads       Lead[]
+  customers   Customer[]
+  activities  Activity[]
+
+  @@index([email], map: "idx_person_email")
+  @@index([phone], map: "idx_person_phone")
+  @@map("persons")
+}
+
+model Opportunity {
+  id              String     @id @db.Char(36)
+  leadId          String     @map("lead_id") @db.Char(36)
+  name            String     @db.VarChar(190)
+  productSlug     String?    @map("product_slug") @db.VarChar(160)
+  expectedValue   Decimal?   @map("expected_value") @db.Decimal(15, 2)
+  currency        String     @default("ETB") @db.VarChar(10)
+  probability     Int        @default(0)
+  stage           LeadStatus @default(NEW)
+  expectedCloseAt DateTime?  @map("expected_close_at") @db.DateTime(0)
+  ownerEmail      String?    @map("owner_email") @db.VarChar(190)
+  source          String?    @db.VarChar(100)
+  medium          String?    @db.VarChar(100)
+  campaign        String?    @db.VarChar(150)
+  referralCode    String?    @map("referral_code") @db.VarChar(100)
+  createdAt       DateTime   @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.DateTime(0)
+  lead            Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  customer        Customer?
+  activities      Activity[]
+
+  @@index([leadId, stage], map: "idx_opportunities_lead_stage")
+  @@index([ownerEmail, stage], map: "idx_opportunities_owner_stage")
+  @@map("opportunities")
+}
+
+model Customer {
+  id            String        @id @db.Char(36)
+  personId      String?       @map("person_id") @db.Char(36)
+  opportunityId String?       @unique @map("opportunity_id") @db.Char(36)
+  name          String        @db.VarChar(160)
+  email         String?       @db.VarChar(190)
+  phone         String?       @db.VarChar(40)
+  status        String        @default("ACTIVE") @db.VarChar(30)
+  language      String?       @db.VarChar(20)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.DateTime(0)
+  person        Person?       @relation(fields: [personId], references: [id], onDelete: SetNull)
+  opportunity   Opportunity?  @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  activities    Activity[]
+
+  @@index([email], map: "idx_customer_email")
+  @@index([phone], map: "idx_customer_phone")
+  @@index([status], map: "idx_customer_status")
+  @@map("customers")
+}
+
+model Activity {
+  id            BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  type          String        @db.VarChar(80)
+  subject       String?       @db.VarChar(190)
+  details       Json?
+  personId      String?       @map("person_id") @db.Char(36)
+  customerId    String?       @map("customer_id") @db.Char(36)
+  opportunityId String?       @map("opportunity_id") @db.Char(36)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.DateTime(0)
+  person        Person?       @relation(fields: [personId], references: [id], onDelete: SetNull)
+  customer      Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  opportunity   Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+
+  @@index([personId, createdAt], map: "idx_activity_person_created")
+  @@index([customerId, createdAt], map: "idx_activity_customer_created")
+  @@index([opportunityId, createdAt], map: "idx_activity_opportunity_created")
+  @@map("activities")
+}
+
+model GrowthOpportunity {
+  id                    String   @id @db.Char(36)
+  visitorId             String   @map("visitor_id") @db.Char(36)
+  interest              String   @db.VarChar(190)
+  engagementLevel       String   @map("engagement_level") @db.VarChar(40)
+  source                String?  @db.VarChar(100)
+  medium                String?  @db.VarChar(100)
+  campaign              String?  @db.VarChar(150)
+  recommendedNextAction String?  @map("recommended_next_action") @db.VarChar(190)
+  status                String   @default("OPEN") @db.VarChar(30)
+  createdAt             DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  visitor               Visitor  @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+
+  @@index([visitorId, status], map: "idx_growth_opportunity_visitor_status")
+  @@index([status, createdAt], map: "idx_growth_opportunity_status_created")
+  @@map("growth_opportunities")
 }
