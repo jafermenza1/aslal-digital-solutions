@@ -14,6 +14,7 @@ type VisitorRow = RowDataPacket & {
 };
 
 type ProductRow = RowDataPacket & { id: string };
+type PersonRow = RowDataPacket & { id: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map<string, { count: number; resetAt: number }>();
@@ -79,17 +80,39 @@ export async function POST(request: NextRequest) {
     const source = referralCode ? "partner" : visitor?.first_source || "website";
     const leadId = randomUUID();
     const nextActionDueAt = new Date(Date.now() + 30 * 60 * 1000);
+    let personId = "";
     const connection = await db.getConnection();
 
     try {
       await connection.beginTransaction();
+      const [personRows] = await connection.execute<PersonRow[]>(
+        email
+          ? "SELECT id FROM persons WHERE email = ? LIMIT 1"
+          : "SELECT id FROM persons WHERE phone = ? LIMIT 1",
+        [email || phone]
+      );
+      personId = personRows[0]?.id || randomUUID();
+      if (!personRows[0]) {
+        await connection.execute(
+          `INSERT INTO persons (id, name, email, phone)
+           VALUES (?, ?, ?, ?)`,
+          [personId, name, email || null, phone]
+        );
+      } else {
+        await connection.execute(
+          `UPDATE persons SET name = ?, phone = ?, email = ? WHERE id = ?`,
+          [name, phone, email || null, personId]
+        );
+      }
+
       await connection.execute(
         `INSERT INTO leads
-          (id, visitor_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code)
+          (id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?)`,
         [
           leadId,
           visitorId,
+          personId,
           name,
           email || null,
           phone,
