@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { siteConfig } from "@/lib/config";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
+import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
@@ -17,6 +19,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_SUBMISSIONS = 5;
+const DEFAULT_NEXT_ACTION = "Review new lead and confirm sales owner";
 
 function clean(value: unknown, maxLength: number) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
@@ -52,7 +55,8 @@ export async function POST(request: NextRequest) {
 
     const name = clean(body.name, 160);
     const email = clean(body.email, 190).toLowerCase();
-    const phone = clean(body.phone, 40);
+    const phoneInput = clean(body.phone, 40);
+    const phone = normalizeEthiopianPhone(phoneInput);
     const company = clean(body.company, 190);
     const businessType = clean(body.businessType, 100);
     const message = clean(body.message, 5000);
@@ -61,7 +65,8 @@ export async function POST(request: NextRequest) {
     if (!name) return NextResponse.json({ error: "Name is required." }, { status: 400 });
     if (!message) return NextResponse.json({ error: "Message is required." }, { status: 400 });
     if (email && !EMAIL_RE.test(email)) return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
-    if (!email && !phone) return NextResponse.json({ error: "Please provide an email or phone number so we can contact you." }, { status: 400 });
+    if (phoneInput && !phone) return NextResponse.json({ error: "Please enter a valid Ethiopian phone number." }, { status: 400 });
+    if (!email && !phone) return NextResponse.json({ error: "Please provide an email or valid Ethiopian phone number so we can contact you." }, { status: 400 });
 
     recordSubmission(key);
     const visitorId = await getOrCreateVisitor();
@@ -73,33 +78,37 @@ export async function POST(request: NextRequest) {
     const visitor = visitorRows[0];
     const source = referralCode ? "partner" : visitor?.first_source || "website";
     const leadId = randomUUID();
+    const nextActionDueAt = new Date(Date.now() + 30 * 60 * 1000);
     const connection = await db.getConnection();
 
     try {
       await connection.beginTransaction();
       await connection.execute(
         `INSERT INTO leads
-          (id, visitor_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, referral_code)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?)`,
+          (id, visitor_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?)`,
         [
           leadId,
           visitorId,
           name,
           email || null,
-          phone || null,
+          phone,
           company || null,
           businessType || null,
           message,
           source,
           visitor?.first_medium || null,
           visitor?.first_campaign || null,
+          siteConfig.defaultLeadOwnerEmail,
+          DEFAULT_NEXT_ACTION,
+          nextActionDueAt,
           referralCode || null,
         ]
       );
 
       await connection.execute(
-        `INSERT INTO lead_stage_history (lead_id, from_stage, to_stage, changed_by)
-         VALUES (?, NULL, 'NEW', 'website')`,
+        `INSERT INTO lead_stage_history (lead_id, from_stage, to_stage, changed_by, note)
+         VALUES (?, NULL, 'NEW', 'website', 'System triage owner and next-action deadline assigned at capture.')`,
         [leadId]
       );
 
