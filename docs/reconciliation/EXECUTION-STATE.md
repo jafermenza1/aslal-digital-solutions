@@ -30,7 +30,7 @@ Do not invent status synonyms.
 | 1 | Baseline and Domain Contract | SATISFIED | Reconciliation framework, PRD authority, domain contract and traceability controls are on main. |
 | 2 | Sales Execution Integrity | IMPLEMENTED-UNVERIFIED | Implementation exists in open PR #18; not merged/accepted on main. |
 | 3 | Identity, Engagement, Customer Journey | IMPLEMENTED-UNVERIFIED | Implementation exists in open PR #19; not merged/accepted on main. |
-| 4 | Conversations and Channel Adapters | MISSING | Must not begin until earlier phase gates are satisfied and the pointer advances. |
+| 4 | Conversations and Channel Adapters | MISSING | Roadmap phase is explicitly queued. Implementation starts only after the Phase 4 entry gate is reached. Current build/verification issues are deferred to the consolidated verification record rather than changing the roadmap. |
 | 5 | Automation Engine | MISSING | Future phase; no implementation should be introduced now. |
 | 6 | Campaign, Partner, Revenue, Payment | PARTIAL | Existing foundations exist, but this reconciliation phase has not been accepted. |
 | 7 | End-to-End Verification and Intelligence | MISSING | Final verification/intelligence phase; AI remains deferred until foundations are reliable. |
@@ -75,13 +75,60 @@ Required gate sequence:
 12. PR is merged.
 13. Mainline ledger and traceability are updated.
 
+## Phase 4 — Queued scope
+
+Phase 4 is now explicitly part of the active roadmap and must not be forgotten.
+
+Scope:
+- Conversation and Message as canonical communication records.
+- Channel adapters in controlled order: Telegram and Email first, followed by WhatsApp and Messenger, with SMS as a first-class provider adapter.
+- Correct linkage of inbound/outbound messages to known customer/lead/opportunity context.
+- Human handoff and ownership state.
+- Channel permissions and communication preferences.
+- Preserve the Growth OS identity boundary: channel activity must not fabricate identity.
+- Low-bandwidth/mobile considerations for critical communication workflows.
+
+Primary R-IDs:
+- R13 Email
+- R14 SMS
+- R15 Telegram
+- R16 WhatsApp
+- R17 Messenger
+- R18 Human handoff
+- related R29 communication preferences
+- related R12 unified customer timeline
+
+Phase 4 entry gate:
+1. Phase 2 is accepted/merged.
+2. Phase 3 is accepted/merged.
+3. Required identity/customer foundations are evidenced.
+4. Any outstanding build/CI/deployment verification is recorded and consolidated before Phase 4 acceptance; verification work must not silently change the roadmap.
+
+Phase 4 exit condition:
+Inbound/outbound messages are recorded against the correct context, human handoff works, permissions/opt-outs are respected, and the customer/lead journey remains reconstructable.
+
+## Deferred consolidated verification
+
+Current GitHub repository build/verification is not yet reliable enough to use as phase-completion evidence.
+
+Do not treat this as a roadmap change.
+
+When verification is resumed, consolidate the relevant:
+- GitHub Actions build/CI results;
+- lint/typecheck/build results;
+- migration verification;
+- deployment/runtime verification;
+- regressions and corrections;
+- Phase 2 and Phase 3 acceptance evidence;
+- Phase 4 evidence once Phase 4 implementation begins.
+
+Record the evidence against the owning phase and update this file only from verified results.
+
 ## Single next action
 
-Do not start Phase 4.
+Continue the existing Phase 2 and Phase 3 tracks in phase order. Phase 4 is now formally queued and documented, but do not claim Phase 4 implementation has started or that its acceptance gates have passed.
 
-Finish and verify Phase 2 and Phase 3 in their existing PRs, in phase order, then merge only after their documented acceptance gates pass.
-
-The phase pointer advances only after the earlier phase is merged and its exit condition is evidenced.
+The roadmap pointer advances only when the previous phase is accepted and its exit condition is evidenced.
 
 ## Correction-control rule
 
