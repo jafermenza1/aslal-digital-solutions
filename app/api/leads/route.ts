@@ -12,6 +12,7 @@ type VisitorRow = RowDataPacket & {
 };
 
 type ProductRow = RowDataPacket & { id: string };
+type PersonRow = RowDataPacket & { id: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map<string, { count: number; resetAt: number }>();
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     try {
       await connection.beginTransaction();
-      const [personRows] = await connection.execute<Array<{ id: string } & import("mysql2").RowDataPacket>>(
+      const [personRows] = await connection.execute<PersonRow[]>(
         email
           ? "SELECT id FROM persons WHERE email = ? LIMIT 1"
           : "SELECT id FROM persons WHERE phone = ? LIMIT 1",
