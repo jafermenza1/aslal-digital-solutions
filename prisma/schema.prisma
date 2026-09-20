@@ -323,7 +323,7 @@ model Opportunity {
 model Customer {
   id          String   @id @db.Char(36)
   personId    String?  @map("person_id") @db.Char(36)
-  opportunityId String? @map("opportunity_id") @db.Char(36)
+  opportunityId String? @unique @map("opportunity_id") @db.Char(36)
   name        String   @db.VarChar(160)
   email       String?  @db.VarChar(190)
   phone       String?  @db.VarChar(40)
