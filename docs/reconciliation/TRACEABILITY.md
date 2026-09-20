@@ -43,13 +43,15 @@ The acceptance evidence column defines what must be demonstrated before the requ
 | R31 | RBAC | Single-admin authentication exists | PARTIAL | Users, roles and permissions enforce access to CRM, partner, finance and system data | 2/7 |
 | R32 | Audit log | Stage history is present | PARTIAL | Sensitive administrative and automation actions have immutable audit evidence | 5/7 |
 | R33 | CRM workspace | Lead/dashboard/partner/insights screens exist | PARTIAL | Required Overview, Leads, Pipeline, Customers, Activities, Conversations, Automation, Analytics, Audit and Settings workflows exist and work | 2–7 |
-| R34 | Low-bandwidth/mobile operation | Existing web application and SSR architecture | UNIMPLEMENTED-UNVERIFIED | Controlled mobile/slow-network tests demonstrate critical journey completion | 2–7 |
+| R34 | Low-bandwidth/mobile operation | Existing web application and SSR architecture | PARTIAL | Controlled mobile/slow-network tests demonstrate critical journey completion | 2–7 |
 | R35 | Deployment integrity | GitHub CI and standalone packaging exist | PARTIAL | main source, production artifact, Prisma engines and Emerald runtime remain aligned | 1/2 |
 | R36 | End-to-end Growth OS journey | Current system has only portions of the chain | MISSING | Controlled journey reaches customer/revenue/commission and is reconstructable from one connected record | 7 |
 
 ## Status rule
 
-The statuses above are deliberately conservative. A repository module is evidence that code exists, not evidence that a PRD outcome is satisfied.
+Statuses are deliberately conservative. A repository module is evidence that code exists, not evidence that a PRD outcome is satisfied.
+
+Allowed statuses are exactly: MISSING, PARTIAL, IMPLEMENTED-UNVERIFIED, SATISFIED, BLOCKED.
 
 The next reconciliation work must replace repository-level guesses with explicit acceptance tests and, where applicable, production-safe verification.
 
@@ -58,7 +60,6 @@ The next reconciliation work must replace repository-level guesses with explicit
 Every future implementation PR must reference the relevant R-ID(s).
 
 Every R-ID changed by a PR must state:
-
 - what business outcome changes;
 - what data changes;
 - what API/workflow changes;
@@ -67,3 +68,5 @@ Every R-ID changed by a PR must state:
 - what migration or rollback risk exists.
 
 No implementation PR should introduce an untracked Growth OS capability.
+
+The execution handoff is maintained in docs/reconciliation/EXECUTION-STATE.md. Corrections remain owned by their current phase and must not change the roadmap pointer.
