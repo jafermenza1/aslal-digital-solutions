@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
   if (!customer) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
 
-  const [activities, events] = await Promise.all([
+  const [activities, events, messages] = await Promise.all([
     prisma.activity.findMany({
       where: {
         OR: [
@@ -50,6 +50,20 @@ export async function GET(request: Request) {
           take: 200,
         })
       : Promise.resolve([]),
+    prisma.message.findMany({
+      where: {
+        conversation: {
+          OR: [
+            { customerId },
+            ...(customer.personId ? [{ personId: customer.personId }] : []),
+            ...(customer.opportunityId ? [{ opportunityId: customer.opportunityId }] : []),
+          ],
+        },
+      },
+      include: { conversation: { select: { channel: true, status: true } } },
+      orderBy: { createdAt: "asc" },
+      take: 200,
+    }),
   ]);
 
   const lead = customer.opportunity?.lead;
@@ -85,6 +99,14 @@ export async function GET(request: Request) {
       subject: "Sales note",
       details: { body: item.body },
       actor: item.author || "team",
+    })),
+    ...messages.map(item => ({
+      id: `message-${item.id}`,
+      type: "MESSAGE",
+      timestamp: item.createdAt,
+      subject: item.conversation.channel,
+      details: { direction: item.direction, status: item.status, body: item.body, sender: item.senderAddress, recipient: item.recipientAddress },
+      actor: item.direction === "INBOUND" ? "customer" : "team",
     })),
     ...(lead?.tasks || []).map(item => ({
       id: `task-${item.id}`,
