@@ -63,10 +63,29 @@ enum TaskPriority {
   URGENT
 }
 
-enum CommunicationChannel { EMAIL SMS TELEGRAM WHATSAPP MESSENGER }
-enum ConversationStatus { OPEN HUMAN_HANDOFF CLOSED }
-enum MessageDirection { INBOUND OUTBOUND }
-enum MessageStatus { RECEIVED QUEUED SENT DELIVERED FAILED }
+enum CommunicationChannel {
+  EMAIL
+  SMS
+  TELEGRAM
+  WHATSAPP
+  MESSENGER
+}
+enum ConversationStatus {
+  OPEN
+  HUMAN_HANDOFF
+  CLOSED
+}
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+enum MessageStatus {
+  RECEIVED
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+}
 
 model Visitor {
   id                  String   @id @db.Char(36)
