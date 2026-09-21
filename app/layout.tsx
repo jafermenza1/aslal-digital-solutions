@@ -5,11 +5,12 @@ import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { AppChrome } from "@/components/AppChrome";
 
 export const metadata: Metadata = {
-  title: "Aslal Digital Solutions | Engineered Digital Growth",
-  description: "Digital growth systems for businesses in Ethiopia: websites, software, commerce, automation, digital marketing and SEO.",
+ title:"Aslal Digital Solutions | Your Growth Partner",
+ description:"Technology and marketing connected around outcomes.",
+ icons:{icon:"/favicon.svg",apple:"/favicon.svg"},
 };
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const locale = (await cookies()).get("aslal_locale")?.value === "am" ? "am" : "en";
-  return <html lang={locale} dir="ltr"><body><AppChrome />{children}<AnalyticsTracker /></body></html>;
+export default async function RootLayout({children}:{children:React.ReactNode}){
+ const locale=(await cookies()).get("aslal_locale")?.value==="am"?"am":(await cookies()).get("aslal_locale")?.value==="om"?"om":"en";
+ return <html lang={locale} dir="ltr"><body><AppChrome/>{children}<AnalyticsTracker/></body></html>;
 }
