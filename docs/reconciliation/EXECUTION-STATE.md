@@ -23,7 +23,7 @@ This is the single repository handoff for developers and AI agents. It records w
 | 1 | Baseline and Domain Contract | SATISFIED | PRD, domain contract, traceability, execution control, and phase governance are on main. |
 | 2 | Sales Execution Integrity | IMPLEMENTED-UNVERIFIED | Phase 2 implementation and gap-closure PR #22 are merged into main. CI verification is blocked by GitHub runner availability; production migration/backfill evidence is still required. |
 | 3 | Identity, Engagement, Customer Journey | IMPLEMENTED-UNVERIFIED | Phase 3 gap-closure PR #25 is merged into main. CI verification is blocked by GitHub runner availability; migration and behavioral/production evidence remain required. |
-| 4 | Conversations and Channel Adapters | MISSING | Full Phase 4 implementation is prepared in open PR #26, but is not mainline and cannot be accepted until Phase 2/3 verification and provider/deployment evidence are complete. |
+| 4 | Conversations and Channel Adapters | IMPLEMENTED-UNVERIFIED | Phase 4 PR #26 is merged into main. Migration, endpoint, consent/handoff, and real provider evidence are still required before acceptance. |
 | 5 | Automation Engine | MISSING | Future phase; do not start now. |
 | 6 | Campaign, Partner, Revenue, Payment | PARTIAL | Existing foundations exist but are not reconciled/accepted. |
 | 7 | End-to-End Verification and Intelligence | MISSING | Final verification/intelligence phase; AI remains deferred. |
@@ -78,10 +78,17 @@ Remaining Phase 3 evidence:
 6. production health;
 7. final acceptance update.
 
-## Phase 4 prepared implementation
+## Phase 4 mainline record
 
-PR #26
-Branch: reconcile/phase-4-mainline-foundation
+Merged:
+- Phase 4 implementation PR #26
+- merge SHA: 0d50761da3491f21b31b53e3aa3f9d2657e386be
+
+Related mainline UI/runtime records:
+- PR #15 merged: Emerald Prisma OpenSSL 1.0 runtime support (c14e59b54f352f700387bebf85c4223bdbd4d24d)
+- PR #28 merged: Aslal showcase and command center UI (b7d5acaaa99d7717299cacb65b20be894fe985a2)
+
+Prepared scope originally delivered by PR #26:
 
 Prepared scope:
 - Conversation and Message canonical records
@@ -102,6 +109,12 @@ Phase 4 external dependencies:
 - provider templates/permissions
 - real inbound/outbound callback verification
 
+## Current production verification state
+
+The application is live, but the dashboard reports that one or more Growth OS tables are unavailable. The repository contains the additive Prisma migrations for the sales, identity/customer, and conversation foundations, including `20260920020000_identity_customer_foundation` and `20260920030000_conversation_foundation`.
+
+Production migration application is therefore the immediate blocking evidence for Phase 2–4 acceptance. Do not mark any phase SATISFIED from the live application alone.
+
 ## Consolidated verification blocker
 
 GitHub Actions is currently unable to start the repository CI job on the affected Phase 2–4 branches. Observed failed jobs have:
@@ -113,12 +126,13 @@ This must be treated as a verification-infrastructure blocker. It does not prove
 
 ## Exact next action
 
-1. Restore/verify GitHub Actions runner availability.
-2. Run CI on Phase 2 and Phase 3 mainline corrections.
-3. Apply and verify migrations through the controlled deployment path.
-4. Complete behavioral and production evidence for Phase 2 and Phase 3.
-5. Only after those gates pass, review and merge Phase 4 PR #26 and perform real provider verification.
-6. Keep Phase 5 out of scope.
+1. Apply pending production Prisma migrations through the controlled Emerald deployment procedure; never use `prisma migrate reset`.
+2. Verify production health and confirm the Phase 2 sales-execution tables are readable.
+3. Verify Phase 3 identity/customer records and anonymous/known journey behavior.
+4. Verify Phase 4 conversation/message tables, consent/handoff behavior, and real provider/webhook evidence where credentials are configured.
+5. Restore/verify GitHub Actions runner availability and run the repository CI verification when available.
+6. Record the evidence in the phase records and update this file only when the corresponding acceptance gates are actually proven.
+7. Keep Phase 5 out of scope.
 
 ## Documentation invariant
 
