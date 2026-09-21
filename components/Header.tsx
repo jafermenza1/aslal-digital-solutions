@@ -17,7 +17,7 @@ function subscribeLocale(callback: () => void) {
 }
 
 export function Header() {
-  const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "en");
+  const locale = useSyncExternalStore(subscribeLocale, readLocale, (): Locale => "en");
   const t = getCopy(locale);
   const nav = [["/services", t.nav.solutions], ["/work", t.nav.work], ["/products", t.nav.products], ["/demo", t.nav.lab], ["/about", t.nav.about], ["/resources", t.nav.resources]];
 
