@@ -12,6 +12,7 @@ export function LanguageToggle({ locale }: { locale: Locale }) {
 
   function changeLanguage() {
     document.cookie = `aslal_locale=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    window.dispatchEvent(new Event("aslal-locale-change"));
     startTransition(() => router.refresh());
   }
 
