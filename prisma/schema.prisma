@@ -347,6 +347,7 @@ model Opportunity {
   updatedAt       DateTime   @updatedAt @map("updated_at") @db.DateTime(0)
   lead            Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
   customer        Customer?
+  conversations   Conversation[]
   activities      Activity[]
 
   @@index([leadId, stage], map: "idx_opportunities_lead_stage")
