@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const stages=["NEW","CONTACTED","QUALIFIED","DEMO","PROPOSAL","NEGOTIATION","WON","LOST"] as const;
 type Data={visitors:number;leads:number;opportunities:number;customers:number;pipelineValue:number;wonRevenue:number;wonDeals:number;overdue:number;growth:number;recent:Array<{id:string;name:string;company:string|null;status:string;score:number;updatedAt:Date}>;stageCounts:Array<readonly [typeof stages[number],number]>};
 
