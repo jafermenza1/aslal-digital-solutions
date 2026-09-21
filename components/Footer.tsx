@@ -1,22 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { siteConfig } from "@/lib/config";
 import { getCopy, type Locale } from "@/lib/i18n";
 
 function readLocale(): Locale {
   if (typeof document === "undefined") return "en";
-  return document.cookie.split("; ").find((item) => item.startsWith("aslal_locale="))?.split("=")[1] === "am" ? "am" : "en";
+  const stored = document.cookie.split("; ").find((item) => item.startsWith("aslal_locale="))?.split("=")[1];
+  return stored === "am" || stored === "om" ? stored : "en";
+}
+
+function subscribeLocale(callback: () => void) {
+  window.addEventListener("aslal-locale-change", callback);
+  return () => window.removeEventListener("aslal-locale-change", callback);
 }
 
 export function Footer() {
-  const [locale, setLocale] = useState<Locale>("en");
-
-  useEffect(() => {
-    setLocale(readLocale());
-  }, []);
-
+  const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "en");
   const t = getCopy(locale);
 
   return <footer className="site-footer"><div className="container-aslal grid gap-12 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
