@@ -63,6 +63,11 @@ enum TaskPriority {
   URGENT
 }
 
+enum CommunicationChannel { EMAIL SMS TELEGRAM WHATSAPP MESSENGER }
+enum ConversationStatus { OPEN HUMAN_HANDOFF CLOSED }
+enum MessageDirection { INBOUND OUTBOUND }
+enum MessageStatus { RECEIVED QUEUED SENT DELIVERED FAILED }
+
 model Visitor {
   id                  String   @id @db.Char(36)
   anonymousId         String   @unique @map("anonymous_id") @db.Char(36)
@@ -113,6 +118,7 @@ model Lead {
   commissions       Commission[]
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
+  conversations     Conversation[]
 
   @@index([status], map: "idx_leads_status")
   @@index([score], map: "idx_leads_score")
@@ -295,6 +301,8 @@ model Person {
   leads       Lead[]
   customers   Customer[]
   activities  Activity[]
+  communicationPreference CommunicationPreference?
+  conversations Conversation[]
 
   @@index([email], map: "idx_person_email")
   @@index([phone], map: "idx_person_phone")
@@ -341,6 +349,7 @@ model Customer {
   person        Person?       @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunity   Opportunity?  @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   activities    Activity[]
+  conversations Conversation[]
 
   @@index([email], map: "idx_customer_email")
   @@index([phone], map: "idx_customer_phone")
@@ -384,4 +393,75 @@ model GrowthOpportunity {
   @@index([visitorId, status], map: "idx_growth_opportunity_visitor_status")
   @@index([status, createdAt], map: "idx_growth_opportunity_status_created")
   @@map("growth_opportunities")
+}
+
+
+model CommunicationPreference {
+  id               String   @id @db.Char(36)
+  personId         String   @unique @map("person_id") @db.Char(36)
+  emailAllowed     Boolean  @default(false) @map("email_allowed")
+  smsAllowed       Boolean  @default(false) @map("sms_allowed")
+  telegramAllowed  Boolean  @default(false) @map("telegram_allowed")
+  whatsappAllowed  Boolean  @default(false) @map("whatsapp_allowed")
+  messengerAllowed Boolean  @default(false) @map("messenger_allowed")
+  globalOptOut     Boolean  @default(false) @map("global_opt_out")
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  person           Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  @@map("communication_preferences")
+}
+
+model Conversation {
+  id               String               @id @db.Char(36)
+  personId         String?              @map("person_id") @db.Char(36)
+  leadId           String?              @map("lead_id") @db.Char(36)
+  customerId       String?              @map("customer_id") @db.Char(36)
+  opportunityId    String?              @map("opportunity_id") @db.Char(36)
+  channel          CommunicationChannel
+  externalThreadId String?              @map("external_thread_id") @db.VarChar(190)
+  status           ConversationStatus  @default(OPEN)
+  assignedTo       String?              @map("assigned_to") @db.VarChar(190)
+  humanHandoffAt   DateTime?            @map("human_handoff_at") @db.DateTime(0)
+  lastMessageAt    DateTime?            @map("last_message_at") @db.DateTime(0)
+  createdAt        DateTime             @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
+  person           Person?              @relation(fields: [personId], references: [id], onDelete: SetNull)
+  lead             Lead?                @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  customer         Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  opportunity      Opportunity?         @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  messages         Message[]
+  @@index([personId, channel, status], map: "idx_conversation_person_channel")
+  @@index([externalThreadId, channel], map: "idx_conversation_external_thread")
+  @@index([status, lastMessageAt], map: "idx_conversation_status_last")
+  @@map("conversations")
+}
+
+model Message {
+  id                String          @id @db.Char(36)
+  conversationId    String          @map("conversation_id") @db.Char(36)
+  direction         MessageDirection
+  status            MessageStatus   @default(QUEUED)
+  externalMessageId String?         @map("external_message_id") @db.VarChar(190)
+  senderAddress     String?         @map("sender_address") @db.VarChar(190)
+  recipientAddress  String?         @map("recipient_address") @db.VarChar(190)
+  body              String          @db.Text
+  metadata          Json?
+  sentAt            DateTime?       @map("sent_at") @db.DateTime(0)
+  createdAt         DateTime        @default(now()) @map("created_at") @db.DateTime(0)
+  conversation      Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  @@index([conversationId, createdAt], map: "idx_message_conversation_created")
+  @@index([externalMessageId], map: "idx_message_external")
+  @@map("conversation_messages")
+}
+
+model ChannelAccount {
+  id                String               @id @db.Char(36)
+  channel           CommunicationChannel
+  provider          String               @db.VarChar(80)
+  externalAccountId String?              @map("external_account_id") @db.VarChar(190)
+  active            Boolean              @default(true)
+  createdAt         DateTime             @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
+  @@unique([channel, provider, externalAccountId], map: "uq_channel_account")
+  @@index([channel, active], map: "idx_channel_account_active")
+  @@map("channel_accounts")
 }
