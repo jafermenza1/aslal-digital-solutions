@@ -61,14 +61,14 @@ export async function POST(request: NextRequest) {
     const company = clean(body.company, 190);
     const businessType = clean(body.businessType, 100);
     const message = clean(body.message, 5000);
+    const productSlug = clean(body.productSlug, 160);
+    const growthGoal = clean(body.growthGoal, 200);
+    const growthChannels = clean(body.growthChannels, 500);
     const enrichedMessage = [
       message,
       growthGoal ? `Growth Builder goal: ${growthGoal}` : "",
       growthChannels ? `Growth Builder channels: ${growthChannels}` : "",
     ].filter(Boolean).join("\n\n");
-    const productSlug = clean(body.productSlug, 160);
-    const growthGoal = clean(body.growthGoal, 200);
-    const growthChannels = clean(body.growthChannels, 500);
 
     if (!name) return NextResponse.json({ error: "Name is required." }, { status: 400 });
     if (!message) return NextResponse.json({ error: "Message is required." }, { status: 400 });
