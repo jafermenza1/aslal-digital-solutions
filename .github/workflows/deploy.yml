@@ -77,30 +77,44 @@ jobs:
           set -euo pipefail
           scp             -i ~/.ssh/emerald_deploy             -P "${EMERALD_PORT:-22}"             -o BatchMode=yes             -o StrictHostKeyChecking=yes             "emerald-artifact/aslal-emerald-$SHA.tar.gz"             "${EMERALD_USER}@${EMERALD_HOST}:~/aslal-emerald-$SHA.tar.gz"
 
-      - name: Install release and restart Passenger
-        env:
-          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
-          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
-          EMERALD_USER: ${{ secrets.EMERALD_USER }}
-          EMERALD_APP_PATH: ${{ secrets.EMERALD_APP_PATH }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
-        run: |
-          set -euo pipefail
+     - name: Configure SSH
+  env:
+    EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+    EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+    EMERALD_USER: ${{ secrets.EMERALD_USER }}
+    EMERALD_SSH_KEY: ${{ secrets.EMERALD_SSH_KEY }}
+    EMERALD_KNOWN_HOSTS: ${{ secrets.EMERALD_KNOWN_HOSTS }}
+  run: |
+    set -euo pipefail
 
-          ssh             -i ~/.ssh/emerald_deploy             -p "${EMERALD_PORT:-22}"             -o BatchMode=yes             -o StrictHostKeyChecking=yes             "${EMERALD_USER}@${EMERALD_HOST}"             "SHA='$SHA' APP_PATH='${EMERALD_APP_PATH:-/home/${EMERALD_USER}/aslal-digital-solutions}' bash -s" <<'REMOTE'
-          set -euo pipefail
+    test -n "$EMERALD_HOST"
+    test -n "$EMERALD_USER"
+    test -n "$EMERALD_SSH_KEY"
 
-          ARCHIVE="$HOME/aslal-emerald-$SHA.tar.gz"
-          RELEASE_ROOT="$APP_PATH/.releases"
-          RELEASE_PATH="$RELEASE_ROOT/$SHA"
-          BACKUP_PATH="$RELEASE_ROOT/previous"
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
 
-          test -f "$ARCHIVE"
-          test -d "$APP_PATH"
+    printf '%s\n' "$EMERALD_SSH_KEY" | tr -d '\r' > ~/.ssh/emerald_deploy
+    chmod 600 ~/.ssh/emerald_deploy
 
-          mkdir -p "$RELEASE_ROOT"
-          rm -rf "$RELEASE_PATH"
-          mkdir -p "$RELEASE_PATH"
+    echo "SSH key header:"
+    head -n 1 ~/.ssh/emerald_deploy | sed 's/./*/g'
+
+    echo "SSH key footer:"
+    tail -n 1 ~/.ssh/emerald_deploy | sed 's/./*/g'
+
+    echo "Testing private key format..."
+    ssh-keygen -y -f ~/.ssh/emerald_deploy > /tmp/emerald_public_key
+
+    echo "Private key format is valid."
+
+    if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
+      printf '%s\n' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    else
+      ssh-keyscan -p "${EMERALD_PORT:-22}" "$EMERALD_HOST" >> ~/.ssh/known_hosts
+    fi
+
+    chmod 644 ~/.ssh/known_hosts
 
           tar -xzf "$ARCHIVE" -C "$RELEASE_PATH"
 
