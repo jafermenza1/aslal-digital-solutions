@@ -7,19 +7,30 @@ export type OutboundMessage = {
   externalThreadId?: string | null;
 };
 
-function preferenceKey(channel: CommunicationChannel) {
-  return {
-    EMAIL: "emailAllowed",
-    SMS: "smsAllowed",
-    TELEGRAM: "telegramAllowed",
-    WHATSAPP: "whatsappAllowed",
-    MESSENGER: "messengerAllowed",
-  }[channel] as const;
+type CommunicationPreference = {
+  emailAllowed: boolean;
+  smsAllowed: boolean;
+  telegramAllowed: boolean;
+  whatsappAllowed: boolean;
+  messengerAllowed: boolean;
+  globalOptOut: boolean;
+};
+
+const preferenceKeys: Record<CommunicationChannel, keyof CommunicationPreference> = {
+  EMAIL: "emailAllowed",
+  SMS: "smsAllowed",
+  TELEGRAM: "telegramAllowed",
+  WHATSAPP: "whatsappAllowed",
+  MESSENGER: "messengerAllowed",
+};
+
+function preferenceKey(channel: CommunicationChannel): keyof CommunicationPreference {
+  return preferenceKeys[channel];
 }
 
 export function isOutboundAllowed(
   channel: CommunicationChannel,
-  preference: Record<string, boolean> | null | undefined,
+  preference: CommunicationPreference | null | undefined,
 ) {
   if (!preference || preference.globalOptOut) return false;
   return Boolean(preference[preferenceKey(channel)]);
