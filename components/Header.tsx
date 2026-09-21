@@ -7,11 +7,10 @@ export async function Header() {
   const stored = (await cookies()).get("aslal_locale")?.value;
   const locale: Locale = stored === "am" ? "am" : "en";
   const t = getCopy(locale);
-  const nav = [["/services", t.nav.solutions],["/products", t.nav.products],["/work", t.nav.work],["/demo", t.nav.lab],["/about", t.nav.about],["/resources", t.nav.resources],["/contact", t.nav.contact]];
-
-  return <header className="metal-header sticky top-0 z-50"><div className="container-aslal flex h-20 items-center justify-between gap-4">
-    <Link href="/" className="metal-shimmer flex items-center gap-3 rounded-2xl px-1 py-1" aria-label="Aslal Digital Solutions home"><span className="grid h-11 w-11 place-items-center rounded-xl bg-[#0F3E8A] text-lg font-black text-white shadow-lg shadow-blue-900/20 ring-1 ring-white/50">A<span className="text-[#E2B02A]">↗</span></span><span className="hidden sm:block"><span className="block text-sm font-black tracking-[.16em] text-[#0F3E8A]">ASLAL</span><span className="block text-[10px] font-semibold tracking-[.08em] text-[#1E293B]/70">DIGITAL SOLUTIONS</span></span></Link>
-    <nav className="hidden items-center gap-5 xl:flex" aria-label="Primary navigation">{nav.map(([href,label])=><Link key={href} href={href} className="metal-nav-link text-sm font-semibold">{label}</Link>)}</nav>
-    <div className="flex items-center gap-2 sm:gap-3"><LanguageToggle locale={locale}/><Link href="/login" className="hidden rounded-full border border-[#0F3E8A]/20 bg-white/50 px-4 py-2 text-sm font-bold text-[#0F3E8A] shadow-inner transition hover:bg-[#0F3E8A] hover:text-white md:inline-block" aria-label="Admin login">Admin</Link><Link href="/contact" className="hidden rounded-full px-3 py-2 text-sm font-bold text-[#0F3E8A] transition hover:-translate-y-0.5 2xl:inline-block">{t.actions.expert}</Link><Link href="/contact" className="glow-button rounded-full bg-[#E2B02A] px-4 py-3 text-sm font-extrabold text-[#1E293B] sm:px-5">{t.actions.start} →</Link></div>
+  const nav = [["/services", t.nav.solutions],["/work", t.nav.work],["/products", t.nav.products],["/demo", t.nav.lab],["/about", t.nav.about],["/resources", t.nav.resources]];
+  return <header className="site-header"><div className="container-aslal flex min-h-[76px] items-center justify-between gap-4">
+    <Link href="/" className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-lg font-black text-[#07111f]">A<span className="text-[#B7FF4A]">↗</span></span><span className="hidden sm:block"><span className="block text-sm font-black tracking-[.18em] text-white">ASLAL</span><span className="block text-[9px] font-bold tracking-[.12em] text-white/45">DIGITAL SOLUTIONS</span></span></Link>
+    <nav className="hidden items-center gap-7 lg:flex">{nav.map(([href,label])=><Link key={href} href={href} className="site-nav-link">{label}</Link>)}</nav>
+    <div className="flex items-center gap-2 sm:gap-3"><LanguageToggle locale={locale}/><Link href="/login" className="hidden rounded-full border border-white/15 px-4 py-2 text-xs font-black text-white/75 transition hover:border-white/30 hover:text-white md:inline-flex">Portal</Link><Link href="/growth-builder" className="site-cta">{t.actions.build} <span>↗</span></Link></div>
   </div></header>;
 }

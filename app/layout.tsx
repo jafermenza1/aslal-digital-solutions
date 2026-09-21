@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import "./globals.css";
-import { siteConfig } from "@/lib/config";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
+import { AppChrome } from "@/components/AppChrome";
 
 export const metadata: Metadata = {
   title: "Aslal Digital Solutions | Engineered Digital Growth",
@@ -13,14 +11,5 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const locale = (await cookies()).get("aslal_locale")?.value === "am" ? "am" : "en";
-  return (
-    <html lang={locale} dir="ltr">
-      <body>
-        <Header />
-        {children}
-        <Footer />
-        <AnalyticsTracker />
-      </body>
-    </html>
-  );
+  return <html lang={locale} dir="ltr"><body><AppChrome />{children}<AnalyticsTracker /></body></html>;
 }
