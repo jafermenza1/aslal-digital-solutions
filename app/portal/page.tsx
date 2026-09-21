@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 
 export default async function ClientPortal(){
  const session=verifySession((await cookies()).get("aslal_session")?.value); if(!session) redirect("/login");
- let customer=null; let activities=[];
+ type Activity = Awaited<ReturnType<typeof prisma.activity.findMany>>[number];
+ let customer=null; let activities: Activity[]=[];
  try{
   customer=await prisma.customer.findFirst({orderBy:{createdAt:"desc"},include:{person:true,opportunity:true}});
   activities=customer?await prisma.activity.findMany({where:{OR:[{customerId:customer.id},...(customer.personId?[{personId:customer.personId}]:[])]},orderBy:{createdAt:"desc"},take:6}):[];
