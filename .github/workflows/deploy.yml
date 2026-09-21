@@ -1,13 +1,172 @@
-# Deployment is intentionally left provider-specific.
-# Emerald/cPanel deployments can be connected after the hosting panel's
-# application path and restart mechanism are confirmed.
-name: Deployment Gate
+name: Deploy to Emerald
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: emerald-production
+  cancel-in-progress: false
 
 jobs:
-  deployment-gate:
+  deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "Run CI and deploy the approved main branch through Emerald/cPanel."
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build
+
+      - name: Prepare deployment bundle
+        run: |
+          set -euo pipefail
+          rm -rf emerald-deploy
+          mkdir -p emerald-deploy
+          cp -a .next/standalone/. emerald-deploy/
+          test -f emerald-deploy/server.js
+          test -d emerald-deploy/.next/static
+          test -d emerald-deploy/public
+          tar -czf "aslal-emerald-${GITHUB_SHA}.tar.gz" -C emerald-deploy .
+          sha256sum "aslal-emerald-${GITHUB_SHA}.tar.gz"
+
+      - name: Configure SSH
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          EMERALD_SSH_KEY: ${{ secrets.EMERALD_SSH_KEY }}
+          EMERALD_KNOWN_HOSTS: ${{ secrets.EMERALD_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$EMERALD_HOST"
+          test -n "$EMERALD_USER"
+          test -n "$EMERALD_SSH_KEY"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$EMERALD_SSH_KEY" > ~/.ssh/emerald_deploy
+          chmod 600 ~/.ssh/emerald_deploy
+          if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${EMERALD_PORT:-22}" "$EMERALD_HOST" >> ~/.ssh/known_hosts
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Upload deployment bundle
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+        run: |
+          set -euo pipefail
+          scp             -i ~/.ssh/emerald_deploy             -P "${EMERALD_PORT:-22}"             -o BatchMode=yes             -o StrictHostKeyChecking=yes             "aslal-emerald-${GITHUB_SHA}.tar.gz"             "${EMERALD_USER}@${EMERALD_HOST}:~/aslal-emerald-${GITHUB_SHA}.tar.gz"
+
+      - name: Install release and restart Passenger
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          EMERALD_APP_PATH: ${{ secrets.EMERALD_APP_PATH }}
+        run: |
+          set -euo pipefail
+          ssh             -i ~/.ssh/emerald_deploy             -p "${EMERALD_PORT:-22}"             -o BatchMode=yes             -o StrictHostKeyChecking=yes             "${EMERALD_USER}@${EMERALD_HOST}"             "SHA='${GITHUB_SHA}' APP_PATH='${EMERALD_APP_PATH:-/home/${EMERALD_USER}/aslal-digital-solutions}' bash -s" <<'REMOTE'
+          set -euo pipefail
+
+          ARCHIVE="$HOME/aslal-emerald-$SHA.tar.gz"
+          APP_PATH="$APP_PATH"
+          RELEASE_ROOT="$APP_PATH/.releases"
+          RELEASE_PATH="$RELEASE_ROOT/$SHA"
+          BACKUP_PATH="$RELEASE_ROOT/previous"
+
+          test -f "$ARCHIVE"
+          test -d "$APP_PATH"
+
+          mkdir -p "$RELEASE_ROOT"
+          rm -rf "$RELEASE_PATH"
+          mkdir -p "$RELEASE_PATH"
+
+          tar -xzf "$ARCHIVE" -C "$RELEASE_PATH"
+          test -f "$RELEASE_PATH/server.js"
+          test -d "$RELEASE_PATH/.next/static"
+          test -d "$RELEASE_PATH/public"
+
+          # Keep the server's existing production secrets and Passenger restart dir.
+          # The artifact never contains .env.
+          if [ -f "$APP_PATH/.env" ]; then
+            cp "$APP_PATH/.env" "$RELEASE_PATH/.env"
+          fi
+
+          # Keep a rollback copy of the currently deployed runtime.
+          rm -rf "$BACKUP_PATH"
+          mkdir -p "$BACKUP_PATH"
+          for item in server.js package.json node_modules .next public; do
+            if [ -e "$APP_PATH/$item" ]; then
+              cp -a "$APP_PATH/$item" "$BACKUP_PATH/$item"
+            fi
+          done
+
+          # Replace only files/directories owned by the standalone runtime.
+          rm -rf "$APP_PATH/.next" "$APP_PATH/node_modules" "$APP_PATH/public" "$APP_PATH/server.js" "$APP_PATH/package.json"
+          cp -a "$RELEASE_PATH/server.js" "$APP_PATH/server.js"
+          cp -a "$RELEASE_PATH/package.json" "$APP_PATH/package.json"
+          cp -a "$RELEASE_PATH/node_modules" "$APP_PATH/node_modules"
+          cp -a "$RELEASE_PATH/.next" "$APP_PATH/.next"
+          cp -a "$RELEASE_PATH/public" "$APP_PATH/public"
+
+          mkdir -p "$APP_PATH/tmp"
+          touch "$APP_PATH/tmp/restart.txt"
+
+          test -f "$APP_PATH/server.js"
+          test -d "$APP_PATH/.next/static"
+
+          rm -f "$ARCHIVE"
+
+          echo "Emerald deployment installed: $SHA"
+          echo "Passenger restart requested."
+          REMOTE
+
+      - name: Verify production health endpoint
+        env:
+          EMERALD_HEALTH_URL: ${{ secrets.EMERALD_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          URL="${EMERALD_HEALTH_URL:-https://aslaldigital.com/api/health}"
+          echo "Checking $URL"
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --max-time 20 "$URL"; then
+              echo
+              echo "Production health check passed."
+              exit 0
+            fi
+            echo "Health check attempt $attempt failed; waiting 10 seconds..."
+            sleep 10
+          done
+          echo "Production health check failed."
+          exit 1
