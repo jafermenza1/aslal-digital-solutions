@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { getCopy, type Locale } from "@/lib/i18n";
 
@@ -11,13 +11,13 @@ function readLocale(): Locale {
   return stored === "am" || stored === "om" ? stored : "en";
 }
 
+function subscribeLocale(callback: () => void) {
+  window.addEventListener("aslal-locale-change", callback);
+  return () => window.removeEventListener("aslal-locale-change", callback);
+}
+
 export function Header() {
-  const [locale, setLocale] = useState<Locale>("en");
-
-  useEffect(() => {
-    setLocale(readLocale());
-  }, []);
-
+  const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "en");
   const t = getCopy(locale);
   const nav = [["/services", t.nav.solutions], ["/work", t.nav.work], ["/products", t.nav.products], ["/demo", t.nav.lab], ["/about", t.nav.about], ["/resources", t.nav.resources]];
 
