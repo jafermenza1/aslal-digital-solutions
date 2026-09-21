@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({children}:{children:React.ReactNode}){
- const locale=(await cookies()).get("aslal_locale")?.value==="am"?"am":(await cookies()).get("aslal_locale")?.value==="om"?"om":"en";
+ const cookieStore=await cookies();
+ const locale=cookieStore.get("aslal_locale")?.value==="am"?"am":cookieStore.get("aslal_locale")?.value==="om"?"om":"en";
  return <html lang={locale} dir="ltr"><body><AppChrome/>{children}<AnalyticsTracker/></body></html>;
 }
