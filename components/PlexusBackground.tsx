@@ -147,13 +147,13 @@ export function PlexusBackground() {
         ctx.shadowBlur = 0;
       });
 
-      const badges = [
+      const badges: Array<[number, number, string, number]> = [
         [width * 0.18, height * 0.25, "↗", 0],
         [width * 0.72, height * 0.20, "✓", 1],
         [width * 0.82, height * 0.62, "◎", 2],
         [width * 0.30, height * 0.72, "✉", 3],
       ];
-      badges.forEach(([x, y, label, phase]) => drawBadge(x, y, label as string, phase as number));
+      badges.forEach(([x, y, label, phase]) => drawBadge(x, y, label, phase));
 
       raf = requestAnimationFrame(render);
     };
