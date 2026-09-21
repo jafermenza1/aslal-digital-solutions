@@ -7,7 +7,8 @@ import { getCopy, type Locale } from "@/lib/i18n";
 
 function readLocale(): Locale {
   if (typeof document === "undefined") return "en";
-  return document.cookie.split("; ").find((item) => item.startsWith("aslal_locale="))?.split("=")[1] === "am" ? "am" : "en";
+  const stored = document.cookie.split("; ").find((item) => item.startsWith("aslal_locale="))?.split("=")[1];
+  return stored === "am" || stored === "om" ? stored : "en";
 }
 
 export function Header() {
