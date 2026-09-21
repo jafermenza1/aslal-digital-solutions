@@ -2,28 +2,21 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import { BrandLogo } from "@/components/BrandLogo";
+import { MobileNav } from "@/components/MobileNav";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { getCopy, type Locale } from "@/lib/i18n";
 
-function readLocale(): Locale {
-  if (typeof document === "undefined") return "en";
-  const stored = document.cookie.split("; ").find((item) => item.startsWith("aslal_locale="))?.split("=")[1];
-  return stored === "am" || stored === "om" ? stored : "en";
-}
+function readLocale(): Locale { if(typeof document==="undefined") return "en"; const v=document.cookie.split("; ").find(x=>x.startsWith("aslal_locale="))?.split("=")[1]; return v==="am"||v==="om"?v:"en"; }
+function subscribeLocale(cb:()=>void){ window.addEventListener("aslal-locale-change",cb); return()=>window.removeEventListener("aslal-locale-change",cb); }
 
-function subscribeLocale(callback: () => void) {
-  window.addEventListener("aslal-locale-change", callback);
-  return () => window.removeEventListener("aslal-locale-change", callback);
-}
-
-export function Header() {
-  const locale = useSyncExternalStore(subscribeLocale, readLocale, (): Locale => "en");
-  const t = getCopy(locale);
-  const nav = [["/services", t.nav.solutions], ["/work", t.nav.work], ["/products", t.nav.products], ["/demo", t.nav.lab], ["/about", t.nav.about], ["/resources", t.nav.resources]];
-
-  return <header className="site-header"><div className="container-aslal flex min-h-[76px] items-center justify-between gap-4">
-    <Link href="/" className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-lg font-black text-[#07111f]">A<span className="text-[#B7FF4A]">↗</span></span><span className="hidden sm:block"><span className="block text-sm font-black tracking-[.18em] text-white">ASLAL</span><span className="block text-[9px] font-bold tracking-[.12em] text-white/45">DIGITAL SOLUTIONS</span></span></Link>
-    <nav className="hidden items-center gap-7 lg:flex">{nav.map(([href, label]) => <Link key={href} href={href} className="site-nav-link">{label}</Link>)}</nav>
-    <div className="flex items-center gap-2 sm:gap-3"><LanguageToggle locale={locale}/><Link href="/login" className="hidden rounded-full border border-white/15 px-4 py-2 text-xs font-black text-white/75 transition hover:border-white/30 hover:text-white md:inline-flex">Portal</Link><Link href="/growth-builder" className="site-cta">{t.actions.build} <span>↗</span></Link></div>
-  </div></header>;
+export function Header(){
+ const locale=useSyncExternalStore(subscribeLocale,readLocale,():Locale=>"en"); const t=getCopy(locale);
+ const nav=[["/services",t.nav.solutions],["/work",t.nav.work],["/products",t.nav.products],["/demo",t.nav.lab],["/about",t.nav.about],["/resources",t.nav.resources]] as const;
+ return <header className="site-header"><div className="container-aslal site-header-inner">
+  <BrandLogo/>
+  <nav className="desktop-nav">{nav.map(([href,label])=><Link key={href} href={href}>{label}</Link>)}</nav>
+  <div className="desktop-actions"><LanguageToggle locale={locale}/><Link className="header-portal" href="/login">Portal</Link><Link className="site-cta" href="/growth-builder">{t.actions.build} <span>↗</span></Link></div>
+  <MobileNav locale={locale} labels={{...t.nav,portal:"Portal",build:t.actions.build}}/>
+ </div></header>;
 }
