@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 export default async function ClientPortal(){
  const session=verifySession((await cookies()).get("aslal_session")?.value); if(!session) redirect("/login");
  let customer=null; let activities=[];
