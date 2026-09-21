@@ -17,7 +17,7 @@ function subscribeLocale(callback: () => void) {
 }
 
 export function Footer() {
-  const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "en");
+  const locale = useSyncExternalStore(subscribeLocale, readLocale, (): Locale => "en");
   const t = getCopy(locale);
 
   return <footer className="site-footer"><div className="container-aslal grid gap-12 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
