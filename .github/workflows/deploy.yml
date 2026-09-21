@@ -8,6 +8,7 @@ on:
       - completed
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   actions: read
@@ -19,11 +20,14 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event.workflow_run.conclusion == 'success'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download the successful main build artifact
+      - name: Download successful CI artifact
+        if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
         with:
           name: aslal-emerald-${{ github.event.workflow_run.head_sha }}
@@ -31,9 +35,29 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Download CI artifact for manual deployment
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/download-artifact@v4
+        with:
+          name: aslal-emerald-${{ github.sha }}
+          path: emerald-artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.run_id }}
+
+      - name: Set deployment SHA
+        id: release
+        env:
+          WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
+          DISPATCH_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          SHA="${WORKFLOW_SHA:-$DISPATCH_SHA}"
+          test -n "$SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
       - name: Verify deployment artifact
         env:
-          SHA: ${{ github.event.workflow_run.head_sha }}
+          SHA: ${{ steps.release.outputs.sha }}
         run: |
           set -euo pipefail
           ARCHIVE="emerald-artifact/aslal-emerald-$SHA.tar.gz"
@@ -57,8 +81,10 @@ jobs:
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "$EMERALD_SSH_KEY" > ~/.ssh/emerald_deploy
+          printf '%s\n' "$EMERALD_SSH_KEY" | tr -d '\r' > ~/.ssh/emerald_deploy
           chmod 600 ~/.ssh/emerald_deploy
+
+          ssh-keygen -y -f ~/.ssh/emerald_deploy > /tmp/emerald_public_key
 
           if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
             printf '%s\n' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
@@ -72,63 +98,56 @@ jobs:
           EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
           EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
           EMERALD_USER: ${{ secrets.EMERALD_USER }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
+          SHA: ${{ steps.release.outputs.sha }}
         run: |
           set -euo pipefail
-          scp             -i ~/.ssh/emerald_deploy             -P "${EMERALD_PORT:-22}"             -o BatchMode=yes             -o StrictHostKeyChecking=yes             "emerald-artifact/aslal-emerald-$SHA.tar.gz"             "${EMERALD_USER}@${EMERALD_HOST}:~/aslal-emerald-$SHA.tar.gz"
+          scp \
+            -i ~/.ssh/emerald_deploy \
+            -P "${EMERALD_PORT:-22}" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "emerald-artifact/aslal-emerald-$SHA.tar.gz" \
+            "${EMERALD_USER}@${EMERALD_HOST}:~/aslal-emerald-$SHA.tar.gz"
 
-     - name: Configure SSH
-  env:
-    EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
-    EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
-    EMERALD_USER: ${{ secrets.EMERALD_USER }}
-    EMERALD_SSH_KEY: ${{ secrets.EMERALD_SSH_KEY }}
-    EMERALD_KNOWN_HOSTS: ${{ secrets.EMERALD_KNOWN_HOSTS }}
-  run: |
-    set -euo pipefail
+      - name: Install release on Emerald
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          EMERALD_APP_PATH: ${{ secrets.EMERALD_APP_PATH }}
+          SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
 
-    test -n "$EMERALD_HOST"
-    test -n "$EMERALD_USER"
-    test -n "$EMERALD_SSH_KEY"
+          ssh \
+            -i ~/.ssh/emerald_deploy \
+            -p "${EMERALD_PORT:-22}" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "${EMERALD_USER}@${EMERALD_HOST}" \
+            "SHA='$SHA' APP_PATH='${EMERALD_APP_PATH:-/home/aslaldzn/aslal-digital-solutions}' bash -s" <<'REMOTE'
+          set -euo pipefail
 
-    mkdir -p ~/.ssh
-    chmod 700 ~/.ssh
+          ARCHIVE="$HOME/aslal-emerald-$SHA.tar.gz"
+          RELEASE_PATH="$APP_PATH/.releases/$SHA"
+          BACKUP_PATH="$APP_PATH/.releases/backup-$SHA"
 
-    printf '%s\n' "$EMERALD_SSH_KEY" | tr -d '\r' > ~/.ssh/emerald_deploy
-    chmod 600 ~/.ssh/emerald_deploy
-
-    echo "SSH key header:"
-    head -n 1 ~/.ssh/emerald_deploy | sed 's/./*/g'
-
-    echo "SSH key footer:"
-    tail -n 1 ~/.ssh/emerald_deploy | sed 's/./*/g'
-
-    echo "Testing private key format..."
-    ssh-keygen -y -f ~/.ssh/emerald_deploy > /tmp/emerald_public_key
-
-    echo "Private key format is valid."
-
-    if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
-      printf '%s\n' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
-    else
-      ssh-keyscan -p "${EMERALD_PORT:-22}" "$EMERALD_HOST" >> ~/.ssh/known_hosts
-    fi
-
-    chmod 644 ~/.ssh/known_hosts
+          test -f "$ARCHIVE"
+          mkdir -p "$APP_PATH/.releases"
+          rm -rf "$RELEASE_PATH"
+          mkdir -p "$RELEASE_PATH"
 
           tar -xzf "$ARCHIVE" -C "$RELEASE_PATH"
 
           test -f "$RELEASE_PATH/server.js"
+          test -f "$RELEASE_PATH/package.json"
           test -d "$RELEASE_PATH/.next/static"
           test -d "$RELEASE_PATH/public"
 
-          # Keep the existing production environment file. It is never replaced
-          # by the GitHub Actions artifact.
           if [ -f "$APP_PATH/.env" ]; then
             cp "$APP_PATH/.env" "$RELEASE_PATH/.env"
           fi
 
-          # Keep a rollback copy of the currently deployed runtime.
           rm -rf "$BACKUP_PATH"
           mkdir -p "$BACKUP_PATH"
 
@@ -138,8 +157,12 @@ jobs:
             fi
           done
 
-          # Replace only the standalone runtime files.
-          rm -rf             "$APP_PATH/.next"             "$APP_PATH/node_modules"             "$APP_PATH/public"             "$APP_PATH/server.js"             "$APP_PATH/package.json"
+          rm -rf \
+            "$APP_PATH/.next" \
+            "$APP_PATH/node_modules" \
+            "$APP_PATH/public" \
+            "$APP_PATH/server.js" \
+            "$APP_PATH/package.json"
 
           cp -a "$RELEASE_PATH/server.js" "$APP_PATH/server.js"
           cp -a "$RELEASE_PATH/package.json" "$APP_PATH/package.json"
@@ -147,7 +170,6 @@ jobs:
           cp -a "$RELEASE_PATH/.next" "$APP_PATH/.next"
           cp -a "$RELEASE_PATH/public" "$APP_PATH/public"
 
-          # Passenger restart.
           mkdir -p "$APP_PATH/tmp"
           touch "$APP_PATH/tmp/restart.txt"
 
@@ -174,7 +196,6 @@ jobs:
               echo "Production health check passed."
               exit 0
             fi
-
             echo "Health check attempt $attempt failed; waiting 10 seconds..."
             sleep 10
           done
