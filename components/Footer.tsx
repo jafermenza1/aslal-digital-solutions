@@ -1,11 +1,24 @@
+"use client";
+
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { useEffect, useState } from "react";
 import { siteConfig } from "@/lib/config";
 import { getCopy, type Locale } from "@/lib/i18n";
 
-export async function Footer() {
-  const locale: Locale = (await cookies()).get("aslal_locale")?.value === "am" ? "am" : "en";
+function readLocale(): Locale {
+  if (typeof document === "undefined") return "en";
+  return document.cookie.split("; ").find((item) => item.startsWith("aslal_locale="))?.split("=")[1] === "am" ? "am" : "en";
+}
+
+export function Footer() {
+  const [locale, setLocale] = useState<Locale>("en");
+
+  useEffect(() => {
+    setLocale(readLocale());
+  }, []);
+
   const t = getCopy(locale);
+
   return <footer className="site-footer"><div className="container-aslal grid gap-12 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
     <div><div className="text-xl font-black tracking-tight text-white">ASLAL<span className="text-[#B7FF4A]">.</span></div><p className="mt-4 max-w-md text-sm leading-7 text-white/55">Engineered growth, local context, technical precision and measurable ROI for businesses in Ethiopia.</p></div>
     <div><h3 className="text-xs font-black uppercase tracking-[.18em] text-[#B7FF4A]">Explore</h3><div className="mt-5 space-y-3 text-sm text-white/55"><Link className="block hover:text-white" href="/services">{t.nav.solutions}</Link><Link className="block hover:text-white" href="/products">{t.nav.products}</Link><Link className="block hover:text-white" href="/work">{t.nav.work}</Link><Link className="block hover:text-white" href="/demo">{t.nav.lab}</Link><Link className="block hover:text-white" href="/about">{t.nav.about}</Link></div></div>
