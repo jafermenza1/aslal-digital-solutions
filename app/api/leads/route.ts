@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       await connection.execute(
         `INSERT INTO leads
           (id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?)`,
         [
           leadId,
           visitorId,
