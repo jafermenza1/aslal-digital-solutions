@@ -32,8 +32,6 @@ export default function ConversationCenter({ initialConversations, viewer }: { i
 
   useEffect(() => {
     if (!selected) return;
-    setRecipient(contact?.email || contact?.phone || "");
-    setMessages(selected.messages || []);
     void loadMessages(selected.id);
   }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
 
