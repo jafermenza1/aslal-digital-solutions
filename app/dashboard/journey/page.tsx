@@ -27,7 +27,7 @@ export default async function JourneyExplorer({ searchParams }: { searchParams: 
       where: { id: selectedId },
       include: {
         events: { orderBy: { createdAt: "asc" }, take: 200 },
-        leads: { orderBy: { createdAt: "asc" }, take: 20, select: { id: true, name: true, status: true, source: true, medium: true, campaign: true, referralCode: true, dealValue: true, personId: true } },
+        leads: { orderBy: { createdAt: "asc" }, take: 20, select: { id: true, name: true, email: true, status: true, source: true, medium: true, campaign: true, referralCode: true, dealValue: true, personId: true } },
         growthOpportunities: { orderBy: { createdAt: "asc" }, take: 50 },
         referralClicks: { orderBy: { createdAt: "asc" }, take: 50, include: { referralLink: { select: { code: true, campaign: true, productSlug: true } } } },
       },
