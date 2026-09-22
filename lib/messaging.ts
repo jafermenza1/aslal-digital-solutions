@@ -47,6 +47,13 @@ async function postJson(url: string, body: unknown, headers?: Record<string, str
 }
 
 export async function sendThroughAdapter(message: OutboundMessage) {
+  if (message.simulation === "success") {
+    return { simulated: true, status: "SENT", channel: message.channel };
+  }
+  if (message.simulation === "failure") {
+    throw new Error("Simulated provider failure");
+  }
+
   switch (message.channel) {
     case "TELEGRAM": {
       const token = process.env.TELEGRAM_BOT_TOKEN;
