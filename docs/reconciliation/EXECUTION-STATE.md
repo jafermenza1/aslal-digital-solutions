@@ -22,8 +22,8 @@ This is the single repository handoff for developers and AI agents. It records w
 |---|---|---|---|
 | 1 | Baseline and Domain Contract | SATISFIED | PRD, domain contract, traceability, execution control, and phase governance are on main. |
 | 2 | Sales Execution Integrity | IMPLEMENTED-UNVERIFIED | Phase 2 implementation and gap-closure PR #22 are merged into main. CI verification is blocked by GitHub runner availability; production migration/backfill evidence is still required. |
-| 3 | Identity, Engagement, Customer Journey | IMPLEMENTED-UNVERIFIED | Phase 3 gap-closure PR #25 is merged into main. CI verification is blocked by GitHub runner availability; migration and behavioral/production evidence remain required. |
-| 4 | Conversations and Channel Adapters | IMPLEMENTED-UNVERIFIED | Phase 4 PR #26 is merged into main. Migration, endpoint, consent/handoff, and real provider evidence are still required before acceptance. |
+| 3 | Identity, Engagement, Customer Journey | SATISFIED | Golden-path acceptance completed with persisted visitor, canonical PAGE_VIEW, business/high-intent taxonomy, Growth Opportunity, Lead, Opportunity, Customer, Activity, and Visitor→Lead linkage evidence. |
+| 4 | Conversations and Channel Adapters | IMPLEMENTED-UNVERIFIED | Phase 4 acceptance dashboard is now available. Conversation/message persistence, consent, handoff, signed webhook behavior, provider delivery, retry safety, and production health still require controlled evidence. |
 | 5 | Automation Engine | MISSING | Future phase; do not start now. |
 | 6 | Campaign, Partner, Revenue, Payment | PARTIAL | Existing foundations exist but are not reconciled/accepted. |
 | 7 | End-to-End Verification and Intelligence | MISSING | Final verification/intelligence phase; AI remains deferred. |
@@ -109,6 +109,22 @@ Phase 4 external dependencies:
 - provider templates/permissions
 - real inbound/outbound callback verification
 
+## Phase 3 acceptance record
+
+Phase 3 golden-path acceptance was completed successfully. The production acceptance dashboard evidenced:
+- 48 visitors;
+- 135 canonical PAGE_VIEW events;
+- 23 accepted business-event types;
+- 10 high-intent event types;
+- 4 Growth Opportunity signals;
+- 23 leads;
+- 4 separate Opportunities;
+- 2 Customers;
+- 2 customer timeline Activity records;
+- 23 identified leads retaining visitor linkage.
+
+The dedicated Phase 3 acceptance route has been retired and replaced by `/dashboard/acceptance/phase-4`.
+
 ## Current production verification state
 
 The application is live, but the dashboard reports that one or more Growth OS tables are unavailable. The repository contains the additive Prisma migrations for the sales, identity/customer, and conversation foundations, including `20260920020000_identity_customer_foundation` and `20260920030000_conversation_foundation`.
@@ -126,12 +142,12 @@ This must be treated as a verification-infrastructure blocker. It does not prove
 
 ## Exact next action
 
-1. Apply pending production Prisma migrations through the controlled Emerald deployment procedure; never use `prisma migrate reset`.
-2. Verify production health and confirm the Phase 2 sales-execution tables are readable.
-3. Verify Phase 3 identity/customer records and anonymous/known journey behavior.
-4. Verify Phase 4 conversation/message tables, consent/handoff behavior, and real provider/webhook evidence where credentials are configured.
-5. Restore/verify GitHub Actions runner availability and run the repository CI verification when available.
-6. Record the evidence in the phase records and update this file only when the corresponding acceptance gates are actually proven.
+1. Apply the pending Phase 4 conversation migration through the controlled Emerald deployment procedure; never use `prisma migrate reset`.
+2. Open `/dashboard/acceptance/phase-4` and verify automated conversation/message evidence.
+3. Configure provider credentials only for channels intended for production and confirm configuration presence in the acceptance dashboard.
+4. Execute controlled inbound/outbound, consent, opt-out, human-handoff, retry/idempotency, and timeline tests.
+5. Restore/verify GitHub Actions runner availability and run repository CI verification when available.
+6. Record Phase 4 evidence and update the phase status only when every acceptance gate is actually proven.
 7. Keep Phase 5 out of scope.
 
 ## Documentation invariant
