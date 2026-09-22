@@ -26,7 +26,12 @@ export function ContactForm({
   function validate(form: HTMLFormElement) {
     const data = new FormData(form);
     const email = String(data.get("email") || "").trim();
-    const phone = String(data.get("phone") || "").trim();
+    const rawPhone = String(data.get("phone") || "").trim();
+    const phone = normalizeEthiopianPhone(rawPhone);
+    if (rawPhone && phone) {
+      const input = form.elements.namedItem("phone") as HTMLInputElement | null;
+      if (input) input.value = phone;
+    }
     const next: FieldErrors = {};
     if (!String(data.get("name") || "").trim()) next.name = "Please enter your name.";
     if (!email && !phone) {
@@ -35,7 +40,7 @@ export function ContactForm({
     } else if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       next.email = "Enter a valid email address, for example name@example.com.";
     }
-    if (phone && !/^(?:\\+?251|0)?9\\d{8}$/.test(phone.replace(/[\\s()-]/g, ""))) {
+    if (phone && !/^\\+2519\\d{8}$/.test(phone)) {
       next.phone = "Enter a valid Ethiopian mobile number, e.g. +251 911 276682.";
     }
     if (!String(data.get("businessType") || "")) next.businessType = "Please select your business type.";
@@ -51,6 +56,7 @@ export function ContactForm({
     setSubmitting(true); setStatus("idle"); setMessage("");
     try {
       const body = Object.fromEntries(new FormData(form).entries());
+      if (typeof body.phone === "string") body.phone = normalizeEthiopianPhone(body.phone);
       const response = await fetch("/api/leads", { method:"POST", headers:{ "Content-Type":"application/json", Accept:"application/json" }, credentials:"same-origin", body:JSON.stringify(body) });
       const data = await response.json().catch(() => null);
       if (response.ok && data?.ok === true) {
@@ -118,3 +124,13 @@ function Field({ id,label,name,type="text",required=false,defaultValue="",error,
   return <div><label htmlFor={id} className="text-sm font-bold text-slate-700">{label}{required ? " *" : ""}</label><input id={id} name={name} type={type} required={required} defaultValue={defaultValue} aria-invalid={!!error} aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined} className={fieldClass(!!error)} />{error ? <FieldError id={`${id}-error`}>{error}</FieldError> : hint ? <div id={`${id}-hint`} className="mt-1 text-xs text-slate-400">{hint}</div> : null}</div>;
 }
 function FieldError({id,children}:{id:string;children:string}) { return <div id={id} className="mt-1 text-xs font-semibold text-red-600" role="alert">{children}</div>; }
+
+
+function normalizeEthiopianPhone(value: string) {
+  const digits = value.replace(/[^0-9]/g, "");
+  if (!digits) return "";
+  if (/^09\\d{8}$/.test(digits)) return "+251" + digits.slice(1);
+  if (/^9\\d{8}$/.test(digits)) return "+251" + digits;
+  if (/^2519\\d{8}$/.test(digits)) return "+" + digits;
+  return value.trim();
+}
