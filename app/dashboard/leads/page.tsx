@@ -71,7 +71,7 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
   const where = buildQuery(search, status, source, referral, product, minScore);
   const orderBy = sort === "newest" ? [{ createdAt: "desc" as const }] : sort === "deal" ? [{ dealValue: "desc" as const }, { score: "desc" as const }] : [{ score: "desc" as const }, { updatedAt: "desc" as const }];
 
-  const [leads, total, stageCounts, stageValues, sources, products, executionGaps] = await Promise.all([
+  const [leads, total, stageCounts, stageValues, sources, products, executionGaps, databaseClock] = await Promise.all([
     prisma.lead.findMany({ where, orderBy, skip: (page - 1) * pageSize, take: pageSize, include: { productInterests: { include: { product: true }, orderBy: { interestScore: "desc" }, take: 3 }, tasks: { where: { status: { in: ["OPEN", "IN_PROGRESS"] } }, orderBy: { dueAt: "asc" }, take: 1 } } }),
     prisma.lead.count({ where }),
     prisma.lead.groupBy({ by: ["status"], _count: { _all: true } }),
@@ -84,7 +84,9 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
         OR: [{ ownerEmail: null }, { nextAction: null }, { nextActionDueAt: null }],
       },
     }),
+    prisma.$queryRaw<Array<{ now: Date }>>`SELECT NOW() AS now`,
   ]);
+  const now = databaseClock[0]?.now ?? new Date(0);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const countFor = (stage: LeadStatus) => stageCounts.find(item => item.status === stage)?._count._all ?? 0;
   const valueFor = (stage: LeadStatus) => Number(stageValues.find(item => item.status === stage)?._sum.dealValue ?? 0);
@@ -115,7 +117,7 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
           </thead>
           <tbody>
             {leads.map(lead => {
-              const overdue = lead.nextActionDueAt ? new Date(lead.nextActionDueAt).getTime() < Date.now() : false;
+              const overdue = lead.nextActionDueAt ? new Date(lead.nextActionDueAt).getTime() < now.getTime() : false;
               return <tr key={lead.id} className="border-t border-slate-100 align-top hover:bg-slate-50">
                 <td className="px-4 py-4"><Link href={`/dashboard/leads/${lead.id}`} className="font-black text-slate-900 hover:text-[#0F3E8A]">{lead.name}</Link><div className="mt-1 text-xs text-slate-500">{lead.company || lead.businessType || "Prospect"}</div></td>
                 <td className="px-4 py-4"><div className="font-semibold">{lead.ownerEmail || <span className="font-bold text-red-600">Unassigned</span>}</div></td>
