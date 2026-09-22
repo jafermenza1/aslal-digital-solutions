@@ -36,16 +36,16 @@ export default async function Phase4Acceptance() {
     MESSENGER:Boolean(process.env.MESSENGER_PAGE_ACCESS_TOKEN),
   };
   const automated: Evidence[] = [
-    ["Conversation records exist",(conversations ?? 0)>0,\`\${conversations ?? 0} conversation(s)\`],
-    ["Message records exist",(messages ?? 0)>0,\`\${messages ?? 0} message(s)\`],
-    ["Inbound message records exist",(inbound ?? 0)>0,\`\${inbound ?? 0} inbound message(s)\`],
-    ["Outbound message records exist",(outbound ?? 0)>0,\`\${outbound ?? 0} outbound message(s)\`],
-    ["Provider success states persist",((sent ?? 0)+(delivered ?? 0))>0,\`\${sent ?? 0} sent · \${delivered ?? 0} delivered\`],
-    ["Provider failure states persist",(failed ?? 0)>0,\`\${failed ?? 0} failed\`],
-    ["Human handoff records exist",(handoffs ?? 0)>0,\`\${handoffs ?? 0} handoff conversation(s)\`],
-    ["Channel accounts exist",(channelAccounts ?? 0)>0,\`\${channelAccounts ?? 0} active account(s)\`],
-    ["Global opt-out records exist",(optOuts ?? 0)>0,\`\${optOuts ?? 0} opted-out person(s)\`],
-    ["Message activity reaches the timeline",(messageActivities ?? 0)>0,\`\${messageActivities ?? 0} message activity record(s)\`],
+    ["Conversation records exist",(conversations ?? 0)>0,`${conversations ?? 0} conversation(s)`],
+    ["Message records exist",(messages ?? 0)>0,`${messages ?? 0} message(s)`],
+    ["Inbound message records exist",(inbound ?? 0)>0,`${inbound ?? 0} inbound message(s)`],
+    ["Outbound message records exist",(outbound ?? 0)>0,`${outbound ?? 0} outbound message(s)`],
+    ["Provider success states persist",((sent ?? 0)+(delivered ?? 0))>0,`${sent ?? 0} sent · ${delivered ?? 0} delivered`],
+    ["Provider failure states persist",(failed ?? 0)>0,`${failed ?? 0} failed`],
+    ["Human handoff records exist",(handoffs ?? 0)>0,`${handoffs ?? 0} handoff conversation(s)`],
+    ["Channel accounts exist",(channelAccounts ?? 0)>0,`${channelAccounts ?? 0} active account(s)`],
+    ["Global opt-out records exist",(optOuts ?? 0)>0,`${optOuts ?? 0} opted-out person(s)`],
+    ["Message activity reaches the timeline",(messageActivities ?? 0)>0,`${messageActivities ?? 0} message activity record(s)`],
   ];
   const manual = [
     "Create or identify a known Lead/Person and grant exactly one channel permission.",
