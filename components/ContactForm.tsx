@@ -61,6 +61,13 @@ export function ContactForm({ initialBusiness = "", initialGoal = "", initialCha
       </div>
       <input type="hidden" name="growthGoal" value={initialGoal} />
       <input type="hidden" name="growthChannels" value={initialChannels} />
+      {initialGoal && (
+        <div className="rounded-2xl border border-[#E2B02A]/30 bg-[#E2B02A]/10 p-5 text-sm text-[#1E293B]">
+          <div className="text-xs font-black uppercase tracking-[.16em] text-[#0F3E8A]">Growth Builder demand</div>
+          <div className="mt-3 font-black">{initialGoal}</div>
+          {initialChannels && <div className="mt-1 text-slate-600">Channels: {initialChannels}</div>}
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <input required name="name" maxLength={160} placeholder="Your name" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]" />
         <input name="company" defaultValue={initialBusiness} maxLength={190} placeholder="Company" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]" />
@@ -79,7 +86,7 @@ export function ContactForm({ initialBusiness = "", initialGoal = "", initialCha
           {products.map(product => <option key={product.slug} value={product.slug}>{product.name}</option>)}
         </select>
       </div>
-      <textarea required name="message" maxLength={5000} rows={6} placeholder={initialGoal ? "Growth goal: " + initialGoal + ". Tell us what is blocking progress…" : "Tell us what you want to build or grow…"} className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]" />
+      <textarea required name="message" maxLength={5000} rows={6} defaultValue={initialGoal ? "Growth goal: " + initialGoal + (initialChannels ? "\nPreferred channels: " + initialChannels : "") + "\n\n" : ""} placeholder={initialGoal ? "Tell us what is blocking progress…" : "Tell us what you want to build or grow…"} className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]" />
       <button disabled={submitting} className="rounded-2xl bg-[#0F3E8A] px-6 py-4 font-extrabold text-white transition hover:bg-[#092d69] disabled:cursor-not-allowed disabled:opacity-60">
         {submitting ? "Sending…" : "Request a growth consultation"}
       </button>
