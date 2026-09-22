@@ -11,4 +11,4 @@ Implemented:
 - Anonymous Growth Opportunity for high-intent signals without identity fabrication.
 - English, Amharic, and Afaan Oromoo locale contract.
 
-Acceptance remains IMPLEMENTED-UNVERIFIED until CI, migration, behavioral, and production evidence are available.
+Acceptance is SATISFIED. The production golden-path acceptance demonstrated persisted acquisition, canonical events, high-intent Growth Opportunity signals, Lead and Opportunity separation, WON conversion, Customer creation, timeline Activity, and Visitor→Lead linkage.
