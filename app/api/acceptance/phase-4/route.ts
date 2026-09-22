@@ -210,7 +210,6 @@ export async function POST(request: NextRequest) {
       activityCount === 1,
       "Exactly one MESSAGE_INBOUND activity is linked to the message.",
     ));
-    inboundByChannel;
   }
 
   // B: signature boundary and retry behavior.
@@ -441,7 +440,6 @@ export async function POST(request: NextRequest) {
   results.push(check("Human handoff", handoff.status === "HUMAN_HANDOFF", "Conversation entered HUMAN_HANDOFF."));
   results.push(check("Conversation gets assigned", handoff.assignedTo === session.email, "Handoff owner equals the authenticated operator."));
   const otherOperator = "phase4-other-operator@example.invalid";
-  const unauthorizedBlocked = handoff.status === "HUMAN_HANDOFF" && handoff.assignedTo !== otherOperator;
   results.push(check("Unauthorized user cannot send", !canSendConversation(handoff, await prisma.communicationPreference.findUnique({ where: { personId: person.id } }), otherOperator), "Shared outbound gate rejects an operator who is not assigned to the handoff."));
   const authorizedCanSend = canSendConversation(handoff, await prisma.communicationPreference.findUnique({ where: { personId: person.id } }), session.email);
   results.push(check("Assigned owner can send", authorizedCanSend, "Assigned operator passes the handoff ownership and consent gates."));
