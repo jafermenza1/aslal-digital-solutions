@@ -1,4 +1,5 @@
 import { ContactForm } from "@/components/ContactForm";
+import { prisma } from "@/lib/prisma";
 
 type SearchParams = {
   business?: string;
@@ -8,6 +9,11 @@ type SearchParams = {
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
+  const products = await prisma.product.findMany({
+    where: { active: true },
+    select: { slug: true, name: true },
+    orderBy: { name: "asc" },
+  });
 
   return (
     <main>
@@ -30,7 +36,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             </div>
           </div>
           <div className="rounded-[2rem] border border-[#0F3E8A]/10 bg-white p-7 shadow-xl shadow-blue-950/5 sm:p-10">
-            <ContactForm initialBusiness={params.business} initialGoal={params.goal} initialChannels={params.channels} />
+            <ContactForm initialBusiness={params.business} initialGoal={params.goal} initialChannels={params.channels} products={products} />
           </div>
         </div>
       </section>
