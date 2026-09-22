@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       });
     }
     const existing = await tx.customer.findUnique({ where: { opportunityId: opportunity.id } });
-    if (existing) return existing;
+    if (existing) return { customer: existing, created: false };
     const customer = await tx.customer.create({
       data: { id: randomUUID(), personId: person.id, opportunityId: opportunity.id, name: lead.name, email: lead.email, phone: lead.phone, status: "ACTIVE" },
     });
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         details: { leadId: lead.id, actor: session.email }, personId: person.id, customerId: customer.id, opportunityId: opportunity.id,
       },
     });
-    return customer;
+    return { customer, created: true };
   });
-  return NextResponse.json({ ok: true, customerId: result.id });
+  return NextResponse.json({ ok: true, customerId: result.customer.id, created: result.created });
 }
