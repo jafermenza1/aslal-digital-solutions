@@ -32,6 +32,23 @@ The implementation deliberately keeps provider credentials out of the database. 
 
 The Email and SMS adapters use configurable HTTP provider endpoints. Telegram, WhatsApp, and Messenger use their official API boundaries. Provider-specific webhook payloads must be normalized into the canonical webhook contract before reaching the CRM webhook route.
 
+## PRD gap closure added
+
+The repository now also includes `/dashboard/conversations`, a unified operator communication center backed by the canonical Conversation/Message records. It provides channel/status filtering by conversation selection, message history, human handoff/release controls, and consent-gated outbound sending through the existing adapter boundary. The dashboard navigation exposes this workspace.
+
+This closes the Phase 4 CRM/operator workspace gap identified by PRD sections 16, 17, 28 and 53 at the UI/workflow layer. It does not claim provider-side API verification.
+
+## Remaining PRD-aligned gaps before Phase 4 can be accepted
+
+- Provider-specific inbound webhook normalization/registration remains external-provider work; the canonical signed webhook contract is implemented, but real provider payload callbacks must still be mapped and verified.
+- Email/SMS template storage, variables and unsubscribe workflows are not yet a full template subsystem.
+- Telegram qualification/lead-capture bot behavior is not yet implemented as a complete bot workflow.
+- WhatsApp approved-template handling and Meta provider callback verification remain external/provider-specific acceptance work.
+- Messenger inbound business-messaging flow remains provider-specific acceptance work.
+- Delivery-status callbacks are not yet normalized into `DELIVERED`/failure transitions for every provider.
+- Coordinated automated follow-up, delays, branching and cancellation remain Phase 5 automation-engine scope and are intentionally not implemented here.
+- Social engagement capture is outside the current canonical messaging implementation and remains a later reconciliation item where platform APIs permit it.
+
 ## Controlled acceptance UI
 
 The authenticated dashboard page `/dashboard/acceptance/phase-4` is the Phase 4 control room. It is intentionally split into two paths:
