@@ -21,7 +21,9 @@ async function changeStatus(formData: FormData) {
   const lead = await prisma.lead.findUnique({ where: { id: leadId }, select: { status: true, ownerEmail: true, nextAction: true, nextActionDueAt: true } });
   if (!lead || lead.status === status) return;
   const activeTarget = status !== LeadStatus.WON && status !== LeadStatus.LOST;
-  if (activeTarget && (!lead.ownerEmail || !lead.nextAction || !lead.nextActionDueAt)) return;
+  if (activeTarget && (!lead.ownerEmail || !lead.nextAction || !lead.nextActionDueAt)) {
+    redirect(`/dashboard/leads/${leadId}?error=Active%20leads%20require%20an%20owner%2C%20next%20action%2C%20and%20due%20date%20before%20stage%20changes.`);
+  }
   await prisma.$transaction([
     prisma.lead.update({ where: { id: leadId }, data: { status, ...(status === LeadStatus.WON ? { wonAt: new Date() } : {}) } }),
     prisma.leadStageHistory.create({ data: { leadId, fromStage: lead.status, toStage: status, changedBy: session.email } }),
