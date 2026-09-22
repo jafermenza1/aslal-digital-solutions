@@ -73,6 +73,37 @@ The authenticated dashboard page `/dashboard/acceptance/phase-4` is the Phase 4 
 
 The test runner creates records tagged with `acceptanceTest` metadata so acceptance evidence can be distinguished from ordinary customer traffic. It also exposes the Conversation ID, Message IDs, channel, status and timestamp through the dashboard/API response rather than presenting provider secrets.
 
+## Phase 4A provider-neutral checklist coverage
+
+The simulation suite now runs the canonical acceptance checklist across **all five channels** in one controlled run: Email, SMS, Telegram, WhatsApp, and Messenger. It does not call external providers.
+
+The suite proves the following, with fresh database reads after each relevant operation:
+
+| Checklist area | Automated evidence |
+|---|---|
+| Inbound channel simulations | One signed inbound simulation for each of the five channels |
+| Webhook security | Valid signature accepted; invalid, missing, and tampered signatures rejected before persistence |
+| Replay safety | Exact webhook replay returns duplicate and does not create a second Message or Activity |
+| Identity | Explicit known Person, Lead, and Customer mappings are retained; unknown sender remains unclaimed |
+| Conversation Center data | Conversation, message history, channel, status and timestamps are re-read from canonical tables |
+| Timeline | Inbound, successful outbound, and failed outbound message activities are persisted |
+| Consent | Selected channel can be enabled and revoked; all five channel permissions are checked independently |
+| Global opt-out | Global opt-out blocks outbound permission for all five channels |
+| Outbound success | Adapter boundary returns deterministic simulated success; Message persists as SENT with sentAt |
+| Outbound failure | Adapter boundary returns deterministic failure; Message persists as FAILED with failure activity |
+| Human handoff | HUMAN_HANDOFF and assignedTo persist; a different operator is rejected by the same shared outbound gate |
+| Handoff release | Conversation returns to OPEN and assignedTo becomes null |
+| Closed lifecycle | CLOSED state persists and the shared outbound gate rejects sending; inbound on the closed external thread creates a new OPEN conversation under the current policy |
+| State integrity | Fresh reads confirm Conversation state, ownership, lastMessageAt, SENT/FAILED states and message activities |
+
+The acceptance endpoint returns passed, failed, total, testId, conversationId, the five channels, and a named result for each scenario. The result is ok=true only when every scenario passes.
+
+**Customer prerequisite:** the selected Lead must be linked to a Person, and that Person must have an existing Customer record for the Customer-attachment scenario to pass. This avoids silently creating or mutating a production Customer merely to make a test green.
+
+**Persistence boundary:** browser refresh itself is not simulated by the server. The equivalent deterministic acceptance proof is a fresh database re-read of the canonical Conversation/Message/Activity records after writes; the Conversation Center then reads those same canonical records.
+
+**Provider boundary:** simulated success/failure is implemented inside the shared adapter boundary using an explicit simulation flag. No provider credential or network call is used by the simulation suite. Real provider behavior remains Phase 4B.
+
 ## Controlled acceptance workflow
 
 1. Migrate the Phase 4 conversation schema in the target environment.
