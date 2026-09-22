@@ -6,10 +6,11 @@ type ContactFormProps = {
   initialBusiness?: string;
   initialGoal?: string;
   initialChannels?: string;
+  initialProduct?: string;
   products?: Array<{ slug: string; name: string }>;
 };
 
-export function ContactForm({ initialBusiness = "", initialGoal = "", initialChannels = "", products = [] }: ContactFormProps) {
+export function ContactForm({ initialBusiness = "", initialGoal = "", initialChannels = "", initialProduct = "", products = [] }: ContactFormProps) {
   const [status, setStatus] = useState<{ type: "idle" | "success" | "error"; message: string }>({ type: "idle", message: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -83,7 +84,7 @@ export function ContactForm({ initialBusiness = "", initialGoal = "", initialCha
         <option value="" disabled>Business type</option>
         <option>Retail</option><option>Professional Services</option><option>Manufacturing</option><option>Hospitality</option><option>Education</option><option>Healthcare</option><option>Real Estate</option><option>Other</option>
         </select>
-        <select name="productSlug" defaultValue="" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]">
+        <select name="productSlug" defaultValue={initialProduct} className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]">
           <option value="">Solution / service interest (optional)</option>
           {products.map(product => <option key={product.slug} value={product.slug}>{product.name}</option>)}
         </select>
