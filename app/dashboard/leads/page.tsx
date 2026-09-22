@@ -134,6 +134,6 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
         </table>
       </div>
     </section>
-    {page > 1 && <Link href={pageHref(page - 1)} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold">← Previous</Link>}{page < totalPages && <Link href={pageHref(page + 1)} className="rounded-xl bg-[#0F3E8A] px-4 py-2 text-sm font-bold text-white">Next →</Link>}</div>
+    <div className="mt-5 flex gap-3">{page > 1 && <Link href={pageHref(page - 1)} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold">← Previous</Link>}{page < totalPages && <Link href={pageHref(page + 1)} className="rounded-xl bg-[#0F3E8A] px-4 py-2 text-sm font-bold text-white">Next →</Link>}</div>
   </div></main>;
 }
