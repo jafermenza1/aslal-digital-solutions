@@ -23,7 +23,7 @@ This is the single repository handoff for developers and AI agents. It records w
 | 1 | Baseline and Domain Contract | SATISFIED | PRD, domain contract, traceability, execution control, and phase governance are on main. |
 | 2 | Sales Execution Integrity | IMPLEMENTED-UNVERIFIED | Phase 2 implementation and gap-closure PR #22 are merged into main. A dedicated `/dashboard/acceptance/phase-2` evidence page is now on main; CI verification and production migration/backfill evidence are still required. |
 | 3 | Identity, Engagement, Customer Journey | SATISFIED | Golden-path acceptance completed with persisted visitor, canonical PAGE_VIEW, business/high-intent taxonomy, Growth Opportunity, Lead, Opportunity, Customer, Activity, and Visitor→Lead linkage evidence. |
-| 4 | Conversations and Channel Adapters | IMPLEMENTED-UNVERIFIED | Phase 4 acceptance dashboard is now available. Conversation/message persistence, consent, handoff, signed webhook behavior, provider delivery, retry safety, and production health still require controlled evidence. |
+| 4 | Conversations and Channel Adapters | IMPLEMENTED-UNVERIFIED | Phase 4A provider-neutral foundation and controlled simulation path are implemented. Phase 4B real provider integrations are explicitly deferred for later revision after provider requirements are gathered. |
 | 5 | Automation Engine | MISSING | Future phase; do not start now. |
 | 6 | Campaign, Partner, Revenue, Payment | PARTIAL | Existing foundations exist but are not reconciled/accepted. |
 | 7 | End-to-End Verification and Intelligence | MISSING | Final verification/intelligence phase; AI remains deferred. |
@@ -100,7 +100,7 @@ Prepared scope:
 - Email, SMS, Telegram, WhatsApp, Messenger adapter boundary
 - unified timeline message entries
 
-Phase 4 foundation and controlled acceptance tooling are on main. Phase 4 remains IMPLEMENTED-UNVERIFIED until the controlled suite and configured provider E2E evidence pass.
+Phase 4 foundation and controlled acceptance tooling are on main. Phase 4 remains IMPLEMENTED-UNVERIFIED. Phase 4A can be accepted through provider-neutral controlled simulation evidence; Phase 4B real provider integrations are explicitly deferred for later revision.
 
 Phase 4 external dependencies:
 - provider credentials
@@ -146,8 +146,8 @@ This must be treated as a verification-infrastructure blocker. It does not prove
 2. Apply the pending sales, identity/customer, and conversation migrations through the controlled Emerald deployment procedure; never use `prisma migrate reset`.
 3. Re-run `/dashboard/acceptance/phase-2` and complete the controlled lead, phone, stage-history, and production-health checks.
 4. Set `PHASE4_ACCEPTANCE_MODE=true` only in the controlled acceptance environment, then open `/dashboard/acceptance/phase-4` and run the safety + webhook suite.
-5. Configure provider credentials only for channels intended for production and confirm configuration presence in the acceptance dashboard.
-6. Execute the live provider test for each configured channel, then verify inbound/outbound, consent, opt-out, human-handoff, retry/idempotency, and timeline evidence.
+5. Keep external provider credentials and webhook configuration deferred until the Phase 4B revision.
+6. After a later provider-requirements pass, revise Phase 4B and configure/test only the providers intended for production.
 7. Restore/verify GitHub Actions runner availability and run repository CI verification when available.
 8. Record Phase 2 and Phase 4 evidence and update each phase status only when every acceptance gate is actually proven.
 9. Keep Phase 5 out of scope.
