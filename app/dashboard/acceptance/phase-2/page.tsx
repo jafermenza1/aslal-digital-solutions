@@ -6,7 +6,7 @@ import { verifySession } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
-const ACTIVE = { notIn: ["WON", "LOST"] } as const;
+const ACTIVE_STATUSES = ["NEW", "CONTACTED", "QUALIFIED", "DEMO", "PROPOSAL", "NEGOTIATION"] as const;
 
 export default async function Phase2Acceptance() {
   const session = verifySession((await cookies()).get("aslal_session")?.value);
@@ -14,7 +14,7 @@ export default async function Phase2Acceptance() {
 
   const [active, missingOwner, missingAction, missingDue, overdue, stageHistory, leads, phoneForms] =
     await Promise.all([
-      prisma.lead.count({ where: { status: ACTIVE } }),
+      prisma.lead.count({ where: { status: { in: [...ACTIVE_STATUSES] } } }),
       prisma.lead.count({ where: { status: ACTIVE, ownerEmail: null } }),
       prisma.lead.count({ where: { status: ACTIVE, nextAction: null } }),
       prisma.lead.count({ where: { status: ACTIVE, nextActionDueAt: null } }),
