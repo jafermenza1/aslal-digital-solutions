@@ -15,11 +15,11 @@ export default async function Phase2Acceptance() {
   const [active, missingOwner, missingAction, missingDue, overdue, stageHistory, leads, phoneForms] =
     await Promise.all([
       prisma.lead.count({ where: { status: { in: [...ACTIVE_STATUSES] } } }),
-      prisma.lead.count({ where: { status: ACTIVE, ownerEmail: null } }),
-      prisma.lead.count({ where: { status: ACTIVE, nextAction: null } }),
-      prisma.lead.count({ where: { status: ACTIVE, nextActionDueAt: null } }),
+      prisma.lead.count({ where: { status: { in: [...ACTIVE_STATUSES] }, ownerEmail: null } }),
+      prisma.lead.count({ where: { status: { in: [...ACTIVE_STATUSES] }, nextAction: null } }),
+      prisma.lead.count({ where: { status: { in: [...ACTIVE_STATUSES] }, nextActionDueAt: null } }),
       prisma.lead.count({
-        where: { status: ACTIVE, nextActionDueAt: { lt: new Date() } },
+        where: { status: { in: [...ACTIVE_STATUSES] }, nextActionDueAt: { lt: new Date() } },
       }),
       prisma.leadStageHistory.count(),
       prisma.lead.count(),
