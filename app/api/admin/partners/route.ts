@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ ok: true, partnerId, code: code || null }, { status: 201 });
+    const publicUrl = code ? `${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${code}` : null;
+    return NextResponse.json({ ok: true, partnerId, code: code || null, referralUrl: publicUrl }, { status: 201 });
   } catch (error) {
     console.error("PARTNER_CREATE_ERROR", error);
     return NextResponse.json({ error: "Could not create partner." }, { status: 500 });
