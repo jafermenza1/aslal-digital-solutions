@@ -5,6 +5,7 @@ export type OutboundMessage = {
   recipient: string;
   body: string;
   externalThreadId?: string | null;
+  simulation?: "success" | "failure";
 };
 
 type CommunicationPreference = {
