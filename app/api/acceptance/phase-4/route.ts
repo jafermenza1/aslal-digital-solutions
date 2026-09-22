@@ -459,7 +459,8 @@ export async function POST(request: NextRequest) {
   // H: closed conversations reject outbound and inbound to a closed thread creates a new open thread.
   const closed = await prisma.conversation.update({ where: { id: conversation.id }, data: { status: "CLOSED", assignedTo: null } });
   const closedRejects = closed.status === "CLOSED";
-  results.push(check("Closed conversation state persisted", closedRejects, "Conversation was persisted as CLOSED."));\n  const closedPreference = await prisma.communicationPreference.findUnique({ where: { personId: person.id } });\n  results.push(check("Closed conversation blocks outbound", !canSendConversation(closed, closedPreference, session.email), "Shared outbound gate rejects sends from CLOSED conversations."));
+  results.push(check("Closed conversation state persisted", closedRejects, "Conversation was persisted as CLOSED."));
+  const closedPreference = await prisma.communicationPreference.findUnique({ where: { personId: person.id } });\n  results.push(check("Closed conversation blocks outbound", !canSendConversation(closed, closedPreference, session.email), "Shared outbound gate rejects sends from CLOSED conversations."));
   const closedInboundPayload = JSON.stringify({
     externalThreadId: conversation.externalThreadId,
     externalMessageId: "phase4-closed-inbound-" + testId,
