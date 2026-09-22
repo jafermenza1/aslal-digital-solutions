@@ -100,7 +100,7 @@ Prepared scope:
 - Email, SMS, Telegram, WhatsApp, Messenger adapter boundary
 - unified timeline message entries
 
-Phase 4 foundation and controlled acceptance tooling are on main. Phase 4 remains IMPLEMENTED-UNVERIFIED. Phase 4A can be accepted through provider-neutral controlled simulation evidence; Phase 4B real provider integrations are explicitly deferred for later revision.
+Phase 4 foundation and expanded controlled acceptance tooling are on main. Phase 4 remains IMPLEMENTED-UNVERIFIED. Phase 4A now has deterministic coverage for the full provider-neutral checklist across Email, SMS, Telegram, WhatsApp and Messenger, including identity, consent, opt-out, replay, handoff, lifecycle, timeline and adapter success/failure evidence. Phase 4A is accepted only when the controlled suite returns zero failures in the target environment. Phase 4B real provider integrations remain explicitly deferred for later revision.
 
 Phase 4 external dependencies:
 - provider credentials
@@ -145,7 +145,7 @@ This must be treated as a verification-infrastructure blocker. It does not prove
 1. Open `/dashboard/acceptance/phase-2` and record the current execution-gap evidence before any legacy backfill.
 2. Apply the pending sales, identity/customer, and conversation migrations through the controlled Emerald deployment procedure; never use `prisma migrate reset`.
 3. Re-run `/dashboard/acceptance/phase-2` and complete the controlled lead, phone, stage-history, and production-health checks.
-4. Set `PHASE4_ACCEPTANCE_MODE=true` only in the controlled acceptance environment, then open `/dashboard/acceptance/phase-4` and run the safety + webhook suite.
+4. Set `PHASE4_ACCEPTANCE_MODE=true` only in the controlled acceptance environment, select a Lead linked to both a Person and Customer, then open `/dashboard/acceptance/phase-4` and run the expanded Phase 4A suite. Require `failed=0` and retain the returned `testId`, Conversation ID and result matrix as acceptance evidence.
 5. Keep external provider credentials and webhook configuration deferred until the Phase 4B revision.
 6. After a later provider-requirements pass, revise Phase 4B and configure/test only the providers intended for production.
 7. Restore/verify GitHub Actions runner availability and run repository CI verification when available.
