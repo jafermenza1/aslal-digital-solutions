@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type Lead = { id: string; name: string; email: string | null; phone: string | null; company: string | null; personId: string | null };
@@ -103,9 +104,9 @@ export default function Phase4ControlRoom({
     </section>
 
     <div className="mt-6 flex flex-wrap gap-3">
-      <a href="/dashboard/customers" className="rounded-xl bg-[#0F3E8A] px-5 py-3 font-black text-white">Customers & timelines</a>
-      <a href="/dashboard/leads" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Leads</a>
-      <a href="/dashboard/journey" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Visitor journeys</a>
+      <Link href="/dashboard/customers" className="rounded-xl bg-[#0F3E8A] px-5 py-3 font-black text-white">Customers & timelines</Link>
+      <Link href="/dashboard/leads" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Leads</Link>
+      <Link href="/dashboard/journey" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Visitor journeys</Link>
     </div>
   </div>;
 }
