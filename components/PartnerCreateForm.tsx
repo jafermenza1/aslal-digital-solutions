@@ -6,18 +6,21 @@ export default function PartnerCreateForm({ products = [] }: { products?: Array<
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [referralUrl, setReferralUrl] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setMessage("");
+    setReferralUrl("");
     const form = new FormData(event.currentTarget);
     const payload = Object.fromEntries(form.entries());
     try {
       const response = await fetch("/api/admin/partners", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not create partner.");
-      setMessage(data.referralUrl ? `Partner created. Public referral link: ${data.referralUrl}` : "Partner created. Add a referral code to issue a public link.");
+      setReferralUrl(data.referralUrl || "");
+      setMessage(data.referralUrl ? "Partner created. The public referral link is ready to share." : "Partner created.");
       event.currentTarget.reset();
       setTimeout(() => window.location.reload(), 700);
     } catch (error) {
@@ -42,7 +45,7 @@ export default function PartnerCreateForm({ products = [] }: { products?: Array<
           <label className="text-sm font-bold text-slate-700">Product / service<select name="productSlug" defaultValue="" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option value="">All solutions</option>{products.map(product => <option key={product.slug} value={product.slug}>{product.name}</option>)}</select></label>
           <Field label="Destination" name="destinationPath" defaultValue="/" placeholder="/products" />
         </div>
-        {message && <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700">{message}</div>}
+        {message && <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700">{message}{referralUrl && <a href={referralUrl} target="_blank" rel="noreferrer" className="mt-2 block break-all text-[#0F3E8A] underline">{referralUrl} ↗</a>}</div>}
         <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setOpen(false)} className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold">Cancel</button><button disabled={busy} className="rounded-full bg-[#E2B02A] px-6 py-3 text-sm font-black text-slate-950 disabled:opacity-50">{busy ? "Creating…" : "Create partner"}</button></div>
       </form>
     </div>}
