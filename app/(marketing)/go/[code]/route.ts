@@ -26,6 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const destination = String(link.destination_path || "/").startsWith("/") ? link.destination_path : "/";
   const url = new URL(destination, request.url);
   url.searchParams.set("utm_source", "partner");
+  url.searchParams.set("utm_medium", "referral");
   url.searchParams.set("utm_campaign", link.campaign || code);
   return NextResponse.redirect(url);
 }
