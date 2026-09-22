@@ -37,13 +37,13 @@ export default async function Phase3Acceptance() {
   const manual = [
     "Open Journey Explorer and select a newly-created visitor.",
     "Confirm first source, medium, campaign and referral are visible when supplied.",
-    "Trigger one documented high-intent event and confirm it appears in Event timeline and creates/updates a Growth Opportunity.",
+    "Open a public product page, click Request a demo, then use Journey Explorer to confirm DEMO_START and the Growth Opportunity.",
     "Confirm the anonymous visitor has no Person until legitimate lead capture.",
-    "Submit the contact form with a referral/UTM URL and confirm the Lead shows the same attribution.",
-    "Create an Opportunity from a Lead and confirm it is a separate record.",
+    "Create a partner link in Partners, open its public /go/code URL, submit Contact, then confirm partner/referral/UTM attribution on the Lead.",
+    "Open a Lead, use Separate opportunities → Create, and confirm the new Opportunity is listed independently from the Lead.",
     "Move the Lead to WON with a positive ETB deal value.",
-    "Convert the WON Lead to Customer and confirm Person, Opportunity, attribution and deal value.",
-    "Open the customer timeline and confirm visitor events, sales activities and stage history are chronological.",
+    "From the WON Lead, use Convert WON lead to customer and confirm Person, WON Opportunity, attribution and positive ETB value in Customers.",
+    "Open Customers & timelines and confirm visitor events, sales activities, notes/tasks and stage history are chronological.",
     "Repeat customer conversion and confirm no second Customer is created.",
   ];
   return <main className="min-h-screen bg-[#F8FAFC] py-8"><div className="container-aslal">
@@ -53,6 +53,6 @@ export default async function Phase3Acceptance() {
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">Automated evidence</h2><div className="mt-5 space-y-2">{automated.map(([label,ok,detail])=><div key={String(label)} className="flex items-center justify-between gap-3 rounded-xl bg-[#F8FAFC] p-4"><div><div className="font-bold">{label}</div><div className="text-xs text-slate-500">{detail}</div></div><span className={ok?"font-black text-emerald-700":"font-black text-amber-700"}>{ok?"EVIDENCED":"NOT YET"}</span></div>)}</div></section>
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">Manual completion checklist</h2><div className="mt-5 space-y-3">{manual.map((item,i)=><div key={item} className="flex gap-3 rounded-xl border border-slate-100 p-4"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-xs font-black text-[#0F3E8A]">{i+1}</span><span className="text-sm leading-6 text-slate-600">{item}</span></div>)}</div></section>
     </div>
-    <div className="mt-6 flex flex-wrap gap-3"><Link href="/dashboard/journey" className="rounded-xl bg-[#0F3E8A] px-5 py-3 font-black text-white">Open Journey Explorer</Link><Link href="/dashboard/leads" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Open Leads</Link><Link href="/dashboard/insights" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Open Insights</Link></div>
+    <div className="mt-6 flex flex-wrap gap-3"><Link href="/dashboard/journey" className="rounded-xl bg-[#0F3E8A] px-5 py-3 font-black text-white">Open Journey Explorer</Link><Link href="/dashboard/leads" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Open Leads</Link><Link href="/dashboard/insights" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Open Insights</Link><Link href="/dashboard/partners" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Open Partners</Link><Link href="/dashboard/customers" className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold">Open Customers</Link></div>
   </div></main>;
 }
