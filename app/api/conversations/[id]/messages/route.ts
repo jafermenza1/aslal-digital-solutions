@@ -55,13 +55,17 @@ export async function POST(request: NextRequest, { params }: Params) {
         data: { status: "SENT", sentAt: new Date(), metadata: { actor: session.email, providerResult } },
       }),
       prisma.conversation.update({ where: { id: conversation.id }, data: { lastMessageAt: new Date() } }),
+      prisma.activity.create({ data: { type: "MESSAGE_OUTBOUND", subject: conversation.channel + " outbound message", details: { messageId: message.id, providerResult }, personId: conversation.personId, customerId: conversation.customerId, opportunityId: conversation.opportunityId } }),
     ]);
     return NextResponse.json({ ok: true, messageId: message.id, status: "SENT" });
   } catch (error) {
-    await prisma.message.update({
-      where: { id: message.id },
-      data: { status: "FAILED", metadata: { actor: session.email, error: error instanceof Error ? error.message : "Provider error" } },
-    });
+    await prisma.$transaction([
+      prisma.message.update({
+        where: { id: message.id },
+        data: { status: "FAILED", metadata: { actor: session.email, error: error instanceof Error ? error.message : "Provider error" } },
+      }),
+      prisma.activity.create({ data: { type: "MESSAGE_OUTBOUND_FAILED", subject: conversation.channel + " outbound failed", details: { messageId: message.id }, personId: conversation.personId, customerId: conversation.customerId, opportunityId: conversation.opportunityId } }),
+    ]);
     return NextResponse.json({ ok: false, messageId: message.id, status: "FAILED" }, { status: 502 });
   }
 }
