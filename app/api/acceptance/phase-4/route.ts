@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/security";
-import { isOutboundAllowed, sendThroughAdapter } from "@/lib/messaging";
+import { canSendConversation, isOutboundAllowed, sendThroughAdapter } from "@/lib/messaging";
 import { processInboundMessagingWebhook, signMessagingWebhook } from "@/lib/messaging-webhook";
 
 const channels = ["EMAIL", "SMS", "TELEGRAM", "WHATSAPP", "MESSENGER"] as const;
@@ -442,8 +442,8 @@ export async function POST(request: NextRequest) {
   results.push(check("Conversation gets assigned", handoff.assignedTo === session.email, "Handoff owner equals the authenticated operator."));
   const otherOperator = "phase4-other-operator@example.invalid";
   const unauthorizedBlocked = handoff.status === "HUMAN_HANDOFF" && handoff.assignedTo !== otherOperator;
-  results.push(check("Unauthorized user cannot send", unauthorizedBlocked, "Ownership gate rejects an operator who is not assigned to the handoff."));
-  const authorizedCanSend = handoff.status === "HUMAN_HANDOFF" && handoff.assignedTo === session.email && isOutboundAllowed(channel, await prisma.communicationPreference.findUnique({ where: { personId: person.id } }));
+  results.push(check("Unauthorized user cannot send", !canSendConversation(handoff, await prisma.communicationPreference.findUnique({ where: { personId: person.id } }), otherOperator), "Shared outbound gate rejects an operator who is not assigned to the handoff."));
+  const authorizedCanSend = canSendConversation(handoff, await prisma.communicationPreference.findUnique({ where: { personId: person.id } }), session.email);
   results.push(check("Assigned owner can send", authorizedCanSend, "Assigned operator passes the handoff ownership and consent gates."));
   const released = await prisma.conversation.update({ where: { id: conversation.id }, data: { status: "OPEN", assignedTo: null } });
   results.push(check("Release handoff", released.status === "OPEN" && released.assignedTo == null, "Conversation returned to OPEN with no owner."));
@@ -451,7 +451,7 @@ export async function POST(request: NextRequest) {
   // H: closed conversations reject outbound and inbound to a closed thread creates a new open thread.
   const closed = await prisma.conversation.update({ where: { id: conversation.id }, data: { status: "CLOSED", assignedTo: null } });
   const closedRejects = closed.status === "CLOSED";
-  results.push(check("Closed conversation state persisted", closedRejects, "Conversation was persisted as CLOSED."));
+  results.push(check("Closed conversation state persisted", closedRejects, "Conversation was persisted as CLOSED."));\n  const closedPreference = await prisma.communicationPreference.findUnique({ where: { personId: person.id } });\n  results.push(check("Closed conversation blocks outbound", !canSendConversation(closed, closedPreference, session.email), "Shared outbound gate rejects sends from CLOSED conversations."));
   const closedInboundPayload = JSON.stringify({
     externalThreadId: conversation.externalThreadId,
     externalMessageId: "phase4-closed-inbound-" + testId,
