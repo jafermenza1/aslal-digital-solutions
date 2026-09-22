@@ -36,6 +36,16 @@ export function isOutboundAllowed(
   return Boolean(preference[preferenceKey(channel)]);
 }
 
+export function canSendConversation(
+  conversation: { status: "OPEN" | "HUMAN_HANDOFF" | "CLOSED"; assignedTo?: string | null; channel: CommunicationChannel },
+  preference: CommunicationPreference | null | undefined,
+  actorEmail: string,
+) {
+  if (conversation.status === "CLOSED") return false;
+  if (conversation.status === "HUMAN_HANDOFF" && conversation.assignedTo !== actorEmail) return false;
+  return isOutboundAllowed(conversation.channel, preference);
+}
+
 async function postJson(url: string, body: unknown, headers?: Record<string, string>) {
   const response = await fetch(url, {
     method: "POST",
