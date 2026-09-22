@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/security";
-import { isOutboundAllowed, sendThroughAdapter } from "@/lib/messaging";
+import { canSendConversation, sendThroughAdapter } from "@/lib/messaging";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -26,8 +26,8 @@ export async function POST(request: NextRequest, { params }: Params) {
   if (conversation.status === "HUMAN_HANDOFF" && conversation.assignedTo !== session.email) {
     return NextResponse.json({ error: "Conversation is assigned to another human owner" }, { status: 409 });
   }
-  if (!isOutboundAllowed(conversation.channel, conversation.person?.communicationPreference)) {
-    return NextResponse.json({ error: "Outbound messaging is not permitted for this channel." }, { status: 403 });
+  if (!canSendConversation(conversation, conversation.person?.communicationPreference, session.email)) {
+    return NextResponse.json({ error: "Outbound messaging is not permitted for this conversation." }, { status: 403 });
   }
 
   const message = await prisma.message.create({
