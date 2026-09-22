@@ -100,7 +100,7 @@ Prepared scope:
 - Email, SMS, Telegram, WhatsApp, Messenger adapter boundary
 - unified timeline message entries
 
-Phase 4 is not yet mainline. Do not mark R13–R18/R29 SATISFIED or IMPLEMENTED-UNVERIFIED on main until PR #26 is merged.
+Phase 4 foundation and controlled acceptance tooling are on main. Phase 4 remains IMPLEMENTED-UNVERIFIED until the controlled suite and configured provider E2E evidence pass.
 
 Phase 4 external dependencies:
 - provider credentials
@@ -143,9 +143,9 @@ This must be treated as a verification-infrastructure blocker. It does not prove
 ## Exact next action
 
 1. Apply the pending Phase 4 conversation migration through the controlled Emerald deployment procedure; never use `prisma migrate reset`.
-2. Open `/dashboard/acceptance/phase-4` and verify automated conversation/message evidence.
+2. Set `PHASE4_ACCEPTANCE_MODE=true` only in the controlled acceptance environment, then open `/dashboard/acceptance/phase-4` and run the safety + webhook suite.
 3. Configure provider credentials only for channels intended for production and confirm configuration presence in the acceptance dashboard.
-4. Execute controlled inbound/outbound, consent, opt-out, human-handoff, retry/idempotency, and timeline tests.
+4. Execute the live provider test for each configured channel, then verify inbound/outbound, consent, opt-out, human-handoff, retry/idempotency, and timeline evidence.
 5. Restore/verify GitHub Actions runner availability and run repository CI verification when available.
 6. Record Phase 4 evidence and update the phase status only when every acceptance gate is actually proven.
 7. Keep Phase 5 out of scope.
