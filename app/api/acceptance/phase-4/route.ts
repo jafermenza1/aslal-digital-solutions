@@ -169,6 +169,9 @@ export async function POST(request: NextRequest) {
     const recipient = typeof body.recipient === "string" ? body.recipient.trim().slice(0, 190) : "";
     const text = typeof body.message === "string" ? body.message.trim().slice(0, 10000) : "";
     if (!recipient || !text) return NextResponse.json({ error: "recipient and message are required" }, { status: 400 });
+    if (conversation.status === "HUMAN_HANDOFF" && conversation.assignedTo !== session.email) {
+      return NextResponse.json({ error: "Conversation is assigned to another human owner." }, { status: 409 });
+    }
     const currentPreference = await prisma.communicationPreference.findUnique({ where: { personId: person.id } });
     if (!isOutboundAllowed(channel, currentPreference)) return NextResponse.json({ error: "Outbound is blocked by communication preference." }, { status: 403 });
     const message = await prisma.message.create({ data: { id: randomUUID(), conversationId: conversation.id, direction: "OUTBOUND", status: "QUEUED", recipientAddress: recipient, body: text, metadata: { acceptanceTest: true, actor: session.email } } });
