@@ -6,7 +6,7 @@ export function AnalyticsTracker() {
   useEffect(() => {
     const url = new URL(window.location.href);
     const payload = {
-      eventName: "page_view",
+      eventName: "PAGE_VIEW",
       pagePath: window.location.pathname,
       metadata: {
         referrer: document.referrer || null,
