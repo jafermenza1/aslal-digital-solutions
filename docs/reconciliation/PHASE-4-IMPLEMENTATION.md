@@ -2,6 +2,15 @@
 
 ## Scope
 
+## Phase 4 staging decision
+
+Phase 4 is explicitly split into two implementation/acceptance tracks:
+
+- **Phase 4A — Provider-neutral messaging foundation and simulation acceptance:** the CRM conversation/message model, consent and opt-out enforcement, human handoff, signed inbound boundary, idempotency, activity/timeline integration, adapter boundary, and controlled simulations can be validated without configuring external providers.
+- **Phase 4B — Provider integrations:** real provider credentials, sender identities, provider-specific webhook registration/normalization, templates/permissions, delivery callbacks, and controlled live end-to-end channel tests will be revised and implemented later, after a separate provider-requirements/configuration pass.
+
+**Phase 4B is intentionally deferred for now.** This is a sequencing decision, not a claim that provider integrations are complete or accepted. The Phase 4 main status remains IMPLEMENTED-UNVERIFIED.
+
 Relevant traceability IDs: R13, R14, R15, R16, R17, R18, R29, R12.
 
 ## Implemented foundation
@@ -37,6 +46,12 @@ The Email and SMS adapters use configurable HTTP provider endpoints. Telegram, W
 The repository now also includes `/dashboard/conversations`, a unified operator communication center backed by the canonical Conversation/Message records. It provides channel/status filtering by conversation selection, message history, human handoff/release controls, and consent-gated outbound sending through the existing adapter boundary. The dashboard navigation exposes this workspace.
 
 This closes the Phase 4 CRM/operator workspace gap identified by PRD sections 16, 17, 28 and 53 at the UI/workflow layer. It does not claim provider-side API verification.
+
+## Phase 4B deferred provider-integration record
+
+Phase 4B will be revised after the current Phase 4A acceptance work is complete and after provider requirements are gathered. The revised Phase 4B record will cover, per provider: account/business setup and eligibility; sender identity and destination addressing; API credentials; provider-specific webhook verification and signatures; inbound normalization; outbound API behavior; delivery/read/failure callbacks; templates and approval rules; unsubscribe/opt-out; rate limits and retry/error semantics; controlled test recipients; production acceptance evidence; and rollback/disable procedures.
+
+Provider-specific requirements must be verified against the selected provider documentation and account configuration before implementation. No provider is considered configured or accepted merely because an adapter exists in the repository.
 
 ## Remaining PRD-aligned gaps before Phase 4 can be accepted
 
