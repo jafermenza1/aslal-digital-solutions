@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
     });
     const historyCount = await prisma.message.count({ where: { conversationId: first.conversationId } });
     const activityCount = await prisma.activity.count({
-      where: { type: "MESSAGE_INBOUND", personId: person.id, details: { path: ["messageId"], equals: first.messageId } },
+      where: { type: "MESSAGE_INBOUND", personId: person.id, details: { path: "$.messageId", equals: first.messageId } },
     });
     results.push(check(
       "Inbound " + inboundChannel + " simulation",
@@ -318,7 +318,7 @@ export async function POST(request: NextRequest) {
   const unknownConversation = await prisma.conversation.findUnique({ where: { id: unknownResult.conversationId }, select: { personId: true, leadId: true, customerId: true } });
   results.push(check(
     "Unknown sender creates unclaimed conversation",
-    unknownConversation?.personId == null && unknownConversation.leadId == null && unknownConversation.customerId == null,
+    unknownConversation?.personId == null && unknownConversation?.leadId == null && unknownConversation?.customerId == null,
     "Unknown sender created a conversation without fabricating CRM identity.",
   ));
 
@@ -434,7 +434,7 @@ export async function POST(request: NextRequest) {
     }),
   ]);
   const persistedOutbound = await prisma.message.findUnique({ where: { id: outboundMessage.id }, select: { status: true, sentAt: true } });
-  const outboundActivity = await prisma.activity.count({ where: { type: "MESSAGE_OUTBOUND", personId: person.id, details: { path: ["messageId"], equals: outboundMessage.id } } });
+  const outboundActivity = await prisma.activity.count({ where: { type: "MESSAGE_OUTBOUND", personId: person.id, details: { path: "$.messageId", equals: outboundMessage.id } } });
   results.push(check("Outbound simulation succeeds", persistedOutbound?.status === "SENT" && Boolean(persistedOutbound.sentAt), "Outbound Message is persisted as SENT."));
   results.push(check("Outbound activity timeline", outboundActivity === 1, "MESSAGE_OUTBOUND activity was persisted exactly once."));
   const reloadedConversation = await prisma.conversation.findUnique({ where: { id: conversation.id }, select: { lastMessageAt: true, status: true, assignedTo: true } });
@@ -482,7 +482,7 @@ export async function POST(request: NextRequest) {
     select: { status: true, assignedTo: true, lastMessageAt: true },
   });
   const messageStates = await prisma.message.findMany({
-    where: { conversationId: conversation.id, metadata: { path: ["acceptanceTest"], equals: true } },
+    where: { conversationId: conversation.id, metadata: { path: "$.acceptanceTest", equals: true } },
     select: { direction: true, status: true },
   });
   const timelineMessages = await prisma.activity.count({ where: { personId: person.id, type: { startsWith: "MESSAGE_" } } });
