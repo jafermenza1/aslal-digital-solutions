@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type Conversation = {
   id: string; channel: string; status: string; assignedTo: string | null;
@@ -29,11 +29,6 @@ export default function ConversationCenter({ initialConversations, viewer }: { i
     const data = await response.json();
     if (response.ok) setMessages(data.messages || []);
   }
-
-  useEffect(() => {
-    if (!selected) return;
-    void loadMessages(selected.id);
-  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function send() {
     if (!selected || !body.trim() || !recipient.trim()) return;
@@ -70,7 +65,10 @@ export default function ConversationCenter({ initialConversations, viewer }: { i
           {conversations.map(c => {
             const identity = c.person?.name || c.customer?.name || c.lead?.name || "Unclaimed sender";
             const last = c.messages[0];
-            return <button key={c.id} onClick={() => setSelectedId(c.id)} className={"w-full rounded-2xl border p-4 text-left " + (selectedId === c.id ? "border-[#0F3E8A] bg-blue-50" : "border-slate-100 hover:bg-slate-50")}>
+            return <button key={c.id} onClick={() => {
+                setSelectedId(c.id);
+                void loadMessages(c.id);
+              }} className={"w-full rounded-2xl border p-4 text-left " + (selectedId === c.id ? "border-[#0F3E8A] bg-blue-50" : "border-slate-100 hover:bg-slate-50")}>
               <div className="flex items-center justify-between gap-2"><b className="truncate">{identity}</b><span className="text-[10px] font-black">{c.channel}</span></div>
               <div className="mt-1 truncate text-xs text-slate-500">{last?.body || "No messages yet"}</div>
               <div className="mt-2 flex justify-between text-[10px] text-slate-400"><span>{c.status === "HUMAN_HANDOFF" ? "Human: " + (c.assignedTo || "unassigned") : c.status}</span><span>{c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleString() : "—"}</span></div>
