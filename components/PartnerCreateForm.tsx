@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
-export default function PartnerCreateForm() {
+export default function PartnerCreateForm({ products = [] }: { products?: Array<{ slug: string; name: string }> }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -17,7 +17,7 @@ export default function PartnerCreateForm() {
       const response = await fetch("/api/admin/partners", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not create partner.");
-      setMessage(data.code ? `Partner created. Referral URL: /go/${data.code}` : "Partner created.");
+      setMessage(data.referralUrl ? `Partner created. Public referral link: ${data.referralUrl}` : "Partner created. Add a referral code to issue a public link.");
       event.currentTarget.reset();
       setTimeout(() => window.location.reload(), 700);
     } catch (error) {
@@ -39,7 +39,7 @@ export default function PartnerCreateForm() {
           <label className="text-sm font-bold text-slate-700">Status<select name="status" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option>ACTIVE</option><option>PENDING</option><option>PAUSED</option></select></label>
           <Field label="Referral code" name="code" placeholder="e.g. agent-abebe" />
           <Field label="Campaign" name="campaign" placeholder="e.g. tiktok-september" />
-          <Field label="Product slug" name="productSlug" placeholder="Optional product slug" />
+          <label className="text-sm font-bold text-slate-700">Product / service<select name="productSlug" defaultValue="" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option value="">All solutions</option>{products.map(product => <option key={product.slug} value={product.slug}>{product.name}</option>)}</select></label>
           <Field label="Destination" name="destinationPath" defaultValue="/" placeholder="/products" />
         </div>
         {message && <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700">{message}</div>}
