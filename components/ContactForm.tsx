@@ -30,6 +30,8 @@ export function ContactForm({ initialBusiness = "", initialGoal = "", initialCha
       const data = await response.json().catch(() => null);
 
       if (response.ok && data?.ok === true) {
+        const url = new URL(window.location.href);
+        fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventName: "CONTACT_SUBMIT", pagePath: window.location.pathname, metadata: { utmSource: url.searchParams.get("utm_source"), utmMedium: url.searchParams.get("utm_medium"), utmCampaign: url.searchParams.get("utm_campaign") } }), keepalive: true }).catch(() => undefined);
         form.reset();
         setStatus({
           type: "success",
