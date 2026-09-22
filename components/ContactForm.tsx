@@ -6,9 +6,10 @@ type ContactFormProps = {
   initialBusiness?: string;
   initialGoal?: string;
   initialChannels?: string;
+  products?: Array<{ slug: string; name: string }>;
 };
 
-export function ContactForm({ initialBusiness = "", initialGoal = "", initialChannels = "" }: ContactFormProps) {
+export function ContactForm({ initialBusiness = "", initialGoal = "", initialChannels = "", products = [] }: ContactFormProps) {
   const [status, setStatus] = useState<{ type: "idle" | "success" | "error"; message: string }>({ type: "idle", message: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,10 +69,16 @@ export function ContactForm({ initialBusiness = "", initialGoal = "", initialCha
         <input name="email" type="email" maxLength={190} placeholder="Email" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]" />
         <input name="phone" maxLength={40} placeholder="Phone / WhatsApp" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]" />
       </div>
-      <select required name="businessType" defaultValue="" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <select required name="businessType" defaultValue="" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]">
         <option value="" disabled>Business type</option>
         <option>Retail</option><option>Professional Services</option><option>Manufacturing</option><option>Hospitality</option><option>Education</option><option>Healthcare</option><option>Real Estate</option><option>Other</option>
-      </select>
+        </select>
+        <select name="productSlug" defaultValue="" className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]">
+          <option value="">Solution / service interest (optional)</option>
+          {products.map(product => <option key={product.slug} value={product.slug}>{product.name}</option>)}
+        </select>
+      </div>
       <textarea required name="message" maxLength={5000} rows={6} placeholder={initialGoal ? "Growth goal: " + initialGoal + ". Tell us what is blocking progress…" : "Tell us what you want to build or grow…"} className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[#1E293B] outline-none focus:border-[#0F3E8A]" />
       <button disabled={submitting} className="rounded-2xl bg-[#0F3E8A] px-6 py-4 font-extrabold text-white transition hover:bg-[#092d69] disabled:cursor-not-allowed disabled:opacity-60">
         {submitting ? "Sending…" : "Request a growth consultation"}
