@@ -206,6 +206,16 @@ export async function POST(request: NextRequest) {
       "Re-read found " + historyCount + " message(s) in the canonical conversation.",
     ));
     results.push(check(
+      "Replay same webhook",
+      second.duplicate === true,
+      "The exact webhook replay was recognized as a duplicate.",
+    ));
+    results.push(check(
+      "Replay creates no duplicate message",
+      historyCount === 1 && activityCount === 1,
+      "The replay left one Message and one inbound Activity for the thread.",
+    ));
+    results.push(check(
       "Inbound " + inboundChannel + " activity",
       activityCount === 1,
       "Exactly one MESSAGE_INBOUND activity is linked to the message.",
@@ -429,8 +439,8 @@ export async function POST(request: NextRequest) {
   results.push(check("Outbound activity timeline", outboundActivity === 1, "MESSAGE_OUTBOUND activity was persisted exactly once."));
   const reloadedConversation = await prisma.conversation.findUnique({ where: { id: conversation.id }, select: { lastMessageAt: true, status: true, assignedTo: true } });
   const reloadedHistory = await prisma.message.count({ where: { conversationId: conversation.id } });
-  results.push(check("Conversation Center persistence", Boolean(reloadedConversation?.lastMessageAt) && reloadedHistory >= 2, "Canonical conversation and message history remain present after a fresh database read."));
-  results.push(check("Message history persists after reload", reloadedHistory >= 2, "Fresh database read confirms the Conversation Center data survives navigation/reload boundaries."));
+  results.push(check("Conversation appears in Conversation Center", Boolean(reloadedConversation?.lastMessageAt), "Canonical Conversation remains readable after the write cycle."));
+  results.push(check("Message history appears", reloadedHistory >= 2, "Fresh database read confirms the canonical message history remains available."));
 
   // G: human handoff ownership and release.
   const handoff = await prisma.conversation.update({
@@ -475,7 +485,7 @@ export async function POST(request: NextRequest) {
   });
   const timelineMessages = await prisma.activity.count({ where: { personId: person.id, type: { startsWith: "MESSAGE_" } } });
   results.push(check("Every state transition is persisted", finalConversation?.status === "CLOSED" && finalConversation.assignedTo == null && Boolean(finalConversation.lastMessageAt) && messageStates.some(m => m.status === "SENT") && messageStates.some(m => m.status === "FAILED"), "Fresh reads confirm conversation state, ownership, lastMessageAt, SENT and FAILED message states."));
-  results.push(check("Message activity reaches timeline", timelineMessages > 0, timelineMessages + " message activity record(s) are linked to the Person timeline."));
+  results.push(check("Activity timeline receives message activity", timelineMessages > 0, timelineMessages + " message activity record(s) are linked to the Person timeline."));
 
   // Restore the acceptance fixture to a safe non-opted-out preference; do not leave the test Person globally opted out.
   await prisma.communicationPreference.update({
