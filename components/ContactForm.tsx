@@ -80,7 +80,7 @@ export function ContactForm({
         <p className="mt-2 text-sm text-slate-500">Please contact Aslal directly.</p>
         <div className="mt-4 flex flex-wrap justify-center gap-3">
           <a href="https://wa.me/251911276682" target="_blank" rel="noreferrer" aria-label="Contact Aslal on WhatsApp" className="rounded-full bg-emerald-500 px-5 py-3 text-sm font-black text-white">◉ WhatsApp</a>
-          <a href={process.env.NEXT_PUBLIC_TELEGRAM_USERNAME ? `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_USERNAME.replace(/^@/, "")}` : "https://t.me/"} target="_blank" rel="noreferrer" aria-label="Contact Aslal on Telegram" className="rounded-full bg-sky-500 px-5 py-3 text-sm font-black text-white">✈ Telegram</a>
+          <a href="https://t.me/share/url?url=https%3A%2F%2Faslaldigital.com%2Fcontact&text=Hi%20Aslal%2C%20I%20need%20urgent%20help." target="_blank" rel="noreferrer" aria-label="Contact Aslal on Telegram" className="rounded-full bg-sky-500 px-5 py-3 text-sm font-black text-white">✈ Telegram</a>
           <a href="mailto:info@aslaldigital.com" aria-label="Email Aslal" className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white">✉ Email</a>
         </div>
         <p className="mt-4 text-xs text-slate-400">Email: info@aslaldigital.com · Phone/WhatsApp: +251 911-276682</p>
