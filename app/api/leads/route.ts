@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    if (clean(body.website, 200)) return NextResponse.json({ ok: true });
+    if (clean(body.website, 200)) return NextResponse.json({ ok: true, ignored: true });
 
     const name = clean(body.name, 160);
     const email = clean(body.email, 190).toLowerCase();
@@ -148,6 +148,9 @@ export async function POST(request: NextRequest) {
           [productSlug]
         );
         const product = productRows[0];
+        if (!product) {
+          throw new Error("Selected product/service does not exist.");
+        }
         if (product) {
           await connection.execute(
             `INSERT INTO lead_product_interest
@@ -175,6 +178,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, leadId });
   } catch (error) {
     console.error("LEAD_CREATE_ERROR", error);
-    return NextResponse.json({ error: "Unable to submit the request right now." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "";
+    if (message === "Selected product/service does not exist.") {
+      return NextResponse.json({ error: "The selected solution is no longer available. Please choose another option." }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Unable to submit the request right now. Please try again; no lead was intentionally accepted unless a success response is returned." }, { status: 500 });
   }
 }
