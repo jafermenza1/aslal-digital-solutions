@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventTracker } from "@/components/EventTracker";
+import { TrackedLink } from "@/components/TrackedLink";
 
 const products: Record<string, { name: string; type: string; description: string; features: string[] }> = {
   "crm-pro": {
@@ -30,14 +31,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main>
-      <EventTracker eventName="product_viewed" productSlug={slug} />
+      <EventTracker eventName="PRODUCT_VIEW" productSlug={slug} />
       <section className="bg-[#0F3E8A] py-24 text-white">
         <div className="container-aslal max-w-5xl">
           <div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">{product.type}</div>
           <h1 className="mt-4 text-5xl font-black tracking-[-.05em] sm:text-7xl">{product.name}</h1>
           <p className="mt-6 max-w-3xl text-xl leading-8 text-white/70">{product.description}</p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link href="/contact" className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">Request a demo</Link>
+            <TrackedLink href="/contact" eventName="DEMO_START" productSlug={slug} className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">Request a demo</TrackedLink>
             <Link href="/demo" className="rounded-full border border-white/20 px-6 py-4 font-bold">Experience automation</Link>
           </div>
         </div>
