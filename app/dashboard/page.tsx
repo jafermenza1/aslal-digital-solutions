@@ -15,13 +15,13 @@ async function loadData():Promise<Data|null>{
    prisma.visitor.count(),prisma.lead.count(),prisma.opportunity.count({where:{stage:{notIn:["WON","LOST"]}}}),prisma.customer.count(),
    prisma.opportunity.aggregate({where:{stage:{notIn:["WON","LOST"]}},_sum:{expectedValue:true}}),
    prisma.opportunity.aggregate({where:{stage:"WON"},_count:{_all:true},_sum:{expectedValue:true}}),
-   prisma.$queryRaw<number[]>`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND next_action_due_at IS NOT NULL AND next_action_due_at < NOW()`,
+   prisma.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND next_action_due_at IS NOT NULL AND next_action_due_at < NOW()`,
    prisma.lead.count({where:{status:{notIn:["WON","LOST"]},OR:[{ownerEmail:null},{nextAction:null},{nextActionDueAt:null}]} }),
    prisma.growthOpportunity.count({where:{status:"OPEN"}}),
    prisma.lead.findMany({orderBy:{updatedAt:"desc"},take:6,select:{id:true,name:true,company:true,status:true,score:true,updatedAt:true}}),
    Promise.all(stages.map(async stage=>[stage,await prisma.opportunity.count({where:{stage}})] as const))
   ]);
-  return {visitors,leads,opportunities,customers,pipelineValue:Number(pipeline._sum.expectedValue??0),wonRevenue:Number(won._sum.expectedValue??0),wonDeals:won._count._all,overdue:Number((overdue as Array<{count:number}>)[0]?.count ?? 0),missingExecution,growth,recent,stageCounts};
+  return {visitors,leads,opportunities,customers,pipelineValue:Number(pipeline._sum.expectedValue??0),wonRevenue:Number(won._sum.expectedValue??0),wonDeals:won._count._all,overdue:Number(overdue[0]?.count ?? 0),missingExecution,growth,recent,stageCounts};
  }catch(error){ console.error("Growth OS dashboard data load failed:",error); return null; }
 }
 
