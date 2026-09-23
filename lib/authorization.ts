@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/security";
 import { UserRole } from "@prisma/client";
-import { defaultPermissionsForRole, type Permission } from "@/lib/permissions";
+import { defaultPermissionsForRole, resolvePermissions, type Permission } from "@/lib/permissions";
 
 export type CurrentUser = {
   id: string;
@@ -15,15 +15,7 @@ export type CurrentUser = {
   legacyAdmin: boolean;
 };
 
-function effectivePermissions(role: UserRole, raw: unknown) {
-  const base = new Set(defaultPermissionsForRole(role));
-  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-    const data = raw as { grant?: unknown; revoke?: unknown };
-    if (Array.isArray(data.grant)) for (const item of data.grant) if (typeof item === "string") base.add(item as Permission);
-    if (Array.isArray(data.revoke)) for (const item of data.revoke) if (typeof item === "string") base.delete(item as Permission);
-  }
-  return [...base];
-}
+const effectivePermissions = resolvePermissions;
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const session = verifySession((await cookies()).get("aslal_session")?.value);
