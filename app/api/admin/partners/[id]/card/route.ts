@@ -8,7 +8,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   try {
     const { id } = await params;
     const pdf = await generatePartnerCardPdf(id);
-    return new NextResponse(pdf, {
+    const body = new ArrayBuffer(pdf.byteLength);
+    new Uint8Array(body).set(pdf);
+    return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
