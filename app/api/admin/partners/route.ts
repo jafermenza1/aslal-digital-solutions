@@ -108,11 +108,11 @@ export async function POST(request: Request) {
           "Your Aslal Digital Solutions partner card is attached.",
           `Referral code: ${finalCode}`,
           `Referral link: ${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}`,
-          requestCredentials ? `Partner username: ${username}` : "",
-          requestCredentials ? `Temporary password: ${temporaryPassword}` : "",
-          requestCredentials ? "Please sign in and change the temporary password after first login." : "",
+          (requestCredentials && !credentialsError) ? `Partner username: ${username}` : "",
+          (requestCredentials && !credentialsError) ? `Temporary password: ${temporaryPassword}` : "",
+          (requestCredentials && !credentialsError) ? "Please sign in and change the temporary password after first login." : "",
         ].filter(Boolean).join("\n"),
-        html: `<p>Hello ${name},</p><p>Your Aslal Digital Solutions partner card is attached.</p><p><strong>Referral code:</strong> ${finalCode}<br/><strong>Referral link:</strong> <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}">${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}</a></p>${requestCredentials ? `<p><strong>Username:</strong> ${username}<br/><strong>Temporary password:</strong> ${temporaryPassword}</p>` : ""}`,
+        html: `<p>Hello ${name},</p><p>Your Aslal Digital Solutions partner card is attached.</p><p><strong>Referral code:</strong> ${finalCode}<br/><strong>Referral link:</strong> <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}">${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}</a></p>${requestCredentials && !credentialsError ? `<p><strong>Username:</strong> ${username}<br/><strong>Temporary password:</strong> ${temporaryPassword}</p>` : ""}`,
         attachments: [{ filename: partnerCardFileName(finalCode), content: pdf, contentType: "application/pdf" }],
       };
       try {
