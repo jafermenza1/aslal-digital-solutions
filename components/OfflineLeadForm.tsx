@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 const channels=["Radio","Television","Outdoor / Billboard","Flyer / Brochure","Event / Exhibition","Field Agent","Direct Sales","Word of Mouth","Other Offline"];
 
-export function OfflineLeadForm({openDefault=false}:{openDefault?:boolean}) {
+export function OfflineLeadForm({openDefault=false,products=[]}:{openDefault?:boolean;products?:Array<{id:string;name:string;slug:string}>}) {
  const router=useRouter();
  const [open,setOpen]=useState(openDefault),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  async function submit(e:React.FormEvent<HTMLFormElement>) {
@@ -32,6 +32,7 @@ export function OfflineLeadForm({openDefault=false}:{openDefault?:boolean}) {
     <input name="phone" placeholder="Phone / WhatsApp" className="rounded-xl border border-slate-200 px-4 py-3"/>
     <select name="leadCategory" required defaultValue="" className="rounded-xl border border-slate-200 px-4 py-3"><option value="" disabled>Offline source</option>{channels.map(x=><option key={x}>{x}</option>)}</select>
     <input name="campaign" placeholder="Campaign / promotion name" className="rounded-xl border border-slate-200 px-4 py-3"/>
+    <select name="productId" defaultValue="" className="rounded-xl border border-slate-200 px-4 py-3"><option value="">Product / service interest (optional)</option>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
     <input name="location" placeholder="Location / event venue" className="rounded-xl border border-slate-200 px-4 py-3"/>
     <input name="reference" placeholder="Reference / voucher / agent note" className="rounded-xl border border-slate-200 px-4 py-3"/>
    </div>
