@@ -5,6 +5,7 @@ import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { runLeadCreatedAutomation } from "@/lib/automation";
+import { sendContactAutoReply } from "@/lib/contact-autoreply";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 
@@ -193,7 +194,17 @@ export async function POST(request: NextRequest) {
       console.error("LEAD_AUTOMATION_ERROR", error);
     }
 
-    return NextResponse.json({ ok: true, leadId });
+    let autoReply: "SENT" | "SKIPPED" = "SKIPPED";
+    if (email && emailConsent) {
+      try {
+        const reply = await sendContactAutoReply(leadId);
+        autoReply = reply.sent ? "SENT" : "SKIPPED";
+      } catch (error) {
+        console.error("CONTACT_AUTO_REPLY_ERROR", error);
+      }
+    }
+
+    return NextResponse.json({ ok: true, leadId, autoReply });
   } catch (error) {
     console.error("LEAD_CREATE_ERROR", error);
     const message = error instanceof Error ? error.message : "";
