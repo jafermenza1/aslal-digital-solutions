@@ -37,8 +37,8 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 
 | ID | Requirement | Current status | Evidence/remaining proof |
 |---|---|---|---|
-| R20 | Automation engine | MISSING | Need Workflow/Trigger/Condition/Action/Delay/Execution/Retry/Stop model. |
-| R21 | Automation safety | MISSING | Need stop/cancellation for reply, handoff, opt-out, WON, LOST, close, expiry and disable. |
+| R20 | Automation engine | IMPLEMENTED-UNVERIFIED | Durable Workflow/Version/Execution/ActionExecution models, trigger conditions, delayed actions, retries, stale recovery and internal actions exist; controlled production evidence remains. |
+| R21 | Automation safety | PARTIAL | Reply and terminal-state cancellation, disable handling, retries, execution audit and operator visibility exist for the internal-action scope; customer-message safety/consent acceptance remains open. |
 | R22 | Quote/proposal | MISSING | Need first-class versioned commercial offer. |
 | R23 | Negotiation | MISSING | Need reconstructable offer-change history. |
 | R24 | Order | MISSING | Need first-class committed transaction independent of lead stage. |
@@ -67,7 +67,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R37 | RBAC | PARTIAL | Authentication exists; full role matrix remains. |
 | R38 | Multi-tenancy | MISSING | No accepted Workspace/Tenant isolation model. |
 | R39 | Privacy lifecycle | PARTIAL | Communication preferences exist; retention/export/deletion/anonymization remains. |
-| R40 | Audit | PARTIAL | Lead and stage audits exist; financial, automation, attribution and permission coverage remains. |
+| R40 | Audit | PARTIAL | Lead/stage/admin and automation execution history now exist; financial, attribution and permission coverage remains. |
 | R41 | Mobile/low-bandwidth | PARTIAL | Responsive implementation exists; controlled critical-path testing remains. |
 | R42 | Production integrity | IMPLEMENTED-UNVERIFIED | Endpoint/workflow exists; configure secrets and record a successful run. |
 

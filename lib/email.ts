@@ -5,6 +5,7 @@ import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { createHash, randomUUID } from "node:crypto";
 import path from "node:path";
+import { handleConversationInbound } from "@/lib/automation";
 
 type RuntimeEnvState = {
   loadedFiles: string[];
@@ -415,6 +416,10 @@ async function persistInbound(mail: ParsedMail) {
       },
     }),
   ]);
+
+  await handleConversationInbound(conversation.leadId).catch((error) => {
+    console.error("INBOUND_AUTOMATION_CANCEL_ERROR", error);
+  });
 
   return {
     skipped: false,

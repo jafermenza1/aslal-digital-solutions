@@ -136,7 +136,7 @@ The current system is beyond the original prototype stage and already provides a
 
 The current system is **not yet the complete target-state Growth OS**.
 
-The missing or incomplete commercial chain includes the full automation engine, first-class quote/negotiation/order/payment domains, payment-backed revenue attribution, complete campaign/asset attribution, revenue-confirmed partner commissions, trust/review lifecycle, retention/referral workflows, full RBAC and tenant isolation, and complete end-to-end acceptance.
+The missing or incomplete commercial chain includes the full customer-facing automation capability (the initial internal-only engine is implemented but not yet accepted), first-class quote/negotiation/order/payment domains, payment-backed revenue attribution, complete campaign/asset attribution, revenue-confirmed partner commissions, trust/review lifecycle, retention/referral workflows, full RBAC and tenant isolation, and complete end-to-end acceptance.
 
 Do not use the feature count as the definition of product maturity. The commercial journey and its evidence are the maturity test.
 

@@ -186,11 +186,13 @@ Therefore the current system cannot yet truthfully claim a complete demand → p
 
 ### Automation
 
-The current task mechanism is useful operationally but is not a full automation engine.
+Phase 5 now has an initial durable automation engine implementation.
 
-A real automation engine still requires workflow definitions, triggers, conditions, actions, delays, executions, retries, stop conditions, cancellation, permissions and auditable execution history.
+Workflow definitions, versioned configurations, trigger conditions, delayed action scheduling, durable executions, per-action execution records, bounded retries, stale-execution recovery, internal task/activity actions, overdue-lead triggers, lead-created high-intent triggers, customer-reply cancellation, terminal lead-state cancellation and operator visibility are implemented.
 
-Therefore Phase 5 remains unbuilt.
+This is intentionally an internal-action release. Automated customer messaging is not enabled by workflow actions yet, so the full customer-communication automation safety gate remains open.
+
+The implementation is **IMPLEMENTED-UNVERIFIED** until the migration is deployed, the scheduled runner is configured, controlled executions are demonstrated in production, and the acceptance evidence is recorded.
 
 ### Campaigns and attribution
 
