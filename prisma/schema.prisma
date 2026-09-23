@@ -63,6 +63,36 @@ enum TaskPriority {
   URGENT
 }
 
+enum WorkflowTriggerType {
+  LEAD_CREATED
+  LEAD_OVERDUE
+  LEAD_STATUS_CHANGED
+  CONVERSATION_INBOUND
+  OPT_OUT
+}
+
+enum WorkflowExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  SKIPPED
+}
+
+enum WorkflowActionType {
+  CREATE_TASK
+  CREATE_ACTIVITY
+}
+
+enum WorkflowActionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
 enum CommunicationChannel {
   EMAIL
   SMS
@@ -278,6 +308,88 @@ model LeadTask {
   @@index([leadId, status], map: "idx_lead_tasks_lead_status")
   @@index([dueAt, status], map: "idx_lead_tasks_due_status")
   @@map("lead_tasks")
+}
+
+
+model Workflow {
+  id          String              @id @db.Char(36)
+  systemKey   String              @unique @map("system_key") @db.VarChar(100)
+  name        String              @db.VarChar(190)
+  description String?             @db.Text
+  ownerEmail  String?             @map("owner_email") @db.VarChar(190)
+  triggerType WorkflowTriggerType @map("trigger_type")
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.DateTime(0)
+  versions    WorkflowVersion[]
+  executions  WorkflowExecution[]
+
+  @@index([triggerType, active], map: "idx_workflows_trigger_active")
+  @@map("workflows")
+}
+
+model WorkflowVersion {
+  id          String    @id @db.Char(36)
+  workflowId  String    @map("workflow_id") @db.Char(36)
+  versionNo   Int       @map("version_no")
+  definition  Json
+  createdBy   String?   @map("created_by") @db.VarChar(190)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  executions  WorkflowExecution[]
+
+  @@unique([workflowId, versionNo], map: "uq_workflow_version")
+  @@index([workflowId, createdAt], map: "idx_workflow_versions_workflow_created")
+  @@map("workflow_versions")
+}
+
+model WorkflowExecution {
+  id               String                  @id @db.Char(36)
+  workflowId       String                  @map("workflow_id") @db.Char(36)
+  workflowVersionId String                 @map("workflow_version_id") @db.Char(36)
+  triggerType      WorkflowTriggerType    @map("trigger_type")
+  idempotencyKey   String                  @unique @map("idempotency_key") @db.VarChar(255)
+  targetType       String                 @map("target_type") @db.VarChar(40)
+  targetId         String                 @map("target_id") @db.Char(36)
+  status           WorkflowExecutionStatus @default(PENDING)
+  payload          Json?
+  result           Json?
+  attempts         Int                    @default(0)
+  lastError       String?                 @map("last_error") @db.Text
+  startedAt       DateTime?               @map("started_at") @db.DateTime(0)
+  completedAt     DateTime?               @map("completed_at") @db.DateTime(0)
+  createdAt       DateTime                @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime                @updatedAt @map("updated_at") @db.DateTime(0)
+  workflow         Workflow                @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowVersion  WorkflowVersion         @relation(fields: [workflowVersionId], references: [id], onDelete: Cascade)
+  actions          WorkflowActionExecution[]
+
+  @@index([status, createdAt], map: "idx_workflow_executions_status_created")
+  @@index([targetType, targetId, createdAt], map: "idx_workflow_executions_target_created")
+  @@index([workflowId, createdAt], map: "idx_workflow_executions_workflow_created")
+  @@map("workflow_executions")
+}
+
+model WorkflowActionExecution {
+  id           String                @id @db.Char(36)
+  executionId  String                @map("execution_id") @db.Char(36)
+  actionIndex  Int                   @map("action_index")
+  actionType   WorkflowActionType    @map("action_type")
+  status       WorkflowActionStatus  @default(PENDING)
+  scheduledFor DateTime?             @map("scheduled_for") @db.DateTime(0)
+  startedAt    DateTime?             @map("started_at") @db.DateTime(0)
+  completedAt  DateTime?             @map("completed_at") @db.DateTime(0)
+  attempts     Int                   @default(0)
+  error       String?                @db.Text
+  result      Json?
+  createdAt   DateTime              @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.DateTime(0)
+  execution    WorkflowExecution     @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@unique([executionId, actionIndex], map: "uq_workflow_action_execution")
+  @@index([executionId, status], map: "idx_workflow_action_execution_status")
+  @@index([scheduledFor, status], map: "idx_workflow_action_execution_scheduled")
+  @@map("workflow_action_executions")
 }
 
 model LeadStageHistory {
