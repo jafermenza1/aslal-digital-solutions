@@ -10,7 +10,11 @@ type DiagnosticResult = {
   provider?: string;
   smtp?: { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; requireTLS: boolean; error?: string };
   imap?: { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; mailbox: string; error?: string };
-  envSources?: { cwd: string; executableDir: string | null };
+  envSources?: { cwd: string; executableDir: string | null; loadedFiles: string[] };
+  runtimeFingerprints?: {
+    smtpPassword: { configured: boolean; length: number; fingerprint: string | null };
+    imapPassword: { configured: boolean; length: number; fingerprint: string | null };
+  };
   error?: string;
 };
 
@@ -92,9 +96,19 @@ export default function EmailConversationWorkspace() {
             </div>;
           })}
           {diagnostics.envSources && <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-600">
-            <div className="font-black text-slate-800">Runtime environment locations checked</div>
+            <div className="font-black text-slate-800">Runtime environment locations</div>
             <div className="mt-1 break-all">Working directory: <code>{diagnostics.envSources.cwd}</code></div>
             {diagnostics.envSources.executableDir && <div className="mt-1 break-all">Server executable directory: <code>{diagnostics.envSources.executableDir}</code></div>}
+            <div className="mt-2 font-bold">Environment files loaded by Next.js:</div>
+            <div className="mt-1 break-all"><code>{diagnostics.envSources.loadedFiles.length ? diagnostics.envSources.loadedFiles.join(", ") : "none reported"}</code></div>
+          </div>}
+          {diagnostics.runtimeFingerprints && <div className="md:col-span-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-950">
+            <div className="font-black">Safe credential fingerprint check</div>
+            <p className="mt-1 leading-5">These values prove which password reached the running process without exposing the password itself. Compare the fingerprint and length with the value in Emerald&apos;s <code>.env</code>.</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div><strong>SMTP:</strong> length {diagnostics.runtimeFingerprints.smtpPassword.length}, fingerprint <code>{diagnostics.runtimeFingerprints.smtpPassword.fingerprint || "none"}</code></div>
+              <div><strong>IMAP:</strong> length {diagnostics.runtimeFingerprints.imapPassword.length}, fingerprint <code>{diagnostics.runtimeFingerprints.imapPassword.fingerprint || "none"}</code></div>
+            </div>
           </div>}
         </div>}
       </div>
