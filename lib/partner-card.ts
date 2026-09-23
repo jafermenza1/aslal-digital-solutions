@@ -50,11 +50,12 @@ export async function generatePartnerCardPdf(partnerId: string) {
   doc.fillColor("#FFFFFF").fontSize(4.8).font("Helvetica").text("aslaldigital.com", WIDTH - 78, 96, { width: 56, align: "center" });
   doc.fillColor("#D8E5FF").fontSize(4.5).text(safeText(partner.email, "Partner network"), WIDTH - 92, 108, { width: 84, align: "center", ellipsis: true });
 
-  doc.end();
-  await new Promise<void>((resolve, reject) => {
+  const pdfReady = new Promise<void>((resolve, reject) => {
     doc.once("end", resolve);
     doc.once("error", reject);
   });
+  doc.end();
+  await pdfReady;
   return Buffer.concat(chunks);
 }
 
