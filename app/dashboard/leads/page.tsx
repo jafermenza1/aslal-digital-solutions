@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { LeadStatus, prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { requirePermission } from "@/lib/authorization";
+import { verifySession } from "@/lib/security";
 import { handleLeadStatusChange } from "@/lib/automation";
 import { OfflineLeadForm } from "@/components/OfflineLeadForm";
 
