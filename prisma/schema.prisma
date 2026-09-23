@@ -63,6 +63,26 @@ enum TaskPriority {
   URGENT
 }
 
+enum LeadCaptureMode {
+  WEB
+  OFFLINE
+  MANUAL
+}
+
+enum ProductKind {
+  PRODUCT
+  SERVICE
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  SALES_MANAGER
+  SALES_OPERATOR
+  MARKETING_OPERATOR
+  PARTNER_MANAGER
+}
+
 enum WorkflowTriggerType {
   LEAD_CREATED
   LEAD_OVERDUE
@@ -157,6 +177,8 @@ model Lead {
   referralCode      String?            @map("referral_code") @db.VarChar(100)
   dealValue         Decimal?           @map("deal_value") @db.Decimal(15, 2)
   isTest            Boolean            @default(false) @map("is_test")
+  captureMode       LeadCaptureMode    @default(WEB) @map("capture_mode")
+  leadCategory      String?            @map("lead_category") @db.VarChar(100)
   wonAt             DateTime?          @map("won_at") @db.DateTime(0)
   createdAt         DateTime           @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt         DateTime           @updatedAt @map("updated_at") @db.DateTime(0)
@@ -178,6 +200,8 @@ model Lead {
   @@index([ownerEmail, status], map: "idx_leads_owner_status")
   @@index([nextActionDueAt, status], map: "idx_leads_next_action_due_status")
   @@index([isTest, createdAt], map: "idx_leads_test_created")
+  @@index([captureMode, createdAt], map: "idx_leads_capture_mode_created")
+  @@index([leadCategory, createdAt], map: "idx_leads_category_created")
   @@map("leads")
 }
 
@@ -247,16 +271,29 @@ model Product {
   id               String              @id @db.Char(36)
   slug             String              @unique @db.VarChar(160)
   name             String              @db.VarChar(190)
+  kind             ProductKind         @default(PRODUCT)
   providerName     String?             @map("provider_name") @db.VarChar(190)
   relationshipType ProductRelationship @default(OWNED) @map("relationship_type")
+  tagline          String?             @db.VarChar(250)
   shortDescription String              @map("short_description") @db.VarChar(500)
   description      String?             @db.Text
+  features         String?             @db.Text
+  benefits         String?             @db.Text
+  idealFor         String?             @map("ideal_for") @db.Text
+  deliverables     String?             @db.Text
+  imageUrl         String?             @map("image_url") @db.VarChar(1000)
+  galleryUrls      String?             @map("gallery_urls") @db.Text
   startingPrice    String?             @map("starting_price") @db.VarChar(100)
+  ctaLabel         String?             @map("cta_label") @db.VarChar(80)
+  ctaNote          String?             @map("cta_note") @db.VarChar(250)
+  sortOrder        Int                 @default(0) @map("sort_order")
   featured         Boolean             @default(false)
   active           Boolean             @default(true)
   createdAt        DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.DateTime(0)
   interests        LeadProductInterest[]
 
+  @@index([kind, active, sortOrder], map: "idx_products_kind_active_sort")
   @@index([featured], map: "idx_products_featured")
   @@index([active], map: "idx_products_active")
   @@map("products")
@@ -599,7 +636,54 @@ model ChannelAccount {
   @@index([channel, active], map: "idx_channel_account_active")
   @@map("channel_accounts")
 }
+model User {
+  id              String   @id @db.Char(36)
+  email           String   @unique @db.VarChar(190)
+  name            String   @db.VarChar(160)
+  passwordHash    String   @map("password_hash") @db.VarChar(255)
+  role            UserRole @default(SALES_OPERATOR)
+  permissions     Json?
+  active          Boolean  @default(true)
+  lastLoginAt     DateTime? @map("last_login_at") @db.DateTime(0)
+  createdAt       DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  audits          UserAudit[]
 
+  @@index([active, role], map: "idx_users_active_role")
+  @@map("users")
+}
+
+model UserAudit {
+  id        String   @id @db.Char(36)
+  userId    String?  @map("user_id") @db.Char(36)
+  actor     String   @db.VarChar(190)
+  action    String   @db.VarChar(50)
+  reason    String   @db.Text
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  user      User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt], map: "idx_user_audit_user_created")
+  @@index([action, createdAt], map: "idx_user_audit_action_created")
+  @@map("user_audits")
+}
+
+model EmailTemplate {
+  id               String   @id @db.Char(36)
+  templateKey      String   @unique @map("template_key") @db.VarChar(120)
+  name             String   @db.VarChar(190)
+  subjectTemplate  String   @map("subject_template") @db.VarChar(250)
+  htmlTemplate     String   @map("html_template") @db.Text
+  textTemplate     String   @map("text_template") @db.Text
+  transactional    Boolean  @default(true)
+  active           Boolean  @default(true)
+  updatedBy        String?  @map("updated_by") @db.VarChar(190)
+  createdAt        DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([active, transactional], map: "idx_email_templates_active_transactional")
+  @@map("email_templates")
+}
 
 model LeadAdminAudit {
   id        String   @id @db.Char(36)
