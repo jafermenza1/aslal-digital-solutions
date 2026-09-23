@@ -129,12 +129,17 @@ The current system is beyond the original prototype stage and already provides a
 - unified conversation/message records;
 - communication preferences and human handoff;
 - partner/referral/commission foundations;
-- product/solution management;
+- database-backed product/service catalog with rich public detail pages and attributed CTAs;
+- offline/manual lead capture with normal sales workflow entry;
+- configurable branded transactional contact auto-reply email;
+- single-workspace users, roles and editable permissions;
 - administrative lead correction, deletion, test-data controls and audit;
 - operational and production-integrity reporting;
 - CI/CD and production Prisma migration execution.
 
 The current system is **not yet the complete target-state Growth OS**.
+
+The newest catalog, offline-lead, transactional-email and user-access extensions are implemented in the current mainline but remain deployment/acceptance gated until CI, migration, production and controlled behavioral evidence is recorded.
 
 The missing or incomplete commercial chain includes the full customer-facing automation capability (the initial internal-only engine is implemented but not yet accepted), first-class quote/negotiation/order/payment domains, payment-backed revenue attribution, complete campaign/asset attribution, revenue-confirmed partner commissions, trust/review lifecycle, retention/referral workflows, full RBAC and tenant isolation, and complete end-to-end acceptance.
 
