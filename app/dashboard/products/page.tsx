@@ -1,7 +1,7 @@
 import { requirePermission } from "@/lib/authorization";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import ProductCatalogManager from "@/components/ProductCatalogManager";
+import { ProductCatalogManager } from "@/components/ProductCatalogManager";
 
 export const dynamic = "force-dynamic";
 
