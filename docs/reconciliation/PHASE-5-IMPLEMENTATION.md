@@ -133,3 +133,12 @@ Evidence must include:
 7. Reconcile R20/R21 and change Phase 5 to SATISFIED only when the workflow acceptance evidence exists.
 
 Customer-facing automated messaging remains outside this Phase 5 acceptance until its separate safety/provider gates are satisfied.
+
+
+## Supporting UI foundation — 2026-09-23
+
+The dashboard UX has been reorganized into a shared permission-aware shell with icon navigation, separate workspace tabs, mobile navigation, dark/light theme switching and inherited website locale. Operations tabs remain intact.
+
+The email-template workspace now supports creating additional stored transactional templates without sending a message merely by creating a template. Product catalog, users and email templates are deliberately separate dashboard workspaces.
+
+This is supporting UX/control work mapped to R41/R46/R48/R49. **Phase 5 remains IMPLEMENTED-UNVERIFIED until scheduler and workflow acceptance evidence is retained.**

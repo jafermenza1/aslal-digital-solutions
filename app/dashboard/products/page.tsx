@@ -10,7 +10,7 @@ export default async function ProductsAdminPage() {
   const products = await prisma.product.findMany({
     orderBy: [{ active:"desc" }, { sortOrder:"asc" }, { name:"asc" }],
   });
-  return <main className="min-h-screen bg-[#F8FAFC] py-10 text-[#1E293B]">
+  return <main className="dashboard-page min-h-screen py-10">
     <div className="container-aslal">
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
@@ -20,8 +20,8 @@ export default async function ProductsAdminPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-500">{user.email}</span>
-          <Link href="/dashboard/email-templates" className="rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-black text-[#0F3E8A]">Auto-reply email</Link>
-          <Link href="/dashboard/users" className="rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-black text-[#0F3E8A]">Users & access</Link>
+          
+          
           <Link href="/dashboard" className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white">← Dashboard</Link>
         </div>
       </div>

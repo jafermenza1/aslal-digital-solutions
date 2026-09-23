@@ -1,0 +1,7 @@
+"use client";
+
+import { useEffect,useState } from "react";
+type Theme="light"|"dark";
+const STORAGE_KEY="aslal-theme";
+function readInitial():Theme{if(typeof window==="undefined")return"light";const saved=window.localStorage.getItem(STORAGE_KEY);if(saved==="light"||saved==="dark")return saved;return window.matchMedia?.("(prefers-color-scheme: dark)").matches?"dark":"light";}
+export function ThemeToggle({compact=false}:{compact?:boolean}){const [theme,setTheme]=useState<Theme>("light");useEffect(()=>{const initial=readInitial();setTheme(initial);document.documentElement.dataset.theme=initial;},[]);function toggle(){const next=theme==="dark"?"light":"dark";setTheme(next);document.documentElement.dataset.theme=next;window.localStorage.setItem(STORAGE_KEY,next);}const label=theme==="dark"?"Light":"Dark";return <button type="button" onClick={toggle} className={`theme-toggle ${compact?"compact":""}`} aria-label={`Switch to ${label.toLowerCase()} theme`} title={`Switch to ${label.toLowerCase()} theme`}>{theme==="dark"?<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.7"/><path d="M12 2v2m0 16v2M4.93 4.93l1.4 1.4m11.34 11.34 1.4 1.4M2 12h2m16 0h2M4.93 19.07l1.4-1.4m11.34-11.34 1.4-1.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.5 15.5A8.7 8.7 0 0 1 8.5 3.5 8.7 8.7 0 1 0 20.5 15.5Z" fill="currentColor"/></svg>}{!compact&&<span>{label}</span>}</button>;}

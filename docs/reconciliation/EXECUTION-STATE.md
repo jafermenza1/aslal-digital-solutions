@@ -57,6 +57,14 @@ The last known production-integrity result before the latest admin migration rec
 
 This is historical evidence, not current post-migration truth. The latest migration was additive and did not fabricate historical values.
 
+## UI foundation extension (supporting work; no phase reorder)
+
+The dashboard now has a shared permission-aware shell with separate left-side tabs, icon navigation, mobile horizontal navigation, dark/light theme controls and website-language inheritance. Public /products cards use the canonical product detail links with gold hover treatment.
+
+Users, product catalog and email-template administration are separate workspaces. Email templates are visually grouped under Conversations in the shared navigation, while the Product Catalog and Users remain independent management tabs.
+
+An app UI translation dictionary and editing guide are now checked into the repository. This supports R41 mobile/low-bandwidth usability, R46 catalog presentation, R48 email-template administration and R49 permission-aware navigation. Acceptance statuses are unchanged because controlled production/device evidence is still required.
+
 ## Current exact next action
 
 1. Run the production-integrity check against the newly deployed release and correct only real data gaps with audit reasons.

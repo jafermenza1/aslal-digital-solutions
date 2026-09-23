@@ -5,6 +5,7 @@ import { useSyncExternalStore } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { MobileNav } from "@/components/MobileNav";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { getCopy, type Locale } from "@/lib/i18n";
 
 function readLocale(): Locale { if(typeof document==="undefined") return "en"; const v=document.cookie.split("; ").find(x=>x.startsWith("aslal_locale="))?.split("=")[1]; return v==="am"||v==="om"?v:"en"; }
@@ -16,7 +17,7 @@ export function Header(){
  return <header className="site-header"><div className="container-aslal site-header-inner">
   <BrandLogo/>
   <nav className="desktop-nav">{nav.map(([href,label])=><Link key={href} href={href}>{label}</Link>)}</nav>
-  <div className="desktop-actions"><LanguageToggle locale={locale}/><Link className="header-portal" href="/login">Portal</Link><Link className="site-cta" href="/growth-builder">{t.actions.build} <span>↗</span></Link></div>
+  <div className="desktop-actions"><ThemeToggle compact/><LanguageToggle locale={locale}/><Link className="header-portal" href="/login">Portal</Link><Link className="site-cta" href="/growth-builder">{t.actions.build} <span>↗</span></Link></div>
   <MobileNav locale={locale} labels={{...t.nav,portal:"Portal",build:t.actions.build}}/>
  </div></header>;
 }

@@ -68,7 +68,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R38 | Multi-tenancy | MISSING | No accepted Workspace/Tenant isolation model. |
 | R39 | Privacy lifecycle | PARTIAL | Communication preferences exist; retention/export/deletion/anonymization remains. |
 | R40 | Audit | PARTIAL | Lead/stage/admin and automation execution history now exist; financial, attribution and permission coverage remains. |
-| R41 | Mobile/low-bandwidth | PARTIAL | Responsive operations tabs and mobile cards now exist; controlled critical-path/device/network testing remains across the wider dashboard. |
+| R41 | Mobile/low-bandwidth | PARTIAL | Shared permission-aware shell, mobile navigation, compact cards and responsive template/catalog surfaces are implemented; controlled critical-path/device/network testing remains. |
 | R42 | Production integrity | IMPLEMENTED-UNVERIFIED | Endpoint/workflow exists; configure secrets and record a successful run. |
 
 ## End-to-end and intelligence
@@ -78,10 +78,10 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R43 | Complete demand-to-revenue journey | MISSING | Need acquisition → engagement → lead → quote → order → payment → customer → revenue → attribution → retention proof. |
 | R44 | Business ROI reporting | PARTIAL | Existing insights use deal values; needs confirmed paid-revenue source and campaign assets. |
 | R45 | AI-assisted intelligence | MISSING / DEFERRED | Begin only after reliable transaction/attribution data and human-control gates exist. |
-| R46 | Product/service catalog | IMPLEMENTED-UNVERIFIED | Admin catalog manager, database-backed public /products, rich detail pages, optional images/gallery, and product-ID contact attribution are implemented; CI/deployment and production acceptance remain. |
+| R46 | Product/service catalog | IMPLEMENTED-UNVERIFIED | Admin catalog manager, database-backed public /products, rich detail pages, optional imagery, product-ID contact attribution and gold-hover catalog links are implemented; CI/deployment and production acceptance remain. |
 | R47 | Offline/manual lead capture | IMPLEMENTED-UNVERIFIED | Admin-authorized offline lead form captures source/category, campaign/location/reference and optional product interest, then enters the normal Lead/Person/StageHistory/scoring/Phase 5 workflow. |
-| R48 | Transactional contact auto-reply | IMPLEMENTED-UNVERIFIED | Consent-gated rich HTML email template, product/service-aware request summary, canonical Email conversation/message, provider result persistence and configurable admin template are implemented; provider/deployment/controlled acceptance remains. |
-| R49 | User roles and editable permissions | PARTIAL | Database User/UserAudit models, role defaults, editable grants/revokes, managed login and user-management UI are implemented; legacy routes still need full permission enforcement and shared tenant isolation remains a separate gate. |
+| R48 | Transactional contact auto-reply | IMPLEMENTED-UNVERIFIED | Consent-gated rich HTML email template, product/service-aware request summary, canonical Email conversation/message, provider result persistence and multi-template admin UI are implemented; provider/deployment/controlled acceptance remains. |
+| R49 | User roles and editable permissions | PARTIAL | Database User/UserAudit models, role defaults, editable grants/revokes, managed login, user-management UI and permission-filtered dashboard navigation are implemented; legacy routes still need full permission enforcement and shared tenant isolation remains a separate gate. |
 
 ## Reconciliation rules
 

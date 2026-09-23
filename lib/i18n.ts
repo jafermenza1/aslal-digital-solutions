@@ -1,5 +1,3 @@
-export type Locale = "en" | "am" | "om";
-
 export const localeCookie = "aslal_locale";
 
 export const copy = {
@@ -35,4 +33,9 @@ export const copy = {
   },
 } as const;
 
-export function getCopy(locale: Locale = "en") { return copy[locale]; }
+export type Locale = keyof typeof copy;
+export const supportedLocales = Object.keys(copy) as Locale[];
+export function normalizeLocale(value: unknown): Locale { return typeof value === "string" && supportedLocales.includes(value as Locale) ? value as Locale : "en"; }
+export function nextLocale(locale: Locale): Locale { const index=supportedLocales.indexOf(locale); return supportedLocales[(index+1)%supportedLocales.length] || "en"; }
+export function shortLocale(locale: Locale) { return locale === "am" ? "አማ" : locale.toUpperCase(); }
+export function getCopy(locale: Locale = "en") { return copy[locale] || copy.en; }

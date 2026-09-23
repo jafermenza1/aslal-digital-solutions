@@ -284,6 +284,21 @@ The target Growth OS connects these activities so a business can reconstruct whe
 
 ---
 
+## App UI foundation
+
+The dashboard uses a shared permission-aware shell with icon navigation, mobile navigation, dark/light theme switching and website-language inheritance.
+
+The public and app surfaces share the `aslal_locale` cookie. The public language selector is now a visible globe-style control, and the dashboard reads the same locale.
+
+**[App UI translation guide](docs/UI-TRANSLATION.md)** documents the dictionary structure, the terminology table and the exact steps to edit a term or add another language.
+
+The canonical system documents remain connected through:
+
+- [Target-state master plan](docs/Aslal%20Growth%20OS%20master%20plan.md)
+- [Reconciliation](docs/reconciliation/README.md)
+- [Execution State](docs/reconciliation/EXECUTION-STATE.md)
+- [Canonical development plan](docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md)
+
 ## Repository links
 
 - [Target-state Growth OS master plan](docs/Aslal%20Growth%20OS%20master%20plan.md)

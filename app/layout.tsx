@@ -20,7 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         : "en";
 
   return (
-    <html lang={locale} dir="ltr">
+    <html lang={locale} dir="ltr" suppressHydrationWarning>
       <body>
         <AppChrome>{children}</AppChrome>
         <AnalyticsTracker />
