@@ -3,9 +3,7 @@ import { ImapFlow } from "imapflow";
 import { simpleParser, type ParsedMail } from "mailparser";
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
-import { randomUUID } from "node:crypto";
-import path from "node:path";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 type RuntimeEnvState = {
   loadedFiles: string[];
@@ -237,6 +235,7 @@ export async function verifyEmailProviders() {
     smtp,
     imap,
     envSources: config.envSources,
+    runtimeFingerprints: config.runtimeFingerprints,
   };
 }
 
