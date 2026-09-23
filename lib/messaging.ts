@@ -1,4 +1,5 @@
 import type { CommunicationChannel } from "@prisma/client";
+import { sendEmail } from "@/lib/email";
 
 export type OutboundMessage = {
   channel: CommunicationChannel;
@@ -6,6 +7,9 @@ export type OutboundMessage = {
   body: string;
   externalThreadId?: string | null;
   simulation?: "success" | "failure";
+  subject?: string;
+  inReplyTo?: string | null;
+  references?: string[];
 };
 
 type CommunicationPreference = {
@@ -100,10 +104,13 @@ export async function sendThroughAdapter(message: OutboundMessage) {
       return postJson(url, { to: message.recipient, body: message.body }, { authorization: `Bearer ${token}` });
     }
     case "EMAIL": {
-      const url = process.env.EMAIL_PROVIDER_URL;
-      const token = process.env.EMAIL_PROVIDER_TOKEN;
-      if (!url || !token) throw new Error("Email provider is not configured");
-      return postJson(url, { to: message.recipient, text: message.body }, { authorization: `Bearer ${token}` });
+      return sendEmail({
+        recipient: message.recipient,
+        body: message.body,
+        subject: message.subject,
+        inReplyTo: message.inReplyTo,
+        references: message.references,
+      });
     }
   }
 }
