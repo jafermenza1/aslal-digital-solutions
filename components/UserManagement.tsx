@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type UserRow={id:string;email:string;name:string;role:string;active:boolean;permissions:string[];lastLoginAt:string|null};
 const permissions=[
@@ -10,8 +10,8 @@ const permissions=[
 
 export function UserManagement({initial}:{initial:UserRow[]}) {
  const [rows,setRows]=useState(initial),[busy,setBusy]=useState(""),[notice,setNotice]=useState("");
- const [draft,setDraft]=useState({id:"",name:"",email:"",password:"",role:"SALES_OPERATOR",active:true,selected:permissions.slice(0,7)});
- const edit=(u:UserRow)=>setDraft({id:u.id,name:u.name,email:u.email,password:"",role:u.role,active:u.active,selected:u.permissions});
+ const [draft,setDraft]=useState({id:"",name:"",email:"",password:"",role:"SALES_OPERATOR",active:true,selected:permissions.slice(0,7),reason:""});
+ const edit=(u:UserRow)=>setDraft({id:u.id,name:u.name,email:u.email,password:"",role:u.role,active:u.active,selected:u.permissions,reason:""});
  const reset=()=>setDraft({id:"",name:"",email:"",password:"",role:"SALES_OPERATOR",active:true,selected:permissions.slice(0,7)});
  const roleDefaults=(role:string)=>{
   const map:any={SUPER_ADMIN:permissions,ADMIN:permissions,BUSINESS_OWNER:permissions,SALES_MANAGER:["dashboard.view","leads.view","leads.create","leads.edit","customers.view","conversations.view","conversations.send","conversations.manage","insights.view","operations.view"],SALES_OPERATOR:["dashboard.view","leads.view","leads.create","leads.edit","customers.view","conversations.view","conversations.send"],MARKETING_OPERATOR:["dashboard.view","leads.view","customers.view","products.manage","email_templates.manage","insights.view"],PARTNER_MANAGER:["dashboard.view","leads.view","customers.view","partners.manage","insights.view"]};
@@ -19,9 +19,9 @@ export function UserManagement({initial}:{initial:UserRow[]}) {
  };
  const save=async(e:React.FormEvent)=>{e.preventDefault();setBusy("save");setNotice("");
   const defaults=roleDefaults(draft.role);const grant=draft.selected.filter(p=>!defaults.includes(p));const revoke=defaults.filter(p=>!draft.selected.includes(p));
-  const payload={...draft,password:draft.password||undefined,permissions:{grant,revoke},reason:"User management update"};
+  const payload={...draft,password:draft.password||undefined,if(!draft.reason.trim()){setNotice("Enter a reason so access changes are auditable.");setBusy("");return;} const payload={...draft,password:draft.password||undefined,permissions:{grant,revoke},reason:draft.reason.trim()};
   const r=await fetch(draft.id?"/api/admin/users/"+draft.id:"/api/admin/users",{method:draft.id?"PATCH":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const j=await r.json().catch(()=>({}));if(!r.ok){setNotice(j.error||"Unable to save user.");}else{setNotice("User saved. Access changes are now enforced for new requests.");setRows(draft.id?rows.map(x=>x.id===draft.id?j.user:x):[j.user,...rows]);reset();}setBusy("");};
- const toggle=async(u:UserRow)=>{setBusy(u.id);const r=await fetch("/api/admin/users/"+u.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:!u.active,reason:"User activation state update"})});const j=await r.json().catch(()=>({}));if(r.ok)setRows(rows.map(x=>x.id===u.id?j.user:x));else setNotice(j.error||"Unable to update user.");setBusy("");};
+ const toggle=async(u:UserRow)=>{const reason=window.prompt("Why are you changing this user's active status?","User activation state update");if(!reason?.trim())return;setBusy(u.id);const r=await fetch("/api/admin/users/"+u.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:!u.active,reason:reason.trim()})});const j=await r.json().catch(()=>({}));if(r.ok)setRows(rows.map(x=>x.id===u.id?j.user:x));else setNotice(j.error||"Unable to update user.");setBusy("");};
  return <div className="grid gap-6 xl:grid-cols-[.85fr_1.15fr]">
   <form onSubmit={save} className="rounded-[2rem] border border-white/10 bg-white/[.04] p-5 sm:p-6">
    <div className="flex items-center justify-between gap-3"><div><div className="text-[10px] font-black uppercase tracking-[.18em] text-[#E2B02A]">User access</div><h2 className="mt-2 text-xl font-black">{draft.id?"Edit user":"Add user"}</h2></div>{draft.id&&<button type="button" onClick={reset} className="text-xs font-bold text-white/50">Cancel</button>}</div>
@@ -32,6 +32,7 @@ export function UserManagement({initial}:{initial:UserRow[]}) {
     <select value={draft.role} onChange={e=>{const role=e.target.value;setDraft({...draft,role,selected:roleDefaults(role)})}} className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white"><option>SUPER_ADMIN</option><option>ADMIN</option><option>BUSINESS_OWNER</option><option>SALES_MANAGER</option><option>SALES_OPERATOR</option><option>MARKETING_OPERATOR</option><option>PARTNER_MANAGER</option></select>
     <label className="flex items-center gap-3 text-sm font-bold text-white/70"><input type="checkbox" checked={draft.active} onChange={e=>setDraft({...draft,active:e.target.checked})}/> Active user</label>
    </div>
+   <label className="mt-4 grid gap-1 text-sm font-bold text-white/70">Reason for this access change<textarea required value={draft.reason} onChange={e=>setDraft({...draft,reason:e.target.value})} rows={3} placeholder="Why is this user being created or changed?" className="mt-2 rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30"/></label>
    <div className="mt-6"><div className="text-xs font-black uppercase tracking-[.16em] text-white/45">Editable permissions</div><div className="mt-3 grid gap-2 sm:grid-cols-2">{permissions.map(p=><label key={p} className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/[.03] p-3 text-xs"><input type="checkbox" checked={draft.selected.includes(p)} onChange={e=>setDraft({...draft,selected:e.target.checked?Array.from(new Set([...draft.selected,p])):draft.selected.filter(x=>x!==p)})}/><span className="font-semibold text-white/75">{p}</span></label>)}</div></div>
    {notice&&<div className="mt-4 rounded-xl border border-[#E2B02A]/20 bg-[#E2B02A]/10 p-3 text-sm text-white/80">{notice}</div>}
    <button disabled={!!busy} className="mt-5 rounded-full bg-[#E2B02A] px-6 py-3 font-black text-[#1E293B]">{busy==="save"?"Saving…":draft.id?"Save access":"Create user"}</button>
