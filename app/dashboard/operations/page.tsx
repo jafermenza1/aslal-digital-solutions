@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { isAdminEmail, verifySession } from "@/lib/security";
 import { getProductionIntegrityReport } from "@/lib/production-integrity";
+import { TestDataReset } from "@/components/LeadAdminControls";
 
 async function requireAdmin() {
   const session = verifySession((await cookies()).get("aslal_session")?.value);
@@ -45,7 +46,7 @@ export const dynamic = "force-dynamic";
 
 export default async function OperationsPage() {
   await requireAdmin();
-  const [report, tasks, leads] = await Promise.all([
+  const [report, tasks, leads, audits] = await Promise.all([
     getProductionIntegrityReport(),
     prisma.leadTask.findMany({
       orderBy: [{ status: "asc" }, { dueAt: "asc" }, { createdAt: "desc" }],
@@ -53,6 +54,7 @@ export default async function OperationsPage() {
       include: { lead: { select: { id: true, name: true, company: true, status: true } } },
     }),
     prisma.lead.findMany({ where: { status: { notIn: ["WON","LOST"] } }, select: { id: true, name: true, company: true }, orderBy: { updatedAt: "desc" }, take: 300 }),
+    prisma.leadAdminAudit.findMany({ orderBy: { createdAt: "desc" }, take: 40, include: { } }),
   ]);
 
   return <main className="portal-shell min-h-screen"><div className="mx-auto max-w-[1480px] p-4 sm:p-7">
@@ -74,6 +76,8 @@ export default async function OperationsPage() {
       <form action={createTask} className="mt-5 grid gap-3 lg:grid-cols-[1.4fr_1.5fr_160px_150px_140px_auto]"><select name="leadId" required className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-white"><option value="">Select active lead</option>{leads.map(lead=><option key={lead.id} value={lead.id}>{lead.name}{lead.company ? " — "+lead.company : ""}</option>)}</select><input name="title" required placeholder="Call, demo, proposal..." className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-white placeholder:text-white/30"/><input name="dueAt" type="datetime-local" className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-white"/><select name="priority" className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-white"><option>NORMAL</option><option>HIGH</option><option>URGENT</option><option>LOW</option></select><input name="assignedTo" type="email" placeholder="Owner email" className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-white placeholder:text-white/30"/><button className="rounded-xl bg-[#E2B02A] px-4 py-3 font-black text-[#1E293B]">Add task</button></form>
       <div className="mt-6 overflow-x-auto"><table className="w-full min-w-[1000px] text-left text-sm"><thead><tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/35">{["Lead","Task","Status","Priority","Due","Assigned","Save"].map(x=><th key={x} className="px-3 py-3">{x}</th>)}</tr></thead><tbody>{tasks.map(task=><tr key={task.id} className="border-b border-white/5 align-top"><td className="px-3 py-4"><Link href={"/dashboard/leads/"+task.leadId} className="font-black text-white hover:text-[#E2B02A]">{task.lead.name}</Link><div className="text-xs text-white/35">{task.lead.status}</div></td><td className="px-3 py-4"><div className="font-bold">{task.title}</div><div className="mt-1 max-w-[300px] text-xs text-white/35">{task.description || "No description"}</div></td><td className="px-3 py-4"><select name="status" form={"task-"+task.id} defaultValue={task.status} className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white"><option>OPEN</option><option>IN_PROGRESS</option><option>DONE</option><option>CANCELLED</option></select></td><td className="px-3 py-4"><span className="rounded-full bg-white/10 px-2 py-1 text-xs font-bold">{task.priority}</span></td><td className="px-3 py-4"><input name="dueAt" form={"task-"+task.id} type="datetime-local" defaultValue={task.dueAt ? new Date(task.dueAt).toISOString().slice(0,16) : ""} className="w-[190px] rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white"/></td><td className="px-3 py-4"><input name="assignedTo" form={"task-"+task.id} type="email" defaultValue={task.assignedTo || ""} className="w-[210px] rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white"/></td><td className="px-3 py-4"><form id={"task-"+task.id} action={updateTask}><input type="hidden" name="taskId" value={task.id}/><button className="rounded-lg bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white">Save</button></form></td></tr>)}</tbody></table>{tasks.length===0&&<div className="p-10 text-center text-sm text-white/40">No tasks found.</div>}</div>
     </section>
+  <TestDataReset />
+    <section className="mt-6 portal-card p-6"><div className="flex items-center justify-between gap-3"><div><h2 className="text-xl font-black">Admin data audit</h2><p className="mt-1 text-sm text-white/55">Recent lead corrections, deletions, and test-data resets.</p></div><a href="/api/admin/leads/export" className="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white">Export leads CSV</a></div><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[720px] text-left text-sm"><thead><tr className="border-b border-white/10 text-white/45"><th className="px-3 py-3">Time</th><th className="px-3 py-3">Action</th><th className="px-3 py-3">Lead</th><th className="px-3 py-3">Actor</th><th className="px-3 py-3">Reason</th></tr></thead><tbody>{audits.map(a=><tr key={a.id} className="border-b border-white/5 align-top"><td className="px-3 py-3 text-white/55">{new Date(a.createdAt).toLocaleString("en-ET")}</td><td className="px-3 py-3 font-black text-[#E2B02A]">{a.action}</td><td className="px-3 py-3 text-white/60">{a.leadId || "—"}</td><td className="px-3 py-3 text-white/60">{a.actor}</td><td className="px-3 py-3 text-white/70">{a.reason}</td></tr>)}{audits.length===0&&<tr><td colSpan={5} className="p-6 text-center text-white/45">No admin changes recorded yet.</td></tr>}</tbody></table></div></section>
   </div></main>;
 }
 function CheckCard({title,ok,detail}:{title:string;ok:boolean;detail:string}){return <div className={`rounded-2xl border p-4 ${ok ? "border-emerald-400/20 bg-emerald-400/10" : "border-red-400/25 bg-red-400/10"}`}><div className="flex items-center justify-between gap-3"><span className="font-black">{title}</span><span className="text-xs font-black">{ok ? "PASS" : "ATTENTION"}</span></div><p className="mt-2 text-xs leading-5 text-white/55">{detail}</p></div>}
