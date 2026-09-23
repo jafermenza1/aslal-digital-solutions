@@ -51,7 +51,7 @@ async function updateTask(formData: FormData) {
 
 async function createTask(formData: FormData) {
   "use server";
-  const session = await requireAdmin();
+  await requireAdmin();
 
   const leadId = String(formData.get("leadId") || "").trim();
   const title = String(formData.get("title") || "").trim().slice(0, 190);
