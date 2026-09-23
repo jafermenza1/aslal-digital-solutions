@@ -64,7 +64,7 @@ async function createActivity(aid:string,eid:string,index:number,a:WorkflowActio
 export async function processWorkflowExecution(id:string){
  const e=await prisma.workflowExecution.findUnique({where:{id},include:{workflow:{select:{systemKey:true,active:true}},workflowVersion:{select:{definition:true}},actions:{orderBy:{actionIndex:"asc"}}}});
  if(!e)return {status:"MISSING" as const};
- if([WorkflowExecutionStatus.COMPLETED,WorkflowExecutionStatus.CANCELLED,WorkflowExecutionStatus.SKIPPED].includes(e.status))return {status:e.status};
+ if(e.status===WorkflowExecutionStatus.COMPLETED||e.status===WorkflowExecutionStatus.CANCELLED||e.status===WorkflowExecutionStatus.SKIPPED)return {status:e.status};
  if(!e.workflow.active){
   await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.CANCELLED,completedAt:new Date(),lastError:"Workflow is disabled."}});
   await prisma.workflowActionExecution.updateMany({where:{executionId:id,status:WorkflowActionStatus.PENDING},data:{status:WorkflowActionStatus.SKIPPED,error:"Workflow disabled before execution.",completedAt:new Date()}});
@@ -81,7 +81,7 @@ export async function processWorkflowExecution(id:string){
  for(const ax of e.actions){
   const action=def.actions[ax.actionIndex];
   if(!action){await prisma.workflowActionExecution.update({where:{id:ax.id},data:{status:WorkflowActionStatus.FAILED,error:"Action definition missing.",completedAt:new Date()}});continue;}
-  if([WorkflowActionStatus.COMPLETED,WorkflowActionStatus.SKIPPED].includes(ax.status))continue;
+  if(ax.status===WorkflowActionStatus.COMPLETED||ax.status===WorkflowActionStatus.SKIPPED)continue;
   if(ax.scheduledFor&&ax.scheduledFor>new Date())continue;
   target=e.targetType==="LEAD"?await lead(e.targetId):null;
   if(e.targetType==="LEAD"&&(!target||!matches(target,def.conditions))){
@@ -108,7 +108,7 @@ export async function processWorkflowExecution(id:string){
  }
  const final=await prisma.workflowActionExecution.findMany({where:{executionId:id},select:{status:true}});
  const failed=final.filter(x=>x.status===WorkflowActionStatus.FAILED).length;
- const pending=final.filter(x=>[WorkflowActionStatus.PENDING,WorkflowActionStatus.RUNNING].includes(x.status)).length;
+ const pending=final.filter(x=>x.status===WorkflowActionStatus.PENDING||x.status===WorkflowActionStatus.RUNNING).length;
  const completed=final.filter(x=>x.status===WorkflowActionStatus.COMPLETED).length;
  if(failed){await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.FAILED,completedAt:new Date(),lastError:`Automation failed: ${failed} action(s).`,result:json({completed,pending,failed})}});return {status:"FAILED" as const,completed,pending,failed};}
  if(pending){await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.PENDING,result:json({completed,pending,failed})}});return {status:"PENDING" as const,completed,pending,failed};}
