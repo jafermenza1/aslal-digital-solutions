@@ -99,7 +99,7 @@ export default function Phase4ControlRoom({
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-800">LIVE TEST: {channel} is {providerConfigured[channel] ? "configured" : "not configured"}. A successful test records SENT; provider failure records FAILED.</div>
         <div className="flex flex-wrap gap-3">
           <button disabled={busy || !leads.length || !providerConfigured[channel]} onClick={()=>run("live-send")} className="mt-5 rounded-xl bg-[#E2B02A] px-5 py-3 font-black text-[#1E293B] disabled:cursor-not-allowed disabled:opacity-40">{busy?"Sending…":"Send live provider test"}</button>
-          <button disabled={busy || !leads.length} onClick={()=>run("email-inbox")} className="mt-5 rounded-xl border border-slate-200 bg-white px-5 py-3 font-black text-slate-800 disabled:cursor-not-allowed disabled:opacity-40">{busy?"Checking…":"Check Email Inbox Now"}</button>
+          <button disabled={busy || !leads.length || channel !== "EMAIL"} onClick={()=>run("email-inbox")} className="mt-5 rounded-xl border border-slate-200 bg-white px-5 py-3 font-black text-slate-800 disabled:cursor-not-allowed disabled:opacity-40">{busy?"Checking…":"Check Email Inbox Now"}</button>
         </div>
         {notice && <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm font-bold text-slate-700">{notice}</div>}
       </div>
