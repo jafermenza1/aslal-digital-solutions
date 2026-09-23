@@ -6,7 +6,7 @@ const WIDTH = 252;
 const HEIGHT = 144;
 
 function safeText(value: string | null | undefined, fallback = "—") {
-  return (value || fallback).replace(/[\\r\\n]+/g, " ").trim();
+  return (value || fallback).replace(/[\r\n]+/g, " ").trim();
 }
 
 export async function generatePartnerCardPdf(partnerId: string) {
