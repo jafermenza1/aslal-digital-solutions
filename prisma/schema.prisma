@@ -82,6 +82,7 @@ enum UserRole {
   SALES_OPERATOR
   MARKETING_OPERATOR
   PARTNER_MANAGER
+  PARTNER
 }
 
 enum WorkflowTriggerType {
@@ -253,6 +254,9 @@ model Partner {
   id             String          @id @db.Char(36)
   name           String          @db.VarChar(160)
   email          String?         @db.VarChar(190)
+  username       String?         @unique @db.VarChar(190)
+  passwordHash   String?         @map("password_hash") @db.VarChar(255)
+  portalRequested Boolean        @default(false) @map("portal_requested")
   type           PartnerType     @default(AGENT)
   status         PartnerStatus   @default(ACTIVE)
   createdAt      DateTime        @default(now()) @map("created_at") @db.DateTime(0)
