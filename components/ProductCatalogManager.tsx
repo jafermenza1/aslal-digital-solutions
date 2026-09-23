@@ -19,7 +19,7 @@ export function ProductCatalogManager({initial}:{initial:ProductRow[]}) {
  const startEdit=(row:ProductRow)=>{setDraft(row);setEditing(true);setNotice("")};
  const save=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);setNotice("");
   try{
-   const payload={...draft,active:true};
+   const payload={...draft,active:draft.active};
    const res=await fetch(draft.id?"/api/admin/products/"+draft.id:"/api/admin/products",{method:draft.id?"PATCH":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
    const data=await res.json().catch(()=>({})); if(!res.ok)throw new Error(data.error||"Could not save.");
    setRows(draft.id?rows.map(x=>x.id===draft.id?data.product:x):[data.product,...rows]); setDraft({id:"",...blank});setEditing(false);setNotice("Catalog item saved. The public page is now using the database record.");
