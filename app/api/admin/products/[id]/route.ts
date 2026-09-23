@@ -8,6 +8,7 @@ const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):""
 function validBody(body:any,current:any){
  const p={
   name:clean(body.name??current.name,190),
+  providerName:clean(body.providerName??current.providerName??"",190)||null,
   kind:String(body.kind??current.kind) as ProductKind,
   relationshipType:String(body.relationshipType??current.relationshipType) as ProductRelationship,
   shortDescription:clean(body.shortDescription??current.shortDescription,500),
