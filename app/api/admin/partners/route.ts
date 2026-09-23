@@ -92,8 +92,7 @@ export async function POST(request: Request) {
     let emailRecipient = email || adminRecipient();
     try {
       const pdf = await generatePartnerCardPdf(partnerId);
-      await sendEmail({
-        recipient: emailRecipient,
+      const message = {
         subject: `Aslal partner card — ${name}`,
         body: [
           `Hello ${name},`,
@@ -101,17 +100,27 @@ export async function POST(request: Request) {
           "Your Aslal Digital Solutions partner card is attached.",
           `Referral code: ${finalCode}`,
           `Referral link: ${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}`,
-          requestCredentials ? "" : "",
           requestCredentials ? `Partner username: ${username}` : "",
           requestCredentials ? `Temporary password: ${temporaryPassword}` : "",
-          requestCredentials ? "Please sign in and change the temporary password if a partner portal is enabled for your account." : "",
+          requestCredentials ? "Please sign in and change the temporary password after first login." : "",
         ].filter(Boolean).join("\n"),
         html: `<p>Hello ${name},</p><p>Your Aslal Digital Solutions partner card is attached.</p><p><strong>Referral code:</strong> ${finalCode}<br/><strong>Referral link:</strong> <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}">${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}</a></p>${requestCredentials ? `<p><strong>Username:</strong> ${username}<br/><strong>Temporary password:</strong> ${temporaryPassword}</p>` : ""}`,
         attachments: [{ filename: partnerCardFileName(finalCode), content: pdf, contentType: "application/pdf" }],
-      });
-      emailSent = true;
+      };
+      try {
+        await sendEmail({ recipient: emailRecipient, ...message });
+        emailSent = true;
+      } catch (primaryError) {
+        console.error("PARTNER_CARD_EMAIL_ERROR", primaryError);
+        const fallback = adminRecipient();
+        if (emailRecipient !== fallback) {
+          emailRecipient = fallback;
+          await sendEmail({ recipient: fallback, ...message });
+          emailSent = true;
+        }
+      }
     } catch (error) {
-      console.error("PARTNER_CARD_EMAIL_ERROR", error);
+      console.error("PARTNER_CARD_GENERATION_ERROR", error);
     }
 
     const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}`;
