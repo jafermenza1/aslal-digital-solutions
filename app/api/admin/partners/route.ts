@@ -1,8 +1,7 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/security";
+import { authorizePermission } from "@/lib/authorization";
 import { hashPassword } from "@/lib/users";
 import { generatePartnerCardPdf, partnerCardFileName } from "@/lib/partner-card";
 import { sendEmail } from "@/lib/email";
@@ -12,7 +11,7 @@ const PARTNER_TYPES = new Set(["AGENT", "INFLUENCER", "AFFILIATE", "RESELLER"]);
 const PARTNER_STATUSES = new Set(["ACTIVE", "PAUSED", "PENDING"]);
 
 async function isAuthorized() {
-  return Boolean(verifySession((await cookies()).get("aslal_session")?.value));
+  return Boolean(await authorizePermission("partners.manage"));
 }
 
 function adminRecipient() {
