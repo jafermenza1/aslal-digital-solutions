@@ -288,7 +288,7 @@ The target Growth OS connects these activities so a business can reconstruct whe
 
 The dashboard uses a shared permission-aware shell with icon navigation, mobile navigation, dark/light theme switching and website-language inheritance.
 
-The public and app surfaces share the `aslal_locale` cookie. The public language selector is now a visible globe-style control, and the dashboard reads the same locale.
+The public and app surfaces share the `aslal_locale` cookie. The public language selector is now a visible globe-style control, and the dashboard reads the same locale. The locale registry is dictionary-driven so future supported languages can be added without hard-coded locale branches in the shell.
 
 **[App UI translation guide](docs/UI-TRANSLATION.md)** documents the dictionary structure, the terminology table and the exact steps to edit a term or add another language.
 
