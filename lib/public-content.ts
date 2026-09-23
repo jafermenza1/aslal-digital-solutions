@@ -16,6 +16,10 @@ export const PUBLIC_FONT_OPTIONS = [
 export type PublicContentDefinition = { pagePath:string; key:string; label:string; defaultValue:string; fontFamily?:string; fontSize?:number };
 
 export const PUBLIC_CONTENT: PublicContentDefinition[] = [
+{pagePath:"/",key:"home.hero.slide1.title",label:"Hero slide 1",defaultValue:"We implement, customize and connect digital systems for your Business.",fontSize:40},
+{pagePath:"/",key:"home.hero.slide2.title",label:"Hero slide 2",defaultValue:"We are helping businesses turn attention into Revenue.",fontSize:40},
+{pagePath:"/",key:"home.hero.slide3.title",label:"Hero slide 3",defaultValue:"Aslal capture demand and streamline your Sales.",fontSize:40},
+{pagePath:"/",key:"home.hero.subtitle",label:"Hero subtitle",defaultValue:"Aslal your Growth Partner",fontSize:18},
 {pagePath:"/",key:"home.difference.eyebrow",label:"Difference eyebrow",defaultValue:"01 — THE DIFFERENCE",fontSize:10},
 {pagePath:"/",key:"home.difference.title",label:"Difference heading",defaultValue:"Your website should do more than exist.",fontSize:48},
 {pagePath:"/",key:"home.difference.body",label:"Difference paragraph",defaultValue:"A traditional website can attract attention and lose it. Your growth system should understand interest, recommend a path, start a conversation, create a lead and support sales follow-up.",fontSize:18},
