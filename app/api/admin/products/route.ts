@@ -11,6 +11,7 @@ function payload(body:any){
  const slug=clean(body.slug,160).toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^-|-$/g,"");
  const kind=String(body.kind||"SERVICE") as ProductKind;
  const relationshipType=String(body.relationshipType||"OWNED") as ProductRelationship;
+ const providerName=clean(body.providerName,190)||null;
  const shortDescription=clean(body.shortDescription,500);
  const description=clean(body.description,20000)||null;
  const tagline=clean(body.tagline,250)||null;
@@ -26,7 +27,7 @@ function payload(body:any){
  const sortOrder=Math.max(0,Math.min(9999,Number(body.sortOrder)||0));
  const featured=Boolean(body.featured);
  const active=body.active!==false;
- return {name,slug,kind,relationshipType,shortDescription,description,tagline,features,benefits,idealFor,deliverables,imageUrl,galleryUrls,startingPrice,ctaLabel,ctaNote,sortOrder,featured,active};
+ return {name,slug,kind,providerName,relationshipType,shortDescription,description,tagline,features,benefits,idealFor,deliverables,imageUrl,galleryUrls,startingPrice,ctaLabel,ctaNote,sortOrder,featured,active};
 }
 function valid(p:any){return p.name&&p.slug&&p.shortDescription&&Object.values(ProductKind).includes(p.kind)&&Object.values(ProductRelationship).includes(p.relationshipType);}
 export async function GET(){
