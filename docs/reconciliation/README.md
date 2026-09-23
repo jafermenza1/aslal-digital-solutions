@@ -3,8 +3,8 @@
 **Document:** RECONCILIATION-GUIDE-001  
 **Status:** Authoritative engineering control  
 **Date:** 2026-09-23  
-**Current mainline:** `b03eae1e354a80b92e36a9e2af82d6874f4c3b3f`  
-**Latest verified deployment:** Emerald deployment run `35888546958` for `e2c1e24a5f2f30b6383f1bf6d63d156f4131ecc5`, successful  
+**Current mainline:** `585956fee10f66ffbaf1b46f213b84d2d947a8a6`  
+**Latest verified deployment:** Emerald deployment run `35890757898` for `585956fee10f66ffbaf1b46f213b84d2d947a8a6`, successful  
 **Product authority:** `docs/PRD-ASLAL-GROWTH-OS-v1.0.md` plus the expanded target-state product definition agreed on 2026-09-23  
 **Roadmap:** `docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
 
@@ -99,18 +99,13 @@ The latest verified deployment successfully shipped the Phase 5 workflow migrati
 
 The production deployment pipeline is now capable of shipping a dedicated Prisma migration runtime rather than relying on the Next.js standalone dependency tracer. The successful deployment also demonstrated that the release artifact can be transferred, installed, migrated and restarted on Emerald.
 
-CI run `35869566378` completed successfully.
+CI `35890441292` completed successfully for the responsive operations dashboard refinement.
 
-Emerald deployment run `35869894355` completed successfully and its production health check passed.
+Emerald deployment run `35890757898` completed successfully and its production health check passed.
 
-The deployment log explicitly recorded:
+The deployment workflow verified the release artifact, installed the release, executed Prisma migrations, restarted the application and passed the production health check.
 
-- Prisma schema loaded successfully;
-- six migrations found;
-- `20260923010000_lead_admin_controls` applied;
-- all migrations successfully applied;
-- release installed;
-- production health check passed.
+This is deployment evidence for the current Phase 5/mainline release; it does not by itself prove production scheduler execution or business acceptance.
 
 This proves deployment and schema migration execution. It does not by itself prove business-data integrity or completion of the Growth OS.
 
@@ -567,9 +562,9 @@ This is the minimum standard for moving a capability from implementation to acce
 
 ## 17. Current immediate reconciliation state
 
-The latest deployment proves that the database migration chain is now deployable and that the lead-admin schema has reached production.
+The latest deployment proves that the Phase 5 release path is deployable and that the current application release passed production health verification.
 
-The next reconciliation priority is to establish the current production-data baseline and finish the Phase 5 acceptance gate. The automation engine and scheduler are implemented, but production execution evidence is still required.
+The next reconciliation priority is to establish the current production-data baseline and finish the Phase 5 acceptance gate. The automation engine and scheduler are implemented, but production scheduler execution and controlled business acceptance evidence are still required.
 
 The next major product boundary should be:
 
