@@ -16,7 +16,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         "Cache-Control": "private, no-store",
       },
     });
-  } catch {
-    return NextResponse.json({ error: "Could not generate partner card." }, { status: 404 });
+  } catch (error) {
+    console.error("PARTNER_CARD_DOWNLOAD_ERROR", error);
+    return NextResponse.json({ error: "Could not generate partner card. The partner record or referral link may be incomplete." }, { status: 500 });
   }
 }
