@@ -6,9 +6,9 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { MobileNav } from "@/components/MobileNav";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { getCopy, type Locale } from "@/lib/i18n";
+import { getCopy, normalizeLocale, type Locale } from "@/lib/i18n";
 
-function readLocale(): Locale { if(typeof document==="undefined") return "en"; const v=document.cookie.split("; ").find(x=>x.startsWith("aslal_locale="))?.split("=")[1]; return v==="am"||v==="om"?v:"en"; }
+function readLocale(): Locale { if(typeof document==="undefined") return "en"; const v=document.cookie.split("; ").find(x=>x.startsWith("aslal_locale="))?.split("=")[1]; return normalizeLocale(v); }
 function subscribeLocale(cb:()=>void){ window.addEventListener("aslal-locale-change",cb); return()=>window.removeEventListener("aslal-locale-change",cb); }
 
 export function Header(){
