@@ -41,10 +41,14 @@ function playHapticAudio(){
   try{const C=window.AudioContext;if(!C)return;const ctx=new C(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="sine";osc.frequency.setValueAtTime(800,ctx.currentTime);osc.frequency.exponentialRampToValueAtTime(400,ctx.currentTime+.04);gain.gain.setValueAtTime(.08,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.04);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.04);osc.onended=()=>{void ctx.close();};}catch{}
 }
 
-function AnimatedHeroText(){
+type HeroContent=Record<string,{value:string;fontFamily:string;fontSize:number}>;
+function AnimatedHeroText({content}:{content:HeroContent}){
   const [index,setIndex]=useState(0);
+  const editableSlides=[content["home.hero.slide1.title"]?.value,content["home.hero.slide2.title"]?.value,content["home.hero.slide3.title"]?.value].filter(Boolean) as string[];
   useEffect(()=>{const t=window.setInterval(()=>setIndex(i=>(i+1)%slides.length),5000);return()=>window.clearInterval(t);},[]);
-  return <div className="min-h-[235px] max-w-2xl"><AnimatePresence mode="wait"><motion.div key={index} initial={{opacity:0,y:20,filter:"blur(8px)"}} animate={{opacity:1,y:0,filter:"blur(0px)"}} exit={{opacity:0,y:-20,filter:"blur(8px)"}} transition={{duration:.7,ease:"easeOut"}} className="space-y-3"><h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#F8FAFC] sm:text-4xl md:text-5xl">{slides[index].title}</h1><p className="flex items-center gap-2 text-lg font-semibold uppercase tracking-wide text-[#E2B02A]"><span className="inline-block h-[2px] w-3 bg-[#E2B02A]"/>{slides[index].subtitle}</p></motion.div></AnimatePresence></div>;
+  const activeSlides=editableSlides.length===3?editableSlides:slides.map(x=>x.title);
+  const subtitle=content["home.hero.subtitle"]?.value||"Aslal your Growth Partner";
+  return <div className="min-h-[235px] max-w-2xl"><AnimatePresence mode="wait"><motion.div key={index} initial={{opacity:0,y:20,filter:"blur(8px)"}} animate={{opacity:1,y:0,filter:"blur(0px)"}} exit={{opacity:0,y:-20,filter:"blur(8px)"}} transition={{duration:.7,ease:"easeOut"}} className="space-y-3"><h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#F8FAFC] sm:text-4xl md:text-5xl">{activeSlides[index].replace(/\s+/g," ").trim()}</h1><p className="flex items-center gap-2 text-lg font-semibold uppercase tracking-wide text-[#E2B02A]"><span className="inline-block h-[2px] w-3 bg-[#E2B02A]"/>{subtitle}</p></motion.div></AnimatePresence></div>;
 }
 
 function OutcomeDashboard(){
@@ -57,11 +61,11 @@ function OutcomeDashboard(){
   </div>;
 }
 
-export function AslalInteractiveHero(){
+export function AslalInteractiveHero({content}:{content:HeroContent}){
   return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
     <APlexusCanvas/><div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_45%,rgba(15,62,138,.14),transparent_42%),linear-gradient(90deg,rgba(7,31,71,.96)_0%,rgba(7,31,71,.88)_48%,rgba(7,31,71,.58)_100%)]"/>
     <div className="relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
-      <div className="space-y-7 lg:col-span-7"><div className="inline-flex items-center gap-2 rounded-full border border-[#E2B02A]/40 bg-[#1E293B]/80 px-3 py-1.5 text-[10px] font-mono font-bold text-[#E2B02A] sm:text-xs"><span className="h-2 w-2 animate-pulse rounded-full bg-[#E2B02A]"/>PROVEN PRODUCTS · LOCAL IMPLEMENTATION · CUSTOM FIT</div><AnimatedHeroText/><div className="flex flex-wrap gap-3 pt-1"><Link href="/growth-builder" className="rounded-xl bg-[#E2B02A] px-6 py-3.5 text-sm font-bold text-[#1E293B] shadow-lg transition hover:bg-[#ebd05d] hover:shadow-[#E2B02A]/30 sm:px-7">Build My Growth System →</Link><Link href="/products" className="rounded-xl border border-slate-700 bg-[#1E293B]/60 px-6 py-3.5 text-sm font-semibold text-[#F8FAFC] backdrop-blur-sm transition hover:border-[#E2B02A] hover:text-[#E2B02A] sm:px-7">Explore Solutions</Link></div></div>
+      <div className="space-y-7 lg:col-span-7"><div className="inline-flex items-center gap-2 rounded-full border border-[#E2B02A]/40 bg-[#1E293B]/80 px-3 py-1.5 text-[10px] font-mono font-bold text-[#E2B02A] sm:text-xs"><span className="h-2 w-2 animate-pulse rounded-full bg-[#E2B02A]"/>PROVEN PRODUCTS · LOCAL IMPLEMENTATION · CUSTOM FIT</div><AnimatedHeroText content={content}/><div className="flex flex-wrap gap-3 pt-1"><Link href="/growth-builder" className="rounded-xl bg-[#E2B02A] px-6 py-3.5 text-sm font-bold text-[#1E293B] shadow-lg transition hover:bg-[#ebd05d] hover:shadow-[#E2B02A]/30 sm:px-7">Build My Growth System →</Link><Link href="/products" className="rounded-xl border border-slate-700 bg-[#1E293B]/60 px-6 py-3.5 text-sm font-semibold text-[#F8FAFC] backdrop-blur-sm transition hover:border-[#E2B02A] hover:text-[#E2B02A] sm:px-7">Explore Solutions</Link></div></div>
       <div className="flex justify-center lg:col-span-5 lg:justify-end"><OutcomeDashboard/></div>
     </div>
   </section>;
