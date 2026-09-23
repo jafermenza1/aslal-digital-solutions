@@ -31,7 +31,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
 
   await setReferralCode(code);
 
-  const destination = String(link.destination_path || "/contact");
+  const destination = link.product_slug ? `/products/${encodeURIComponent(String(link.product_slug))}` : String(link.destination_path || "/contact");
   const safeDestination = destination.startsWith("/") && !destination.startsWith("//") ? destination : "/contact";
   const url = new URL(safeDestination, siteConfig.url);
   url.searchParams.set("utm_source", "partner");
