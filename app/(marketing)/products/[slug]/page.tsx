@@ -1,65 +1,52 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { EventTracker } from "@/components/EventTracker";
-import { TrackedLink } from "@/components/TrackedLink";
 
-const products: Record<string, { name: string; type: string; description: string; features: string[] }> = {
-  "crm-pro": {
-    name: "CRM Pro",
-    type: "Affiliate / implementation",
-    description: "A practical customer and sales management foundation that Aslal can market, implement, integrate and customize around your workflows.",
-    features: ["Lead management", "Sales pipeline", "Customer records", "Reports and dashboards", "Workflow customization", "Integration planning"],
-  },
-  "commerce-stack": {
-    name: "Commerce Stack",
-    type: "Custom solution",
-    description: "A commerce foundation connecting catalog, customer journeys, checkout and localized payment requirements.",
-    features: ["Product catalog", "Checkout experience", "Payment integration", "Order workflow", "Customer notifications", "Custom integrations"],
-  },
-  "sales-automation": {
-    name: "Sales Automation",
-    type: "Custom solution",
-    description: "Conversational sales systems across website, WhatsApp and Telegram, with human handoff when needed.",
-    features: ["Lead qualification", "WhatsApp flows", "Telegram flows", "Website assistant", "Sales handoff", "CRM connection"],
-  },
-};
+export const revalidate = 60;
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const product = products[slug];
-  if (!product) notFound();
+function lines(value:string|null) { return (value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean); }
 
-  return (
-    <main>
-      <EventTracker eventName="PRODUCT_VIEW" productSlug={slug} />
-      <section className="bg-[#0F3E8A] py-24 text-white">
-        <div className="container-aslal max-w-5xl">
-          <div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">{product.type}</div>
-          <h1 className="mt-4 text-5xl font-black tracking-[-.05em] sm:text-7xl">{product.name}</h1>
-          <p className="mt-6 max-w-3xl text-xl leading-8 text-white/70">{product.description}</p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <TrackedLink href="/contact" eventName="DEMO_START" productSlug={slug} className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">Request a demo</TrackedLink>
-            <Link href="/demo" className="rounded-full border border-white/20 px-6 py-4 font-bold">Experience automation</Link>
-          </div>
-        </div>
-      </section>
-      <section className="py-24">
-        <div className="container-aslal grid gap-14 lg:grid-cols-[.8fr_1.2fr]">
-          <div>
-            <div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Solution fit</div>
-            <h2 className="mt-3 text-4xl font-black">Designed for implementation, not just a license.</h2>
-            <p className="mt-5 leading-8 text-slate-600">If the standard product is not enough, Aslal can assess customization, integration and local implementation requirements.</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {product.features.map((feature, index) => (
-              <div key={feature} className="rounded-3xl border border-slate-200 bg-[#F8FAFC] p-6">
-                <div className="text-xs font-black text-[#E2B02A]">0{index + 1}</div>
-                <div className="mt-4 text-lg font-black">{feature}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </main>
-  );
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}) {
+  const {slug}=await params;
+  const p=await prisma.product.findUnique({where:{slug},select:{name:true,tagline:true,shortDescription:true}});
+  return { title:p?.name ? `${p.name} | Aslal Digital Solutions` : "Product | Aslal Digital Solutions", description:p?.tagline||p?.shortDescription||"Aslal Digital Solutions product and service." };
 }
+
+export default async function ProductPage({params}:{params:Promise<{slug:string}>}) {
+  const {slug}=await params;
+  const p=await prisma.product.findUnique({where:{slug}});
+  if(!p||!p.active) notFound();
+  const gallery=lines(p.galleryUrls);
+  const features=lines(p.features), benefits=lines(p.benefits), idealFor=lines(p.idealFor), deliverables=lines(p.deliverables);
+  const contactUrl=`/contact?productId=${encodeURIComponent(p.id)}&product=${encodeURIComponent(p.slug)}`;
+  return <main>
+    <EventTracker eventName="PRODUCT_VIEW" productSlug={p.slug}/>
+    <section className="overflow-hidden bg-[#071F47] text-white">
+      <div className="container-aslal grid gap-10 py-16 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:py-24">
+        <div>
+          <div className="flex flex-wrap gap-2"><span className="rounded-full bg-[#E2B02A] px-3 py-1 text-[10px] font-black uppercase tracking-[.15em] text-[#1E293B]">{p.kind}</span><span className="rounded-full border border-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-[.15em]">{p.relationshipType}</span></div>
+          <h1 className="mt-5 text-5xl font-black tracking-[-.05em] sm:text-7xl">{p.name}</h1>
+          {p.tagline&&<p className="mt-4 text-xl font-bold text-[#E2B02A]">{p.tagline}</p>}
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-white/70">{p.description||p.shortDescription}</p>
+          <div className="mt-8 flex flex-wrap items-center gap-3"><Link href={contactUrl} className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">{p.ctaLabel||"Request this"}</Link><Link href="/products" className="rounded-full border border-white/15 px-6 py-4 font-bold">← All products</Link></div>
+          {p.ctaNote&&<p className="mt-3 text-xs text-white/45">{p.ctaNote}</p>}
+        </div>
+        <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.06] shadow-2xl">
+          {p.imageUrl?<img src={p.imageUrl} alt="" className="h-[320px] w-full object-cover sm:h-[420px]"/>:<div className="grid h-[320px] place-items-center bg-gradient-to-br from-[#0F3E8A] to-[#062e24] p-8 sm:h-[420px]"><div className="text-center"><div className="text-6xl font-black text-[#E2B02A]">{p.name.slice(0,1)}</div><div className="mt-3 text-xs font-black uppercase tracking-[.2em] text-white/50">Aslal catalog</div></div></div>}
+          {gallery.length>0&&<div className="grid grid-cols-3 gap-2 bg-black/20 p-2">{gallery.slice(0,6).map((url,i)=><img key={url+i} src={url} alt="" className="h-20 w-full rounded-xl object-cover"/>)}</div>}
+        </div>
+      </div>
+    </section>
+    <section className="py-20"><div className="container-aslal grid gap-10 lg:grid-cols-[.7fr_1.3fr]">
+      <div><div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">At a glance</div><h2 className="mt-3 text-4xl font-black">A clearer path from interest to action.</h2>{p.startingPrice&&<div className="mt-6 rounded-2xl bg-[#F8FAFC] p-5"><div className="text-xs font-black uppercase tracking-wider text-slate-400">Starting price</div><div className="mt-2 text-2xl font-black text-[#0F3E8A]">{p.startingPrice}</div></div>}{idealFor.length>0&&<div className="mt-4 rounded-2xl border border-slate-200 p-5"><div className="text-xs font-black uppercase tracking-wider text-slate-400">Ideal for</div><div className="mt-3 space-y-2 text-sm text-slate-600">{idealFor.map(x=><div key={x}>• {x}</div>)}</div></div>}</div>
+      <div className="space-y-8">
+        {features.length>0&&<Info title="What you get" items={features}/>}
+        {benefits.length>0&&<Info title="Benefits" items={benefits}/>}
+        {deliverables.length>0&&<Info title="Delivery" items={deliverables}/>}
+        <div className="rounded-[2rem] bg-[#071F47] p-7 text-white sm:p-9"><div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Ready to discuss it?</div><h2 className="mt-3 text-3xl font-black">Tell us what you need.</h2><p className="mt-3 max-w-2xl leading-7 text-white/60">{p.ctaNote||"Your request opens the Aslal contact flow with this product already attributed."}</p><Link href={contactUrl} className="mt-6 inline-flex rounded-full bg-[#E2B02A] px-6 py-3 font-black text-[#1E293B]">{p.ctaLabel||"Request this"} →</Link></div>
+      </div>
+    </div></section>
+  </main>;
+}
+function Info({title,items}:{title:string;items:string[]}){return <section><h2 className="text-2xl font-black">{title}</h2><div className="mt-4 grid gap-3 sm:grid-cols-2">{items.map(x=><div key={x} className="rounded-2xl border border-slate-200 bg-white p-5 text-slate-700 shadow-sm"><span className="font-bold text-[#0F3E8A]">✓</span><span className="ml-3">{x}</span></div>)}</div></section>;}
