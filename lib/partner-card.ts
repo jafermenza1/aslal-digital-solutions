@@ -1,5 +1,8 @@
 import { db } from "@/lib/db";
-import PDFDocument from "pdfkit";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const PDFDocument = require("pdfkit") as typeof import("pdfkit");
 import QRCode from "qrcode";
 import type { RowDataPacket } from "mysql2/promise";
 
