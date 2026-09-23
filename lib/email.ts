@@ -4,6 +4,7 @@ import { simpleParser, type ParsedMail } from "mailparser";
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { createHash, randomUUID } from "node:crypto";
+import path from "node:path";
 
 type RuntimeEnvState = {
   loadedFiles: string[];
