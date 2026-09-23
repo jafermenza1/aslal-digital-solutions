@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/security";
 import ConversationCenter from "@/components/ConversationCenter";
-import EmailProviderTest from "@/components/EmailProviderTest";
 
 export const dynamic = "force-dynamic";
 
@@ -24,16 +23,20 @@ export default async function ConversationPage() {
     },
   });
 
-  return (
-    <main className="min-h-screen bg-[#F8FAFC] py-8">
-      <div className="container-aslal">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Growth OS / Conversation</div><h1 className="mt-2 text-4xl font-black">Real customer communication</h1><p className="mt-2 max-w-4xl text-slate-500">Operational inbox for real conversations. Email provider tests use the production SMTP path and persist the result.</p></div>
+  return <main className="min-h-screen bg-[#F8FAFC] py-8">
+    <div className="container-aslal">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Growth OS / Conversations</div>
+          <h1 className="mt-2 text-4xl font-black">Customer communication center</h1>
+          <p className="mt-2 max-w-4xl text-slate-500">One operational inbox for Email, SMS, Telegram, WhatsApp and Messenger. Identity, permission and human ownership remain controlled by the CRM.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/conversation/email" className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white">Email operations</Link>
           <Link href="/dashboard" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold">← Dashboard</Link>
         </div>
-        <div className="mt-6"><EmailProviderTest /></div>
-        <ConversationCenter initialConversations={conversations} viewer={session.email} />
       </div>
-    </main>
-  );
+      <ConversationCenter initialConversations={conversations} viewer={session.email} />
+    </div>
+  </main>;
 }
