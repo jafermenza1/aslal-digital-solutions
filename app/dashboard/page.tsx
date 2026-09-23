@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/authorization";
 import type { Permission } from "@/lib/permissions";
 import { getAppUi } from "@/lib/app-i18n";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { localeCookie, normalizeLocale } from "@/lib/i18n";
 
 export const dynamic="force-dynamic";
