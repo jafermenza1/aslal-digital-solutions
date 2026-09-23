@@ -7,6 +7,17 @@ type Lead = { id: string; name: string; email: string | null; phone: string | nu
 type Channel = "EMAIL" | "SMS" | "TELEGRAM" | "WHATSAPP" | "MESSENGER";
 type Snapshot = { conversations:number;messages:number;handoffs:number;inbound:number;outbound:number;sent:number;delivered:number;failed:number;channelAccounts:number;optOuts:number;messageActivities:number };
 type Result = { name:string; ok:boolean; detail:string };
+type ProviderResult = {
+  ok: boolean;
+  action: string;
+  provider: string;
+  messageId?: string;
+  status?: string;
+  providerResult?: Record<string, unknown>;
+  processed?: number;
+  results?: Array<Record<string, unknown>>;
+  error?: string;
+};
 
 export default function Phase4ControlRoom({
   leads,
@@ -28,10 +39,11 @@ export default function Phase4ControlRoom({
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
   const [notice, setNotice] = useState("");
+  const [providerResult, setProviderResult] = useState<ProviderResult | null>(null);
 
   async function run(action: string) {
     if (!leadId) return setNotice("Select a Lead linked to a Person.");
-    setBusy(true); setNotice(""); setResults([]);
+    setBusy(true); setNotice(""); setResults([]); setProviderResult(null);
     try {
       const response = await fetch("/api/acceptance/phase-4", {
         method: "POST", headers: { "content-type": "application/json" },
@@ -39,8 +51,12 @@ export default function Phase4ControlRoom({
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Acceptance action failed");
-      if (action === "simulation-suite") setResults(data.results || []);
-      else setNotice(data.ok ? "Completed successfully." : "Provider test failed; inspect the result below.");
+      if (action === "simulation-suite") {
+        setResults(data.results || []);
+      } else {
+        setProviderResult(data);
+        setNotice(data.ok ? "Completed successfully." : "Provider test failed; inspect the result below.");
+      }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Acceptance action failed");
     } finally { setBusy(false); }
@@ -81,13 +97,34 @@ export default function Phase4ControlRoom({
         <p className="mt-2 text-sm leading-6 text-slate-500">This contacts the selected provider and creates a real outbound Message. Only run it against an address/chat you control. Provider configuration is never displayed here.</p>
         <label className="mt-5 block text-sm font-bold">Test message<textarea value={message} onChange={e=>setMessage(e.target.value)} rows={4} className="mt-2 w-full rounded-xl border border-slate-200 p-3 font-medium"/></label>
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-800">LIVE TEST: {channel} is {providerConfigured[channel] ? "configured" : "not configured"}. A successful test records SENT; provider failure records FAILED.</div>
-        <button disabled={busy || !leads.length || !providerConfigured[channel]} onClick={()=>run("live-send")} className="mt-5 rounded-xl bg-[#E2B02A] px-5 py-3 font-black text-[#1E293B] disabled:cursor-not-allowed disabled:opacity-40">{busy?"Sending…":"Send live provider test"}</button>
+        <div className="flex flex-wrap gap-3">
+          <button disabled={busy || !leads.length || !providerConfigured[channel]} onClick={()=>run("live-send")} className="mt-5 rounded-xl bg-[#E2B02A] px-5 py-3 font-black text-[#1E293B] disabled:cursor-not-allowed disabled:opacity-40">{busy?"Sending…":"Send live provider test"}</button>
+          <button disabled={busy || !leads.length} onClick={()=>run("email-inbox")} className="mt-5 rounded-xl border border-slate-200 bg-white px-5 py-3 font-black text-slate-800 disabled:cursor-not-allowed disabled:opacity-40">{busy?"Checking…":"Check Email Inbox Now"}</button>
+        </div>
         {notice && <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm font-bold text-slate-700">{notice}</div>}
       </div>
     </section>
 
     <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6">
-      <h2 className="text-xl font-black">4. Acceptance workflow after the suite</h2>
+      <div className="text-xs font-black uppercase tracking-[.16em] text-[#0F3E8A]">SMTP / IMAP provider evidence</div>
+      <h2 className="mt-2 text-xl font-black">4. Live Email result</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-500">The latest live provider operation is shown here without exposing SMTP or IMAP credentials.</p>
+      {providerResult ? (
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl border border-slate-100 bg-[#F8FAFC] p-4"><div className="text-xs font-bold text-slate-400">Provider</div><div className="mt-1 text-lg font-black">{providerResult.provider}</div></div>
+          <div className="rounded-xl border border-slate-100 bg-[#F8FAFC] p-4"><div className="text-xs font-bold text-slate-400">Status</div><div className={"mt-1 text-lg font-black " + (providerResult.ok ? "text-emerald-700" : "text-red-700")}>{providerResult.ok ? (providerResult.status || "SUCCESS") : "FAILED"}</div></div>
+          <div className="rounded-xl border border-slate-100 bg-[#F8FAFC] p-4"><div className="text-xs font-bold text-slate-400">Operation</div><div className="mt-1 text-lg font-black">{providerResult.action}</div></div>
+          {providerResult.messageId && <div className="rounded-xl border border-slate-100 bg-[#F8FAFC] p-4 md:col-span-2"><div className="text-xs font-bold text-slate-400">Message ID</div><div className="mt-1 break-all font-mono text-sm">{providerResult.messageId}</div></div>}
+          {providerResult.processed !== undefined && <div className="rounded-xl border border-slate-100 bg-[#F8FAFC] p-4"><div className="text-xs font-bold text-slate-400">Inbox processed</div><div className="mt-1 text-lg font-black">{providerResult.processed}</div></div>}
+          {providerResult.results && <div className="rounded-xl border border-slate-100 bg-[#F8FAFC] p-4 md:col-span-3"><div className="text-xs font-bold text-slate-400">IMAP results</div><pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify(providerResult.results, null, 2)}</pre></div>}
+          {providerResult.providerResult && <div className="rounded-xl border border-slate-100 bg-[#F8FAFC] p-4 md:col-span-3"><div className="text-xs font-bold text-slate-400">SMTP provider response</div><pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify(providerResult.providerResult, null, 2)}</pre></div>}
+          {providerResult.error && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800 md:col-span-3">{providerResult.error}</div>}
+        </div>
+      ) : <div className="mt-5 rounded-xl border border-dashed border-slate-200 p-5 text-sm text-slate-500">No live SMTP/IMAP test has been run yet.</div>}
+    </section>
+
+    <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6">
+      <h2 className="text-xl font-black">5. Acceptance workflow after the suite</h2>
       <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {[
           ["Known identity", "Lead → Person is selected and conversation remains linked."],
