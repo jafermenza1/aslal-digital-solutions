@@ -5,8 +5,9 @@ export const dynamic = "force-dynamic";
 
 export default async function PartnerPortalPage() {
   const user = await requirePermission("partner.portal.view");
-  const partner = await prisma.partner.findUnique({
-    where: { user: { id: user.id } },
+  const userRecord = await prisma.user.findUnique({ where: { id: user.id }, select: { partnerId: true } });
+  const partner = userRecord?.partnerId ? await prisma.partner.findUnique({
+    where: { id: userRecord.partnerId },
     include: {
       referralLinks: {
         orderBy: { createdAt: "desc" },
@@ -14,7 +15,7 @@ export default async function PartnerPortalPage() {
         include: { _count: { select: { clicks: true } } },
       },
     },
-  });
+  }) : null;
 
   if (!partner) {
     return <main className="min-h-screen p-6"><div className="portal-card mx-auto max-w-3xl p-8"><h1 className="text-2xl font-black">Partner profile unavailable</h1><p className="mt-2 text-sm text-white/60">Your partner account is not linked to a partner record. Contact Aslal administration.</p></div></main>;
