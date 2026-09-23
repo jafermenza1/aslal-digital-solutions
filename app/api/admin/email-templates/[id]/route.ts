@@ -21,5 +21,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     where: { id },
     data: { name, subjectTemplate, htmlTemplate, textTemplate, active, updatedBy: actor.email },
   });
+  await prisma.userAudit.create({
+    data: {
+      id: crypto.randomUUID(),
+      actor: actor.email,
+      action: "EMAIL_TEMPLATE_UPDATE",
+      reason,
+      details: { templateId: id, templateKey: current.templateKey, active },
+    },
+  });
   return NextResponse.json({ ok:true, template:updated });
 }
