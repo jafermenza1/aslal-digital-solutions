@@ -5,6 +5,13 @@ import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { createHash } from "node:crypto";
+
+type RuntimeEnvState = {
+  loadedFiles: string[];
+};
+
+let runtimeEnvState: RuntimeEnvState = { loadedFiles: [] };
 
 function loadRuntimeEnv() {
   const executableDir = process.argv[1] ? path.dirname(path.resolve(process.argv[1])) : null;
@@ -16,9 +23,14 @@ function loadRuntimeEnv() {
   ].filter((value): value is string => Boolean(value));
 
   const uniqueCandidates = [...new Set(candidates)];
+  const loadedFiles = new Set<string>();
+
   for (const directory of uniqueCandidates) {
-    loadEnvConfig(directory, process.env.NODE_ENV !== "production");
+    const result = loadEnvConfig(directory, process.env.NODE_ENV !== "production");
+    for (const file of result.loadedEnvFiles ?? []) loadedFiles.add(file.path);
   }
+
+  runtimeEnvState = { loadedFiles: [...loadedFiles] };
 }
 
 loadRuntimeEnv();
@@ -89,6 +101,11 @@ export type EmailProviderConfig = {
   envSources: {
     cwd: string;
     executableDir: string | null;
+    loadedFiles: string[];
+  };
+  runtimeFingerprints: {
+    smtpPassword: { configured: boolean; length: number; fingerprint: string | null };
+    imapPassword: { configured: boolean; length: number; fingerprint: string | null };
   };
 };
 
@@ -125,12 +142,41 @@ export function getEmailProviderConfig(): EmailProviderConfig {
     envSources: {
       cwd: process.cwd(),
       executableDir: process.argv[1] ? path.dirname(path.resolve(process.argv[1])) : null,
+      loadedFiles: runtimeEnvState.loadedFiles,
+    },
+    runtimeFingerprints: {
+      smtpPassword: {
+        configured: Boolean(smtpPassword),
+        length: smtpPassword.length,
+        fingerprint: secretFingerprint(smtpPassword),
+      },
+      imapPassword: {
+        configured: Boolean(imapPassword),
+        length: imapPassword.length,
+        fingerprint: secretFingerprint(imapPassword),
+      },
     },
   };
 }
 
+function secretFingerprint(value: string) {
+  if (!value) return null;
+  return createHash("sha256").update(value, "utf8").digest("hex").slice(0, 16);
+}
+
 function formatProviderError(error: unknown) {
-  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const details = error as { message?: unknown; code?: unknown; command?: unknown; responseCode?: unknown; response?: unknown };
+    const message = typeof details.message === "string" ? details.message : "Provider connection failed";
+    const parts = [message];
+    if (typeof details.code === "string") parts.push(`code=${details.code}`);
+    if (typeof details.command === "string") parts.push(`command=${details.command}`);
+    if (typeof details.responseCode === "number") parts.push(`responseCode=${details.responseCode}`);
+    if (typeof details.response === "string" && details.response && !parts.some((part) => part.includes(details.response as string))) {
+      parts.push(`response=${details.response}`);
+    }
+    return parts.join(" · ");
+  }
   return "Provider connection failed";
 }
 
