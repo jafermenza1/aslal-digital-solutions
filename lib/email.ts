@@ -80,8 +80,12 @@ async function findConversation(mail: ParsedMail, sender: string) {
       where: { externalMessageId: { in: references } },
       select: { conversationId: true },
     });
+
     if (referencedMessage) {
-      return prisma.conversation.findUnique({ where: { id: referencedMessage.conversationId } });
+      const referencedConversation = await prisma.conversation.findUnique({
+        where: { id: referencedMessage.conversationId },
+      });
+      if (referencedConversation?.status !== "CLOSED") return referencedConversation;
     }
   }
 
