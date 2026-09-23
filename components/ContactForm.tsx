@@ -10,7 +10,7 @@ type ContactFormProps = {
   initialProductId?: string;
   initialReferralCode?: string;
   initialReferralName?: string;
-  products?: Array<{ slug: string; name: string }>;
+  products?: Array<{ id: string; slug: string; name: string }>;
 };
 
 type FieldErrors = Partial<Record<"name"|"email"|"phone"|"businessType"|"message", string>>;
