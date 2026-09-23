@@ -24,7 +24,7 @@
 | Identity/customer foundation | SATISFIED | Person, Opportunity, Customer, Activity, visitor/event/Growth Opportunity foundations have recorded acceptance evidence. |
 | Phase 4A conversations | SATISFIED | Canonical Conversation/Message, consent, opt-out, handoff, signed inbound boundary, idempotency and controlled simulations exist. |
 | Provider-specific live messaging | IMPLEMENTED-UNVERIFIED / DEFERRED | Real credentials, templates, provider callbacks and live acceptance are not universal. |
-| Automation engine | MISSING | LeadTask exists; Workflow/Execution/Retry/Stop engine does not. |
+| Automation engine | IMPLEMENTED-UNVERIFIED | Durable Workflow, WorkflowVersion, WorkflowExecution and WorkflowActionExecution models plus an internal-only engine now exist; production execution evidence remains. |
 | Quote/negotiation/order/payment | MISSING | No first-class quote/order/payment commercial chain is accepted. |
 | Revenue attribution | PARTIAL | Lead/opportunity deal values and reports exist; collected-payment evidence is not yet the source of revenue truth. |
 | Campaign/asset attribution | PARTIAL | Source/campaign/referral strings exist; first-class Campaign/Campaign Asset lifecycle is absent. |
@@ -59,7 +59,9 @@ This is historical evidence, not current post-migration truth. The latest migrat
 2. Run Production Integrity Check against the current production release.
 3. Correct real historical execution/data gaps through the admin workspace with audit reasons.
 4. Re-run integrity until the data-quality gate passes.
-5. Begin Phase 5 Sales Follow-up Automation.
+5. Configure the Phase 5 scheduler secret `AUTOMATION_CRON_SECRET` and GitHub secret `AUTOMATION_CRON_TOKEN`.
+6. Trigger and verify the controlled internal-only Phase 5 workflow execution path.
+7. Record acceptance evidence before changing Phase 5 status to SATISFIED.
 
 ## Hard scaling stops
 
