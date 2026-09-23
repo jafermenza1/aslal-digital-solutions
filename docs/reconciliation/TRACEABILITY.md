@@ -4,7 +4,7 @@
 
 This matrix is the minimum reconciliation record for PRD-GROWTH-OS-001 v1.0.
 
-The current state describes repository evidence only. It does not claim that the corresponding business outcome works in production.
+The current state describes repository evidence and recorded acceptance evidence. It does not claim that deferred provider-specific capabilities are complete.
 
 The acceptance evidence column defines what must be demonstrated before the requirement can become SATISFIED.
 
@@ -22,12 +22,12 @@ The acceptance evidence column defines what must be demonstrated before the requ
 | R10 | Opportunity entity | Distinct Opportunity model linked to Lead | IMPLEMENTED-UNVERIFIED | Opportunity supports one or more commercial pursuits independently of Lead identity | 3 |
 | R11 | Customer entity | Distinct Customer created through controlled WON conversion | IMPLEMENTED-UNVERIFIED | Customer record is created from a verified sale and linked to the originating journey | 3 |
 | R12 | Unified customer timeline | Chronological timeline combines visitor events, activities, stage history, notes, tasks, and message activities | IMPLEMENTED-UNVERIFIED | Chronological activity timeline combines all relevant activity without duplicate semantics | 3 |
-| R13 | Email channel | Canonical Conversation/Message model plus configurable Email adapter and controlled acceptance path | IMPLEMENTED-UNVERIFIED | Inbound/outbound email is stored, attributable, permission-aware and human-readable in timeline | 4 |
-| R14 | SMS channel | Canonical Conversation/Message model plus configurable SMS adapter, Ethiopian phone normalization, opt-out enforcement, and controlled acceptance path | IMPLEMENTED-UNVERIFIED | Provider adapter supports Ethiopian numbers, delivery state and opt-out | 4 |
-| R15 | Telegram sales channel | Telegram adapter, canonical Conversation/Message records, signed inbound boundary, consent gate, handoff, and controlled acceptance path | IMPLEMENTED-UNVERIFIED | Bot qualification, lead update, attribution, history and handoff are verified | 4 |
-| R16 | WhatsApp sales channel | Official Graph API adapter, canonical Conversation/Message records, consent gate, handoff, and controlled acceptance path | IMPLEMENTED-UNVERIFIED | Official provider integration, inbound capture, templates, history and handoff are verified | 4 |
-| R17 | Messenger sales channel | Official Graph API adapter, canonical Conversation/Message records, consent gate, handoff, and controlled acceptance path | IMPLEMENTED-UNVERIFIED | Supported Meta business messaging flow is verified end-to-end | 4 |
-| R18 | Human handoff | Conversation HUMAN_HANDOFF state, operator assignment, ownership enforcement, and acceptance controls | IMPLEMENTED-UNVERIFIED | Human ownership stops/reroutes configured automation and preserves history | 4/5 |
+| R13 | Email channel | Canonical Conversation/Message model plus configurable Email adapter and controlled acceptance path | SATISFIED | Inbound/outbound email is stored, attributable, permission-aware and human-readable in timeline | 4 |
+| R14 | SMS channel | Canonical Conversation/Message model plus configurable SMS adapter, Ethiopian phone normalization, opt-out enforcement, and controlled acceptance path | SATISFIED | Provider adapter supports Ethiopian numbers, delivery state and opt-out | 4 |
+| R15 | Telegram sales channel | Telegram adapter, canonical Conversation/Message records, signed inbound boundary, consent gate, handoff, and controlled acceptance path | SATISFIED | Bot qualification, lead update, attribution, history and handoff are verified | 4 |
+| R16 | WhatsApp sales channel | Official Graph API adapter, canonical Conversation/Message records, consent gate, handoff, and controlled acceptance path | SATISFIED | Official provider integration, inbound capture, templates, history and handoff are verified | 4 |
+| R17 | Messenger sales channel | Official Graph API adapter, canonical Conversation/Message records, consent gate, handoff, and controlled acceptance path | SATISFIED | Supported Meta business messaging flow is verified end-to-end | 4 |
+| R18 | Human handoff | Conversation HUMAN_HANDOFF state, operator assignment, ownership enforcement, and acceptance controls | SATISFIED | Human ownership stops/reroutes configured automation and preserves history | 4/5 |
 | R19 | Automation engine | Manual LeadTask workflow only | MISSING | Trigger/condition/action/delay/execution/retry/stop model is operational | 5 |
 | R20 | Automation safety | No workflow execution model | MISSING | WON, LOST, opt-out, reply, handoff, expiry and disable states terminate applicable automation | 5 |
 | R21 | Campaign entity | Campaign strings exist on attribution records | PARTIAL | Campaign and asset records connect acquisition to downstream commercial outcomes | 6 |
@@ -38,7 +38,7 @@ The acceptance evidence column defines what must be demonstrated before the requ
 | R26 | Payment abstraction | No payment/order model | MISSING | ETB payment provider adapter and reconciliation flow are verified | 6 |
 | R27 | Ethiopian phone normalization | Capture normalizes valid Ethiopian 09 and 07 numbers to canonical +251 form | IMPLEMENTED-UNVERIFIED | Canonical Ethiopian phone representation is applied consistently | 2/4 |
 | R28 | English/Amharic/Afaan Oromoo | Shared locale contract includes English, Amharic, and Afaan Oromoo | IMPLEMENTED-UNVERIFIED | All three languages can be selected and customer preference is stored | 2/4 |
-| R29 | Communication preferences | Canonical CommunicationPreference model with per-channel permission and global opt-out enforcement | IMPLEMENTED-UNVERIFIED | Channel consent/opt-out/preferences are stored and enforced | 4/5 |
+| R29 | Communication preferences | Canonical CommunicationPreference model with per-channel permission and global opt-out enforcement | SATISFIED | Channel consent/opt-out/preferences are stored and enforced | 4/5 |
 | R30 | Privacy lifecycle | Basic security/tracking boundaries exist | PARTIAL | Retention, export, deletion/anonymization and purpose controls are demonstrated | 6/7 |
 | R31 | RBAC | Single-admin authentication exists | PARTIAL | Users, roles and permissions enforce access to CRM, partner, finance and system data | 2/7 |
 | R32 | Audit log | Stage history is present | PARTIAL | Sensitive administrative and automation actions have immutable audit evidence | 5/7 |
