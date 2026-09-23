@@ -142,3 +142,8 @@ The dashboard UX has been reorganized into a shared permission-aware shell with 
 The email-template workspace now supports creating additional stored transactional templates without sending a message merely by creating a template. Product catalog, users and email templates are deliberately separate dashboard workspaces.
 
 This is supporting UX/control work mapped to R41/R46/R48/R49. **Phase 5 remains IMPLEMENTED-UNVERIFIED until scheduler and workflow acceptance evidence is retained.**
+
+
+## Follow-up correction — shared locale extensibility — 2026-09-23
+
+The public Header locale reader and root layout were aligned with the shared `lib/i18n.ts` locale registry. Future languages added to the dictionary can now flow through the public/app locale model without adding another hard-coded locale branch. This remains supporting UI work; Phase 5 acceptance status is unchanged.
