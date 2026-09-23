@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
-import { verifySession } from "@/lib/security";
+import { requirePermission } from "@/lib/authorization";
 
 type ProductDemandRow = RowDataPacket & {
   product_slug: string;
@@ -25,8 +25,7 @@ type FollowUpRow = RowDataPacket & { id: string; lead_id: string; name: string; 
 type ClockRow = RowDataPacket & { now: Date };
 
 export default async function InsightsPage() {
-  const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session) redirect("/login");
+  await requirePermission("insights.view");
 
   const [productRows, sourceRows, referralRows, activityRows, followUpRows, clockRows] = await Promise.all([
     db.query<ProductDemandRow[]>(
