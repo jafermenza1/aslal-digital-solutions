@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual, randomUUID } from "node:crypto";
 import { prisma, CommunicationChannel } from "@/lib/prisma";
+import { handleConversationInbound } from "@/lib/automation";
 
 export function signMessagingWebhook(rawBody: string, secret = process.env.MESSAGING_WEBHOOK_SECRET) {
   if (!secret) throw new Error("MESSAGING_WEBHOOK_SECRET is not configured");
@@ -102,6 +103,10 @@ export async function processInboundMessagingWebhook(
       },
     }),
   ]);
+
+  await handleConversationInbound(conversation.leadId).catch((error) => {
+    console.error("INBOUND_AUTOMATION_CANCEL_ERROR", error);
+  });
 
   return { ok: true, duplicate: false, conversationId: conversation.id, messageId: message.id };
 }
