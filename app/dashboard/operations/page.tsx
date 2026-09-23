@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { isAdminEmail, verifySession } from "@/lib/security";
+import { requirePermission } from "@/lib/authorization";
 import { getProductionIntegrityReport } from "@/lib/production-integrity";
 import { TestDataReset } from "@/components/LeadAdminControls";
 import { getAutomationSnapshot } from "@/lib/automation";
@@ -18,9 +18,7 @@ const tabs: Array<{ key: Tab; label: string; short: string; description: string 
 ];
 
 async function requireAdmin() {
-  const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session || !isAdminEmail(session.email)) redirect("/login");
-  return session;
+  return requirePermission("operations.view");
 }
 
 async function updateTask(formData: FormData) {
