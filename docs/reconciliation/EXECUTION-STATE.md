@@ -10,7 +10,7 @@
 2. `docs/reconciliation/README.md`
 3. `docs/reconciliation/TRACEABILITY.md`
 4. `docs/reconciliation/DOMAIN-CONTRACT.md`
-5. `docs/reconciliation/NEXT-DEVELOPMENT-ROADMAP.md`
+5. `docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
 6. This file
 
 ## Current phase truth
@@ -83,7 +83,7 @@ The deployment log confirms the sixth migration was applied and that the product
 
 The authoritative implementation and scaling sequence is:
 
-`docs/reconciliation/NEXT-DEVELOPMENT-ROADMAP.md`
+`docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
 
 Immediate sequence:
 
