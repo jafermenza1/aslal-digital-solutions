@@ -6,7 +6,7 @@
 **Repository baseline:** main @ 04b16c65912b5846c453c6118d13ae4ba4589a0b  
 **Deployment baseline:** Emerald deployment run 35869894355, successful  
 **Product authority:** `docs/PRD-ASLAL-GROWTH-OS-v1.0.md` plus the expanded target-state product definition agreed on 2026-09-23  
-**Roadmap:** `docs/reconciliation/NEXT-DEVELOPMENT-ROADMAP.md`
+**Roadmap:** `docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
 
 ---
 
@@ -58,6 +58,12 @@ The execution state answers:
 - what has been accepted;
 - what is blocked;
 - what the immediate next action is.
+
+There is one canonical development roadmap in this repository:
+
+`docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
+
+No second roadmap/plan document should be created for the same implementation sequence.
 
 No developer should use an old phase note, dashboard label, open branch, or historical acceptance record as evidence against newer merged mainline behavior.
 
