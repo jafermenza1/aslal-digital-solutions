@@ -54,7 +54,7 @@ export default async function OperationsPage() {
       include: { lead: { select: { id: true, name: true, company: true, status: true } } },
     }),
     prisma.lead.findMany({ where: { status: { notIn: ["WON","LOST"] } }, select: { id: true, name: true, company: true }, orderBy: { updatedAt: "desc" }, take: 300 }),
-    prisma.leadAdminAudit.findMany({ orderBy: { createdAt: "desc" }, take: 40, include: { } }),
+    prisma.leadAdminAudit.findMany({ orderBy: { createdAt: "desc" }, take: 40 }),
   ]);
 
   return <main className="portal-shell min-h-screen"><div className="mx-auto max-w-[1480px] p-4 sm:p-7">
