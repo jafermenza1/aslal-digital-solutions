@@ -74,6 +74,8 @@ export const PUBLIC_CONTENT: PublicContentDefinition[] = [
 {pagePath:"/growth-builder",key:"hero.eyebrow",label:"Builder eyebrow",defaultValue:"Growth System Builder",fontSize:10},
 {pagePath:"/growth-builder",key:"hero.title",label:"Builder heading",defaultValue:"Start with the business problem. Build the system around it.",fontSize:56},
 {pagePath:"/growth-builder",key:"hero.body",label:"Builder intro",defaultValue:"Choose a growth priority and the channels you care about. We'll turn your starting point into a focused conversation with Aslal.",fontSize:18},
+{pagePath:"/products",key:"hero.title",label:"Products heading",defaultValue:"Proven technology, local implementation, practical growth.",fontSize:56},
+{pagePath:"/products",key:"hero.body",label:"Products intro",defaultValue:"Explore a solution, open its dedicated page to understand what it does, then request a quote or demo. Every request connects directly to our sales workflow.",fontSize:18},
 {pagePath:"/privacy",key:"title",label:"Privacy title",defaultValue:"Privacy Policy",fontSize:48},
 {pagePath:"/privacy",key:"body",label:"Privacy body",defaultValue:"Aslal Digital Solutions respects your privacy. Information submitted through our website is used to respond to enquiries, deliver requested services and improve our digital experiences. We do not sell personal information. Contact us if you need details about data held about you.",fontSize:18},
 {pagePath:"/terms",key:"title",label:"Terms title",defaultValue:"Terms of Use",fontSize:48},
