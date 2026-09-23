@@ -19,7 +19,7 @@ export async function generatePartnerCardPdf(partnerId: string) {
   const referral = partner.referralLinks[0];
   if (!referral) throw new Error("Partner has no referral link.");
 
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://aslaldigital.com").replace(/\\/$/, "");
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
   const referralUrl = `${baseUrl}/go/${referral.code}`;
   const qr = await QRCode.toBuffer(referralUrl, { type: "png", width: 300, margin: 1, errorCorrectionLevel: "M" });
 
