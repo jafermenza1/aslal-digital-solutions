@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { LeadStatus, prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
