@@ -4,15 +4,24 @@ import { useState } from "react";
 
 type Result = { ok: boolean; status?: string; messageId?: string; conversationId?: string; providerMessageId?: string | null; providerResult?: unknown; error?: string };
 type InboxResult = { ok: boolean; processed?: number; results?: Array<Record<string, unknown>>; error?: string };
+type DiagnosticResult = {
+  ok: boolean;
+  provider?: string;
+  smtp?: { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; requireTLS: boolean; error?: string };
+  imap?: { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; mailbox: string; error?: string };
+  envSources?: { cwd: string; executableDir: string | null };
+  error?: string;
+};
 
 export default function EmailConversationWorkspace() {
   const [recipient, setRecipient] = useState("");
   const [subject, setSubject] = useState("Aslal Digital Solutions — Email workflow test");
   const [message, setMessage] = useState("This is a live Email workflow test from the Aslal Digital Solutions Conversation Center.");
   const [confirmed, setConfirmed] = useState(false);
-  const [busy, setBusy] = useState<"send" | "inbox" | "simulate-sent" | "simulate-failed" | "">("");
+  const [busy, setBusy] = useState<"send" | "inbox" | "diagnostics" | "simulate-sent" | "simulate-failed" | "">("");
   const [result, setResult] = useState<Result | null>(null);
   const [inbox, setInbox] = useState<InboxResult | null>(null);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticResult | null>(null);
 
   async function send(mode: "" | "success" | "failure") {
     if (!recipient.trim() || !message.trim() || !confirmed) return;
@@ -35,15 +44,54 @@ export default function EmailConversationWorkspace() {
     setInbox(data); setBusy("");
   }
 
+  async function runDiagnostics() {
+    setBusy("diagnostics"); setDiagnostics(null);
+    const response = await fetch("/api/conversations/email-diagnostics", { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    setDiagnostics(data); setBusy("");
+  }
+
   return <div className="mt-8 space-y-6">
     <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Phase 4 · Email</div>
           <h2 className="mt-2 text-3xl font-black">Email provider workflow</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">This screen is the Email-specific operational path: live SMTP send → persisted SENT/FAILED → IMAP inbox polling → inbound conversation creation and idempotency.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">This screen is the Email-specific operational path: provider diagnostics → live SMTP send → persisted SENT/FAILED → IMAP inbox polling → inbound conversation creation and idempotency.</p>
         </div>
         <span className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">Acceptance mode not required</span>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-wider text-slate-500">Provider diagnostics</div>
+            <p className="mt-1 text-sm text-slate-600">Checks which runtime configuration was loaded and authenticates to SMTP and IMAP without sending an email. Passwords are never returned.</p>
+          </div>
+          <button onClick={() => void runDiagnostics()} disabled={busy !== ""} className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white disabled:opacity-40">{busy === "diagnostics" ? "Testing…" : "Test SMTP + IMAP connection"}</button>
+        </div>
+        {diagnostics && <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {[["SMTP", diagnostics.smtp], ["IMAP", diagnostics.imap]].map(([label, item]) => {
+            const provider = item as DiagnosticResult["smtp"];
+            return <div key={label} className={"rounded-xl border p-4 " + (provider?.ok ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50")}>
+              <div className="flex items-center justify-between"><span className="font-black">{label}</span><span className="text-xs font-black">{provider?.ok ? "AUTH OK" : "FAILED"}</span></div>
+              <div className="mt-2 text-xs leading-5 text-slate-700">
+                <div>Host: <code>{provider?.host || "not configured"}</code></div>
+                <div>Port: <code>{provider?.port}</code></div>
+                <div>User: <code>{provider?.user || "not configured"}</code></div>
+                <div>Password loaded: <strong>{provider?.passwordConfigured ? "yes" : "no"}</strong></div>
+                {"requireTLS" in (provider || {}) && <div>TLS: <strong>{provider?.secure ? "secure" : "STARTTLS"}</strong></div>}
+                {"mailbox" in (provider || {}) && <div>Mailbox: <code>{provider?.mailbox}</code></div>}
+              </div>
+              {provider?.error && <div className="mt-2 break-words text-xs font-bold text-rose-700">{provider.error}</div>}
+            </div>;
+          })}
+          {diagnostics.envSources && <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-600">
+            <div className="font-black text-slate-800">Runtime environment locations checked</div>
+            <div className="mt-1 break-all">Working directory: <code>{diagnostics.envSources.cwd}</code></div>
+            {diagnostics.envSources.executableDir && <div className="mt-1 break-all">Server executable directory: <code>{diagnostics.envSources.executableDir}</code></div>}
+          </div>}
+        </div>}
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -97,8 +145,8 @@ export default function EmailConversationWorkspace() {
       <h3 className="text-xl font-black">Email acceptance sequence</h3>
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {[
-          ["01", "SMTP", "Send to an authorized mailbox; provider response is persisted."],
-          ["02", "Lifecycle", "Provider success becomes SENT; provider exception becomes FAILED."],
+          ["01", "Diagnostics", "Confirm the running Emerald process sees the intended host, mailbox and password presence."],
+          ["02", "SMTP", "Send to an authorized mailbox; provider response is persisted."],
           ["03", "IMAP", "Check INBOX; unseen mail is parsed and persisted as inbound."],
           ["04", "Safety", "Message-ID deduplication, identity linking and closed-thread handling are exercised."],
         ].map(([n,t,d]) => <div key={n} className="rounded-xl border border-slate-100 bg-[#F8FAFC] p-4"><div className="text-xs font-black text-[#0F3E8A]">{n}</div><div className="mt-1 font-black">{t}</div><div className="mt-1 text-sm leading-5 text-slate-500">{d}</div></div>)}
