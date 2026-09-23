@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     if (!/^[a-z0-9][a-z0-9_-]{2,99}$/.test(finalCode)) {
       return NextResponse.json({ error: "Referral code must be 3–100 lowercase letters, numbers, hyphens or underscores." }, { status: 400 });
     }
-    if (productSlug && destinationPath === "/") destinationPath = `/contact?product=${encodeURIComponent(productSlug)}`;
+    if (productSlug && destinationPath === "/") destinationPath = `/products/${encodeURIComponent(productSlug)}`;
     if (!destinationPath.startsWith("/") || destinationPath.startsWith("//") || destinationPath.length > 500) {
       return NextResponse.json({ error: "Destination must be an internal path." }, { status: 400 });
     }
