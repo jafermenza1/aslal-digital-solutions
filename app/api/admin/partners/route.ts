@@ -97,6 +97,8 @@ export async function POST(request: Request) {
     }
 
     let emailSent = false;
+    let emailFallbackUsed = false;
+    let emailError = "";
     let emailRecipient = email || adminRecipient();
     try {
       const pdf = await generatePartnerCardPdf(partnerId);
@@ -116,19 +118,33 @@ export async function POST(request: Request) {
         attachments: [{ filename: partnerCardFileName(finalCode), content: pdf, contentType: "application/pdf" }],
       };
       try {
-        await sendEmail({ recipient: emailRecipient, ...message });
+        const result = await sendEmail({ recipient: emailRecipient, ...message });
+        if (!result.accepted?.length) {
+          throw new Error(result.rejected?.length ? `SMTP rejected recipient: ${result.rejected.join(", ")}` : "SMTP did not accept the message.");
+        }
         emailSent = true;
       } catch (primaryError) {
         console.error("PARTNER_CARD_EMAIL_ERROR", primaryError);
+        emailError = primaryError instanceof Error ? primaryError.message : "Primary email delivery failed.";
         const fallback = adminRecipient();
         if (emailRecipient !== fallback) {
-          emailRecipient = fallback;
-          await sendEmail({ recipient: fallback, ...message });
-          emailSent = true;
+          try {
+            const result = await sendEmail({ recipient: fallback, ...message });
+            if (!result.accepted?.length) {
+              throw new Error(result.rejected?.length ? `SMTP rejected fallback recipient: ${result.rejected.join(", ")}` : "SMTP did not accept the fallback message.");
+            }
+            emailRecipient = fallback;
+            emailFallbackUsed = true;
+            emailSent = true;
+          } catch (fallbackError) {
+            console.error("PARTNER_CARD_EMAIL_FALLBACK_ERROR", fallbackError);
+            emailError += ` Fallback failed: ${fallbackError instanceof Error ? fallbackError.message : "unknown SMTP error"}`;
+          }
         }
       }
     } catch (error) {
       console.error("PARTNER_CARD_GENERATION_ERROR", error);
+      emailError = error instanceof Error ? error.message : "Partner card generation failed.";
     }
 
     const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}`;
@@ -142,7 +158,8 @@ export async function POST(request: Request) {
       credentialsError: credentialsError || null,
       emailSent,
       emailRecipient,
-      emailFallbackUsed: !email,
+      emailFallbackUsed,
+      emailError: emailError || null,
     }, { status: 201 });
   } catch (error) {
     console.error("PARTNER_CREATE_ERROR", error);
