@@ -1,7 +1,10 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { authorizePermission } from "@/lib/authorization";
+
+function quoteNumber() { return `QT-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${randomUUID().slice(0,8).toUpperCase()}`; }
 
 const transitions: Record<string, string[]> = {
   SENT: ["DRAFT"],
@@ -37,14 +40,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (action === "REVISE") {
       if (!["DRAFT","SENT","VIEWED","NEGOTIATING"].includes(current.status)) return NextResponse.json({ error: "Only an active quote can be revised" }, { status: 409 });
       const items = Array.isArray(body.items) ? body.items : current.items;
-      const normalized = items.map((item: {description:string;quantity?:number;unitPrice:number;discount?:number}, i:number) => {
+      const normalized: Array<{description:string;quantity:number;unitPrice:number;discount:number;lineTotal:number;sortOrder:number}> = items.map((item: {description:string;quantity?:number;unitPrice:number;discount?:number}, i:number) => {
         const quantity=Number(item.quantity ?? 1), unitPrice=Number(item.unitPrice), discount=Number(item.discount ?? 0);
         if (!item.description || quantity <= 0 || unitPrice < 0 || discount < 0) throw new Error(`Invalid item ${i+1}`);
         return { description:item.description, quantity, unitPrice, discount, lineTotal:Math.max(0,quantity*unitPrice-discount), sortOrder:i };
       });
-      const subtotal=normalized.reduce((s,i)=>s+i.quantity*i.unitPrice,0);
+      const subtotal=normalized.reduce((s:number,i:{quantity:number;unitPrice:number})=>s+i.quantity*i.unitPrice,0);
       const quoteDiscount=Number(body.discount ?? current.discount);
-      const total=Math.max(0,subtotal-normalized.reduce((s,i)=>s+i.discount,0)-quoteDiscount);
+      const total=Math.max(0,subtotal-normalized.reduce((s:number,i:{discount:number})=>s+i.discount,0)-quoteDiscount);
       const revised=await prisma.$transaction(async tx=>{
         const next=await tx.quote.create({
           data:{ id:randomUUID(), quoteNumber:quoteNumber(), customerId:current.customerId||undefined, opportunityId:current.opportunityId||undefined, parentQuoteId:current.id, version:current.version+1, status:"DRAFT", currency:current.currency, subtotal, discount:quoteDiscount, total, terms:body.terms!==undefined?String(body.terms):current.terms, expiresAt:body.expiresAt?new Date(body.expiresAt):current.expiresAt, createdBy:user.email, items:{create:normalized.map(i=>({id:randomUUID(),...i}))} },
