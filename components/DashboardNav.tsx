@@ -35,6 +35,7 @@ const ITEMS:Item[]=[
 {key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"management"},
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"management"},
 {key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"management"},
+{key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"management",nested:true},
 {key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"}
 ];
 
