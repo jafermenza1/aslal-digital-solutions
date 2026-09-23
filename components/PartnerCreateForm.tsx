@@ -17,8 +17,8 @@ type Created = {
   credentialsError: string | null;
 };
 
-export default function PartnerCreateForm({ products = [] }: { products?: Array<{ slug:string; name:string }> }) {
-  const [open,setOpen]=useState(false);
+export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true }: { products?: Array<{ slug:string; name:string }>; openInitially?: boolean; showTrigger?: boolean }) {
+  const [open,setOpen]=useState(openInitially);
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
   const [created,setCreated]=useState<Created|null>(null);
@@ -54,7 +54,7 @@ export default function PartnerCreateForm({ products = [] }: { products?: Array<
   function resetAndClose() { setOpen(false); setCreated(null); setMessage(""); }
   function startAnother() { setCreated(null); setMessage(""); }
 
-  return <><button type="button" onClick={()=>{setOpen(true);setCreated(null);setMessage("");}} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-[#0b3475]">+ Add partner</button>
+  return <>{showTrigger && <button type="button" onClick={()=>{setOpen(true);setCreated(null);setMessage("");}} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-[#0b3475]">+ Add partner</button>}
     {open && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="dialog" aria-modal="true">
       <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-white p-7 shadow-2xl">
         {!created ? <form onSubmit={submit}>
