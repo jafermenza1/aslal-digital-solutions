@@ -1,76 +1,83 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { PlexusBackground } from "@/components/PlexusBackground";
 
-const solutions = [
-  ["CRM Pro", "Affiliate / Implementation", "A practical CRM foundation for managing leads, sales activity and follow-ups.", "/products"],
-  ["Commerce Stack", "Custom Solution", "E-commerce, localized payments and connected customer journeys built around how you sell.", "/services"],
-  ["Sales Automation", "Custom Solution", "Website, WhatsApp and Telegram experiences that qualify demand and move prospects toward action.", "/services"],
+const divisions = [
+  { n:"01", title:"Digital Presence", text:"Websites, e-commerce, landing pages, web applications, customer portals and booking experiences.", href:"/services" },
+  { n:"02", title:"Software Marketplace", text:"Proven software products that can be configured, integrated, customized and implemented for your business.", href:"/products" },
+  { n:"03", title:"Digital Growth", text:"Content, campaigns, commerce, CRM, automation, SEO and brand systems connected to measurable outcomes.", href:"/services" },
+  { n:"04", title:"Commerce & Payments", text:"E-commerce journeys, checkout, order management and localized payment integrations for the Ethiopian market.", href:"/services" },
+  { n:"05", title:"Customer Systems", text:"Lead capture, qualification, sales pipelines, follow-up and reporting built around your sales process.", href:"/services" },
+  { n:"06", title:"Automation", text:"WhatsApp, Telegram, AI sales assistants, lead qualification and internal notifications with human handoff.", href:"/demo" },
 ];
 
-const capabilities = [
-  ["01", "Web Experiences", "Websites, landing pages, e-commerce, applications and customer portals."],
-  ["02", "E-commerce & Payments", "Commerce journeys and localized payment integration for the Ethiopian market."],
-  ["03", "Branding & Re-branding", "Brand systems and digital identity that stay consistent across every touchpoint."],
-  ["04", "CRM & Lead Systems", "Lead capture, qualification, pipelines, follow-up and reporting."],
-  ["05", "WhatsApp Sales Automation", "Conversational sales flows with clear human handoffs."],
-  ["06", "Telegram Sales Bots", "Interactive qualification and sales experiences."],
-  ["07", "SEO", "Technical, content and commercial-intent search optimization."],
-  ["08", "Content Creation", "Campaign creative, social content and conversion storytelling."],
-  ["09", "Software Marketplace", "Proven software products customized, integrated and implemented for your needs."],
+const products = [
+  ["Web Development","Web experiences","Website development, e-commerce, landing pages, web applications and customer portals.","/products/web-development"],
+  ["Software Marketplace","Software + implementation","Existing or affiliated software products configured, customized, integrated and implemented for clients.","/products/software-marketplace"],
+  ["Content Creation","Growth content","Campaign creative, social content, video direction, copy and conversion-focused storytelling.","/products/content-creation"],
+  ["E-commerce & Payments","Commerce systems","Commerce journeys and localized payment integration designed for the Ethiopian market.","/products/ecommerce-payments"],
+  ["CRM & Lead Systems","Customer systems","Lead capture, sales pipelines, qualification, follow-up and reporting.","/products/crm-lead-systems"],
 ];
 
-export default async function Home() {
-  const c = (await cookies()).get("aslal_locale")?.value;
-  return (
-    <main className="landing-page">
-      <div className="landing-ambient" aria-hidden="true"><PlexusBackground /><div className="ambient-fade" /></div>
+export default function Home(){
+ return <main className="landing-page">
+  <section className="landing-hero relative isolate overflow-hidden">
+   <div className="landing-ambient" aria-hidden="true"><PlexusBackground/><div className="ambient-fade"/></div>
+   <div className="hero-vignette"/>
+   <div className="container-aslal relative z-10 grid min-h-[780px] items-center gap-16 py-24 lg:grid-cols-[1.05fr_.95fr]">
+    <div className="hero-copy">
+      <div className="hero-kicker"><span className="status-dot"/> ENGINEERED GROWTH · LOCAL CONTEXT · MEASURABLE ROI</div>
+      <h1><span>Build.</span><strong>Automate.</strong><span>Grow.</span></h1>
+      <p>We build digital systems that turn attention into customers — combining technology, marketing and sales execution around the realities of your business.</p>
+      <div className="hero-actions"><Link href="/growth-builder" className="glow-button hero-primary">Build My Growth System <span>→</span></Link><Link href="/products" className="hero-secondary">Explore Our Technology</Link></div>
+      <div className="hero-signals"><span>WEBSITES</span><i/><span>SOFTWARE</span><i/><span>COMMERCE</span><i/><span>MARKETING</span><i/><span>AUTOMATION</span></div>
+    </div>
+    <div className="hero-system">
+      <div className="system-top"><div><small>ASLAL GROWTH SYSTEM</small><h2>Visitor <span>→</span> Growth</h2></div><b>CONNECTED</b></div>
+      <div className="system-flow">{["Visitor","Interest","Conversation","Lead","Sale","Growth"].map((x,i)=><div key={x} className={i===5?"active":""}><em>0{i+1}</em><strong>{x}</strong></div>)}</div>
+      <div className="system-outcome"><div><small>THE MODEL</small><strong>Understand demand. Create action. Measure growth.</strong></div><span>ROI</span><div className="progress"><i/></div></div>
+    </div>
+   </div>
+  </section>
 
-      <section className="landing-hero relative isolate">
-        <div className="hero-vignette" />
-        <div className="container-aslal relative z-10 grid min-h-[760px] items-center gap-14 py-24 lg:grid-cols-[1.12fr_.88fr]">
-          <div className="hero-copy">
-            <div className="hero-kicker"><span className="status-dot" /> PROVEN PRODUCTS · LOCAL IMPLEMENTATION · CUSTOM FIT</div>
-            <h1><span>Your Growth</span><strong>Partner</strong></h1>
-            <p>We implement, customize and connect digital systems that capture demand, streamline payments and help businesses turn attention into revenue.</p>
-            <div className="hero-actions">
-              <Link href="/growth-builder" className="glow-button hero-primary">Build My Growth System <span>→</span></Link>
-              <Link href="/services" className="hero-secondary">Explore Solutions</Link>
-            </div>
-            <div className="hero-signals"><span>CRM</span><i /> <span>COMMERCE</span><i /> <span>PAYMENTS</span><i /> <span>AUTOMATION</span><i /> <span>SEO</span></div>
-          </div>
+  <section className="landing-section light-section">
+   <div className="container-aslal grid gap-14 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
+    <div className="section-heading"><span>01 — THE DIFFERENCE</span><h2>Your website should do more than exist.</h2><p>A traditional website can attract attention and lose it. Your growth system should understand interest, recommend a path, start a conversation, create a lead and support sales follow-up.</p></div>
+    <div className="grid gap-4 md:grid-cols-2">
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-7"><div className="text-xs font-black uppercase tracking-[.18em] text-slate-400">Traditional website</div><div className="mt-8 space-y-4 font-bold text-slate-700"><div>Visitor</div><div className="text-slate-300">↓</div><div>Reads</div><div className="text-slate-300">↓</div><div>Leaves</div></div></div>
+      <div className="rounded-[2rem] bg-[#0F3E8A] p-7 text-white shadow-xl"><div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Aslal growth system</div><div className="mt-8 space-y-4 font-bold"><div>Visitor</div><div className="text-white/35">↓</div><div>Understands interest</div><div className="text-white/35">↓</div><div>Starts conversation</div><div className="text-white/35">↓</div><div>Lead → sales follow-up → customer</div></div></div>
+    </div>
+   </div>
+  </section>
 
-          <div className="hero-system">
-            <div className="system-top"><div><small>ASLAL GROWTH SYSTEM</small><h2>Demand <span>→</span> Revenue</h2></div><b>LIVE MODEL</b></div>
-            <div className="system-flow">{["Attract","Capture","Qualify","Automate","Convert","Retain"].map((x,i)=><div key={x} className={i===5 ? "active" : ""}><em>0{i+1}</em><strong>{x}</strong></div>)}</div>
-            <div className="system-outcome"><div><small>OUTCOME ARCHITECTURE</small><strong>Attention → action → growth</strong></div><span>ROI</span><div className="progress"><i /></div></div>
-          </div>
-        </div>
-        <div className="hero-bottom-glow" />
-      </section>
+  <section className="landing-section capability-section">
+   <div className="container-aslal"><div className="section-heading section-heading-light"><span>02 — SOLUTIONS</span><h2>Six connected divisions. One growth partner.</h2><p>From digital presence to customer systems, we connect the pieces instead of selling isolated services.</p></div>
+    <div className="capability-grid">{divisions.map(x=><Link key={x.n} href={x.href} className="capability-card group"><em>{x.n}</em><h3>{x.title}</h3><p>{x.text}</p><b className="mt-5 inline-block text-[#E2B02A]">Explore <span className="transition-transform group-hover:translate-x-1">→</span></b></Link>)}</div>
+   </div>
+  </section>
 
-      <section className="landing-section light-section">
-        <div className="container-aslal">
-          <div className="section-heading"><span>SOLUTIONS BUILT FOR YOUR BUSINESS REALITY</span><h2>Connected systems without the custom-build price tag.</h2><p>We partner with trusted providers and combine proven tools with local implementation and custom fit.</p></div>
-          <div className="solution-grid">{solutions.map(([title,tag,desc,href])=><Link href={href} key={title} className="solution-card"><span>{tag}</span><h3>{title}</h3><p>{desc}</p><b>View solution <i>→</i></b></Link>)}</div>
-        </div>
-      </section>
+  <section className="landing-section light-section">
+   <div className="container-aslal">
+    <div className="section-heading"><span>03 — PRODUCTS</span><h2>Proven products. Local implementation. Custom fit.</h2><p>Explore the public catalog, open a dedicated product page for the full explanation, then request a quote or demo directly into our sales system.</p></div>
+    <div className="solution-grid">{products.map(([name,tag,desc,href])=><article key={name} className="solution-card group"><span>{tag}</span><h3>{name}</h3><p>{desc}</p><div className="mt-6 flex flex-wrap items-center gap-3"><Link href={href} className="font-black text-[#0F3E8A] group-hover:text-[#E2B02A]">Explore More →</Link><Link href={`/contact?product=${encodeURIComponent(name)}&goal=Request%20a%20quote`} className="rounded-full bg-[#E2B02A] px-4 py-2 text-xs font-black text-[#1E293B]">Request Quote</Link></div></article>)}</div>
+    <div className="mt-8 flex justify-center"><Link href="/products" className="hero-secondary border-slate-300 text-[#0F3E8A]">View All Products →</Link></div>
+   </div>
+  </section>
 
-      <section className="landing-section capability-section">
-        <div className="container-aslal">
-          <div className="section-heading section-heading-light"><span>THE ENGINE / CAPABILITIES</span><h2>Everything you need to scale, under one roof.</h2><p>Nine connected capabilities across digital presence, commerce, sales automation, traffic, content and software.</p></div>
-          <div className="capability-grid">{capabilities.map(([n,title,desc])=><div key={n} className="capability-card"><em>{n}</em><h3>{title}</h3><p>{desc}</p></div>)}</div>
-        </div>
-      </section>
+  <section className="landing-section capability-section">
+   <div className="container-aslal grid gap-14 lg:grid-cols-[1fr_.8fr] lg:items-center">
+    <div className="section-heading section-heading-light"><span>04 — DIGITAL GROWTH</span><h2>Content, commerce, customer systems, automation, brand and search.</h2><p>Social content, video, graphics, copywriting, campaign creatives, e-commerce, payment integration, CRM, lead management, sales automation, Telegram, WhatsApp, SEO and brand systems can work as one connected engine.</p></div>
+    <div className="grid gap-3 sm:grid-cols-2">{["Content","Commerce","Customer systems","Automation","Brand","Search"].map((x,i)=><div key={x} className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><span className="text-xs font-black text-[#E2B02A]">0{i+1}</span><h3 className="mt-2 text-lg font-black text-white">{x}</h3><p className="mt-2 text-sm leading-6 text-white/55">{["Social, video, graphics, copy and campaign creative.","E-commerce, checkout, payments and order journeys.","CRM, lead management, pipeline and follow-up.","Bots, AI sales assistants, qualification and notifications.","Branding, rebranding, visual identity and guidelines.","Local, technical, content and commercial SEO."][i]}</p></div>)}</div>
+   </div>
+  </section>
 
-      <section className="landing-section trust-section">
-        <div className="container-aslal trust-inner"><div><span>TRUST & EXECUTION</span><h2>Local context. Technical precision. Connected execution.</h2></div><div className="trust-pills"><b>LOCAL</b><b>TRUSTED</b><b>CONNECTED</b><b>MEASURABLE</b></div></div>
-      </section>
+  <section className="landing-section light-section">
+   <div className="container-aslal grid gap-12 lg:grid-cols-[1fr_.9fr] lg:items-center">
+    <div><span className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">05 — LOCAL BY DESIGN</span><h2 className="mt-4 text-4xl font-black tracking-tight text-[#1E293B] sm:text-5xl">Built for Ethiopia. Ready to scale.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">We design around local payment realities, customer behavior, language, connectivity and operational constraints while keeping the technology modern and extensible.</p></div>
+    <div className="rounded-[2rem] bg-[#0F3E8A] p-8 text-white"><div className="grid grid-cols-2 gap-4">{["Local context","Technical precision","Connected execution","Measurable ROI"].map(x=><div key={x} className="rounded-2xl border border-white/10 bg-white/[.06] p-5"><span className="text-[#E2B02A]">✦</span><p className="mt-3 font-black">{x}</p></div>)}</div></div>
+   </div>
+  </section>
 
-      <section id="growth-builder" className="landing-section builder-section">
-        <div className="container-aslal builder-inner"><div><span>NOT SURE EXACTLY WHAT YOU NEED?</span><h2>Start with the bottleneck.</h2><p>The Growth System Builder turns what is holding you back into a practical starting point for your business.</p></div><Link href="/growth-builder">Build My Growth System <span>→</span></Link></div>
-      </section>
-      <div className="landing-end-fade" aria-hidden="true" />
-    </main>
-  );
+  <section className="landing-section builder-section"><div className="container-aslal builder-inner"><div><span>06 — START WITH THE BOTTLENECK</span><h2>Not sure exactly what you need?</h2><p>Tell us what is holding your business back. The Growth System Builder turns the problem into a practical starting point.</p></div><Link href="/growth-builder">Build My Growth System <span>→</span></Link></div></section>
+  <section className="landing-section trust-section"><div className="container-aslal trust-inner"><div><span>ASLAL DIGITAL SOLUTIONS</span><h2>Engineered Growth. Local Context. Measurable ROI.</h2></div><div className="trust-pills"><b>BUILD</b><b>AUTOMATE</b><b>GROW</b><b>MEASURE</b></div></div></section>
+ </main>;
 }
