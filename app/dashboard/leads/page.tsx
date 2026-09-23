@@ -6,6 +6,7 @@ import { LeadStatus, prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { verifySession } from "@/lib/security";
 import { handleLeadStatusChange } from "@/lib/automation";
+import { OfflineLeadForm } from "@/components/OfflineLeadForm";
 
 const stages = Object.values(LeadStatus);
 const pageSize = 24;
@@ -83,7 +84,7 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
     prisma.lead.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.lead.groupBy({ by: ["status"], _sum: { dealValue: true } }),
     prisma.lead.findMany({ distinct: ["source"], where: { source: { not: null } }, select: { source: true }, orderBy: { source: "asc" } }),
-    prisma.product.findMany({ where: { active: true }, select: { slug: true, name: true }, orderBy: { name: "asc" } }),
+    prisma.product.findMany({ where: { active: true }, select: { id:true, slug: true, name: true }, orderBy: { name: "asc" } }),
     prisma.lead.count({
       where: {
         status: { notIn: [LeadStatus.WON, LeadStatus.LOST] },
@@ -110,6 +111,7 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
 
     <div className="mt-7 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">{stages.map(stage => <Link key={stage} href={`/dashboard/leads?${new URLSearchParams({ ...(status ? { status: stage } : {}), ...(search ? { q: search } : {}) }).toString()}`} className={`rounded-2xl border p-3 ${status === stage ? "border-[#0F3E8A] bg-[#0F3E8A] text-white" : "border-slate-200 bg-white"}`}><div className="text-[10px] font-black uppercase tracking-wider opacity-60">{stage}</div><div className="mt-1 text-xl font-black">{countFor(stage)}</div><div className="text-[10px] opacity-60">ETB {valueFor(stage).toLocaleString()}</div></Link>)}</div>
 
+    <OfflineLeadForm products={products} />
     <form method="get" className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6"><input name="q" defaultValue={search} placeholder="Search name, company, email, phone..." className="xl:col-span-2 rounded-xl border border-slate-200 px-4 py-3"/><select name="status" defaultValue={status || ""} className="rounded-xl border border-slate-200 px-3 py-3"><option value="">All stages</option>{stages.map(stage => <option key={stage}>{stage}</option>)}</select><select name="source" defaultValue={source} className="rounded-xl border border-slate-200 px-3 py-3"><option value="">All sources</option>{sources.map(item => <option key={item.source!}>{item.source}</option>)}</select><select name="product" defaultValue={product} className="rounded-xl border border-slate-200 px-3 py-3"><option value="">All products</option>{products.map(item => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select><select name="sort" defaultValue={sort} className="rounded-xl border border-slate-200 px-3 py-3"><option value="priority">Priority</option><option value="newest">Newest</option><option value="deal">Deal value</option></select></div><div className="mt-3 flex flex-wrap gap-3"><input name="minScore" type="number" min="0" max="100" defaultValue={minScore ?? ""} placeholder="Min score" className="w-32 rounded-xl border border-slate-200 px-3 py-2"/><input name="referral" defaultValue={referral} placeholder="Referral code" className="w-40 rounded-xl border border-slate-200 px-3 py-2"/><button className="rounded-xl bg-[#0F3E8A] px-5 py-2 font-bold text-white">Apply filters</button><Link href="/dashboard/leads" className="rounded-xl border border-slate-200 bg-white px-5 py-2 font-bold text-slate-600">Clear</Link></div></form>
 
     <div className="mt-5 flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between"><span>Showing {total === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total} leads</span><div className="flex flex-wrap items-center gap-3"><span>Page {page} / {totalPages}</span>{executionGaps > 0 && <span className="rounded-full bg-red-50 px-3 py-1 font-bold text-red-700">{executionGaps} active lead{executionGaps === 1 ? "" : "s"} missing owner/action/due date</span>}</div></div>
