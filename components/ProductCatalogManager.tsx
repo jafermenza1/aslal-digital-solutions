@@ -38,7 +38,7 @@ export function ProductCatalogManager({initial}:{initial:ProductRow[]}) {
     <div className="mt-5 grid gap-4 lg:grid-cols-3">
       {field("Name","name","e.g. Growth CRM")}
       {field("Public slug","slug","growth-crm")}
-      <label className="grid gap-1 text-sm font-bold text-slate-700">Type<select value={draft.kind} onChange={e=>set("kind",e.target.value)} disabled={!!draft.id} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="SERVICE">Service</option><option value="PRODUCT">Product</option></select></label>
+      <label className="grid gap-1 text-sm font-bold text-slate-700">Type<select value={draft.kind} onChange={e=>set("kind",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="SERVICE">Service</option><option value="PRODUCT">Product</option></select></label>
       {field("Provider / brand","providerName","Aslal Digital Solutions")}
       <label className="grid gap-1 text-sm font-bold text-slate-700">Relationship<select value={draft.relationshipType} onChange={e=>set("relationshipType",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option>OWNED</option><option>AFFILIATE</option><option>RESELLER</option><option>IMPLEMENTATION_PARTNER</option><option>CUSTOM</option></select></label>
       {field("Tagline","tagline","Short positioning line")}
