@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { authorizePermission } from "@/lib/authorization";
 import { ProductKind, ProductRelationship } from "@prisma/client";
@@ -36,5 +37,6 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const body=await request.json().catch(()=>({})); const data=validBody(body,current);
  if(!data)return NextResponse.json({error:"Name, short description, type and relationship are required."},{status:400});
  const product=await prisma.product.update({where:{id},data});
+ revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
 }
