@@ -66,7 +66,7 @@ Provider-specific requirements must be verified against the selected provider do
 
 ## Controlled acceptance UI
 
-The authenticated dashboard page `/dashboard/acceptance/phase-4` is the Phase 4 control room. It is intentionally split into two paths:
+The authenticated dashboard page `the admin Conversations workspace` is the Phase 4 control room. It is intentionally split into two paths:
 
 - **Controlled simulation suite:** requires `PHASE4_ACCEPTANCE_MODE=true`; exercises consent gating, simulated outbound persistence, channel revocation, global opt-out, human handoff, signed inbound, invalid signatures, unknown-sender identity protection, webhook retry idempotency, and CRM message activity without contacting an external provider.
 - **Live provider test:** explicitly sends through the selected configured provider using the same channel adapter boundary. Run only against an address/chat controlled by the operator.
@@ -109,7 +109,7 @@ The acceptance endpoint returns passed, failed, total, testId, conversationId, t
 1. Migrate the Phase 4 conversation schema in the target environment.
 2. Confirm CI typecheck, lint and production build are green.
 3. Set `PHASE4_ACCEPTANCE_MODE=true` only in the controlled acceptance environment.
-4. Open `/dashboard/acceptance/phase-4` as an authenticated operator.
+4. Open `the admin Conversations workspace` as an authenticated operator.
 5. Select a Lead already linked to a trusted Person and choose one channel.
 6. Run the **safety + webhook suite** and require every result to PASS.
 7. For each provider whose credentials/sender identity/callbacks are configured, run one explicit live test against an operator-controlled recipient.
