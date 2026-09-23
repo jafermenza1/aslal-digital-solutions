@@ -19,7 +19,7 @@
 |---|---|---|
 | Product/domain baseline | SATISFIED | PRD, domain contract and phase controls exist. |
 | Deployment pipeline | SATISFIED | CI builds/packages/uploads; deployment installs release and runs Prisma migrations. |
-| Production schema | SATISFIED | Nine migrations are present in current main and the current release was installed successfully by Emerald deployment `35898297667`; production business-data integrity remains a separate gate. |
+| Production schema | SATISFIED | Nine migrations are present in current main and the current release was installed successfully by Emerald deployment `35915809923`; production business-data integrity remains a separate gate. |
 | Sales execution | IMPLEMENTED-UNVERIFIED | Owner, next action, due date, stage history, phone normalization and admin corrections exist; fresh post-migration production data evidence is required. |
 | Identity/customer foundation | SATISFIED | Person, Opportunity, Customer, Activity, visitor/event/Growth Opportunity foundations have recorded acceptance evidence. |
 | Phase 4A conversations | SATISFIED | Canonical Conversation/Message, consent, opt-out, handoff, signed inbound boundary, idempotency and controlled simulations exist. |
@@ -72,7 +72,8 @@ An app UI translation dictionary and editing guide are now checked into the repo
 3. Verify offline lead capture → owner/next action/stage history/scoring → existing Phase 5 lead-created automation path.
 4. Verify contact email consent → rich branded auto-reply → canonical Email conversation/message/activity, including provider failure behavior.
 5. Verify user creation → login → role defaults → editable grants/revokes → activation/deactivation → audit record.
-6. Harden remaining legacy routes so the new permission model consistently replaces the older admin-email guards.\n7. Complete the Phase 6A controlled quote acceptance: create → send → viewed/negotiating → revise → accept/reject, then reconstruct the full offer history and actor changes.
+6. Harden remaining legacy routes so the new permission model consistently replaces the older admin-email guards.
+7. Complete the Phase 6A controlled quote acceptance: create → send → viewed/negotiating → revise → accept/reject, then reconstruct the full offer history and actor changes.
 8. Configure the Phase 5 scheduler secrets and complete scheduler/idempotency/cancellation acceptance before marking R20/R21 SATISFIED.
 9. Do not enable shared multi-tenant SaaS, payment-backed revenue, automated partner commissions or AI autonomy until their roadmap gates are separately satisfied.
 
