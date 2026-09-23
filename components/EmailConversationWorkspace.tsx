@@ -4,7 +4,7 @@ import { useState } from "react";
 
 type Result = { ok: boolean; status?: string; messageId?: string; conversationId?: string; providerMessageId?: string | null; providerResult?: unknown; error?: string };
 type InboxResult = { ok: boolean; processed?: number; results?: Array<Record<string, unknown>>; error?: string };
-type DiagnosticResult = {
+type DiagnosticProvider = { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; error?: string; requireTLS?: boolean; mailbox?: string };\ntype DiagnosticResult = {
   ok: boolean;
   provider?: string;
   smtp?: { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; requireTLS: boolean; error?: string };
@@ -72,7 +72,7 @@ export default function EmailConversationWorkspace() {
         </div>
         {diagnostics && <div className="mt-4 grid gap-3 md:grid-cols-2">
           {[["SMTP", diagnostics.smtp], ["IMAP", diagnostics.imap]].map(([label, item]) => {
-            const provider = item as DiagnosticResult["smtp"];
+            const provider = item;
             return <div key={label} className={"rounded-xl border p-4 " + (provider?.ok ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50")}>
               <div className="flex items-center justify-between"><span className="font-black">{label}</span><span className="text-xs font-black">{provider?.ok ? "AUTH OK" : "FAILED"}</span></div>
               <div className="mt-2 text-xs leading-5 text-slate-700">
