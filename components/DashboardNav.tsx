@@ -39,8 +39,7 @@ const ITEMS:Item[]=[
 export function DashboardNav({locale,permissions,mobile=false}:{locale:Locale;permissions:string[];mobile?:boolean}) {
  const pathname=usePathname(); const t=getAppUi(locale); const allowed=ITEMS.filter(item=>permissions.includes(item.permission));
  if(mobile)return <nav className="dashboard-mobile-nav">{allowed.map(item=><NavItem key={item.href} item={item} active={isActive(pathname,item.href)} label={t.nav[item.key]} mobile/>)}</nav>;
- let lastGroup="";
- return <nav className="dashboard-sidebar-nav">{allowed.map(item=>{const group=item.group;const showGroup=group!==lastGroup;lastGroup=group;return <div key={item.href}>{showGroup&&<div className="dashboard-nav-group">{t.groups[group]}</div>}<NavItem item={item} active={isActive(pathname,item.href)} label={t.nav[item.key]}/></div>})}</nav>;
+ return <nav className="dashboard-sidebar-nav">{allowed.map((item,index)=>{const group=item.group;const showGroup=index===0||group!==allowed[index-1].group;return <div key={item.href}>{showGroup&&<div className="dashboard-nav-group">{t.groups[group]}</div>}<NavItem item={item} active={isActive(pathname,item.href)} label={t.nav[item.key]}/></div>})}</nav>;
 }
 function isActive(pathname:string,href:string){return href==="/dashboard"?pathname==="/dashboard":pathname===href||pathname.startsWith(href+"/");}
 function NavItem({item,active,label,mobile=false}:{item:Item;active:boolean;label:string;mobile?:boolean}){const icon=ICONS[item.icon];return <Link href={item.href} className={`dashboard-nav-item ${active?"active ":""}${item.nested?"nested ":""}${mobile?"mobile":""}`} aria-current={active?"page":undefined}><span className="dashboard-nav-icon">{icon}</span><span>{label}</span>{active&&!mobile&&<span className="dashboard-nav-active-dot" aria-hidden="true"/>}</Link>;}
