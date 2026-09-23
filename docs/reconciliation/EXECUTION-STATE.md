@@ -1,8 +1,8 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `f792be38dba6e1a2019dea5b7a26af399318f178`
-**Latest verified deployment:** Emerald workflow run `35920738018` for `f792be38dba6e1a2019dea5b7a26af399318f178` — SUCCESS
+**Current mainline:** `986ba2bdf6e47fb5c553fcbe3bddee59d1c14f32`
+**Latest verified deployment:** Emerald workflow run `35923977700` for `986ba2bdf6e47fb5c553fcbe3bddee59d1c14f32` — SUCCESS
 
 ## Authority chain
 
@@ -19,7 +19,7 @@
 |---|---|---|
 | Product/domain baseline | SATISFIED | PRD, domain contract and phase controls exist. |
 | Deployment pipeline | SATISFIED | CI builds/packages/uploads; deployment installs release and runs Prisma migrations. |
-| Production schema | SATISFIED | Nine migrations are present in current main and the current release was installed successfully by Emerald deployment `35915809923`; production business-data integrity remains a separate gate. |
+| Production schema | SATISFIED | Ten migrations are present in current main and the current release was installed successfully by Emerald deployment `35915809923`; production business-data integrity remains a separate gate. |
 | Sales execution | IMPLEMENTED-UNVERIFIED | Owner, next action, due date, stage history, phone normalization and admin corrections exist; fresh post-migration production data evidence is required. |
 | Identity/customer foundation | SATISFIED | Person, Opportunity, Customer, Activity, visitor/event/Growth Opportunity foundations have recorded acceptance evidence. |
 | Phase 4A conversations | SATISFIED | Canonical Conversation/Message, consent, opt-out, handoff, signed inbound boundary, idempotency and controlled simulations exist. |
@@ -56,6 +56,12 @@ The last known production-integrity result before the latest admin migration rec
 - 1 open task previously overdue.
 
 This is historical evidence, not current post-migration truth. The latest migration was additive and did not fabricate historical values.
+
+## Operations and partner workspace extension
+
+The operations workspace was tightened around real sales execution: the readiness narrative was removed, new follow-up tasks require an internal owner and due date, owners are selected from active internal users rather than free-text addresses, and existing unassigned tasks remain visible for explicit correction. The partner workspace now creates a referral identity, wallet-size printable partner card with QR code, automatic card email delivery with admin fallback, and optional partner login credentials stored only as a password hash. A partner portal route exposes only partner-attributed performance. This remains **PARTIAL** for the broader partner-commerce domain because revenue-confirmed commission lineage and the remaining roadmap controls are not thereby satisfied.
+
+CI `35923732403` passed typecheck, lint, production build, standalone packaging and artifact upload. Emerald deployment `35923977700` passed artifact verification, release installation and production health.
 
 ## CI correction — dashboard help
 
