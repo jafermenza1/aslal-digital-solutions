@@ -1,11 +1,24 @@
+import { loadEnvConfig } from "@next/env";
 import { ImapFlow } from "imapflow";
 import { simpleParser, type ParsedMail } from "mailparser";
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "node:crypto";
 
+// The Emerald standalone bundle is started outside the original Next.js project
+// directory in some deployments. Explicitly load the production .env files from
+// the runtime working directory before reading any email configuration. Existing
+// process.env values still win, so Emerald-managed environment variables remain
+// supported and secrets are never logged or returned.
+loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
+
 const smtpPort = Number(process.env.SMTP_PORT || "587");
 const imapPort = Number(process.env.IMAP_PORT || "993");
+
+function envValue(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" ? value : "";
+}
 
 function requiredEnv(name: string) {
   const value = process.env[name];
@@ -15,12 +28,13 @@ function requiredEnv(name: string) {
 
 function smtpTransport() {
   return nodemailer.createTransport({
-    host: requiredEnv("SMTP_HOST"),
+    host: envValue("SMTP_HOST").trim() || requiredEnv("SMTP_HOST"),
     port: smtpPort,
     secure: process.env.SMTP_SECURE === "true",
     requireTLS: process.env.SMTP_REQUIRE_TLS !== "false",
     auth: {
-      user: requiredEnv("SMTP_USER"),
+      user: envValue("SMTP_USER").trim() || requiredEnv("SMTP_USER"),
+      // Do not trim passwords: spaces can legitimately be part of a mailbox password.
       pass: requiredEnv("SMTP_PASSWORD"),
     },
   });
@@ -33,7 +47,7 @@ export async function sendEmail(params: {
   inReplyTo?: string | null;
   references?: string[];
 }) {
-  const from = process.env.SMTP_FROM || requiredEnv("SMTP_USER");
+  const from = envValue("SMTP_FROM").trim() || requiredEnv("SMTP_USER");
   const transporter = smtpTransport();
 
   try {
@@ -211,11 +225,11 @@ async function persistInbound(mail: ParsedMail) {
 
 export async function pollEmailInbox() {
   const client = new ImapFlow({
-    host: requiredEnv("IMAP_HOST"),
+    host: envValue("IMAP_HOST").trim() || requiredEnv("IMAP_HOST"),
     port: imapPort,
     secure: process.env.IMAP_SECURE !== "false",
     auth: {
-      user: requiredEnv("IMAP_USER"),
+      user: envValue("IMAP_USER").trim() || requiredEnv("IMAP_USER"),
       pass: requiredEnv("IMAP_PASSWORD"),
     },
     logger: false,
