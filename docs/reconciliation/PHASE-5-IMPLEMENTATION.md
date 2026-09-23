@@ -3,7 +3,8 @@
 **Status:** IMPLEMENTED-UNVERIFIED  
 **Scope:** Internal-only sales execution automation  
 **Date:** 2026-09-23  
-**Current implementation baseline:** `585956fee10f66ffbaf1b46f213b84d2d947a8a6`  
+**Current automation implementation baseline:** `585956fee10f66ffbaf1b46f213b84d2d947a8a6`  
+**Current extension work:** catalog/offline-lead/user-access/transactional-email additions are implemented in subsequent mainline commits and are not yet deployment-verified  
 **Latest verified deployment:** Emerald workflow run `35890757898` — SUCCESS  
 **Current scope:** internal automation + responsive operations tabs
 
@@ -47,7 +48,7 @@ Implemented:
 - action-level execution history;
 - operator visibility.
 
-No workflow action currently sends customer-facing promotional messages.
+No Phase 5 workflow action sends customer-facing promotional messages. A separate consent-gated transactional contact acknowledgement is now implemented outside the workflow engine; it remains independently acceptance-gated.
 
 ### Scheduler
 
@@ -86,11 +87,11 @@ Only the selected operations tab loads its corresponding heavy data set, reducin
 
 ## Deliberately not enabled
 
-Phase 5 does **not** automatically send promotional or sales messages to customers.
+Phase 5 does **not** automatically send promotional or sales messages to customers through its workflow actions.
 
-No workflow action currently sends customer-facing email/SMS/Telegram/WhatsApp/Messenger messages.
+A separate contact-form transactional acknowledgement can send a rich HTML email only after the visitor explicitly requests email confirmation and only to the submitted email address. It is not a campaign subscription and does not advance the Phase 5 workflow acceptance status.
 
-That capability remains gated until consent, opt-out, handoff, reply, terminal-state, expiry, provider, idempotency and production acceptance requirements are demonstrated.
+The transactional acknowledgement remains gated by SMTP configuration, message persistence, consent/opt-out behavior, failure handling and production acceptance.
 
 ## Verification already recorded
 
@@ -128,6 +129,7 @@ Evidence must include:
 3. Trigger or observe a scheduler invocation and retain the JSON result as evidence.
 4. Run the controlled acceptance journey.
 5. Verify idempotency, delayed execution, reply cancellation and WON/LOST cancellation.
-6. Reconcile R20/R21 and change Phase 5 to SATISFIED only when the acceptance evidence exists.
+6. Verify the separate transactional contact acknowledgement path without treating it as proof of the full messaging automation requirement.
+7. Reconcile R20/R21 and change Phase 5 to SATISFIED only when the workflow acceptance evidence exists.
 
 Customer-facing automated messaging remains outside this Phase 5 acceptance until its separate safety/provider gates are satisfied.
