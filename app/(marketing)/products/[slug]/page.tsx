@@ -19,8 +19,9 @@ export default async function ProductPage({params}:{params:Promise<{slug:string}
   if(!p||!p.active) notFound();
   const gallery=lines(p.galleryUrls);
   const features=lines(p.features), benefits=lines(p.benefits), idealFor=lines(p.idealFor), deliverables=lines(p.deliverables);
-  const quoteUrl=`/contact?productId=${encodeURIComponent(p.id)}&product=${encodeURIComponent(p.slug)}&goal=${encodeURIComponent("Request a quote")}`;
-  const demoUrl=`/contact?productId=${encodeURIComponent(p.id)}&product=${encodeURIComponent(p.slug)}&goal=${encodeURIComponent("Request a demo")}`;
+  const requestLabel = p.kind === "PRODUCT" ? "Request Sample" : "Request Quote";
+  const requestGoal = p.kind === "PRODUCT" ? "Request a sample" : "Request a quote";
+  const requestUrl = `/contact?productId=${encodeURIComponent(p.id)}&product=${encodeURIComponent(p.slug)}&goal=${encodeURIComponent(requestGoal)}`;
   return <main>
     <EventTracker eventName="PRODUCT_VIEW" productSlug={p.slug}/>
     <section className="overflow-hidden bg-[#071F47] text-white">
