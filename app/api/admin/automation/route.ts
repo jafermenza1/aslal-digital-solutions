@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { isAdminEmail, verifySession } from "@/lib/security";
 import { getAutomationSnapshot } from "@/lib/automation";
+import { authorizePermission } from "@/lib/authorization";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session || !isAdminEmail(session.email)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  const user = await authorizePermission("operations.view");
+  if (!user) return NextResponse.json({ error: "Operations permission required." }, { status: 403 });
 
   try {
     return NextResponse.json(await getAutomationSnapshot(50), {
