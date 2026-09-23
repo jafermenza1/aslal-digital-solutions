@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
+import type { RowDataPacket } from "mysql2/promise";
 
 const WIDTH = 252;
 const HEIGHT = 144;
@@ -10,7 +11,7 @@ function safeText(value: string | null | undefined, fallback = "—") {
 }
 
 export async function generatePartnerCardPdf(partnerId: string) {
-  const [partnerRows] = await db.query<Array<{ id: string; name: string; type: string; email: string | null; code: string | null }>>(
+  const [partnerRows] = await db.query<Array<{ id: string; name: string; type: string; email: string | null; code: string | null } & RowDataPacket>>(
     `SELECT p.id, p.name, p.type, p.email, rl.code
      FROM partners p
      LEFT JOIN referral_links rl ON rl.partner_id = p.id
