@@ -6,9 +6,10 @@ import { ProductKind, ProductRelationship } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 
 const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):"";
+const slugify=(value:string)=>value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,160);
 function payload(body:any){
  const name=clean(body.name,190);
- const slug=clean(body.slug,160).toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^-|-$/g,"");
+ const slug=slugify(clean(body.slug,160)||clean(body.name,190)) || `solution-${randomUUID().slice(0,8)}`;
  const kind=String(body.kind||"SERVICE") as ProductKind;
  const relationshipType=String(body.relationshipType||"OWNED") as ProductRelationship;
  const providerName=clean(body.providerName,190)||null;
@@ -41,8 +42,10 @@ export async function POST(request:Request){
  if(!actor)return NextResponse.json({error:"Catalog administration is not permitted."},{status:403});
  const body=await request.json().catch(()=>({})); const p=payload(body);
  if(!valid(p))return NextResponse.json({error:"Name, slug, short description, valid type and relationship are required."},{status:400});
- if(await prisma.product.findUnique({where:{slug:p.slug},select:{id:true}}))return NextResponse.json({error:"That public slug is already in use."},{status:409});
- const product=await prisma.product.create({data:{id:randomUUID(),...p}});
+ let finalSlug=p.slug;
+ let suffix=2;
+ while(await prisma.product.findUnique({where:{slug:finalSlug},select:{id:true}})){finalSlug=`${p.slug}-${suffix++}`.slice(0,160);}
+ const product=await prisma.product.create({data:{id:randomUUID(),...p,slug:finalSlug}});
  revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
 }
