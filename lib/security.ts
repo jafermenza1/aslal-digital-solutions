@@ -44,6 +44,11 @@ export function verifySession(value: string | undefined) {
   }
 }
 
+export function isAdminEmail(email: string) {
+  const configured = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  return Boolean(configured) && email.trim().toLowerCase() === configured;
+}
+
 export function safeEqual(a: string, b: string) {
   const left = Buffer.from(a);
   const right = Buffer.from(b);
