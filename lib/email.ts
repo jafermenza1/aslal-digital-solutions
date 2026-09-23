@@ -4,16 +4,24 @@ import { simpleParser, type ParsedMail } from "mailparser";
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "node:crypto";
+import path from "node:path";
 
-// The Emerald standalone bundle is started outside the original Next.js project
-// directory in some deployments. Explicitly load the production .env files from
-// the runtime working directory before reading any email configuration. Existing
-// process.env values still win, so Emerald-managed environment variables remain
-// supported and secrets are never logged or returned.
-loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
+function loadRuntimeEnv() {
+  const executableDir = process.argv[1] ? path.dirname(path.resolve(process.argv[1])) : null;
+  const candidates = [
+    process.cwd(),
+    executableDir,
+    executableDir ? path.dirname(executableDir) : null,
+    executableDir ? path.dirname(path.dirname(executableDir)) : null,
+  ].filter((value): value is string => Boolean(value));
 
-const smtpPort = Number(process.env.SMTP_PORT || "587");
-const imapPort = Number(process.env.IMAP_PORT || "993");
+  const uniqueCandidates = [...new Set(candidates)];
+  for (const directory of uniqueCandidates) {
+    loadEnvConfig(directory, process.env.NODE_ENV !== "production");
+  }
+}
+
+loadRuntimeEnv();
 
 function envValue(name: string) {
   const value = process.env[name];
@@ -21,23 +29,166 @@ function envValue(name: string) {
 }
 
 function requiredEnv(name: string) {
-  const value = process.env[name];
+  const value = envValue(name);
   if (!value) throw new Error(`${name} is not configured`);
   return value;
 }
 
+function smtpHost() {
+  return envValue("SMTP_HOST").trim() || envValue("MAIL_SERVER_HOST").trim() || requiredEnv("SMTP_HOST");
+}
+
+function imapHost() {
+  return envValue("IMAP_HOST").trim() || envValue("MAIL_SERVER_HOST").trim() || requiredEnv("IMAP_HOST");
+}
+
+function smtpPort() {
+  return Number(envValue("SMTP_PORT") || "587");
+}
+
+function imapPort() {
+  return Number(envValue("IMAP_PORT") || "993");
+}
+
 function smtpTransport() {
   return nodemailer.createTransport({
-    host: envValue("SMTP_HOST").trim() || requiredEnv("SMTP_HOST"),
-    port: smtpPort,
-    secure: process.env.SMTP_SECURE === "true",
-    requireTLS: process.env.SMTP_REQUIRE_TLS !== "false",
+    host: smtpHost(),
+    port: smtpPort(),
+    secure: envValue("SMTP_SECURE") === "true",
+    requireTLS: envValue("SMTP_REQUIRE_TLS") !== "false",
     auth: {
       user: envValue("SMTP_USER").trim() || requiredEnv("SMTP_USER"),
       // Do not trim passwords: spaces can legitimately be part of a mailbox password.
       pass: requiredEnv("SMTP_PASSWORD"),
     },
   });
+}
+
+export type EmailProviderConfig = {
+  smtp: {
+    configured: boolean;
+    host: string;
+    port: number;
+    user: string;
+    passwordConfigured: boolean;
+    secure: boolean;
+    requireTLS: boolean;
+  };
+  imap: {
+    configured: boolean;
+    host: string;
+    port: number;
+    user: string;
+    passwordConfigured: boolean;
+    secure: boolean;
+    mailbox: string;
+  };
+  envSources: {
+    cwd: string;
+    executableDir: string | null;
+  };
+};
+
+export function getEmailProviderConfig(): EmailProviderConfig {
+  const smtpUser = envValue("SMTP_USER").trim();
+  const smtpPassword = envValue("SMTP_PASSWORD");
+  const imapUser = envValue("IMAP_USER").trim();
+  const imapPassword = envValue("IMAP_PASSWORD");
+  const sharedHost = envValue("MAIL_SERVER_HOST").trim();
+
+  const smtp = {
+    configured: Boolean((envValue("SMTP_HOST").trim() || sharedHost) && smtpUser && smtpPassword),
+    host: envValue("SMTP_HOST").trim() || sharedHost,
+    port: smtpPort(),
+    user: smtpUser,
+    passwordConfigured: Boolean(smtpPassword),
+    secure: envValue("SMTP_SECURE") === "true",
+    requireTLS: envValue("SMTP_REQUIRE_TLS") !== "false",
+  };
+
+  const imap = {
+    configured: Boolean((envValue("IMAP_HOST").trim() || sharedHost) && imapUser && imapPassword),
+    host: envValue("IMAP_HOST").trim() || sharedHost,
+    port: imapPort(),
+    user: imapUser,
+    passwordConfigured: Boolean(imapPassword),
+    secure: envValue("IMAP_SECURE") !== "false",
+    mailbox: envValue("IMAP_MAILBOX") || "INBOX",
+  };
+
+  return {
+    smtp,
+    imap,
+    envSources: {
+      cwd: process.cwd(),
+      executableDir: process.argv[1] ? path.dirname(path.resolve(process.argv[1])) : null,
+    },
+  };
+}
+
+function formatProviderError(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return "Provider connection failed";
+}
+
+export async function verifyEmailProviders() {
+  const config = getEmailProviderConfig();
+
+  const smtp = {
+    ...config.smtp,
+    ok: false,
+    error: undefined as string | undefined,
+  };
+
+  if (!config.smtp.configured) {
+    smtp.error = "SMTP configuration is incomplete.";
+  } else {
+    const transporter = smtpTransport();
+    try {
+      await transporter.verify();
+      smtp.ok = true;
+    } catch (error) {
+      smtp.error = formatProviderError(error);
+    } finally {
+      transporter.close();
+    }
+  }
+
+  const imap = {
+    ...config.imap,
+    ok: false,
+    error: undefined as string | undefined,
+  };
+
+  if (!config.imap.configured) {
+    imap.error = "IMAP configuration is incomplete.";
+  } else {
+    const client = new ImapFlow({
+      host: imap.host,
+      port: imap.port,
+      secure: imap.secure,
+      auth: {
+        user: imap.user,
+        pass: requiredEnv("IMAP_PASSWORD"),
+      },
+      logger: false,
+    });
+
+    try {
+      await client.connect();
+      imap.ok = true;
+    } catch (error) {
+      imap.error = formatProviderError(error);
+    } finally {
+      await client.logout().catch(() => client.close());
+    }
+  }
+
+  return {
+    smtp,
+    imap,
+    envSources: config.envSources,
+  };
 }
 
 export async function sendEmail(params: {
@@ -188,7 +339,7 @@ async function persistInbound(mail: ParsedMail) {
       status: "RECEIVED",
       externalMessageId,
       senderAddress: sender,
-      recipientAddress: recipient || (process.env.SMTP_FROM || process.env.SMTP_USER || null),
+      recipientAddress: recipient || (envValue("SMTP_FROM") || envValue("SMTP_USER") || null),
       body,
       metadata: {
         subject,
@@ -225,9 +376,9 @@ async function persistInbound(mail: ParsedMail) {
 
 export async function pollEmailInbox() {
   const client = new ImapFlow({
-    host: envValue("IMAP_HOST").trim() || requiredEnv("IMAP_HOST"),
-    port: imapPort,
-    secure: process.env.IMAP_SECURE !== "false",
+    host: imapHost(),
+    port: imapPort(),
+    secure: envValue("IMAP_SECURE") !== "false",
     auth: {
       user: envValue("IMAP_USER").trim() || requiredEnv("IMAP_USER"),
       pass: requiredEnv("IMAP_PASSWORD"),
@@ -239,7 +390,7 @@ export async function pollEmailInbox() {
   await client.connect();
 
   try {
-    const lock = await client.getMailboxLock(process.env.IMAP_MAILBOX || "INBOX");
+    const lock = await client.getMailboxLock(envValue("IMAP_MAILBOX") || "INBOX");
     try {
       const searchResult = await client.search({ seen: false });
       const unseen = searchResult === false ? [] : searchResult;
