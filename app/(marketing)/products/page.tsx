@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { SectionTitle } from "@/components/SectionTitle";
 
 export const revalidate = 60;
 
@@ -12,7 +11,7 @@ export default async function ProductsPage() {
   return <main>
     <section className="hero-glow bg-[#071F47] py-24 text-white">
       <div className="container-aslal">
-        <SectionTitle eyebrow="Aslal catalog" title="Products, services and solutions built around your growth." description="Browse what Aslal can provide, implement, market or customize. Every item connects directly to an attributed growth request."/>
+        <div className="max-w-3xl"><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Aslal catalog</div><h1 className="mt-4 text-4xl font-black tracking-[-.05em] sm:text-6xl">Products, services and solutions built around your growth.</h1><p className="mt-5 text-base leading-7 text-white/65 sm:text-lg">Browse what Aslal can provide, implement, market or customize. Every item connects directly to an attributed growth request.</p></div>
         <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {products.map((p,index)=><Link key={p.id} href={"/products/"+p.slug} className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.06] transition duration-300 hover:-translate-y-1 hover:bg-white/[.1]">
             <div className="relative h-52 overflow-hidden bg-gradient-to-br from-[#0F3E8A] to-[#071F47]">
