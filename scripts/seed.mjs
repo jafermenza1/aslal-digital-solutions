@@ -12,7 +12,12 @@ const pool = mysql.createPool({
 const products = [
   ["crm-pro", "CRM Pro", "Aslal Digital Solutions", "AFFILIATE", "A practical customer and sales management system for growing teams.", "Connect leads, sales activity and follow-up into one workflow.", "Request quote", 1],
   ["commerce-stack", "Commerce Stack", "Aslal Digital Solutions", "CUSTOM", "E-commerce, payments and customer journeys designed around your business.", "Build a localized commerce experience with integrations and automation.", "Request quote", 1],
-  ["sales-automation", "Sales Automation", "Aslal Digital Solutions", "CUSTOM", "WhatsApp, Telegram and website automation for faster lead response.", "Qualify, route and follow up with prospects across digital channels.", "Request quote", 1]
+  ["sales-automation", "Sales Automation", "Aslal Digital Solutions", "CUSTOM", "WhatsApp, Telegram and website automation for faster lead response.", "Qualify, route and follow up with prospects across digital channels.", "Request quote", 1],
+  ["web-development", "Web Development", "Aslal Digital Solutions", "OWNED", "Website development, e-commerce, landing pages, web applications and customer portals.", "Website development, e-commerce, landing pages, web applications and customer portals.", "Request quote", 1],
+  ["software-marketplace", "Software Marketplace", "Aslal Digital Solutions", "AFFILIATE", "Sell existing or affiliated software products, then customize, integrate and implement them for clients.", "Sell existing or affiliated software products, then customize, integrate and implement them for clients.", "Request quote", 1],
+  ["content-creation", "Content Creation", "Aslal Digital Solutions", "OWNED", "Campaign creative, social content, video direction, copy and conversion-focused storytelling.", "Campaign creative, social content, video direction, copy and conversion-focused storytelling.", "Request quote", 1],
+  ["ecommerce-payments", "E-commerce & Payments", "Aslal Digital Solutions", "CUSTOM", "Commerce journeys and localized payment integration designed for the Ethiopian market.", "Commerce journeys and localized payment integration designed for the Ethiopian market.", "Request quote", 1],
+  ["crm-lead-systems", "CRM & Lead Systems", "Aslal Digital Solutions", "OWNED", "Lead capture, sales pipelines, qualification, follow-up and reporting.", "Lead capture, sales pipelines, qualification, follow-up and reporting.", "Request quote", 1]
 ];
 
 for (const [slug, name, provider, relationship, shortDescription, description, price, featured] of products) {
