@@ -34,7 +34,7 @@ export default async function Phase4Acceptance() {
   ]);
 
   const providerConfigured = {
-    EMAIL: Boolean(process.env.EMAIL_PROVIDER_URL && process.env.EMAIL_PROVIDER_TOKEN),
+    EMAIL: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD),
     SMS: Boolean(process.env.SMS_PROVIDER_URL && process.env.SMS_PROVIDER_TOKEN),
     TELEGRAM: Boolean(process.env.TELEGRAM_BOT_TOKEN),
     WHATSAPP: Boolean(process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID),
