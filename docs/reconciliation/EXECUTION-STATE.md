@@ -1,8 +1,8 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `60bc118abd5874dcf09e48055f919e1168ad4c91`
-**Latest verified deployment:** Emerald workflow run `35915809923` for `60bc118abd5874dcf09e48055f919e1168ad4c91` — SUCCESS
+**Current mainline:** `f792be38dba6e1a2019dea5b7a26af399318f178`
+**Latest verified deployment:** Emerald workflow run `35920738018` for `f792be38dba6e1a2019dea5b7a26af399318f178` — SUCCESS
 
 ## Authority chain
 
@@ -56,6 +56,10 @@ The last known production-integrity result before the latest admin migration rec
 - 1 open task previously overdue.
 
 This is historical evidence, not current post-migration truth. The latest migration was additive and did not fabricate historical values.
+
+## CI correction — dashboard help
+
+The dashboard help route type correction was completed as a contained CI/quality correction inside the owning phase. The change preserves the existing permission contract and replaces the fragile inline tuple assertion with an explicitly typed section collection. CI run 35920479143 passed typecheck, lint, production build, standalone packaging and artifact upload; Emerald deployment 35920738018 passed artifact verification, release installation and production health. This correction does not change phase status, roadmap order, authorization policy, business data, or acceptance claims.
 
 ## UI foundation extension (supporting work; no phase reorder)
 
