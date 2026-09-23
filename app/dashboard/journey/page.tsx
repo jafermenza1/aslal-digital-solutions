@@ -2,13 +2,13 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/security";
+import { requirePermission } from "@/lib/authorization";
 import { BUSINESS_EVENTS, BUSINESS_EVENT_DESCRIPTIONS } from "@/lib/event-taxonomy";
 
 export const dynamic="force-dynamic";
 
 export default async function JourneyExplorer({searchParams}:{searchParams:Promise<{visitor?:string}>}) {
- const session=verifySession((await cookies()).get("aslal_session")?.value); if(!session) redirect("/login");
+ await requirePermission("dashboard.view");
  const params=await searchParams; const selectedId=params.visitor||"";
  const [visitors,selected]=await Promise.all([
   prisma.visitor.findMany({orderBy:{lastSeenAt:"desc"},take:40,select:{id:true,anonymousId:true,firstSeenAt:true,lastSeenAt:true,firstSource:true,firstMedium:true,firstCampaign:true,firstReferralCode:true,_count:{select:{events:true,leads:true,growthOpportunities:true}}}}),
