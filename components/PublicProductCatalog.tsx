@@ -21,8 +21,8 @@ function firstLines(value: string | null) {
   return (value || "").split(/\r?\n/).map((x) => x.trim()).filter(Boolean).slice(0, 3);
 }
 
-function contactHref(name: string, goal: string) {
-  return `/contact?product=${encodeURIComponent(name)}&goal=${encodeURIComponent(goal)}`;
+function contactHref(productId: string, slug: string, goal: string) {
+  return `/contact?productId=${encodeURIComponent(productId)}&product=${encodeURIComponent(slug)}&goal=${encodeURIComponent(goal)}`;
 }
 
 export function PublicProductCatalog({ products }: { products: CatalogItem[] }) {
