@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { LeadStatus, prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
-import { verifySession } from "@/lib/security";
+import { requirePermission } from "@/lib/authorization";
 import { handleLeadStatusChange } from "@/lib/automation";
 import { OfflineLeadForm } from "@/components/OfflineLeadForm";
 
@@ -15,8 +15,7 @@ type SortKey = "priority" | "newest" | "deal";
 
 async function changeStatus(formData: FormData) {
   "use server";
-  const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session) redirect("/login");
+  const session = await requirePermission("leads.view");
   const leadId = String(formData.get("leadId") || "");
   const status = String(formData.get("status") || "") as LeadStatus;
   if (!leadId || !stages.includes(status)) return;
