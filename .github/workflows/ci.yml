@@ -34,30 +34,22 @@ jobs:
 
       - name: Package Emerald standalone bundle
         run: |
+          set -euo pipefail
           rm -rf emerald-deploy
           mkdir -p emerald-deploy
           cp -R .next/standalone/. emerald-deploy/
 
-          # The production host must have Prisma CLI + migrations available
-          # so deploy.yml can apply schema changes before swapping releases.
-          mkdir -p emerald-deploy/prisma emerald-deploy/node_modules
+          # Ship migrations and a complete, isolated Prisma CLI installation.
+          # The standalone dependency tracer is for the web runtime and can
+          # omit CLI-only transitive dependencies such as effect/fast-check.
+          mkdir -p emerald-deploy/prisma emerald-deploy/.prisma-cli
           cp -R prisma/. emerald-deploy/prisma/
-          cp -R node_modules/prisma emerald-deploy/node_modules/
-          cp -R node_modules/@prisma emerald-deploy/node_modules/
-          mkdir -p emerald-deploy/node_modules/.bin
-          cp -a node_modules/.bin/prisma emerald-deploy/node_modules/.bin/prisma
+          printf '{"name":"aslal-prisma-migration-runtime","private":true}\n' > emerald-deploy/.prisma-cli/package.json
+          npm install --prefix emerald-deploy/.prisma-cli --no-audit --no-fund --no-package-lock prisma@6.19.0
 
           test -f emerald-deploy/server.js
           test -d emerald-deploy/.next/static
           test -d emerald-deploy/public
-          test -x emerald-deploy/node_modules/.bin/prisma
+          test -x emerald-deploy/.prisma-cli/node_modules/.bin/prisma
           test -d emerald-deploy/prisma/migrations
           tar -czf aslal-emerald-${GITHUB_SHA}.tar.gz -C emerald-deploy .
-
-      - name: Upload Emerald deployment artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aslal-emerald-${{ github.sha }}
-          path: aslal-emerald-${{ github.sha }}.tar.gz
-          if-no-files-found: error
-          retention-days: 14
