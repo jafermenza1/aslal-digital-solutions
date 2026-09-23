@@ -320,10 +320,10 @@ export default async function OperationsPage({
                         </select>
                       </label>
                       <label className="text-xs font-bold text-white/45">Due
-                        <input name="dueAt" type="datetime-local" defaultValue={task.dueAt ? new Date(task.dueAt).toISOString().slice(0, 16) : ""} className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white" />
+                        <input name="dueAt" type="datetime-local" required defaultValue={task.dueAt ? new Date(task.dueAt).toISOString().slice(0, 16) : ""} className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white" />
                       </label>
                       <label className="text-xs font-bold text-white/45">Assigned to
-                        <select name="assignedTo" required defaultValue={task.assignedTo || ""} className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white"><option value="">Assign owner</option>{owners.map((owner) => <option key={owner.email} value={owner.email}>{owner.name} · {owner.role}</option>)}</select><input type="hidden" name="assignedToDisabled" value="" className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white placeholder:text-white/30" />
+                        <select name="assignedTo" required defaultValue={task.assignedTo || ""} className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white"><option value="">Assign owner</option>{owners.map((owner) => <option key={owner.email} value={owner.email}>{owner.name} · {owner.role}</option>)}</select>
                       </label>
                       <button className="mt-1 rounded-xl bg-[#0F3E8A] px-3 py-2.5 text-sm font-black text-white">Save task</button>
                     </form>
