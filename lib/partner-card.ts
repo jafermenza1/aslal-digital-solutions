@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 
@@ -10,14 +10,20 @@ function safeText(value: string | null | undefined, fallback = "—") {
 }
 
 export async function generatePartnerCardPdf(partnerId: string) {
-  const partner = await prisma.partner.findUnique({
-    where: { id: partnerId },
-    include: { referralLinks: { orderBy: { createdAt: "asc" }, take: 1 } },
-  });
+  const [partnerRows] = await db.query<Array<{ id: string; name: string; type: string; email: string | null; code: string | null }>>(
+    `SELECT p.id, p.name, p.type, p.email, rl.code
+     FROM partners p
+     LEFT JOIN referral_links rl ON rl.partner_id = p.id
+     WHERE p.id = ?
+     ORDER BY rl.created_at ASC
+     LIMIT 1`,
+    [partnerId],
+  );
+  const partner = partnerRows[0];
   if (!partner) throw new Error("Partner not found.");
+  if (!partner.code) throw new Error("Partner has no referral link.");
 
-  const referral = partner.referralLinks[0];
-  if (!referral) throw new Error("Partner has no referral link.");
+  const referral = { code: partner.code };
 
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
   const referralUrl = `${baseUrl}/go/${referral.code}`;
