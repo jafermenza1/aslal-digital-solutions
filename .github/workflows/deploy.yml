@@ -40,7 +40,6 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$SHA"
-          test -n "$SHA"
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Verify deployment artifact
@@ -136,10 +135,10 @@ jobs:
             cp "$APP_PATH/.env" "$RELEASE_PATH/.env"
           fi
 
-          test -x "$RELEASE_PATH/node_modules/.bin/prisma"
+          test -x "$RELEASE_PATH/.prisma-cli/node_modules/.bin/prisma"
           test -d "$RELEASE_PATH/prisma/migrations"
           echo "Applying Prisma migrations before production restart..."
-          (cd "$RELEASE_PATH" && ./node_modules/.bin/prisma migrate deploy)
+          (cd "$RELEASE_PATH" && ./.prisma-cli/node_modules/.bin/prisma migrate deploy)
 
           rm -rf "$BACKUP_PATH"
           mkdir -p "$BACKUP_PATH"
