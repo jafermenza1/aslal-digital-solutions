@@ -3,8 +3,8 @@
 **Document:** RECONCILIATION-GUIDE-001  
 **Status:** Authoritative engineering control  
 **Date:** 2026-09-23  
-**Current mainline:** `585956fee10f66ffbaf1b46f213b84d2d947a8a6`  
-**Latest verified deployment:** Emerald deployment run `35890757898` for `585956fee10f66ffbaf1b46f213b84d2d947a8a6`, successful  
+**Current mainline:** 60bb7d3513f19367fb6bf736115f7b8af881600f
+**Latest verified deployment:** Emerald deployment run 35890757898 for the prior Phase 5 release, successful
 **Product authority:** `docs/PRD-ASLAL-GROWTH-OS-v1.0.md` plus the expanded target-state product definition agreed on 2026-09-23  
 **Roadmap:** `docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
 
@@ -165,6 +165,30 @@ The system has canonical Conversation and Message records, human handoff, commun
 
 Real provider-specific expansion remains separately controlled. An adapter existing in code is not sufficient evidence that a provider's credentials, sender identity, webhook registration, delivery callbacks, templates, platform permissions and production behavior are accepted.
 
+### Product and service catalog
+
+The catalog is now database-backed for both products and services.
+
+Authorized operators can create, edit, publish/hide, order and enrich catalog records with descriptions, features, benefits, ideal customer/use case, deliverables, optional image/gallery URLs, starting price and CTA text.
+
+The public /products catalog and /products/[slug] detail pages read from the same records. Product CTAs carry the product ID into contact capture so the resulting lead can retain explicit product interest.
+
+This capability is implemented but requires CI, migration, deployment and controlled production acceptance before it is treated as SATISFIED.
+
+### Offline and manual demand capture
+
+Authorized users can create offline leads from radio, television, outdoor, flyers, events, field sales, direct sales, word of mouth and other offline sources.
+
+The capture stores offline source/category and campaign/location/reference context, can attach a catalog product/service interest, assigns the normal owner and next action, records stage history, recalculates lead score and invokes the existing Phase 5 lead-created automation path.
+
+The capability is implemented but requires deployment and controlled production acceptance.
+
+### Transactional contact email
+
+The contact form now offers an explicit email-confirmation choice. When selected and a valid email is provided, the system stores the channel permission, creates a canonical Email conversation/message record, renders a branded HTML acknowledgement from a configurable template, includes the requested product/service where known, and persists provider success/failure.
+
+This is a transactional acknowledgement, not a promotional subscription. It is implemented but remains acceptance-gated on deployed SMTP/provider behavior and end-to-end evidence.
+
 ### Commerce
 
 The target product still lacks the full commercial transaction layer.
@@ -213,9 +237,11 @@ They belong to the target product but are not current production capabilities.
 
 ### RBAC and multi-tenancy
 
-The current implementation is administrator-centric and does not yet implement the full workspace/user/role/permission model required by the target-state system.
+A single-workspace user-management foundation now exists with System Administrator/Super Administrator, Administrator, Business Owner, Sales Manager, Sales Operator, Marketing Operator and Partner Manager roles, editable permission grants/revokes, managed login, activation controls and audit records.
 
-There is no accepted shared multi-tenant architecture in the current schema.
+This is a meaningful RBAC foundation, but it is not the full target-state workspace/tenant architecture. Several legacy routes still rely on the older admin-email guard and therefore require progressive permission enforcement.
+
+There is still no accepted shared multi-tenant architecture in the current schema.
 
 This is a critical scaling constraint.
 
@@ -562,9 +588,11 @@ This is the minimum standard for moving a capability from implementation to acce
 
 ## 17. Current immediate reconciliation state
 
-The latest deployment proves that the Phase 5 release path is deployable and that the current application release passed production health verification.
+The current extension work is implemented in main but has not yet been deployment-verified.
 
-The next reconciliation priority is to establish the current production-data baseline and finish the Phase 5 acceptance gate. The automation engine and scheduler are implemented, but production scheduler execution and controlled business acceptance evidence are still required.
+The next reconciliation priority is to run CI on the current mainline, deploy the new migrations and application release, verify production schema/integrity, and execute controlled acceptance for the catalog, offline leads, transactional email and user permissions.
+
+After those gates, finish the existing Phase 5 scheduler acceptance.
 
 The next major product boundary should be:
 
