@@ -23,7 +23,8 @@ export async function getProductionIntegrityReport(): Promise<ProductionIntegrit
     "visitors","events","leads","lead_tasks","lead_stage_history",
     "opportunities","customers","persons","activities","growth_opportunities",
     "conversations","conversation_messages","communication_preferences",
-    "workflows","workflow_versions","workflow_executions","workflow_action_executions"
+    "workflows","workflow_versions","workflow_executions","workflow_action_executions",
+    "users","user_audits","email_templates"
   ];
 
   try {
