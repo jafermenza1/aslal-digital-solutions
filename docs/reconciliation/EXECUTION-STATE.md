@@ -21,7 +21,7 @@ This is the single repository handoff for developers and AI agents. It records w
 | Phase | Scope | Main status | Current truth |
 |---|---|---|---|
 | 1 | Baseline and Domain Contract | SATISFIED | PRD, domain contract, traceability, execution control, and phase governance are on main. |
-| 2 | Sales Execution Integrity | IMPLEMENTED-UNVERIFIED | Phase 2 implementation and gap-closure PR #22 are merged into main. A dedicated `/dashboard/acceptance/phase-2` evidence page is now on main; CI verification and production migration/backfill evidence are still required. |
+| 2 | Sales Execution Integrity | IMPLEMENTED-UNVERIFIED | Phase 2 implementation and gap-closure PR #22 are merged into main. A dedicated `the admin Leads workspace` evidence page is now on main; CI verification and production migration/backfill evidence are still required. |
 | 3 | Identity, Engagement, Customer Journey | SATISFIED | Golden-path acceptance completed with persisted visitor, canonical PAGE_VIEW, business/high-intent taxonomy, Growth Opportunity, Lead, Opportunity, Customer, Activity, and Visitor→Lead linkage evidence. |
 | 4 | Conversations and Channel Adapters | IMPLEMENTED-UNVERIFIED | Phase 4A provider-neutral foundation and controlled simulation path are implemented. Phase 4B real provider integrations are explicitly deferred for later revision after provider requirements are gathered. |
 | 5 | Automation Engine | MISSING | Future phase; do not start now. |
@@ -123,7 +123,7 @@ Phase 3 golden-path acceptance was completed successfully. The production accept
 - 2 customer timeline Activity records;
 - 23 identified leads retaining visitor linkage.
 
-The dedicated Phase 3 acceptance route has been retired and replaced by `/dashboard/acceptance/phase-4`.
+The dedicated Phase 3 acceptance route has been retired and replaced by `the admin Conversations workspace`.
 
 ## Current production verification state
 
@@ -142,10 +142,10 @@ This must be treated as a verification-infrastructure blocker. It does not prove
 
 ## Exact next action
 
-1. Open `/dashboard/acceptance/phase-2` and record the current execution-gap evidence before any legacy backfill.
+1. Open `the admin Leads workspace` and record the current execution-gap evidence before any legacy backfill.
 2. Apply the pending sales, identity/customer, and conversation migrations through the controlled Emerald deployment procedure; never use `prisma migrate reset`.
-3. Re-run `/dashboard/acceptance/phase-2` and complete the controlled lead, phone, stage-history, and production-health checks.
-4. Set `PHASE4_ACCEPTANCE_MODE=true` only in the controlled acceptance environment, select a Lead linked to both a Person and Customer, then open `/dashboard/acceptance/phase-4` and run the expanded Phase 4A suite. Require `failed=0` and retain the returned `testId`, Conversation ID and result matrix as acceptance evidence.
+3. Re-run `the admin Leads workspace` and complete the controlled lead, phone, stage-history, and production-health checks.
+4. Set `PHASE4_ACCEPTANCE_MODE=true` only in the controlled acceptance environment, select a Lead linked to both a Person and Customer, then open `the admin Conversations workspace` and run the expanded Phase 4A suite. Require `failed=0` and retain the returned `testId`, Conversation ID and result matrix as acceptance evidence.
 5. Keep external provider credentials and webhook configuration deferred until the Phase 4B revision.
 6. After a later provider-requirements pass, revise Phase 4B and configure/test only the providers intended for production.
 7. Restore/verify GitHub Actions runner availability and run repository CI verification when available.
