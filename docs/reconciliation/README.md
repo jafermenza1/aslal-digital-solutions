@@ -3,8 +3,8 @@
 **Document:** RECONCILIATION-GUIDE-001  
 **Status:** Authoritative engineering control  
 **Date:** 2026-09-23  
-**Repository baseline:** main @ 04b16c65912b5846c453c6118d13ae4ba4589a0b  
-**Deployment baseline:** Emerald deployment run 35869894355, successful  
+**Current mainline:** `b03eae1e354a80b92e36a9e2af82d6874f4c3b3f`  
+**Latest verified deployment:** Emerald deployment run `35888546958` for `e2c1e24a5f2f30b6383f1bf6d63d156f4131ecc5`, successful  
 **Product authority:** `docs/PRD-ASLAL-GROWTH-OS-v1.0.md` plus the expanded target-state product definition agreed on 2026-09-23  
 **Roadmap:** `docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
 
@@ -79,7 +79,7 @@ The application currently exposes dashboard workspaces for command center, leads
 
 The current Prisma domain includes Visitors, Events, Leads, Lead Tasks, Lead Stage History, Lead Product Interest, Products, Partners, Referral Links, Referral Clicks, Commissions, Persons, Opportunities, Customers, Activities, Growth Opportunities, Communication Preferences, Conversations, Messages, Channel Accounts and Lead Administrative Audits.
 
-Six migrations are present in main:
+Seven migrations are present in main:
 
 `0000_baseline`
 
@@ -93,7 +93,9 @@ Six migrations are present in main:
 
 `20260923010000_lead_admin_controls`
 
-The latest deployment successfully applied the sixth migration, including the `lead_admin_audits` table and `leads.is_test` controls.
+`20260923050000_sales_followup_automation`
+
+The latest verified deployment successfully shipped the Phase 5 workflow migration in its release path. It also passed production health verification.
 
 The production deployment pipeline is now capable of shipping a dedicated Prisma migration runtime rather than relying on the Next.js standalone dependency tracer. The successful deployment also demonstrated that the release artifact can be transferred, installed, migrated and restarted on Emerald.
 
@@ -192,7 +194,7 @@ Workflow definitions, versioned configurations, trigger conditions, delayed acti
 
 This is intentionally an internal-action release. Automated customer messaging is not enabled by workflow actions yet, so the full customer-communication automation safety gate remains open.
 
-The implementation is **IMPLEMENTED-UNVERIFIED** until the migration is deployed, the scheduled runner is configured, controlled executions are demonstrated in production, and the acceptance evidence is recorded.
+The implementation is **IMPLEMENTED-UNVERIFIED** until the scheduled runner is configured, controlled executions are demonstrated in production, and the acceptance evidence is recorded.
 
 ### Campaigns and attribution
 
@@ -358,7 +360,7 @@ Verify authentication, authorization, least privilege, secret protection, tenant
 
 ### Mobile and low bandwidth
 
-Verify that the critical acquisition and sales journeys work on constrained devices and unstable networks.
+The operations dashboard now uses separate responsive tabs and mobile card layouts rather than presenting health, tasks, automation and audit as one long page. Verify the wider dashboard and critical acquisition/sales journeys on constrained devices and unstable networks.
 
 ### Operations
 
@@ -503,7 +505,7 @@ No sales promise of "one account for many businesses" should be made before thes
 
 ## 14. What can scale now
 
-The current system can continue controlled development and internal production use.
+The current system can continue controlled development and internal production use. Phase 5 internal automation is implemented but remains acceptance-gated.
 
 It can support Aslal's own lead capture, sales operations, customer management, product management, referral foundations and controlled communications.
 
@@ -567,11 +569,7 @@ This is the minimum standard for moving a capability from implementation to acce
 
 The latest deployment proves that the database migration chain is now deployable and that the lead-admin schema has reached production.
 
-The next reconciliation priority is not another feature.
-
-It is to establish the current production-data baseline after the latest migration and close or explicitly disposition the known execution and commercial integrity gaps.
-
-After that, the system should move into the sales-automation stage.
+The next reconciliation priority is to establish the current production-data baseline and finish the Phase 5 acceptance gate. The automation engine and scheduler are implemented, but production execution evidence is still required.
 
 The next major product boundary should be:
 
