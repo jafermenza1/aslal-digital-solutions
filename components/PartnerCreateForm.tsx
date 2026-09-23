@@ -12,6 +12,8 @@ type Created = {
   email: string;
   emailSent: boolean;
   emailRecipient: string;
+  emailFallbackUsed: boolean;
+  emailError: string | null;
   credentialsIssued: boolean;
   username: string | null;
   credentialsError: string | null;
@@ -48,6 +50,8 @@ export default function PartnerCreateForm({ products = [], openInitially = false
         email:String(payload.email||""),
         emailSent:Boolean(data.emailSent),
         emailRecipient:String(data.emailRecipient||""),
+        emailFallbackUsed:Boolean(data.emailFallbackUsed),
+        emailError:data.emailError ? String(data.emailError) : null,
         credentialsIssued:Boolean(data.credentialsIssued),
         username:data.username ? String(data.username) : null,
         credentialsError:data.credentialsError ? String(data.credentialsError) : null,
@@ -84,10 +88,10 @@ export default function PartnerCreateForm({ products = [], openInitially = false
           <div className="mt-6 rounded-2xl bg-[#F8FAFC] p-5"><div className="text-xs font-black uppercase text-slate-400">Referral identity</div><a href={created.url} target="_blank" rel="noreferrer" className="mt-2 block break-all font-mono text-sm font-black text-[#0F3E8A] underline">{created.url} ↗</a><div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-3"><div><b>Code:</b> {created.code}</div><div><b>Type:</b> partner</div><div><b>Product:</b> {created.product}</div></div></div>
           <div className="mt-4 rounded-2xl border border-slate-200 p-5">
             <div className="font-black text-slate-900">Delivery</div>
-            <p className="mt-1 text-sm text-slate-500">{created.emailSent ? `PDF card emailed to ${created.emailRecipient}.` : `Email delivery was not confirmed. Admin fallback is ${created.emailRecipient}.`}</p>
+            <p className="mt-1 text-sm text-slate-500">{created.emailSent ? (created.emailFallbackUsed ? `PDF card emailed to the admin fallback ${created.emailRecipient}; delivery to the registered partner email failed.` : `PDF card emailed to ${created.emailRecipient}.`) : `Email delivery failed. ${created.emailError || "Check the SMTP configuration and mailbox settings."}`}</p>
             {created.credentialsIssued && <p className="mt-2 text-xs font-semibold text-emerald-700">Credentials issued for username <span className="font-mono">{created.username}</span>. The temporary password is never displayed again in the dashboard.</p>}{created.credentialsError && <p className="mt-2 text-xs font-semibold text-amber-700">{created.credentialsError}</p>}
           </div>
-          {created.email && <div className="mt-3 text-xs text-slate-400">Registered partner email: {created.email}</div>}
+          {created.email && <div className="mt-3 text-xs text-slate-400">Registered partner email: {created.email}</div>}{created.emailError && <div className="mt-2 break-words text-xs font-semibold text-amber-700">SMTP detail: {created.emailError}</div>}
           <div className="mt-6 flex flex-wrap justify-end gap-3"><a href={`/api/admin/partners/${created.id}/card`} className="rounded-full bg-[#E2B02A] px-5 py-3 text-sm font-black text-slate-950">Download printable PDF</a><button type="button" onClick={startAnother} className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold">Create another</button><button type="button" onClick={resetAndClose} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white">Close</button></div>
         </div>}
       </div>
