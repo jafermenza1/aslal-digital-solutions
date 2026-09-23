@@ -67,25 +67,33 @@ export async function POST(request: Request) {
 
     let username = "";
     let temporaryPassword = "";
+    let credentialsError = "";
     if (requestCredentials) {
-      username = `${generatedBase}-${crypto.randomUUID().slice(0, 6)}`;
+      username = generatedBase + "-" + crypto.randomUUID().slice(0, 6);
       temporaryPassword = randomBytes(12).toString("base64url");
-      const loginEmail = `${username}@partners.aslaldigital.com`;
+      const loginEmail = username + "@partners.aslaldigital.com";
 
-      await prisma.user.create({
-        data: {
-          id: crypto.randomUUID(),
-          email: loginEmail,
-          name,
-          passwordHash: hashPassword(temporaryPassword),
-          role: "PARTNER",
-          active: true,
-          partnerId,
-          permissions: { grant: [], revoke: [] },
-        },
-      });
-
-      await db.query("UPDATE partners SET username = ? WHERE id = ?", [username, partnerId]);
+      try {
+        await prisma.user.create({
+          data: {
+            id: crypto.randomUUID(),
+            email: loginEmail,
+            name,
+            passwordHash: hashPassword(temporaryPassword),
+            role: "PARTNER",
+            active: true,
+            partnerId,
+            permissions: { grant: [], revoke: [] },
+          },
+        });
+        await db.query("UPDATE partners SET username = ? WHERE id = ?", [username, partnerId]);
+      } catch (error) {
+        console.error("PARTNER_CREDENTIAL_CREATE_ERROR", error);
+        credentialsError = "Partner was created, but portal credentials could not be issued. The referral record remains active.";
+        username = "";
+        temporaryPassword = "";
+        await db.query("UPDATE partners SET portal_requested = 0, username = NULL WHERE id = ?", [partnerId]).catch(() => undefined);
+      }
     }
 
     let emailSent = false;
@@ -130,7 +138,8 @@ export async function POST(request: Request) {
       code: finalCode,
       referralUrl: publicUrl,
       username: requestCredentials ? username : null,
-      credentialsIssued: requestCredentials,
+      credentialsIssued: requestCredentials && !credentialsError,
+      credentialsError: credentialsError || null,
       emailSent,
       emailRecipient,
       emailFallbackUsed: !email,
