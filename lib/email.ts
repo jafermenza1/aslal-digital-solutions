@@ -244,6 +244,7 @@ export async function verifyEmailProviders() {
 export async function sendEmail(params: {
   recipient: string;
   body: string;
+  html?: string;
   subject?: string;
   inReplyTo?: string | null;
   references?: string[];
@@ -257,6 +258,7 @@ export async function sendEmail(params: {
       to: params.recipient,
       subject: params.subject || "Aslal Digital Solutions",
       text: params.body,
+      ...(params.html ? { html: params.html } : {}),
       ...(params.inReplyTo ? { inReplyTo: params.inReplyTo } : {}),
       ...(params.references?.length ? { references: params.references } : {}),
     });
