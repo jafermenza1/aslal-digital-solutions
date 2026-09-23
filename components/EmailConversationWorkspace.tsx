@@ -4,7 +4,8 @@ import { useState } from "react";
 
 type Result = { ok: boolean; status?: string; messageId?: string; conversationId?: string; providerMessageId?: string | null; providerResult?: unknown; error?: string };
 type InboxResult = { ok: boolean; processed?: number; results?: Array<Record<string, unknown>>; error?: string };
-type DiagnosticProvider = { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; error?: string; requireTLS?: boolean; mailbox?: string };\ntype DiagnosticResult = {
+type DiagnosticProvider = { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; error?: string; requireTLS?: boolean; mailbox?: string };
+type DiagnosticResult = {
   ok: boolean;
   provider?: string;
   smtp?: { ok: boolean; configured: boolean; host: string; port: number; user: string; passwordConfigured: boolean; secure: boolean; requireTLS: boolean; error?: string };
