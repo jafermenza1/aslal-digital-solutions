@@ -1,14 +1,13 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { LeadStatus, prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/security";
+import { requirePermission } from "@/lib/authorization";
 import { LeadAdminControls } from "@/components/LeadAdminControls";
 import { calculateLeadScore } from "@/lib/lead-scoring";
 import { CustomerConversionButton } from "@/components/CustomerConversionButton";
 
-async function requireSession() { const session = verifySession((await cookies()).get("aslal_session")?.value); if (!session) redirect("/login"); return session; }
+async function requireSession() { return requirePermission("leads.view"); }
 async function addNote(formData: FormData) { "use server"; const session = await requireSession(); const leadId = String(formData.get("leadId") || ""); const body = String(formData.get("body") || "").trim().slice(0, 5000); if (!leadId || !body) return; await prisma.leadNote.create({ data: { id: crypto.randomUUID(), leadId, body, author: session.email } }); revalidatePath(`/dashboard/leads/${leadId}`); }
 async function addTask(formData: FormData) { "use server"; const session = await requireSession(); const leadId = String(formData.get("leadId") || ""); const title = String(formData.get("title") || "").trim().slice(0, 190); const dueAtRaw = String(formData.get("dueAt") || ""); const priority = String(formData.get("priority") || "NORMAL") as "LOW" | "NORMAL" | "HIGH" | "URGENT"; if (!leadId || !title || !["LOW", "NORMAL", "HIGH", "URGENT"].includes(priority)) return; await prisma.leadTask.create({ data: { id: crypto.randomUUID(), leadId, title, priority, dueAt: dueAtRaw ? new Date(dueAtRaw) : null, assignedTo: session.email } }); revalidatePath(`/dashboard/leads/${leadId}`); revalidatePath("/dashboard/leads"); }
 async function completeTask(formData: FormData) { "use server"; await requireSession(); const leadId = String(formData.get("leadId") || ""); const taskId = String(formData.get("taskId") || ""); if (!leadId || !taskId) return; const task = await prisma.leadTask.findFirst({ where: { id: taskId, leadId }, select: { id: true, status: true } }); if (!task || task.status === "DONE") return; await prisma.leadTask.update({ where: { id: task.id }, data: { status: "DONE", completedAt: new Date() } }); revalidatePath(`/dashboard/leads/${leadId}`); revalidatePath("/dashboard/leads"); }
