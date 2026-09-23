@@ -85,7 +85,7 @@ export function PublicProductCatalog({ products }: { products: CatalogItem[] }) 
                 <span className="catalog-explore mt-7 inline-flex font-black text-[#E2B02A] transition-colors">Explore More →</span>
               </div>
             </Link>
-            <div className="border-t border-white/10 px-7 pb-7 pt-4"><Link href={contactHref(p.name, p.kind === "PRODUCT" ? "Request a sample" : "Request a quote")} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#E2B02A] px-5 py-3 text-xs font-black text-[#1E293B] transition hover:bg-[#ebd05d] hover:shadow-lg hover:shadow-[#E2B02A]/20">{p.kind === "PRODUCT" ? "Request Sample →" : "Request Quote →"}</Link></div>
+            <div className="border-t border-white/10 px-7 pb-7 pt-4"><Link href={contactHref(p.id, p.slug, p.name, p.kind === "PRODUCT" ? "Request a sample" : "Request a quote")} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#E2B02A] px-5 py-3 text-xs font-black text-[#1E293B] transition hover:bg-[#ebd05d] hover:shadow-lg hover:shadow-[#E2B02A]/20">{p.kind === "PRODUCT" ? "Request Sample →" : "Request Quote →"}</Link></div>
           </article>
         ))}
       </div>
