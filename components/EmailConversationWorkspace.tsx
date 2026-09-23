@@ -78,7 +78,6 @@ export default function EmailConversationWorkspace() {
         </div>
         {diagnostics && <div className="mt-4 grid gap-3 md:grid-cols-2">
           {diagnosticProviders.map(([label, provider]) => {
-            const provider = item;
             return <div key={label} className={"rounded-xl border p-4 " + (provider?.ok ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50")}>
               <div className="flex items-center justify-between"><span className="font-black">{label}</span><span className="text-xs font-black">{provider?.ok ? "AUTH OK" : "FAILED"}</span></div>
               <div className="mt-2 text-xs leading-5 text-slate-700">
