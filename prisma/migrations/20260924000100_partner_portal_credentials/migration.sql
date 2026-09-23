@@ -6,3 +6,5 @@ ALTER TABLE `partners`
   ADD COLUMN `password_hash` VARCHAR(255) NULL,
   ADD COLUMN `portal_requested` TINYINT(1) NOT NULL DEFAULT 0,
   ADD UNIQUE KEY `uq_partners_username` (`username`);
+
+ALTER TABLE `users` ADD COLUMN `partner_id` CHAR(36) NULL, ADD UNIQUE KEY `uq_users_partner_id` (`partner_id`), ADD CONSTRAINT `fk_users_partner` FOREIGN KEY (`partner_id`) REFERENCES `partners` (`id`) ON DELETE SET NULL;
