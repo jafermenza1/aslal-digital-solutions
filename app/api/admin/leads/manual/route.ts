@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   const phone = normalizeEthiopianPhone(phoneInput);
   const leadCategory = clean(body.leadCategory,100);
   const campaign = clean(body.campaign,150);
+  const productId = clean(body.productId,36);
   const location = clean(body.location,190);
   const reference = clean(body.reference,500);
   const message = clean(body.message,5000);
@@ -70,6 +71,11 @@ export async function POST(request: Request) {
     await tx.leadStageHistory.create({
       data:{leadId:created.id,fromStage:null,toStage:"NEW",changedBy:actor.email,note:"Offline lead captured from " + leadCategory + "."},
     });
+    if (productId) {
+      await tx.leadProductInterest.create({
+        data:{id:randomUUID(),leadId:created.id,productId,source:"offline",interestScore:10},
+      });
+    }
     return created;
   });
 
