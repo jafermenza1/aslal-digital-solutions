@@ -3,8 +3,9 @@
 **Status:** IMPLEMENTED-UNVERIFIED  
 **Scope:** Internal-only sales execution automation  
 **Date:** 2026-09-23  
-**Implementation baseline:** `e2c1e24a5f2f30b6383f1bf6d63d156f4131ecc5`  
-**Latest UI refinement:** `b03eae1e354a80b92e36a9e2af82d6874f4c3b3f`
+**Current implementation baseline:** `585956fee10f66ffbaf1b46f213b84d2d947a8a6`  
+**Latest verified deployment:** Emerald workflow run `35890757898` — SUCCESS  
+**Current scope:** internal automation + responsive operations tabs
 
 ## Purpose
 
@@ -101,7 +102,7 @@ The Phase 5 implementation reached mainline and the enum typecheck correction wa
 
 The deployment workflow installs the release and runs Prisma `migrate deploy` before restart, so the Phase 5 migration is part of the deployed release path.
 
-This establishes implementation, CI and deployment evidence. It does **not** yet establish completed production scheduler execution or business acceptance.
+This establishes implementation, CI, production release installation and production health evidence. It does **not** yet establish completed scheduler execution or business acceptance.
 
 ## Acceptance gate
 
