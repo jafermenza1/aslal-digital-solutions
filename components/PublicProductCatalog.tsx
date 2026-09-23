@@ -46,7 +46,7 @@ export function PublicProductCatalog({ products }: { products: CatalogItem[] }) 
   }), [filter, products]);
 
   return (
-    <div className="mt-12">
+    <div className="relative z-10 mt-12 min-w-0">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter products and services">
         {filters.map(([value, label]) => (
           <button
@@ -64,7 +64,7 @@ export function PublicProductCatalog({ products }: { products: CatalogItem[] }) 
 
       <div className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {visible.map((p) => (
-          <article key={p.id} className="catalog-card group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.06] transition duration-300 hover:-translate-y-1 hover:border-[#E2B02A] hover:bg-white/[.1] hover:shadow-[0_0_28px_rgba(226,176,42,.14)]">
+          <article key={p.id} className="catalog-card group min-w-0 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.06] transition duration-300 hover:-translate-y-1 hover:border-[#E2B02A] hover:bg-white/[.1] hover:shadow-[0_0_28px_rgba(226,176,42,.14)]">
             <Link href={`/products/${p.slug}`} className="block">
               <div className="relative h-52 overflow-hidden bg-gradient-to-br from-[#163f87] to-[#071F47]">
                 {p.imageUrl ? (
@@ -78,17 +78,14 @@ export function PublicProductCatalog({ products }: { products: CatalogItem[] }) 
               </div>
               <div className="p-7">
                 <div className="text-xs font-black uppercase tracking-[.16em] text-[#E2B02A]">{p.providerName || "Aslal Digital Solutions"} · {p.kind === "SERVICE" ? "Service" : "Product"}</div>
-                <h2 className="catalog-title mt-3 text-3xl font-black text-white transition-colors duration-200 group-hover:text-[#E2B02A]">{p.name}</h2>
+                <h2 className="catalog-title mt-3 break-words text-2xl font-black sm:text-3xl text-white transition-colors duration-200 group-hover:text-[#E2B02A]">{p.name}</h2>
                 {p.tagline && <p className="mt-2 font-semibold text-white/70">{p.tagline}</p>}
                 <p className="mt-4 leading-7 text-white/60">{p.shortDescription}</p>
                 {firstLines(p.benefits).length > 0 && <div className="mt-5 space-y-2">{firstLines(p.benefits).map((x) => <div key={x} className="text-sm text-white/55">✓ {x}</div>)}</div>}
-                <div className="catalog-explore mt-7 font-black text-[#E2B02A] transition-colors">Explore More →</div>
+                <span className="catalog-explore mt-7 inline-flex font-black text-[#E2B02A] transition-colors">Explore More →</span>
               </div>
             </Link>
-            <div className="flex flex-wrap gap-2 border-t border-white/10 px-7 pb-7 pt-4">
-              <Link href={contactHref(p.name, "Request a quote")} className="rounded-full bg-[#E2B02A] px-4 py-2 text-xs font-black text-[#1E293B]">Request Quote</Link>
-              <Link href={contactHref(p.name, "Request a demo")} className="rounded-full border border-white/20 px-4 py-2 text-xs font-black text-white hover:border-[#E2B02A] hover:text-[#E2B02A]">Request Demo</Link>
-            </div>
+            <div className="border-t border-white/10 px-7 pb-7 pt-4"><Link href={contactHref(p.name, p.kind === "PRODUCT" ? "Request a sample" : "Request a quote")} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#E2B02A] px-5 py-3 text-xs font-black text-[#1E293B] transition hover:bg-[#ebd05d] hover:shadow-lg hover:shadow-[#E2B02A]/20">{p.kind === "PRODUCT" ? "Request Sample →" : "Request Quote →"}</Link></div>
           </article>
         ))}
       </div>
