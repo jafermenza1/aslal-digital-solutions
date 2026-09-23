@@ -126,6 +126,7 @@ model Lead {
   nextActionDueAt   DateTime?          @map("next_action_due_at") @db.DateTime(0)
   referralCode      String?            @map("referral_code") @db.VarChar(100)
   dealValue         Decimal?           @map("deal_value") @db.Decimal(15, 2)
+  isTest            Boolean            @default(false) @map("is_test")
   wonAt             DateTime?          @map("won_at") @db.DateTime(0)
   createdAt         DateTime           @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt         DateTime           @updatedAt @map("updated_at") @db.DateTime(0)
@@ -146,6 +147,7 @@ model Lead {
   @@index([personId], map: "idx_leads_person")
   @@index([ownerEmail, status], map: "idx_leads_owner_status")
   @@index([nextActionDueAt, status], map: "idx_leads_next_action_due_status")
+  @@index([isTest, createdAt], map: "idx_leads_test_created")
   @@map("leads")
 }
 
@@ -484,4 +486,18 @@ model ChannelAccount {
   @@unique([channel, provider, externalAccountId], map: "uq_channel_account")
   @@index([channel, active], map: "idx_channel_account_active")
   @@map("channel_accounts")
+}
+
+
+model LeadAdminAudit {
+  id        String   @id @db.Char(36)
+  leadId    String?  @map("lead_id") @db.Char(36)
+  actor     String   @db.VarChar(190)
+  action    String   @db.VarChar(40)
+  reason    String   @db.Text
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  @@index([leadId, createdAt], map: "idx_lead_admin_audit_lead_created")
+  @@index([action, createdAt], map: "idx_lead_admin_audit_action_created")
+  @@map("lead_admin_audits")
 }
