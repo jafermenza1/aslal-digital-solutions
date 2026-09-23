@@ -1,8 +1,8 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Main baseline:** `b03eae1e354a80b92e36a9e2af82d6874f4c3b3f`  
-**Latest verified deployment:** Emerald workflow run `35888546958` for `e2c1e24a5f2f30b6383f1bf6d63d156f4131ecc5` — SUCCESS
+**Current mainline:** `585956fee10f66ffbaf1b46f213b84d2d947a8a6`  
+**Latest verified deployment:** Emerald workflow run `35890757898` for `585956fee10f66ffbaf1b46f213b84d2d947a8a6` — SUCCESS
 
 ## Authority chain
 
@@ -78,11 +78,13 @@ Do not:
 
 CI `35888225371` for the Phase 5 enum correction succeeded.
 
-Emerald deployment `35888546958` succeeded for the Phase 5 implementation baseline.
+CI `35890441292` for the responsive operations dashboard refinement succeeded.
 
-The deployment workflow passed artifact verification, release installation, Prisma migration execution and production health verification for that release.
+Emerald deployment `35890757898` succeeded for current mainline `585956fee10f66ffbaf1b46f213b84d2d947a8a6`.
 
-The current mainline additionally contains responsive operations-tab UI refinement in `b03eae1e354a80b92e36a9e2af82d6874f4c3b3f`, which is a subsequent documentation/UI change and requires its own release verification.
+The deployment workflow passed artifact verification, release installation, Prisma migration execution and production health verification.
+
+The deployed release therefore includes the Phase 5 automation implementation and the responsive tabbed operations UI.
 
 ## Active roadmap
 
