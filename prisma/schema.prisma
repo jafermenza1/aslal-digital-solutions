@@ -114,6 +114,32 @@ enum WorkflowActionStatus {
   SKIPPED
 }
 
+enum QuoteStatus {
+  DRAFT
+  SENT
+  VIEWED
+  NEGOTIATING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+  SUPERSEDED
+}
+
+enum NegotiationEventType {
+  CREATED
+  SENT
+  VIEWED
+  REVISED
+  NEGOTIATING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+  SUPERSEDED
+  NOTE
+}
+
 enum CommunicationChannel {
   EMAIL
   SMS
@@ -501,6 +527,7 @@ model Opportunity {
   customer        Customer?
   conversations   Conversation[]
   activities      Activity[]
+  quotes          Quote[]
 
   @@index([leadId, stage], map: "idx_opportunities_lead_stage")
   @@index([ownerEmail, stage], map: "idx_opportunities_owner_stage")
@@ -522,6 +549,7 @@ model Customer {
   opportunity   Opportunity?  @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   activities    Activity[]
   conversations Conversation[]
+  quotes        Quote[]
 
   @@index([email], map: "idx_customer_email")
   @@index([phone], map: "idx_customer_phone")
@@ -546,6 +574,72 @@ model Activity {
   @@index([customerId, createdAt], map: "idx_activity_customer_created")
   @@index([opportunityId, createdAt], map: "idx_activity_opportunity_created")
   @@map("activities")
+}
+
+model Quote {
+  id              String      @id @db.Char(36)
+  quoteNumber     String      @unique @map("quote_number") @db.VarChar(60)
+  customerId      String?     @map("customer_id") @db.Char(36)
+  opportunityId   String?     @map("opportunity_id") @db.Char(36)
+  parentQuoteId   String?     @map("parent_quote_id") @db.Char(36)
+  version         Int         @default(1)
+  status          QuoteStatus @default(DRAFT)
+  currency        String      @default("ETB") @db.VarChar(10)
+  subtotal        Decimal     @default(0) @db.Decimal(15,2)
+  discount        Decimal     @default(0) @db.Decimal(15,2)
+  total           Decimal     @default(0) @db.Decimal(15,2)
+  terms           String?     @db.Text
+  expiresAt       DateTime?   @map("expires_at") @db.DateTime(0)
+  createdBy       String?     @map("created_by") @db.VarChar(190)
+  sentAt          DateTime?   @map("sent_at") @db.DateTime(0)
+  viewedAt        DateTime?   @map("viewed_at") @db.DateTime(0)
+  acceptedAt      DateTime?   @map("accepted_at") @db.DateTime(0)
+  rejectedAt      DateTime?   @map("rejected_at") @db.DateTime(0)
+  cancelledAt     DateTime?   @map("cancelled_at") @db.DateTime(0)
+  supersededAt    DateTime?   @map("superseded_at") @db.DateTime(0)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.DateTime(0)
+  customer        Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  opportunity     Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  parentQuote     Quote?     @relation("QuoteRevision", fields: [parentQuoteId], references: [id], onDelete: SetNull)
+  revisions       Quote[]    @relation("QuoteRevision")
+  items           QuoteItem[]
+  events          NegotiationEvent[]
+
+  @@index([customerId, createdAt], map: "idx_quotes_customer_created")
+  @@index([opportunityId, createdAt], map: "idx_quotes_opportunity_created")
+  @@index([parentQuoteId], map: "idx_quotes_parent")
+  @@index([status, expiresAt], map: "idx_quotes_status_expires")
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id          String   @id @db.Char(36)
+  quoteId     String   @map("quote_id") @db.Char(36)
+  description String   @db.VarChar(500)
+  quantity    Decimal  @default(1) @db.Decimal(15,3)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(15,2)
+  discount    Decimal  @default(0) @db.Decimal(15,2)
+  lineTotal   Decimal  @map("line_total") @db.Decimal(15,2)
+  sortOrder   Int      @default(0) @map("sort_order")
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId, sortOrder], map: "idx_quote_items_quote_sort")
+  @@map("quote_items")
+}
+
+model NegotiationEvent {
+  id          String              @id @db.Char(36)
+  quoteId     String              @map("quote_id") @db.Char(36)
+  type        NegotiationEventType
+  actor       String?             @db.VarChar(190)
+  note        String?             @db.Text
+  snapshot    Json?
+  createdAt   DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+  quote       Quote               @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId, createdAt], map: "idx_negotiation_events_quote_created")
+  @@map("negotiation_events")
 }
 
 model GrowthOpportunity {
