@@ -48,6 +48,7 @@ export async function POST(request: Request) {
   if (!name || !email || !password || !reason) return NextResponse.json({ error: "Name, email, password and reason are required." }, { status: 400 });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
   if (!Object.values(UserRole).includes(role)) return NextResponse.json({ error: "Invalid role." }, { status: 400 });
+  if (role === UserRole.SUPER_ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only a super administrator can create another super administrator." }, { status: 403 });
   if (password.length < 10) return NextResponse.json({ error: "Password must contain at least 10 characters." }, { status: 400 });
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id:true } });
