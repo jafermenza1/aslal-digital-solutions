@@ -1,14 +1,13 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { isAdminEmail, verifySession } from "@/lib/security";
+import { requirePermission } from "@/lib/authorization";
 import ConversationCenter from "@/components/ConversationCenter";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConversationsPage() {
-  const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session || !isAdminEmail(session.email)) redirect("/login");
+  const session = await requirePermission("conversations.view");
 
   const conversations = await prisma.conversation.findMany({
     orderBy: [{ lastMessageAt: "desc" }, { updatedAt: "desc" }],
