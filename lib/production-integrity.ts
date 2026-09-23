@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 type CountRow = { count: bigint };
@@ -27,7 +28,7 @@ export async function getProductionIntegrityReport(): Promise<ProductionIntegrit
     await prisma.$queryRaw`SELECT 1 AS ok`;
     const tableRows = await prisma.$queryRaw<Array<{ table_name: string }>>`
       SELECT table_name FROM information_schema.tables
-      WHERE table_schema = DATABASE() AND table_name IN (${prisma.join(requiredTables)})
+      WHERE table_schema = DATABASE() AND table_name IN (${Prisma.join(requiredTables)})
     `;
     const present = new Set(tableRows.map(row => row.table_name));
     const tables = Object.fromEntries(requiredTables.map(name => [name, present.has(name)]));
