@@ -8,14 +8,14 @@ export default function EmailProviderTest() {
   const [recipient, setRecipient] = useState("");
   const [subject, setSubject] = useState("Aslal Digital Solutions — Email provider test");
   const [body, setBody] = useState("This is a live SMTP test from the Aslal Digital Solutions Conversation Center.");
-  const [simulation, setSimulation] = useState<"" | "success" | "failure">("");
+  const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
 
   async function submit(mode: "" | "success" | "failure") {
-    if (!recipient.trim() || !body.trim()) return;
-    setBusy(true); setResult(null); setSimulation(mode);
-    const response = await fetch("/api/conversations/email-test", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ recipient, subject, body, ...(mode ? { simulation: mode } : {}) }) });
+    if (!recipient.trim() || !body.trim() || !confirmed) return;
+    setBusy(true); setResult(null);
+    const response = await fetch("/api/conversations/email-test", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ recipient, subject, body, confirmed, ...(mode ? { simulation: mode } : {}) }) });
     const data = await response.json().catch(() => ({}));
     setBusy(false); setResult(data);
   }
@@ -26,19 +26,23 @@ export default function EmailProviderTest() {
         <div>
           <div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Live Email</div>
           <h2 className="mt-1 text-2xl font-black">SMTP provider test</h2>
-          <p className="mt-2 max-w-3xl text-sm text-slate-500">Sends through the configured SMTP provider and writes the result to a real Conversation message as SENT or FAILED. The recipient must already exist in the CRM with Email consent.</p>
+          <p className="mt-2 max-w-3xl text-sm text-slate-500">Sends through the configured SMTP provider and records the real result in a Conversation message as SENT or FAILED. This does not require Phase 4 acceptance mode.</p>
         </div>
-        <div className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Acceptance mode not required</div>
+        <div className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Production SMTP path</div>
       </div>
       <div className="mt-5 grid gap-3 md:grid-cols-2">
-        <input value={recipient} onChange={e => setRecipient(e.target.value)} placeholder="Recipient email" className="rounded-xl border border-slate-200 px-4 py-3 text-sm" />
+        <input value={recipient} onChange={e => setRecipient(e.target.value)} placeholder="Authorized test recipient email" className="rounded-xl border border-slate-200 px-4 py-3 text-sm" />
         <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject" className="rounded-xl border border-slate-200 px-4 py-3 text-sm" />
       </div>
       <textarea value={body} onChange={e => setBody(e.target.value)} rows={4} className="mt-3 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" />
+      <label className="mt-3 flex items-start gap-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
+        <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} className="mt-0.5" />
+        <span>I confirm this recipient is authorized to receive this real test email.</span>
+      </label>
       <div className="mt-3 flex flex-wrap gap-3">
-        <button onClick={() => void submit("")} disabled={busy || !recipient.trim() || !body.trim()} className="rounded-xl bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white disabled:opacity-40">{busy ? "Sending…" : "Send live provider test"}</button>
-        <button onClick={() => void submit("success")} disabled={busy || !recipient.trim() || !body.trim()} className="rounded-xl border border-slate-200 px-4 py-3 text-xs font-black disabled:opacity-40">Simulate SENT</button>
-        <button onClick={() => void submit("failure")} disabled={busy || !recipient.trim() || !body.trim()} className="rounded-xl border border-rose-200 px-4 py-3 text-xs font-black text-rose-700 disabled:opacity-40">Simulate FAILED</button>
+        <button onClick={() => void submit("")} disabled={busy || !recipient.trim() || !body.trim() || !confirmed} className="rounded-xl bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white disabled:opacity-40">{busy ? "Sending…" : "Send live provider test"}</button>
+        <button onClick={() => void submit("success")} disabled={busy || !recipient.trim() || !body.trim() || !confirmed} className="rounded-xl border border-slate-200 px-4 py-3 text-xs font-black disabled:opacity-40">Simulate SENT</button>
+        <button onClick={() => void submit("failure")} disabled={busy || !recipient.trim() || !body.trim() || !confirmed} className="rounded-xl border border-rose-200 px-4 py-3 text-xs font-black text-rose-700 disabled:opacity-40">Simulate FAILED</button>
       </div>
       {result && <div className={"mt-4 rounded-2xl border p-4 " + (result.status === "SENT" ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50")}>
         <div className="flex flex-wrap items-center gap-2"><span className="text-xs font-black uppercase tracking-wider">Result</span><span className="rounded-full bg-white px-3 py-1 text-xs font-black">{result.status}</span></div>
