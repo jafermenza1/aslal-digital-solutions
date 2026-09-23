@@ -26,13 +26,13 @@ async function updateTask(formData: FormData) {
 
   const taskId = String(formData.get("taskId") || "");
   const status = String(formData.get("status") || "");
-  const assignedTo = String(formData.get("assignedTo") || "").trim().slice(0, 190) || null;
+  const assignedTo = String(formData.get("assignedTo") || "").trim().slice(0, 190);
   const dueAtRaw = String(formData.get("dueAt") || "").trim();
 
   if (!taskId || !["OPEN", "IN_PROGRESS", "DONE", "CANCELLED"].includes(status)) return;
 
   const dueAt = dueAtRaw ? new Date(dueAtRaw) : null;
-  if (dueAt && Number.isNaN(dueAt.getTime())) return;
+  if (!assignedTo || !dueAt || Number.isNaN(dueAt.getTime())) return;
 
   await prisma.leadTask.update({
     where: { id: taskId },
@@ -55,14 +55,14 @@ async function createTask(formData: FormData) {
 
   const leadId = String(formData.get("leadId") || "").trim();
   const title = String(formData.get("title") || "").trim().slice(0, 190);
-  const assignedTo = String(formData.get("assignedTo") || "").trim().slice(0, 190) || session.email;
+  const assignedTo = String(formData.get("assignedTo") || "").trim().slice(0, 190);
   const dueAtRaw = String(formData.get("dueAt") || "").trim();
   const priority = String(formData.get("priority") || "NORMAL");
 
-  if (!leadId || !title || !["LOW", "NORMAL", "HIGH", "URGENT"].includes(priority)) return;
+  if (!leadId || !title || !assignedTo || !["LOW", "NORMAL", "HIGH", "URGENT"].includes(priority)) return;
 
   const dueAt = dueAtRaw ? new Date(dueAtRaw) : null;
-  if (dueAt && Number.isNaN(dueAt.getTime())) return;
+  if (!dueAt || Number.isNaN(dueAt.getTime())) return;
 
   await prisma.leadTask.create({
     data: {
@@ -96,7 +96,7 @@ export default async function OperationsPage({
 
   const report = tab === "overview" ? await getProductionIntegrityReport() : null;
 
-  const [tasks, leads] =
+  const [tasks, leads, owners] =
     tab === "tasks"
       ? await Promise.all([
           prisma.leadTask.findMany({
@@ -112,8 +112,9 @@ export default async function OperationsPage({
             orderBy: { updatedAt: "desc" },
             take: 300,
           }),
+          prisma.user.findMany({ where: { active: true }, select: { email: true, name: true, role: true }, orderBy: { name: "asc" }, take: 100 }),
         ])
-      : [[], []];
+      : [[], [], []];
 
   const automation = tab === "automation" ? await getAutomationSnapshot(30) : null;
   const audits =
@@ -219,31 +220,7 @@ export default async function OperationsPage({
                 </div>
               </section>
 
-              <section className="portal-card p-5 sm:p-6">
-                <div className="text-[10px] font-black uppercase tracking-[.2em] text-[#E2B02A]">Readiness</div>
-                <h2 className="mt-2 text-2xl font-black">What happens next?</h2>
-                <div className="mt-5 space-y-3">
-                  {([
-                    ["1", "Close real data-quality gaps", report.leads.executionGaps > 0 || report.tasks.missingDueDate > 0 || report.tasks.unassigned > 0],
-                    ["2", "Verify Phase 5 scheduler", true],
-                    ["3", "Run controlled acceptance", true],
-                    ["4", "Reconcile Phase 5 evidence", true],
-                  ] as const).map(([number, text, active]) => (
 
-                    <div key={number} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[.035] p-4">
-                      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black ${active ? "bg-[#E2B02A]/15 text-[#E2B02A]" : "bg-white/10 text-white/40"}`}>
-                        {number}
-                      </span>
-                      <div>
-                        <div className="font-black">{text}</div>
-                        <div className="mt-1 text-xs leading-5 text-white/40">
-                          {number === "1" ? "Use the audited admin tools; never invent values." : "Required before Phase 5 can move to SATISFIED."}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
             </section>
 
             <p className="mt-4 text-xs leading-5 text-white/35">
@@ -272,11 +249,11 @@ export default async function OperationsPage({
                   ))}
                 </select>
                 <input name="title" required placeholder="Call, demo, proposal..." className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-sm text-white placeholder:text-white/30 lg:col-span-2" />
-                <input name="dueAt" type="datetime-local" className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-sm text-white" />
+                <input name="dueAt" type="datetime-local" required className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-sm text-white" />
                 <select name="priority" className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-sm text-white">
                   <option>NORMAL</option><option>HIGH</option><option>URGENT</option><option>LOW</option>
                 </select>
-                <input name="assignedTo" type="email" placeholder="Owner email" className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-sm text-white placeholder:text-white/30 lg:col-span-2" />
+                <select name="assignedTo" required className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-sm text-white lg:col-span-2"><option value="">Assign owner</option>{owners.map((owner) => <option key={owner.email} value={owner.email}>{owner.name} · {owner.role}</option>)}</select>
                 <button className="rounded-xl bg-[#E2B02A] px-4 py-3 text-sm font-black text-[#1E293B] lg:col-span-4">Add follow-up task</button>
               </form>
             </section>
@@ -306,8 +283,9 @@ export default async function OperationsPage({
                             <select name="status" defaultValue={task.status} className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white">
                               <option>OPEN</option><option>IN_PROGRESS</option><option>DONE</option><option>CANCELLED</option>
                             </select>
-                            <input name="dueAt" type="datetime-local" defaultValue={task.dueAt ? new Date(task.dueAt).toISOString().slice(0, 16) : ""} className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white" />
-                            <input name="assignedTo" type="email" defaultValue={task.assignedTo || ""} className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white" />
+                            <input name="dueAt" type="datetime-local" required defaultValue={task.dueAt ? new Date(task.dueAt).toISOString().slice(0, 16) : ""} className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white" />
+                            <select name="assignedTo" required defaultValue={task.assignedTo || ""} className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white"><option value="">Assign owner</option>{owners.map((owner) => <option key={owner.email} value={owner.email}>{owner.name}</option>)}</select><input type="hidden" name="assignedToLegacy" value={task.assignedTo || ""} />
+                            <input name="assignedToDisabled" type="hidden" value="" className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white" />
                             <button className="rounded-lg bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white">Save</button>
                           </form>
                         </td>
@@ -345,7 +323,7 @@ export default async function OperationsPage({
                         <input name="dueAt" type="datetime-local" defaultValue={task.dueAt ? new Date(task.dueAt).toISOString().slice(0, 16) : ""} className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white" />
                       </label>
                       <label className="text-xs font-bold text-white/45">Assigned to
-                        <input name="assignedTo" type="email" defaultValue={task.assignedTo || ""} placeholder="Owner email" className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white placeholder:text-white/30" />
+                        <select name="assignedTo" required defaultValue={task.assignedTo || ""} className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white"><option value="">Assign owner</option>{owners.map((owner) => <option key={owner.email} value={owner.email}>{owner.name} · {owner.role}</option>)}</select><input type="hidden" name="assignedToDisabled" value="" className="mt-1 w-full rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-sm text-white placeholder:text-white/30" />
                       </label>
                       <button className="mt-1 rounded-xl bg-[#0F3E8A] px-3 py-2.5 text-sm font-black text-white">Save task</button>
                     </form>
