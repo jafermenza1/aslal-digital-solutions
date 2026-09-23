@@ -23,7 +23,7 @@ This is the single repository handoff for developers and AI agents. It records w
 | 1 | Baseline and Domain Contract | SATISFIED | PRD, domain contract, traceability, execution control, and phase governance are on main. |
 | 2 | Sales Execution Integrity | IMPLEMENTED-UNVERIFIED | Phase 2 implementation and gap-closure PR #22 are merged into main. A dedicated `the admin Leads workspace` evidence page is now on main; CI verification and production migration/backfill evidence are still required. |
 | 3 | Identity, Engagement, Customer Journey | SATISFIED | Golden-path acceptance completed with persisted visitor, canonical PAGE_VIEW, business/high-intent taxonomy, Growth Opportunity, Lead, Opportunity, Customer, Activity, and Visitor→Lead linkage evidence. |
-| 4 | Conversations and Channel Adapters | IMPLEMENTED-UNVERIFIED | Phase 4A provider-neutral foundation and controlled simulation path are implemented. Phase 4B real provider integrations are explicitly deferred for later revision after provider requirements are gathered. |
+| 4 | Conversations and Channel Adapters | SATISFIED | Phase 4A conversation foundation, admin operator workspace, consent/opt-out, handoff, signed inbound boundary, idempotency, and controlled channel acceptance are accepted. Real provider-specific expansion remains a separately scoped Phase 4B revision. |
 | 5 | Automation Engine | MISSING | Future phase; do not start now. |
 | 6 | Campaign, Partner, Revenue, Payment | PARTIAL | Existing foundations exist but are not reconciled/accepted. |
 | 7 | End-to-End Verification and Intelligence | MISSING | Final verification/intelligence phase; AI remains deferred. |
@@ -140,17 +140,53 @@ GitHub Actions is currently unable to start the repository CI job on the affecte
 
 This must be treated as a verification-infrastructure blocker. It does not prove application failure, and it does not permit marking a phase SATISFIED.
 
-## Exact next action
+## Next development plan — demand-first
 
-1. Open `the admin Leads workspace` and record the current execution-gap evidence before any legacy backfill.
-2. Apply the pending sales, identity/customer, and conversation migrations through the controlled Emerald deployment procedure; never use `prisma migrate reset`.
-3. Re-run `the admin Leads workspace` and complete the controlled lead, phone, stage-history, and production-health checks.
-4. Set `PHASE4_ACCEPTANCE_MODE=true` only in the controlled acceptance environment, select a Lead linked to both a Person and Customer, then open `the admin Conversations workspace` and run the expanded Phase 4A suite. Require `failed=0` and retain the returned `testId`, Conversation ID and result matrix as acceptance evidence.
-5. Keep external provider credentials and webhook configuration deferred until the Phase 4B revision.
-6. After a later provider-requirements pass, revise Phase 4B and configure/test only the providers intended for production.
-7. Restore/verify GitHub Actions runner availability and run repository CI verification when available.
-8. Record Phase 2 and Phase 4 evidence and update each phase status only when every acceptance gate is actually proven.
-9. Keep Phase 5 out of scope.
+Phase 4A is accepted. The next development investment should improve the commercial loop already defined by the PRD rather than add another standalone dashboard.
+
+### Priority 0 — Close the operational foundation before automation
+1. Finish Phase 2 production verification: controlled migration, legacy execution-gap backfill, owner/next-action checks, phone normalization, stage history and production health.
+2. Reconcile Phase 3 production evidence: visitor-to-lead linkage, Growth Opportunity behavior, Customer conversion and unified timeline.
+3. Resolve any remaining schema/production-data availability issues before adding workflows.
+
+### Phase 5 — Automation Engine: sales follow-up first
+Build only the smallest high-demand automation set:
+1. Define Workflow, Trigger, Condition, Action, Delay, Execution, Retry and Stop/Cancellation records.
+2. Add deterministic trigger/event dispatch with idempotency.
+3. Implement **new high-intent lead → assign owner → create next action → notify operator → acknowledgement**.
+4. Implement **overdue next action → operator reminder/escalation**, without customer spam.
+5. Implement **customer reply → stop eligible automated follow-up → human handoff**.
+6. Implement **WON/LOST/opt-out/closed/handoff → cancel or terminate eligible workflows**.
+7. Add execution history, failure visibility, retry controls and audit records.
+8. Add automation controls to the admin UI and verify mobile/low-bandwidth operation.
+
+### Phase 6 — Campaign, Partner, Revenue and Payment: monetize the demand
+After sales follow-up is reliable:
+1. Normalize Campaign and campaign-asset records.
+2. Preserve source/campaign/content/referral attribution from visitor through Lead → Opportunity → Customer.
+3. Build Partner/Agent/Influencer referral performance around leads, opportunities, customers and revenue.
+4. Implement commission lifecycle with immutable attribution and auditable transitions.
+5. Introduce Order/Payment abstraction with ETB-aware provider adapters and reconciliation states.
+6. Connect paid/settled revenue to the originating opportunity and attribution chain.
+7. Build management views for pipeline value vs realized revenue, partner revenue and outstanding commissions.
+
+### Phase 7 — End-to-end verification, operations and intelligence
+1. Prove one complete journey: acquisition → engagement → identification → lead → qualification → conversation → opportunity → proposal → customer → payment/revenue → attribution → retention/referral.
+2. Complete RBAC, privacy lifecycle, audit and notification controls.
+3. Complete mobile/slow-network critical-path testing.
+4. Add operational dashboards for overdue work, conversion, revenue, attribution, communications and automation health.
+5. Add end-to-end regression tests for lead creation, attribution, identity resolution, stage transitions, automation stop conditions, webhook replay, communication permissions and payment state.
+6. Only after reliable data exists, introduce AI-assisted summaries, intent classification, follow-up suggestions, demand insights and anomaly detection with human control and auditability.
+
+### Deferred Phase 4B
+Provider-specific WhatsApp, Messenger, Telegram, SMS and additional email capabilities remain a separate requirements/configuration track. Implement only providers with confirmed business need, credentials, sender identity, API permissions, templates and webhook capability.
+
+### Business-demand priority order
+**1) Sales follow-up reliability → 2) Revenue/payment attribution → 3) Partner/referral monetization → 4) End-to-end operational reporting → 5) AI intelligence → 6) Additional channel expansion.**
+
+The roadmap must not skip data integrity, ownership, next actions, consent, auditability or revenue attribution merely to add more channels.
+
+## Documentation invariant
 
 ## Documentation invariant
 
