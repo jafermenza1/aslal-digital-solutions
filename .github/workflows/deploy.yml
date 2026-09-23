@@ -136,6 +136,11 @@ jobs:
             cp "$APP_PATH/.env" "$RELEASE_PATH/.env"
           fi
 
+          test -x "$RELEASE_PATH/node_modules/.bin/prisma"
+          test -d "$RELEASE_PATH/prisma/migrations"
+          echo "Applying Prisma migrations before production restart..."
+          (cd "$RELEASE_PATH" && ./node_modules/.bin/prisma migrate deploy)
+
           rm -rf "$BACKUP_PATH"
           mkdir -p "$BACKUP_PATH"
 
