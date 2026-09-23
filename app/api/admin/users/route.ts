@@ -1,0 +1,79 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { authorizePermission } from "@/lib/authorization";
+import { allPermissions, type Permission, resolvePermissions } from "@/lib/permissions";
+import { hashPassword } from "@/lib/users";
+import { UserRole } from "@prisma/client";
+import { randomUUID } from "node:crypto";
+
+function permissionOverrides(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { grant: [], revoke: [] };
+  const data = value as { grant?: unknown; revoke?: unknown };
+  const allowed = new Set(allPermissions());
+  const clean = (input: unknown) => Array.isArray(input)
+    ? input.filter((v): v is string => typeof v === "string" && allowed.has(v as Permission))
+    : [];
+  return { grant: clean(data.grant), revoke: clean(data.revoke) };
+}
+
+function present(user: { id:string; email:string; name:string; role:UserRole; active:boolean; permissions:unknown; lastLoginAt:Date|null }) {
+  return {
+    ...user,
+    permissions: resolvePermissions(user.role, user.permissions).sort(),
+    lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+  };
+}
+
+export async function GET() {
+  const actor = await authorizePermission("users.manage");
+  if (!actor) return NextResponse.json({ error: "User administration is not permitted." }, { status: 403 });
+  const users = await prisma.user.findMany({
+    orderBy: [{ active: "desc" }, { name: "asc" }],
+    select: { id:true, email:true, name:true, role:true, active:true, permissions:true, lastLoginAt:true },
+  });
+  return NextResponse.json({ users: users.map(present) });
+}
+
+export async function POST(request: Request) {
+  const actor = await authorizePermission("users.manage");
+  if (!actor) return NextResponse.json({ error: "User administration is not permitted." }, { status: 403 });
+  const body = await request.json().catch(() => ({}));
+  const name = String(body.name || "").trim().slice(0, 160);
+  const email = String(body.email || "").trim().toLowerCase().slice(0, 190);
+  const password = String(body.password || "");
+  const role = String(body.role || "SALES_OPERATOR") as UserRole;
+  const active = body.active !== false;
+  const reason = String(body.reason || "").trim().slice(0, 2000);
+
+  if (!name || !email || !password || !reason) return NextResponse.json({ error: "Name, email, password and reason are required." }, { status: 400 });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
+  if (!Object.values(UserRole).includes(role)) return NextResponse.json({ error: "Invalid role." }, { status: 400 });
+  if (password.length < 10) return NextResponse.json({ error: "Password must contain at least 10 characters." }, { status: 400 });
+
+  const existing = await prisma.user.findUnique({ where: { email }, select: { id:true } });
+  if (existing) return NextResponse.json({ error: "A user with that email already exists." }, { status: 409 });
+
+  const permissions = permissionOverrides(body.permissions);
+  const user = await prisma.user.create({
+    data: {
+      id: randomUUID(),
+      name,
+      email,
+      passwordHash: hashPassword(password),
+      role,
+      active,
+      permissions,
+    },
+  });
+  await prisma.userAudit.create({
+    data: {
+      id: randomUUID(),
+      userId: user.id,
+      actor: actor.email,
+      action: "CREATE",
+      reason,
+      details: { role, active },
+    },
+  });
+  return NextResponse.json({ ok:true, user: present(user) });
+}
