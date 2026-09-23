@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type Quote = {
@@ -74,7 +75,7 @@ export default function QuotesWorkspace({
     <div className="container-aslal">
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Growth OS / Sales</div><h1 className="mt-2 text-4xl font-black tracking-tight">Quotes & negotiation</h1><p className="mt-2 max-w-3xl text-slate-500">Turn an active opportunity into a traceable commercial offer, send it, record negotiation, and preserve every revision.</p></div>
-        <div className="flex flex-wrap gap-2"><button type="button" onClick={() => setShowCreate(v => !v)} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-bold text-white">{showCreate ? "Close quote form" : "+ New quote"}</button><a href="/dashboard/leads" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-[#0F3E8A]">← Sales pipeline</a></div>
+        <div className="flex flex-wrap gap-2"><button type="button" onClick={() => setShowCreate(v => !v)} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-bold text-white">{showCreate ? "Close quote form" : "+ New quote"}</button><Link href="/dashboard/leads" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-[#0F3E8A]">← Sales pipeline</Link></div>
       </div>
 
       {showCreate && <form onSubmit={createQuote} className="mt-7 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
