@@ -22,7 +22,7 @@ const products = [
 export default async function Home(){
  const content=await getPageContent("/");
  return <main className="landing-page">
-  <AslalInteractiveHero />
+  <AslalInteractiveHero content={content} />
 
   <section className="landing-section light-section">
    <div className="container-aslal grid gap-14 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
