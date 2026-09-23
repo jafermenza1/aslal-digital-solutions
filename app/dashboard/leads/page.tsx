@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { LeadStatus, prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { verifySession } from "@/lib/security";
+import { handleLeadStatusChange } from "@/lib/automation";
 
 const stages = Object.values(LeadStatus);
 const pageSize = 24;
@@ -28,6 +29,11 @@ async function changeStatus(formData: FormData) {
     prisma.lead.update({ where: { id: leadId }, data: { status, ...(status === LeadStatus.WON ? { wonAt: new Date() } : {}) } }),
     prisma.leadStageHistory.create({ data: { leadId, fromStage: lead.status, toStage: status, changedBy: session.email } }),
   ]);
+  try {
+    await handleLeadStatusChange({ leadId, fromStatus: lead.status, toStatus: status, actor: session.email });
+  } catch (error) {
+    console.error("LEAD_STATUS_AUTOMATION_ERROR", error);
+  }
   revalidatePath("/dashboard/leads");
   revalidatePath(`/dashboard/leads/${leadId}`);
   revalidatePath("/dashboard");
