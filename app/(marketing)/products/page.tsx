@@ -1,11 +1,8 @@
-import Link from "next/link";
 import { PublicProductCatalog } from "@/components/PublicProductCatalog";
 import { prisma } from "@/lib/prisma";
 
 export const revalidate = 60;
 
-function firstLines(value:string|null){return (value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,3);}
-function contactHref(name:string,goal:string){return `/contact?product=${encodeURIComponent(name)}&goal=${encodeURIComponent(goal)}`;}
 
 export default async function ProductsPage(){
  const products=await prisma.product.findMany({where:{active:true},orderBy:[{featured:"desc"},{sortOrder:"asc"},{name:"asc"}]});
