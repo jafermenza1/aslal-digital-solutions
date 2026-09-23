@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
             },
           }),
         ]);
-        return NextResponse.json({ ok: true, messageId: message.id, status: "SENT" });
+        return NextResponse.json({ ok: true, action, provider: channel === "EMAIL" ? "SMTP" : channel, messageId: message.id, status: "SENT", providerResult });
       } catch (error) {
         await prisma.$transaction([
           prisma.message.update({
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
             },
           }),
         ]);
-        return NextResponse.json({ ok: false, messageId: message.id, status: "FAILED", error: error instanceof Error ? error.message : "Provider error" }, { status: 502 });
+        return NextResponse.json({ ok: false, action, provider: channel === "EMAIL" ? "SMTP" : channel, messageId: message.id, status: "FAILED", error: error instanceof Error ? error.message : "Provider error" }, { status: 502 });
       }
     }
     return NextResponse.json({ error: "Unknown acceptance action" }, { status: 400 });
