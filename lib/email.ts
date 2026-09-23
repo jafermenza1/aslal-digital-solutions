@@ -227,12 +227,13 @@ export async function pollEmailInbox() {
   try {
     const lock = await client.getMailboxLock(process.env.IMAP_MAILBOX || "INBOX");
     try {
-      const unseen = await client.search({ seen: false });
+      const searchResult = await client.search({ seen: false });
+      const unseen = searchResult === false ? [] : searchResult;
 
       for (const uid of unseen) {
         try {
           const message = await client.fetchOne(uid, { source: true });
-          if (!message?.source) {
+          if (message === false || !message.source) {
             results.push({ uid, skipped: true, reason: "empty message" });
             continue;
           }
