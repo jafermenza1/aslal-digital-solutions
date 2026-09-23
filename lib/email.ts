@@ -248,6 +248,7 @@ export async function sendEmail(params: {
   subject?: string;
   inReplyTo?: string | null;
   references?: string[];
+  attachments?: Array<{ filename: string; content: Buffer; contentType?: string }>;
 }) {
   const from = envValue("SMTP_FROM").trim() || requiredEnv("SMTP_USER");
   const transporter = smtpTransport();
@@ -261,6 +262,7 @@ export async function sendEmail(params: {
       ...(params.html ? { html: params.html } : {}),
       ...(params.inReplyTo ? { inReplyTo: params.inReplyTo } : {}),
       ...(params.references?.length ? { references: params.references } : {}),
+      ...(params.attachments?.length ? { attachments: params.attachments } : {}),
     });
 
     return {
