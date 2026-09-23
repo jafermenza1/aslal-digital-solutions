@@ -1,7 +1,7 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `585956fee10f66ffbaf1b46f213b84d2d947a8a6`  
+**Current mainline:** `89177aafe2b5c784dc174c836972a6cf1972c85e`
 **Latest verified deployment:** Emerald workflow run `35890757898` for `585956fee10f66ffbaf1b46f213b84d2d947a8a6` — SUCCESS
 
 ## Authority chain
@@ -19,7 +19,7 @@
 |---|---|---|
 | Product/domain baseline | SATISFIED | PRD, domain contract and phase controls exist. |
 | Deployment pipeline | SATISFIED | CI builds/packages/uploads; deployment installs release and runs Prisma migrations. |
-| Production schema | SATISFIED | Seven migrations are present in main; the Phase 5 `20260923050000_sales_followup_automation` migration is included in the deployed release path. |
+| Production schema | IMPLEMENTED-UNVERIFIED | Nine migrations are present in current main, including catalog/offline/user/email extensions; the latest verified Emerald deployment remains run `35890757898` and predates these newest migrations. |
 | Sales execution | IMPLEMENTED-UNVERIFIED | Owner, next action, due date, stage history, phone normalization and admin corrections exist; fresh post-migration production data evidence is required. |
 | Identity/customer foundation | SATISFIED | Person, Opportunity, Customer, Activity, visitor/event/Growth Opportunity foundations have recorded acceptance evidence. |
 | Phase 4A conversations | SATISFIED | Canonical Conversation/Message, consent, opt-out, handoff, signed inbound boundary, idempotency and controlled simulations exist. |
@@ -36,6 +36,10 @@
 | Mobile/low-bandwidth | PARTIAL | Operations dashboard now uses responsive tabbed navigation and mobile cards; critical-path device/network evidence remains. |
 | Production integrity automation | IMPLEMENTED-UNVERIFIED | Endpoint and workflow exist; the recorded workflow failed because required GitHub Actions secrets were missing. |
 | End-to-end Growth OS | MISSING | Full acquisition → payment → revenue → commission → retention journey is not yet demonstrated. |
+| Product/service catalog | IMPLEMENTED-UNVERIFIED | DB-backed admin/public catalog, detail pages, optional imagery, public CTA and product-ID lead attribution implemented; current mainline is awaiting CI/deployment/acceptance. |
+| Offline/manual lead capture | IMPLEMENTED-UNVERIFIED | Admin-authorized capture with offline source/category, campaign context, optional catalog interest, normal ownership, scoring and Phase 5 trigger implemented; deployment/acceptance remains. |
+| Transactional contact auto-reply | IMPLEMENTED-UNVERIFIED | Consent-gated branded HTML auto-reply and configurable template editor implemented; SMTP/provider/deployment acceptance remains. |
+| User roles/editable permissions | PARTIAL | Managed User accounts, business-owner role, editable permissions and user audit foundation implemented; legacy application routes still need full permission enforcement and tenant isolation remains a scale blocker. |
 | AI intelligence | MISSING / DEFERRED | Must follow reliable transaction and attribution data. |
 
 ## Historical production integrity snapshot
@@ -55,14 +59,14 @@ This is historical evidence, not current post-migration truth. The latest migrat
 
 ## Current exact next action
 
-1. Configure GitHub Actions secrets `PRODUCTION_INTEGRITY_URL` and `PRODUCTION_INTEGRITY_TOKEN`.
-2. Run Production Integrity Check against the current production release.
-3. Correct real historical execution/data gaps through the admin workspace with audit reasons.
-4. Re-run integrity until the data-quality gate passes.
-5. Configure the Phase 5 scheduler secret `AUTOMATION_CRON_SECRET` and GitHub secret `AUTOMATION_CRON_TOKEN`.
-6. Trigger or observe a scheduled Phase 5 run and retain its result.
-7. Run the controlled internal-only acceptance journey, including idempotency and cancellation checks.
-8. Record acceptance evidence before changing Phase 5 status to SATISFIED.
+1. Run CI for current mainline `89177aafe2b5c784dc174c836972a6cf1972c85e` and resolve any build/type/migration packaging issue.
+2. Deploy the new migrations and application release through the normal CI/CD path.
+3. Verify production schema/integrity, including the new `users`, `user_audits`, and `email_templates` tables.
+4. Verify product creation → public catalog/detail → product-ID contact attribution.
+5. Verify offline lead capture → normal ownership/next action/scoring → Phase 5 trigger.
+6. Verify contact email consent → rich auto-reply → canonical email message/activity.
+7. Verify user creation/login/role/permission enforcement and audit behavior.
+8. Continue the existing Phase 5 scheduler acceptance: configure `AUTOMATION_CRON_SECRET` and `AUTOMATION_CRON_TOKEN`, then retain execution/idempotency/cancellation evidence.
 
 ## Hard scaling stops
 
