@@ -226,12 +226,13 @@ export default async function OperationsPage({
                 <div className="text-[10px] font-black uppercase tracking-[.2em] text-[#E2B02A]">Readiness</div>
                 <h2 className="mt-2 text-2xl font-black">What happens next?</h2>
                 <div className="mt-5 space-y-3">
-                  {[
+                  {([
                     ["1", "Close real data-quality gaps", report.leads.executionGaps > 0 || report.tasks.missingDueDate > 0 || report.tasks.unassigned > 0],
                     ["2", "Verify Phase 5 scheduler", true],
                     ["3", "Run controlled acceptance", true],
                     ["4", "Reconcile Phase 5 evidence", true],
-                  ].map(([number, text, active]) => (
+                  ] as const).map(([number, text, active]) => (
+
                     <div key={number} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[.035] p-4">
                       <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black ${active ? "bg-[#E2B02A]/15 text-[#E2B02A]" : "bg-white/10 text-white/40"}`}>
                         {number}
