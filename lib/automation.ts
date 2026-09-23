@@ -69,6 +69,12 @@ export async function processWorkflowExecution(id:string){
  const e=await prisma.workflowExecution.findUnique({where:{id},include:{workflow:{select:{systemKey:true,active:true}},workflowVersion:{select:{definition:true}},actions:{orderBy:{actionIndex:"asc"}}}});
  if(!e)return {status:"MISSING" as const};
  if(e.status===WorkflowExecutionStatus.COMPLETED||e.status===WorkflowExecutionStatus.CANCELLED||e.status===WorkflowExecutionStatus.SKIPPED)return {status:e.status};
+ const def=e.workflowVersion.definition as unknown as WorkflowDefinition;
+ if(def.maxLifetimeMinutes && Date.now()-e.createdAt.getTime()>def.maxLifetimeMinutes*60000){
+  await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.CANCELLED,completedAt:new Date(),lastError:"Workflow execution expired before completion."}});
+  await prisma.workflowActionExecution.updateMany({where:{executionId:id,status:{in:[WorkflowActionStatus.PENDING,WorkflowActionStatus.RUNNING]}},data:{status:WorkflowActionStatus.SKIPPED,error:"Workflow execution expired.",completedAt:new Date()}});
+  return {status:"CANCELLED" as const};
+ }
  if(!e.workflow.active){
   await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.CANCELLED,completedAt:new Date(),lastError:"Workflow is disabled."}});
   await prisma.workflowActionExecution.updateMany({where:{executionId:id,status:WorkflowActionStatus.PENDING},data:{status:WorkflowActionStatus.SKIPPED,error:"Workflow disabled before execution.",completedAt:new Date()}});
