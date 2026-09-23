@@ -1,8 +1,8 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `89177aafe2b5c784dc174c836972a6cf1972c85e`
-**Latest verified deployment:** Emerald workflow run `35890757898` for `585956fee10f66ffbaf1b46f213b84d2d947a8a6` — SUCCESS
+**Current mainline:** `383f849c18c8d40d3acd9560d3f941d91c419cc6`
+**Latest verified deployment:** Emerald workflow run `35898297667` for `383f849c18c8d40d3acd9560d3f941d91c419cc6` — SUCCESS
 
 ## Authority chain
 
@@ -19,7 +19,7 @@
 |---|---|---|
 | Product/domain baseline | SATISFIED | PRD, domain contract and phase controls exist. |
 | Deployment pipeline | SATISFIED | CI builds/packages/uploads; deployment installs release and runs Prisma migrations. |
-| Production schema | IMPLEMENTED-UNVERIFIED | Nine migrations are present in current main, including catalog/offline/user/email extensions; the latest verified Emerald deployment remains run `35890757898` and predates these newest migrations. |
+| Production schema | SATISFIED | Nine migrations are present in current main and the current release was installed successfully by Emerald deployment `35898297667`; production business-data integrity remains a separate gate. |
 | Sales execution | IMPLEMENTED-UNVERIFIED | Owner, next action, due date, stage history, phone normalization and admin corrections exist; fresh post-migration production data evidence is required. |
 | Identity/customer foundation | SATISFIED | Person, Opportunity, Customer, Activity, visitor/event/Growth Opportunity foundations have recorded acceptance evidence. |
 | Phase 4A conversations | SATISFIED | Canonical Conversation/Message, consent, opt-out, handoff, signed inbound boundary, idempotency and controlled simulations exist. |
@@ -59,14 +59,14 @@ This is historical evidence, not current post-migration truth. The latest migrat
 
 ## Current exact next action
 
-1. Run CI for current mainline `89177aafe2b5c784dc174c836972a6cf1972c85e` and resolve any build/type/migration packaging issue.
-2. Deploy the new migrations and application release through the normal CI/CD path.
-3. Verify production schema/integrity, including the new `users`, `user_audits`, and `email_templates` tables.
-4. Verify product creation → public catalog/detail → product-ID contact attribution.
-5. Verify offline lead capture → normal ownership/next action/scoring → Phase 5 trigger.
-6. Verify contact email consent → rich auto-reply → canonical email message/activity.
-7. Verify user creation/login/role/permission enforcement and audit behavior.
-8. Continue the existing Phase 5 scheduler acceptance: configure `AUTOMATION_CRON_SECRET` and `AUTOMATION_CRON_TOKEN`, then retain execution/idempotency/cancellation evidence.
+1. Run the production-integrity check against the newly deployed release and correct only real data gaps with audit reasons.
+2. Verify product/service creation → public catalog/detail → product-ID contact attribution in production.
+3. Verify offline lead capture → owner/next action/stage history/scoring → existing Phase 5 lead-created automation path.
+4. Verify contact email consent → rich branded auto-reply → canonical Email conversation/message/activity, including provider failure behavior.
+5. Verify user creation → login → role defaults → editable grants/revokes → activation/deactivation → audit record.
+6. Harden remaining legacy routes so the new permission model consistently replaces the older admin-email guards.
+7. Configure the Phase 5 scheduler secrets and complete scheduler/idempotency/cancellation acceptance before marking R20/R21 SATISFIED.
+8. Do not enable shared multi-tenant SaaS, payment-backed revenue, automated partner commissions or AI autonomy until their roadmap gates are separately satisfied.
 
 ## Hard scaling stops
 
@@ -86,9 +86,7 @@ CI `35890441292` for the responsive operations dashboard refinement succeeded.
 
 Emerald deployment `35890757898` succeeded for current mainline `585956fee10f66ffbaf1b46f213b84d2d947a8a6`.
 
-The deployment workflow passed artifact verification, release installation, Prisma migration execution and production health verification.
-
-The deployed release therefore includes the Phase 5 automation implementation and the responsive tabbed operations UI.
+The deployment workflow passed artifact verification, release installation and production health verification. The current release includes the catalog, offline-lead, user-access and transactional-email extensions. Business-flow acceptance for those extensions is still required.
 
 ## Active roadmap
 
