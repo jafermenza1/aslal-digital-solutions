@@ -112,7 +112,7 @@ export default async function OperationsPage({
             orderBy: { updatedAt: "desc" },
             take: 300,
           }),
-          prisma.user.findMany({ where: { active: true }, select: { email: true, name: true, role: true }, orderBy: { name: "asc" }, take: 100 }),
+          prisma.user.findMany({ where: { active: true, role: { not: "PARTNER" } }, select: { email: true, name: true, role: true }, orderBy: { name: "asc" }, take: 100 }),
         ])
       : [[], [], []];
 
