@@ -59,7 +59,7 @@ This is historical evidence, not current post-migration truth. The latest migrat
 
 ## UI foundation extension (supporting work; no phase reorder)
 
-The dashboard now has a shared permission-aware shell with separate left-side tabs, icon navigation, mobile horizontal navigation, dark/light theme controls and website-language inheritance. Public /products cards use the canonical product detail links with gold hover treatment.
+The dashboard now has a shared permission-aware shell with separate left-side tabs, icon navigation, mobile horizontal navigation, dark/light theme controls and website-language inheritance. The public locale reader and root layout now derive supported locales from the shared dictionary rather than hard-coding the current three languages. Public /products cards use the canonical product detail links with gold hover treatment.
 
 Users, product catalog and email-template administration are separate workspaces. Email templates are visually grouped under Conversations in the shared navigation, while the Product Catalog and Users remain independent management tabs.
 
