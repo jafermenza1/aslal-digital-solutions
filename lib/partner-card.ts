@@ -16,22 +16,15 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-type PartnerCardRow = {
+type PartnerCardRow = RowDataPacket & {
   id: string;
   name: string;
   type: string;
   email: string | null;
-} & RowDataPacket;
+};
 
-type ReferralCardRow = {
-  code: string;
-} & RowDataPacket;
+type ReferralCardRow = RowDataPacket & { code: string };
 
-/**
- * Fetch partner and referral separately, with a short retry window.
- * Partner creation inserts these records sequentially, so this also
- * tolerates brief DB visibility/replication lag before PDF generation.
- */
 async function fetchCardData(partnerId: string) {
   let lastError: unknown = null;
 
@@ -42,18 +35,13 @@ async function fetchCardData(partnerId: string) {
         [partnerId],
       );
       const partner = partnerRows[0];
-
       if (!partner) throw new Error("Partner not found.");
 
-      const [referralRows] = await db.query<ReferralCardRow[]>(`
-        SELECT code
-        FROM referral_links
-        WHERE partner_id = ?
-        ORDER BY created_at ASC
-        LIMIT 1
-      `, [partnerId]);
+      const [referralRows] = await db.query<ReferralCardRow[]>(
+        "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
+        [partnerId],
+      );
       const referral = referralRows[0];
-
       if (!referral?.code) throw new Error("Partner referral link is not ready.");
 
       return { partner, referral };
@@ -66,46 +54,57 @@ async function fetchCardData(partnerId: string) {
   throw lastError instanceof Error ? lastError : new Error("Partner card data is not ready.");
 }
 
-export async function generatePartnerCardPdf(partnerId: string) {
-  const { partner, referral } = await fetchCardData(partnerId);
-
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
-  const referralUrl = `${baseUrl}/go/${referral.code}`;
-  const qr = await QRCode.toBuffer(referralUrl, {
-    type: "png",
-    width: 300,
-    margin: 1,
-    errorCorrectionLevel: "M",
-  });
-
+function createPdf(partner: PartnerCardRow, referralCode: string, referralUrl: string, qr?: Buffer) {
   const doc = new PDFDocument({ size: [WIDTH, HEIGHT], margin: 0, autoFirstPage: true });
   const chunks: Buffer[] = [];
-  doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+  doc.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
 
   doc.roundedRect(0, 0, WIDTH, HEIGHT, 12).fill("#0F3E8A");
   doc.fillColor("#E2B02A").roundedRect(12, 12, 4, HEIGHT - 24, 2).fill();
   doc.fillColor("#FFFFFF").fontSize(9).font("Helvetica-Bold").text("ASLAL DIGITAL SOLUTIONS", 26, 17);
   doc.fillColor("#D8E5FF").fontSize(5.5).font("Helvetica").text("Growth Partner Network", 26, 30);
-
   doc.fillColor("#FFFFFF").fontSize(13).font("Helvetica-Bold").text(safeText(partner.name), 26, 50, { width: 140, ellipsis: true });
   doc.fillColor("#D8E5FF").fontSize(6.5).font("Helvetica").text(safeText(partner.type), 26, 67);
   doc.fillColor("#FFFFFF").fontSize(6).font("Helvetica-Bold").text("REFERRAL CODE", 26, 83);
-  doc.fillColor("#E2B02A").fontSize(8.5).font("Helvetica-Bold").text(safeText(referral.code), 26, 93, { width: 130, ellipsis: true });
+  doc.fillColor("#E2B02A").fontSize(8.5).font("Helvetica-Bold").text(safeText(referralCode), 26, 93, { width: 130, ellipsis: true });
   doc.fillColor("#D8E5FF").fontSize(5.5).font("Helvetica").text("Scan or use the referral link", 26, 109);
   doc.fillColor("#FFFFFF").fontSize(5.2).text(referralUrl, 26, 118, { width: 135, ellipsis: true, link: referralUrl });
 
-  doc.image(qr, WIDTH - 78, 34, { fit: [56, 56] });
-  doc.fillColor("#FFFFFF").fontSize(4.8).font("Helvetica").text("aslaldigital.com", WIDTH - 78, 96, { width: 56, align: "center" });
-  doc.fillColor("#D8E5FF").fontSize(4.5).text(safeText(partner.email, "Partner network"), WIDTH - 92, 108, { width: 84, align: "center", ellipsis: true });
+  if (qr) {
+    doc.image(qr, WIDTH - 78, 34, { fit: [56, 56] });
+    doc.fillColor("#FFFFFF").fontSize(4.8).font("Helvetica").text("aslaldigital.com", WIDTH - 78, 96, { width: 56, align: "center" });
+  } else {
+    doc.fillColor("#FFFFFF").fontSize(5.2).font("Helvetica-Bold").text("REFERRAL", WIDTH - 78, 54, { width: 56, align: "center" });
+    doc.fillColor("#D8E5FF").fontSize(4.5).font("Helvetica").text("QR unavailable", WIDTH - 78, 64, { width: 56, align: "center" });
+  }
 
-  const pdfReady = new Promise<void>((resolve, reject) => {
-    doc.once("end", resolve);
+  doc.fillColor("#D8E5FF").fontSize(4.5).font("Helvetica").text(safeText(partner.email, "Partner network"), WIDTH - 92, 108, { width: 84, align: "center", ellipsis: true });
+
+  return new Promise<Buffer>((resolve, reject) => {
+    doc.once("end", () => resolve(Buffer.concat(chunks)));
     doc.once("error", reject);
+    doc.end();
   });
-  doc.end();
-  await pdfReady;
+}
 
-  return Buffer.concat(chunks);
+export async function generatePartnerCardPdf(partnerId: string) {
+  const { partner, referral } = await fetchCardData(partnerId);
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
+  const referralUrl = `${baseUrl}/go/${referral.code}`;
+
+  let qr: Buffer | undefined;
+  try {
+    qr = await QRCode.toBuffer(referralUrl, {
+      type: "png",
+      width: 300,
+      margin: 1,
+      errorCorrectionLevel: "M",
+    });
+  } catch (error) {
+    console.error("PARTNER_CARD_QR_ERROR", error);
+  }
+
+  return createPdf(partner, referral.code, referralUrl, qr);
 }
 
 export function partnerCardFileName(code: string) {
