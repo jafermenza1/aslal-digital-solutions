@@ -56,6 +56,9 @@ function smtpTransport() {
     port: smtpPort(),
     secure: envValue("SMTP_SECURE") === "true",
     requireTLS: envValue("SMTP_REQUIRE_TLS") !== "false",
+    // Emerald/Exim advertises both PLAIN and LOGIN. Force LOGIN because the
+    // mailbox has been independently verified with AUTH LOGIN on both 465 and 587.
+    authMethod: "LOGIN",
     auth: {
       user: envValue("SMTP_USER").trim() || requiredEnv("SMTP_USER"),
       // Do not trim passwords: spaces can legitimately be part of a mailbox password.
