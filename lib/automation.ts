@@ -125,7 +125,14 @@ export async function runTrigger(i:{triggerType:WorkflowTriggerType;targetType:s
 }
 async function processDue(limit:number){
  const now=new Date(),stale=new Date(now.getTime()-15*60000);
- await prisma.workflowExecution.updateMany({where:{status:WorkflowExecutionStatus.RUNNING,startedAt:{lt:stale}},data:{status:WorkflowExecutionStatus.PENDING,lastError:"Recovered stale running execution; retrying safely."}});
+ const staleExecutions=await prisma.workflowExecution.findMany({where:{status:WorkflowExecutionStatus.RUNNING,startedAt:{lt:stale}},select:{id:true}});
+ if(staleExecutions.length){
+  const ids=staleExecutions.map(x=>x.id);
+  await prisma.$transaction([
+   prisma.workflowExecution.updateMany({where:{id:{in:ids},status:WorkflowExecutionStatus.RUNNING},data:{status:WorkflowExecutionStatus.PENDING,lastError:"Recovered stale running execution; retrying safely."}}),
+   prisma.workflowActionExecution.updateMany({where:{executionId:{in:ids},status:WorkflowActionStatus.RUNNING},data:{status:WorkflowActionStatus.PENDING,scheduledFor:now,error:"Recovered stale running action; retrying safely.",completedAt:null}})
+  ]);
+ }
  const rows=await prisma.workflowExecution.findMany({where:{status:WorkflowExecutionStatus.PENDING,actions:{some:{status:WorkflowActionStatus.PENDING,scheduledFor:{lte:now}}}},orderBy:{createdAt:"asc"},take:limit,select:{id:true}});
  const out=[];for(const row of rows)out.push(await processWorkflowExecution(row.id));return out;
 }
