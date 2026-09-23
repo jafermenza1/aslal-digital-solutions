@@ -11,6 +11,7 @@ export const PERMISSIONS = [
   "conversations.send",
   "conversations.manage",
   "products.manage",
+  "content.manage",
   "email_templates.manage",
   "users.manage",
   "partners.manage",
@@ -26,7 +27,7 @@ const sets: Record<UserRole, Permission[]> = {
   ADMIN: [...PERMISSIONS],
   BUSINESS_OWNER: [
     "dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view",
-    "conversations.view","conversations.send","conversations.manage","products.manage",
+    "conversations.view","conversations.send","conversations.manage","products.manage","content.manage",
     "email_templates.manage","users.manage","partners.manage","insights.view","operations.view"
   ],
   SALES_MANAGER: [
