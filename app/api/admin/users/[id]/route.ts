@@ -40,7 +40,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (!reason) return NextResponse.json({ error: "A reason is required for access changes." }, { status: 400 });
   if (!name || !email || !Object.values(UserRole).includes(role)) return NextResponse.json({ error: "Name, email and valid role are required." }, { status: 400 });
+  if (target.role === UserRole.SUPER_ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only a super administrator can modify a super administrator." }, { status: 403 });
+  if (role === UserRole.SUPER_ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only a super administrator can assign that role." }, { status: 403 });
   if (actor.id === target.id && !active) return NextResponse.json({ error: "You cannot disable your own account." }, { status: 400 });
+  if (actor.id === target.id && role !== target.role) return NextResponse.json({ error: "You cannot change your own role." }, { status: 400 });
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id:true } });
   if (existing && existing.id !== target.id) return NextResponse.json({ error: "That email is already assigned to another user." }, { status: 409 });
@@ -49,6 +52,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (password && password.length < 10) return NextResponse.json({ error: "New password must contain at least 10 characters." }, { status: 400 });
 
   const permissions = permissionOverrides(body.permissions === undefined ? target.permissions : body.permissions);
+  if (actor.id === target.id && !resolvePermissions(role, permissions).includes("users.manage" as Permission)) {
+    return NextResponse.json({ error: "You cannot remove your own user-management permission." }, { status: 400 });
+  }
   const updated = await prisma.user.update({
     where: { id },
     data: {
