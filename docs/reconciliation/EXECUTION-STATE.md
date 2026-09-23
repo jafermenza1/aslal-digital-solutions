@@ -1,8 +1,8 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `383f849c18c8d40d3acd9560d3f941d91c419cc6`
-**Latest verified deployment:** Emerald workflow run `35898297667` for `383f849c18c8d40d3acd9560d3f941d91c419cc6` — SUCCESS
+**Current mainline:** `60bc118abd5874dcf09e48055f919e1168ad4c91`
+**Latest verified deployment:** Emerald workflow run `35915809923` for `60bc118abd5874dcf09e48055f919e1168ad4c91` — SUCCESS
 
 ## Authority chain
 
@@ -19,13 +19,13 @@
 |---|---|---|
 | Product/domain baseline | SATISFIED | PRD, domain contract and phase controls exist. |
 | Deployment pipeline | SATISFIED | CI builds/packages/uploads; deployment installs release and runs Prisma migrations. |
-| Production schema | SATISFIED | Nine migrations are present in current main and the current release was installed successfully by Emerald deployment `35898297667`; production business-data integrity remains a separate gate. |
+| Production schema | SATISFIED | Nine migrations are present in current main and the current release was installed successfully by Emerald deployment `35915809923`; production business-data integrity remains a separate gate. |
 | Sales execution | IMPLEMENTED-UNVERIFIED | Owner, next action, due date, stage history, phone normalization and admin corrections exist; fresh post-migration production data evidence is required. |
 | Identity/customer foundation | SATISFIED | Person, Opportunity, Customer, Activity, visitor/event/Growth Opportunity foundations have recorded acceptance evidence. |
 | Phase 4A conversations | SATISFIED | Canonical Conversation/Message, consent, opt-out, handoff, signed inbound boundary, idempotency and controlled simulations exist. |
 | Provider-specific live messaging | IMPLEMENTED-UNVERIFIED / DEFERRED | Real credentials, templates, provider callbacks and live acceptance are not universal. |
 | Automation engine | IMPLEMENTED-UNVERIFIED | Durable Workflow, WorkflowVersion, WorkflowExecution and WorkflowActionExecution models plus an internal-only engine now exist; production execution evidence remains. |
-| Quote/negotiation/order/payment | MISSING | No first-class quote/order/payment commercial chain is accepted. |
+| Quote/negotiation | IMPLEMENTED-UNVERIFIED | Phase 6A first-class versioned Quote, QuoteItem and NegotiationEvent records plus controlled lifecycle/revision API and dashboard workspace are deployed; controlled send/revise/accept/reject reconstruction evidence remains. Order/payment remain unimplemented by design. |
 | Revenue attribution | PARTIAL | Lead/opportunity deal values and reports exist; collected-payment evidence is not yet the source of revenue truth. |
 | Campaign/asset attribution | PARTIAL | Source/campaign/referral strings exist; first-class Campaign/Campaign Asset lifecycle is absent. |
 | Partner/influencer commerce | PARTIAL | Partner/referral/commission foundations exist; revenue-confirmed commission lineage is incomplete. |
@@ -73,8 +73,9 @@ An app UI translation dictionary and editing guide are now checked into the repo
 4. Verify contact email consent → rich branded auto-reply → canonical Email conversation/message/activity, including provider failure behavior.
 5. Verify user creation → login → role defaults → editable grants/revokes → activation/deactivation → audit record.
 6. Harden remaining legacy routes so the new permission model consistently replaces the older admin-email guards.
-7. Configure the Phase 5 scheduler secrets and complete scheduler/idempotency/cancellation acceptance before marking R20/R21 SATISFIED.
-8. Do not enable shared multi-tenant SaaS, payment-backed revenue, automated partner commissions or AI autonomy until their roadmap gates are separately satisfied.
+7. Complete the Phase 6A controlled quote acceptance: create → send → viewed/negotiating → revise → accept/reject, then reconstruct the full offer history and actor changes.
+8. Configure the Phase 5 scheduler secrets and complete scheduler/idempotency/cancellation acceptance before marking R20/R21 SATISFIED.
+9. Do not enable shared multi-tenant SaaS, payment-backed revenue, automated partner commissions or AI autonomy until their roadmap gates are separately satisfied.
 
 ## Hard scaling stops
 

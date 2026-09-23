@@ -39,8 +39,8 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 |---|---|---|---|
 | R20 | Automation engine | IMPLEMENTED-UNVERIFIED | Durable Workflow/Version/Execution/ActionExecution models, trigger conditions, delayed actions, retries, stale recovery, internal actions and scheduler exist; production scheduler/execution evidence remains. |
 | R21 | Automation safety | PARTIAL | Reply and terminal-state cancellation, disable handling, retries, execution audit, operator visibility and internal-only action boundaries exist; production acceptance plus customer-message safety/consent gates remain open. |
-| R22 | Quote/proposal | MISSING | Need first-class versioned commercial offer. |
-| R23 | Negotiation | MISSING | Need reconstructable offer-change history. |
+| R22 | Quote/proposal | IMPLEMENTED-UNVERIFIED | Versioned Quote/QuoteItem domain, lifecycle API and dashboard workspace deployed; controlled send/revision/acceptance evidence remains. |
+| R23 | Negotiation | IMPLEMENTED-UNVERIFIED | NegotiationEvent history and immutable quote revisions preserve offer changes, actors and snapshots; controlled reconstruction evidence remains. |
 | R24 | Order | MISSING | Need first-class committed transaction independent of lead stage. |
 | R25 | Payment | MISSING | Need provider-neutral transaction, idempotency and reconciliation. |
 | R26 | Revenue attribution | PARTIAL | Deal values exist; collected/recognized revenue must be linked to payment/order evidence. |
@@ -87,7 +87,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 
 A future PR must identify affected R-IDs and provide business outcome, data/API/UI effect, migration/rollback risk and acceptance evidence.
 
-Phase 5 implementation is now on mainline. Status remains IMPLEMENTED-UNVERIFIED/PARTIAL until scheduled production execution and acceptance evidence are retained.
+Phase 5 implementation is now on mainline. Status remains IMPLEMENTED-UNVERIFIED/PARTIAL until scheduled production execution and acceptance evidence are retained.\n\nPhase 6A implementation is now on mainline and deployed through Emerald. R22/R23 remain IMPLEMENTED-UNVERIFIED until a controlled quote is sent, revised, accepted/rejected and reconstructed from production history.
 
 Statuses can move only when the evidence required by the row is present.
 
