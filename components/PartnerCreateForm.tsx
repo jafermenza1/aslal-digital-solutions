@@ -17,7 +17,13 @@ type Created = {
   credentialsError: string | null;
 };
 
-export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true }: { products?: Array<{ slug:string; name:string }>; openInitially?: boolean; showTrigger?: boolean }) {
+type PartnerCreateFormProps = {
+  products?: Array<{ slug: string; name: string }>;
+  openInitially?: boolean;
+  showTrigger?: boolean;
+};
+
+export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true }: PartnerCreateFormProps) {
   const [open,setOpen]=useState(openInitially);
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
