@@ -30,7 +30,7 @@ export default async function ProductPage({params}:{params:Promise<{slug:string}
           <h1 className="mt-5 text-5xl font-black tracking-[-.05em] sm:text-7xl">{p.name}</h1>
           {p.tagline&&<p className="mt-4 text-xl font-bold text-[#E2B02A]">{p.tagline}</p>}
           <p className="mt-5 max-w-3xl text-lg leading-8 text-white/70">{p.description||p.shortDescription}</p>
-          <div className="mt-8 flex flex-wrap items-center gap-3"><Link href={quoteUrl} className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">Request Quote →</Link><Link href={demoUrl} className="rounded-full border border-white/20 px-6 py-4 font-bold hover:border-[#E2B02A] hover:text-[#E2B02A]">Request Demo</Link><Link href="/products" className="rounded-full border border-white/15 px-6 py-4 font-bold">← All products</Link></div>
+          <div className="mt-8 flex flex-wrap items-center gap-3"><Link href={requestUrl} className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B] transition hover:bg-[#ebd05d] hover:shadow-lg hover:shadow-[#E2B02A]/20">{requestLabel} →</Link><Link href="/products" className="rounded-full border border-white/15 px-6 py-4 font-bold">← All products</Link></div>
           {p.ctaNote&&<p className="mt-3 text-xs text-white/45">{p.ctaNote}</p>}
         </div>
         <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.06] shadow-2xl">
@@ -45,7 +45,7 @@ export default async function ProductPage({params}:{params:Promise<{slug:string}
         {features.length>0&&<Info title="What you get" items={features}/>}
         {benefits.length>0&&<Info title="Benefits" items={benefits}/>}
         {deliverables.length>0&&<Info title="Delivery" items={deliverables}/>}
-        <div className="rounded-[2rem] bg-[#071F47] p-7 text-white sm:p-9"><div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Ready to discuss it?</div><h2 className="mt-3 text-3xl font-black">Tell us what you need.</h2><p className="mt-3 max-w-2xl leading-7 text-white/60">{p.ctaNote||"Your request opens the Aslal contact flow with this product already attributed."}</p><div className="mt-6 flex flex-wrap gap-3"><Link href={quoteUrl} className="inline-flex rounded-full bg-[#E2B02A] px-6 py-3 font-black text-[#1E293B]">Request Quote →</Link><Link href={demoUrl} className="inline-flex rounded-full border border-white/20 px-6 py-3 font-black text-white hover:border-[#E2B02A] hover:text-[#E2B02A]">Request Demo</Link></div></div>
+        <div className="rounded-[2rem] bg-[#071F47] p-7 text-white sm:p-9"><div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Ready to discuss it?</div><h2 className="mt-3 text-3xl font-black">Tell us what you need.</h2><p className="mt-3 max-w-2xl leading-7 text-white/60">{p.ctaNote||"Your request opens the Aslal contact flow with this product already attributed."}</p><div className="mt-6 flex flex-wrap gap-3"><Link href={requestUrl} className="inline-flex rounded-full bg-[#E2B02A] px-6 py-3 font-black text-[#1E293B] transition hover:bg-[#ebd05d]">{requestLabel} →</Link></div></div>
       </div>
     </div></section>
   </main>;
