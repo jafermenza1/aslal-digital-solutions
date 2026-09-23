@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlexusBackground } from "@/components/PlexusBackground";
+import { AslalInteractiveHero } from "@/components/AslalInteractiveHero";
 
 const divisions = [
   { n:"01", title:"Digital Presence", text:"Websites, e-commerce, landing pages, web applications, customer portals and booking experiences.", href:"/services" },
@@ -20,24 +20,7 @@ const products = [
 
 export default function Home(){
  return <main className="landing-page">
-  <section className="landing-hero relative isolate overflow-hidden">
-   <div className="landing-ambient" aria-hidden="true"><PlexusBackground/><div className="ambient-fade"/></div>
-   <div className="hero-vignette"/>
-   <div className="container-aslal relative z-10 grid min-h-[780px] items-center gap-16 py-24 lg:grid-cols-[1.05fr_.95fr]">
-    <div className="hero-copy">
-      <div className="hero-kicker"><span className="status-dot"/> ENGINEERED GROWTH · LOCAL CONTEXT · MEASURABLE ROI</div>
-      <h1><span>Build.</span><strong>Automate.</strong><span>Grow.</span></h1>
-      <p>We build digital systems that turn attention into customers — combining technology, marketing and sales execution around the realities of your business.</p>
-      <div className="hero-actions"><Link href="/growth-builder" className="glow-button hero-primary">Build My Growth System <span>→</span></Link><Link href="/products" className="hero-secondary">Explore Our Technology</Link></div>
-      <div className="hero-signals"><span>WEBSITES</span><i/><span>SOFTWARE</span><i/><span>COMMERCE</span><i/><span>MARKETING</span><i/><span>AUTOMATION</span></div>
-    </div>
-    <div className="hero-system">
-      <div className="system-top"><div><small>ASLAL GROWTH SYSTEM</small><h2>Visitor <span>→</span> Growth</h2></div><b>CONNECTED</b></div>
-      <div className="system-flow">{["Visitor","Interest","Conversation","Lead","Sale","Growth"].map((x,i)=><div key={x} className={i===5?"active":""}><em>0{i+1}</em><strong>{x}</strong></div>)}</div>
-      <div className="system-outcome"><div><small>THE MODEL</small><strong>Understand demand. Create action. Measure growth.</strong></div><span>ROI</span><div className="progress"><i/></div></div>
-    </div>
-   </div>
-  </section>
+  <AslalInteractiveHero />
 
   <section className="landing-section light-section">
    <div className="container-aslal grid gap-14 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
