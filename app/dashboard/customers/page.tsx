@@ -2,13 +2,12 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/security";
+import { requirePermission } from "@/lib/authorization";
 
 export const dynamic = "force-dynamic";
 
 export default async function CustomersDashboard({ searchParams }: { searchParams: Promise<{ customer?: string }> }) {
-  const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session) redirect("/login");
+  await requirePermission("customers.view");
   const { customer: selectedId } = await searchParams;
 
   const customers = await prisma.customer.findMany({
