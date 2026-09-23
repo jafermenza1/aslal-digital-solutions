@@ -5,30 +5,78 @@ import type { RowDataPacket } from "mysql2/promise";
 
 const WIDTH = 252;
 const HEIGHT = 144;
+const FETCH_ATTEMPTS = 5;
+const FETCH_DELAY_MS = 300;
 
 function safeText(value: string | null | undefined, fallback = "—") {
   return (value || fallback).replace(/[\r\n]+/g, " ").trim();
 }
 
-export async function generatePartnerCardPdf(partnerId: string) {
-  const [partnerRows] = await db.query<Array<{ id: string; name: string; type: string; email: string | null; code: string | null } & RowDataPacket>>(
-    `SELECT p.id, p.name, p.type, p.email, rl.code
-     FROM partners p
-     LEFT JOIN referral_links rl ON rl.partner_id = p.id
-     WHERE p.id = ?
-     ORDER BY rl.created_at ASC
-     LIMIT 1`,
-    [partnerId],
-  );
-  const partner = partnerRows[0];
-  if (!partner) throw new Error("Partner not found.");
-  if (!partner.code) throw new Error("Partner has no referral link.");
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  const referral = { code: partner.code };
+type PartnerCardRow = {
+  id: string;
+  name: string;
+  type: string;
+  email: string | null;
+} & RowDataPacket;
+
+type ReferralCardRow = {
+  code: string;
+} & RowDataPacket;
+
+/**
+ * Fetch partner and referral separately, with a short retry window.
+ * Partner creation inserts these records sequentially, so this also
+ * tolerates brief DB visibility/replication lag before PDF generation.
+ */
+async function fetchCardData(partnerId: string) {
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt += 1) {
+    try {
+      const [partnerRows] = await db.query<PartnerCardRow[]>(
+        "SELECT id, name, type, email FROM partners WHERE id = ? LIMIT 1",
+        [partnerId],
+      );
+      const partner = partnerRows[0];
+
+      if (!partner) throw new Error("Partner not found.");
+
+      const [referralRows] = await db.query<ReferralCardRow[]>(`
+        SELECT code
+        FROM referral_links
+        WHERE partner_id = ?
+        ORDER BY created_at ASC
+        LIMIT 1
+      `, [partnerId]);
+      const referral = referralRows[0];
+
+      if (!referral?.code) throw new Error("Partner referral link is not ready.");
+
+      return { partner, referral };
+    } catch (error) {
+      lastError = error;
+      if (attempt < FETCH_ATTEMPTS) await sleep(FETCH_DELAY_MS * attempt);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Partner card data is not ready.");
+}
+
+export async function generatePartnerCardPdf(partnerId: string) {
+  const { partner, referral } = await fetchCardData(partnerId);
 
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
   const referralUrl = `${baseUrl}/go/${referral.code}`;
-  const qr = await QRCode.toBuffer(referralUrl, { type: "png", width: 300, margin: 1, errorCorrectionLevel: "M" });
+  const qr = await QRCode.toBuffer(referralUrl, {
+    type: "png",
+    width: 300,
+    margin: 1,
+    errorCorrectionLevel: "M",
+  });
 
   const doc = new PDFDocument({ size: [WIDTH, HEIGHT], margin: 0, autoFirstPage: true });
   const chunks: Buffer[] = [];
@@ -56,6 +104,7 @@ export async function generatePartnerCardPdf(partnerId: string) {
   });
   doc.end();
   await pdfReady;
+
   return Buffer.concat(chunks);
 }
 
