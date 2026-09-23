@@ -52,7 +52,7 @@ export default function EmailConversationWorkspace() {
     setDiagnostics(data); setBusy("");
   }
 
-  return <div className="mt-8 space-y-6">
+  const diagnosticProviders: Array<[string, DiagnosticProvider | undefined]> = [\n    ["SMTP", diagnostics?.smtp],\n    ["IMAP", diagnostics?.imap],\n  ];\n\n  return <div className="mt-8 space-y-6">
     <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
@@ -72,7 +72,7 @@ export default function EmailConversationWorkspace() {
           <button onClick={() => void runDiagnostics()} disabled={busy !== ""} className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white disabled:opacity-40">{busy === "diagnostics" ? "Testing…" : "Test SMTP + IMAP connection"}</button>
         </div>
         {diagnostics && <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {[["SMTP", diagnostics.smtp], ["IMAP", diagnostics.imap]].map(([label, item]) => {
+          {diagnosticProviders.map(([label, provider]) => {
             const provider = item;
             return <div key={label} className={"rounded-xl border p-4 " + (provider?.ok ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50")}>
               <div className="flex items-center justify-between"><span className="font-black">{label}</span><span className="text-xs font-black">{provider?.ok ? "AUTH OK" : "FAILED"}</span></div>
