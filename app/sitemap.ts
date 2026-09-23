@@ -1,8 +1,18 @@
 import type { MetadataRoute } from "next";
+import { prisma } from "@/lib/prisma";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com";
-  return ["/", "/services", "/products", "/work", "/demo", "/contact"].map((path) => ({
-    url: `${base}${path}`,
-  }));
+  const products = await prisma.product.findMany({
+    where: { active: true },
+    select: { slug: true, updatedAt: true },
+  });
+  const staticPaths = ["/", "/services", "/products", "/work", "/demo", "/contact"];
+  return [
+    ...staticPaths.map(path => ({ url: `${base}${path}` })),
+    ...products.map(product => ({
+      url: `${base}/products/${product.slug}`,
+      lastModified: product.updatedAt,
+    })),
+  ];
 }
