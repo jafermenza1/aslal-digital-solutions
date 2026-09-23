@@ -37,8 +37,8 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 
 | ID | Requirement | Current status | Evidence/remaining proof |
 |---|---|---|---|
-| R20 | Automation engine | IMPLEMENTED-UNVERIFIED | Durable Workflow/Version/Execution/ActionExecution models, trigger conditions, delayed actions, retries, stale recovery and internal actions exist; controlled production evidence remains. |
-| R21 | Automation safety | PARTIAL | Reply and terminal-state cancellation, disable handling, retries, execution audit and operator visibility exist for the internal-action scope; customer-message safety/consent acceptance remains open. |
+| R20 | Automation engine | IMPLEMENTED-UNVERIFIED | Durable Workflow/Version/Execution/ActionExecution models, trigger conditions, delayed actions, retries, stale recovery, internal actions and scheduler exist; production scheduler/execution evidence remains. |
+| R21 | Automation safety | PARTIAL | Reply and terminal-state cancellation, disable handling, retries, execution audit, operator visibility and internal-only action boundaries exist; production acceptance plus customer-message safety/consent gates remain open. |
 | R22 | Quote/proposal | MISSING | Need first-class versioned commercial offer. |
 | R23 | Negotiation | MISSING | Need reconstructable offer-change history. |
 | R24 | Order | MISSING | Need first-class committed transaction independent of lead stage. |
@@ -68,7 +68,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R38 | Multi-tenancy | MISSING | No accepted Workspace/Tenant isolation model. |
 | R39 | Privacy lifecycle | PARTIAL | Communication preferences exist; retention/export/deletion/anonymization remains. |
 | R40 | Audit | PARTIAL | Lead/stage/admin and automation execution history now exist; financial, attribution and permission coverage remains. |
-| R41 | Mobile/low-bandwidth | PARTIAL | Responsive implementation exists; controlled critical-path testing remains. |
+| R41 | Mobile/low-bandwidth | PARTIAL | Responsive operations tabs and mobile cards now exist; controlled critical-path/device/network testing remains across the wider dashboard. |
 | R42 | Production integrity | IMPLEMENTED-UNVERIFIED | Endpoint/workflow exists; configure secrets and record a successful run. |
 
 ## End-to-end and intelligence
@@ -82,6 +82,8 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 ## Reconciliation rules
 
 A future PR must identify affected R-IDs and provide business outcome, data/API/UI effect, migration/rollback risk and acceptance evidence.
+
+Phase 5 implementation is now on mainline. Status remains IMPLEMENTED-UNVERIFIED/PARTIAL until scheduled production execution and acceptance evidence are retained.
 
 Statuses can move only when the evidence required by the row is present.
 
