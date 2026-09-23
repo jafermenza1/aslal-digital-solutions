@@ -4,6 +4,7 @@ import { siteConfig } from "@/lib/config";
 import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
+import { runLeadCreatedAutomation } from "@/lib/automation";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 
@@ -173,6 +174,12 @@ export async function POST(request: NextRequest) {
       await recalculateLeadScore(leadId);
     } catch (error) {
       console.error("LEAD_SCORE_ERROR", error);
+    }
+
+    try {
+      await runLeadCreatedAutomation(leadId);
+    } catch (error) {
+      console.error("LEAD_AUTOMATION_ERROR", error);
     }
 
     return NextResponse.json({ ok: true, leadId });
