@@ -14,6 +14,7 @@ export const PERMISSIONS = [
   "email_templates.manage",
   "users.manage",
   "partners.manage",
+  "partner.portal.view",
   "insights.view",
   "operations.view",
 ] as const;
@@ -43,6 +44,7 @@ const sets: Record<UserRole, Permission[]> = {
   PARTNER_MANAGER: [
     "dashboard.view","leads.view","customers.view","partners.manage","insights.view"
   ],
+  PARTNER: ["dashboard.view","partner.portal.view"],
 };
 
 export function defaultPermissionsForRole(role: UserRole) {
