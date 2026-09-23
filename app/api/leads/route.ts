@@ -14,7 +14,7 @@ type VisitorRow = RowDataPacket & {
   first_campaign: string | null;
 };
 
-type ProductRow = RowDataPacket & { id: string };
+type ProductRow = RowDataPacket & { id: string; slug: string; name: string };
 type PersonRow = RowDataPacket & { id: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,6 +63,8 @@ export async function POST(request: NextRequest) {
     const businessType = clean(body.businessType, 100);
     const message = clean(body.message, 5000);
     const productSlug = clean(body.productSlug, 160);
+    const productIdInput = clean(body.productId, 36);
+    const emailConsent = body.emailConsent === true || body.emailConsent === "true" || body.emailConsent === "on";
     const growthGoal = clean(body.growthGoal, 200);
     const growthChannels = clean(body.growthChannels, 500);
     const enrichedMessage = [
@@ -113,10 +115,20 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      if (email && emailConsent) {
+        await connection.execute(
+          `INSERT INTO communication_preferences
+            (id, person_id, email_allowed, sms_allowed, telegram_allowed, whatsapp_allowed, messenger_allowed, global_opt_out, updated_at)
+           VALUES (?, ?, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, NOW())
+           ON DUPLICATE KEY UPDATE email_allowed = IF(global_opt_out, email_allowed, TRUE), updated_at = NOW()`,
+          [randomUUID(), personId]
+        );
+      }
+
       await connection.execute(
         `INSERT INTO leads
-          (id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code, capture_mode, lead_category)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, 'WEB', 'Website contact')`,
         [
           leadId,
           visitorId,
@@ -143,23 +155,22 @@ export async function POST(request: NextRequest) {
         [leadId]
       );
 
-      if (productSlug) {
+      if (productIdInput || productSlug) {
         const [productRows] = await connection.execute<ProductRow[]>(
-          "SELECT id FROM products WHERE slug = ? LIMIT 1",
-          [productSlug]
+          productIdInput
+            ? "SELECT id, slug, name FROM products WHERE id = ? AND active = 1 LIMIT 1"
+            : "SELECT id, slug, name FROM products WHERE slug = ? AND active = 1 LIMIT 1",
+          [productIdInput || productSlug]
         );
         const product = productRows[0];
-        if (!product) {
-          throw new Error("Selected product/service does not exist.");
-        }
-        if (product) {
-          await connection.execute(
-            `INSERT INTO lead_product_interest
-              (id, lead_id, product_id, source, interest_score)
-             VALUES (?, ?, ?, 'contact_form', 10)`,
-            [randomUUID(), leadId, product.id]
-          );
-        }
+        if (!product) throw new Error("Selected product/service does not exist.");
+        await connection.execute(
+          `INSERT INTO lead_product_interest
+            (id, lead_id, product_id, source, interest_score)
+           VALUES (?, ?, ?, 'contact_form', 10)
+           ON DUPLICATE KEY UPDATE interest_score = interest_score + 1, last_seen_at = NOW()`,
+          [randomUUID(), leadId, product.id]
+        );
       }
 
       await connection.commit();
