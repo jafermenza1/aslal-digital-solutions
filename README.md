@@ -139,7 +139,7 @@ The current system is beyond the original prototype stage and already provides a
 
 The current system is **not yet the complete target-state Growth OS**.
 
-The newest catalog, offline-lead, transactional-email and user-access extensions are implemented in the current mainline but remain deployment/acceptance gated until CI, migration, production and controlled behavioral evidence is recorded.
+The newest catalog, offline-lead, transactional-email and user-access extensions are implemented on mainline and deployed through Emerald; controlled behavioral acceptance remains the next evidence gate.
 
 The missing or incomplete commercial chain includes the full customer-facing automation capability (the initial internal-only engine is implemented but not yet accepted), first-class quote/negotiation/order/payment domains, payment-backed revenue attribution, complete campaign/asset attribution, revenue-confirmed partner commissions, trust/review lifecycle, retention/referral workflows, full RBAC and tenant isolation, and complete end-to-end acceptance.
 
