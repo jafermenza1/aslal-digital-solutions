@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { LeadStatus, prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
