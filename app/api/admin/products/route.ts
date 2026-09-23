@@ -9,7 +9,7 @@ const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):""
 const slugify=(value:string)=>value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,160);
 function payload(body:any){
  const name=clean(body.name,190);
- const slug=slugify(clean(body.slug,160)||clean(body.name,190));
+ const slug=slugify(clean(body.slug,160)||clean(body.name,190)) || `solution-${randomUUID().slice(0,8)}`;
  const kind=String(body.kind||"SERVICE") as ProductKind;
  const relationshipType=String(body.relationshipType||"OWNED") as ProductRelationship;
  const providerName=clean(body.providerName,190)||null;
