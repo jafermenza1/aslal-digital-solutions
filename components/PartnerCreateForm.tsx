@@ -14,6 +14,7 @@ type Created = {
   emailRecipient: string;
   credentialsIssued: boolean;
   username: string | null;
+  credentialsError: string | null;
 };
 
 export default function PartnerCreateForm({ products = [] }: { products?: Array<{ slug:string; name:string }> }) {
@@ -43,6 +44,7 @@ export default function PartnerCreateForm({ products = [] }: { products?: Array<
         emailRecipient:String(data.emailRecipient||""),
         credentialsIssued:Boolean(data.credentialsIssued),
         username:data.username ? String(data.username) : null,
+        credentialsError:data.credentialsError ? String(data.credentialsError) : null,
       });
       setMessage(data.emailSent ? `Partner card emailed to ${data.emailRecipient}.` : "Partner created; the card email could not be sent. Download it below and check SMTP settings.");
     } catch(error) { setMessage(error instanceof Error?error.message:"Could not create partner."); }
@@ -77,7 +79,7 @@ export default function PartnerCreateForm({ products = [] }: { products?: Array<
           <div className="mt-4 rounded-2xl border border-slate-200 p-5">
             <div className="font-black text-slate-900">Delivery</div>
             <p className="mt-1 text-sm text-slate-500">{created.emailSent ? `PDF card emailed to ${created.emailRecipient}.` : `Email delivery was not confirmed. Admin fallback is ${created.emailRecipient}.`}</p>
-            {created.credentialsIssued && <p className="mt-2 text-xs font-semibold text-amber-700">Credentials issued for username <span className="font-mono">{created.username}</span>. The temporary password is never displayed again in the dashboard.</p>}
+            {created.credentialsIssued && <p className="mt-2 text-xs font-semibold text-emerald-700">Credentials issued for username <span className="font-mono">{created.username}</span>. The temporary password is never displayed again in the dashboard.</p>}{created.credentialsError && <p className="mt-2 text-xs font-semibold text-amber-700">{created.credentialsError}</p>}
           </div>
           {created.email && <div className="mt-3 text-xs text-slate-400">Registered partner email: {created.email}</div>}
           <div className="mt-6 flex flex-wrap justify-end gap-3"><a href={`/api/admin/partners/${created.id}/card`} className="rounded-full bg-[#E2B02A] px-5 py-3 text-sm font-black text-slate-950">Download printable PDF</a><button type="button" onClick={startAnother} className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold">Create another</button><button type="button" onClick={resetAndClose} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white">Close</button></div>
