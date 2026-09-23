@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/security";
+import { cancelLeadAutomation } from "@/lib/automation";
 
 export async function POST(request: NextRequest) {
   const session = verifySession((await cookies()).get("aslal_session")?.value);
@@ -29,6 +30,10 @@ export async function POST(request: NextRequest) {
     create: { id: randomUUID(), personId, ...data },
     update: data,
   });
-
-  return NextResponse.json({ ok: true, preference, actor: session.email });
+  let cancelled = 0;
+  if (data.globalOptOut) {
+    const leads = await prisma.lead.findMany({ where: { personId }, select: { id: true } });
+    for (const lead of leads) cancelled += (await cancelLeadAutomation(lead.id, "Global communication opt-out recorded; outbound follow-up automation cancelled.")).cancelled;
+  }
+  return NextResponse.json({ ok: true, preference, cancelled, actor: session.email });
 }
