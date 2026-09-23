@@ -1,0 +1,60 @@
+CREATE TABLE `quotes` (
+  `id` CHAR(36) NOT NULL,
+  `quote_number` VARCHAR(60) NOT NULL,
+  `customer_id` CHAR(36) NULL,
+  `opportunity_id` CHAR(36) NULL,
+  `parent_quote_id` CHAR(36) NULL,
+  `version` INT NOT NULL DEFAULT 1,
+  `status` ENUM('DRAFT','SENT','VIEWED','NEGOTIATING','ACCEPTED','REJECTED','EXPIRED','CANCELLED','SUPERSEDED') NOT NULL DEFAULT 'DRAFT',
+  `currency` VARCHAR(10) NOT NULL DEFAULT 'ETB',
+  `subtotal` DECIMAL(15,2) NOT NULL DEFAULT 0,
+  `discount` DECIMAL(15,2) NOT NULL DEFAULT 0,
+  `total` DECIMAL(15,2) NOT NULL DEFAULT 0,
+  `terms` TEXT NULL,
+  `expires_at` DATETIME(0) NULL,
+  `created_by` VARCHAR(190) NULL,
+  `sent_at` DATETIME(0) NULL,
+  `viewed_at` DATETIME(0) NULL,
+  `accepted_at` DATETIME(0) NULL,
+  `rejected_at` DATETIME(0) NULL,
+  `cancelled_at` DATETIME(0) NULL,
+  `superseded_at` DATETIME(0) NULL,
+  `created_at` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `quotes_quote_number_key` (`quote_number`),
+  KEY `idx_quotes_customer_created` (`customer_id`,`created_at`),
+  KEY `idx_quotes_opportunity_created` (`opportunity_id`,`created_at`),
+  KEY `idx_quotes_parent` (`parent_quote_id`),
+  KEY `idx_quotes_status_expires` (`status`,`expires_at`),
+  CONSTRAINT `quotes_customer_id_fkey` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `quotes_opportunity_id_fkey` FOREIGN KEY (`opportunity_id`) REFERENCES `opportunities` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `quotes_parent_quote_id_fkey` FOREIGN KEY (`parent_quote_id`) REFERENCES `quotes` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `quote_items` (
+  `id` CHAR(36) NOT NULL,
+  `quote_id` CHAR(36) NOT NULL,
+  `description` VARCHAR(500) NOT NULL,
+  `quantity` DECIMAL(15,3) NOT NULL DEFAULT 1,
+  `unit_price` DECIMAL(15,2) NOT NULL,
+  `discount` DECIMAL(15,2) NOT NULL DEFAULT 0,
+  `line_total` DECIMAL(15,2) NOT NULL,
+  `sort_order` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_quote_items_quote_sort` (`quote_id`,`sort_order`),
+  CONSTRAINT `quote_items_quote_id_fkey` FOREIGN KEY (`quote_id`) REFERENCES `quotes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `negotiation_events` (
+  `id` CHAR(36) NOT NULL,
+  `quote_id` CHAR(36) NOT NULL,
+  `type` ENUM('CREATED','SENT','VIEWED','REVISED','NEGOTIATING','ACCEPTED','REJECTED','EXPIRED','CANCELLED','SUPERSEDED','NOTE') NOT NULL,
+  `actor` VARCHAR(190) NULL,
+  `note` TEXT NULL,
+  `snapshot` JSON NULL,
+  `created_at` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_negotiation_events_quote_created` (`quote_id`,`created_at`),
+  CONSTRAINT `negotiation_events_quote_id_fkey` FOREIGN KEY (`quote_id`) REFERENCES `quotes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

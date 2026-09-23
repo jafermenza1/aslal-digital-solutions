@@ -14,6 +14,7 @@ users:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9" cy=
 message:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-5.5 4v-4.5A2.5 2.5 0 0 1 2 13V5.5h2Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/></svg>,
 mail:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.7"/></svg>,
 chart:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m4 7V3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>,
+quotes:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v14H4z" stroke="currentColor" strokeWidth="1.7"/><path d="M8 9h8M8 13h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>,
 journey:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.7"/><circle cx="19" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.7"/><circle cx="19" cy="18" r="2.5" stroke="currentColor" strokeWidth="1.7"/><path d="m7.5 11 9-4M7.5 13l9 4" stroke="currentColor" strokeWidth="1.7"/></svg>,
 ops:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v3m0 12v3M3 12h3m12 0h3m-4.6-6.4-2.1 2.1m-8.6 8.6-2.1 2.1m13 0-2.1-2.1M7.7 7.7 5.6 5.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.7"/></svg>,
 partner:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="7" cy="8" r="3" stroke="currentColor" strokeWidth="1.7"/><circle cx="17" cy="8" r="3" stroke="currentColor" strokeWidth="1.7"/><path d="M2.5 19c.4-3 2-4.5 4.5-4.5S11 16 11.5 19M12.5 19c.4-3 2-4.5 4.5-4.5s4.1 1.5 4.5 4.5" stroke="currentColor" strokeWidth="1.7"/></svg>,
@@ -23,6 +24,7 @@ store:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10h16l
 
 const ITEMS:Item[]=[
 {key:"overview",href:"/dashboard",permission:"dashboard.view",icon:"home",group:"work"},
+{key:"quotes",href:"/dashboard/quotes",permission:"leads.view",icon:"quotes",group:"work"},
 {key:"leads",href:"/dashboard/leads",permission:"leads.view",icon:"leads",group:"work"},
 {key:"customers",href:"/dashboard/customers",permission:"customers.view",icon:"users",group:"work"},
 {key:"conversations",href:"/dashboard/conversations",permission:"conversations.view",icon:"message",group:"work"},
