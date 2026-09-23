@@ -3,8 +3,8 @@
 **Document:** RECONCILIATION-GUIDE-001  
 **Status:** Authoritative engineering control  
 **Date:** 2026-09-23  
-**Current mainline:** 60bb7d3513f19367fb6bf736115f7b8af881600f
-**Latest verified deployment:** Emerald deployment run 35890757898 for the prior Phase 5 release, successful
+**Current mainline:** 383f849c18c8d40d3acd9560d3f941d91c419cc6
+**Latest verified deployment:** Emerald deployment run 35898297667 for current mainline 383f849c18c8d40d3acd9560d3f941d91c419cc6, successful
 **Product authority:** `docs/PRD-ASLAL-GROWTH-OS-v1.0.md` plus the expanded target-state product definition agreed on 2026-09-23  
 **Roadmap:** `docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
 
@@ -588,9 +588,9 @@ This is the minimum standard for moving a capability from implementation to acce
 
 ## 17. Current immediate reconciliation state
 
-The current extension work is implemented in main but has not yet been deployment-verified.
+The current extension work is implemented and deployed on Emerald. CI passed typecheck, lint and production build, and the deployment installed the release and passed the production health gate.
 
-The next reconciliation priority is to run CI on the current mainline, deploy the new migrations and application release, verify production schema/integrity, and execute controlled acceptance for the catalog, offline leads, transactional email and user permissions.
+The next reconciliation priority is controlled business acceptance: verify the catalog/product attribution path, offline lead workflow, transactional email behavior and user access enforcement in production, then close the production-integrity data gate.
 
 After those gates, finish the existing Phase 5 scheduler acceptance.
 
