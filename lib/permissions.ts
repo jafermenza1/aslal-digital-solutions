@@ -52,3 +52,14 @@ export function defaultPermissionsForRole(role: UserRole) {
 export function allPermissions() {
   return [...PERMISSIONS];
 }
+
+export function resolvePermissions(role: UserRole, raw: unknown) {
+  const base = new Set(defaultPermissionsForRole(role));
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    const data = raw as { grant?: unknown; revoke?: unknown };
+    const allowed = new Set(allPermissions());
+    if (Array.isArray(data.grant)) for (const item of data.grant) if (typeof item === "string" && allowed.includes(item as Permission)) base.add(item as Permission);
+    if (Array.isArray(data.revoke)) for (const item of data.revoke) if (typeof item === "string") base.delete(item as Permission);
+  }
+  return [...base];
+}
