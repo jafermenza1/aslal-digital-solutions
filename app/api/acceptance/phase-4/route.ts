@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/security";
+import { isAdminEmail, verifySession } from "@/lib/security";
 import { canSendConversation, isOutboundAllowed, sendThroughAdapter } from "@/lib/messaging";
 import { processInboundMessagingWebhook, signMessagingWebhook } from "@/lib/messaging-webhook";
 
@@ -30,7 +30,7 @@ function check(name: string, ok: boolean, detail: string) {
 
 export async function GET() {
   const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session || !isAdminEmail(session.email)) return NextResponse.json({ error: "Admin access required." }, { status: 403 });
   const [conversations, messages, inbound, outbound, sent, delivered, failed, handoffs, activities] = await Promise.all([
     prisma.conversation.count(),
     prisma.message.count(),
