@@ -43,5 +43,6 @@ export async function POST(request:Request){
  if(!valid(p))return NextResponse.json({error:"Name, slug, short description, valid type and relationship are required."},{status:400});
  if(await prisma.product.findUnique({where:{slug:p.slug},select:{id:true}}))return NextResponse.json({error:"That public slug is already in use."},{status:409});
  const product=await prisma.product.create({data:{id:randomUUID(),...p}});
+ revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
 }
