@@ -90,8 +90,19 @@ export async function processInboundMessagingWebhook(
     },
   });
 
+  const handoffLead = conversation.leadId
+    ? await prisma.lead.findUnique({ where: { id: conversation.leadId }, select: { ownerEmail: true } })
+    : null;
   await prisma.$transaction([
-    prisma.conversation.update({ where: { id: conversation.id }, data: { lastMessageAt: new Date() } }),
+    prisma.conversation.update({
+      where: { id: conversation.id },
+      data: {
+        lastMessageAt: new Date(),
+        status: "HUMAN_HANDOFF",
+        humanHandoffAt: new Date(),
+        assignedTo: conversation.assignedTo || handoffLead?.ownerEmail || null,
+      },
+    }),
     prisma.activity.create({
       data: {
         type: "MESSAGE_INBOUND",

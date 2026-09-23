@@ -5,18 +5,18 @@ import { prisma } from "@/lib/prisma";
 type LeadTarget = { id:string; status:string; score:number; ownerEmail:string|null; nextActionDueAt:Date|null; name:string };
 type Conditions = { activeOnly?:boolean; minScore?:number; allowedStatuses?:string[] };
 export type WorkflowActionDefinition = { type:WorkflowActionType; title?:string; subject?:string; description?:string; priority?:TaskPriority; dueMinutes?:number; delayMinutes?:number; retryDelayMinutes?:number; maxAttempts?:number };
-export type WorkflowDefinition = { version:number; conditions?:Conditions; actions:WorkflowActionDefinition[] };
+export type WorkflowDefinition = { version:number; conditions?:Conditions; actions:WorkflowActionDefinition[]; maxLifetimeMinutes?:number };
 
 const ACTIVE=["NEW","CONTACTED","QUALIFIED","DEMO","PROPOSAL","NEGOTIATION"];
 const CORE:Array<{systemKey:string;name:string;description:string;triggerType:WorkflowTriggerType;definition:WorkflowDefinition}>=
 [
  {systemKey:"lead_high_intent_triage",name:"High-intent lead triage",description:"Create prioritized internal follow-up work for a newly captured high-intent lead.",triggerType:WorkflowTriggerType.LEAD_CREATED,
-  definition:{version:1,conditions:{activeOnly:true,minScore:60,allowedStatuses:ACTIVE},actions:[
+  definition:{version:1,maxLifetimeMinutes:24*60,conditions:{activeOnly:true,minScore:60,allowedStatuses:ACTIVE},actions:[
    {type:WorkflowActionType.CREATE_TASK,title:"High-intent lead: contact within 15 minutes",description:"Review the journey, confirm ownership, and contact the lead promptly.",priority:TaskPriority.HIGH,dueMinutes:15,maxAttempts:3},
    {type:WorkflowActionType.CREATE_ACTIVITY,subject:"High-intent automation triggered",description:"The high-intent lead triage workflow executed.",maxAttempts:3}
  ]}},
  {systemKey:"lead_overdue_internal_reminder",name:"Overdue sales action reminder",description:"Create one internal reminder when an active lead's next action becomes overdue.",triggerType:WorkflowTriggerType.LEAD_OVERDUE,
-  definition:{version:1,conditions:{activeOnly:true,allowedStatuses:ACTIVE},actions:[
+  definition:{version:1,maxLifetimeMinutes:7*24*60,conditions:{activeOnly:true,allowedStatuses:ACTIVE},actions:[
    {type:WorkflowActionType.CREATE_TASK,title:"Overdue sales follow-up: review next action",description:"The configured next action is overdue. Complete the work or set a truthful new due date.",priority:TaskPriority.URGENT,dueMinutes:30,retryDelayMinutes:10,maxAttempts:3},
    {type:WorkflowActionType.CREATE_ACTIVITY,subject:"Overdue follow-up automation triggered",description:"An internal overdue-follow-up reminder was created.",retryDelayMinutes:10,maxAttempts:3}
  ]}}
@@ -35,8 +35,12 @@ async function lead(id:string){return prisma.lead.findUnique({where:{id},select:
 async function ensureInternal(){
  for(const d of CORE){
   const w=await prisma.workflow.upsert({where:{systemKey:d.systemKey},update:{name:d.name,description:d.description,triggerType:d.triggerType},create:{id:randomUUID(),systemKey:d.systemKey,name:d.name,description:d.description,triggerType:d.triggerType,ownerEmail:process.env.ADMIN_EMAIL||null}});
-  const v=await prisma.workflowVersion.findFirst({where:{workflowId:w.id},orderBy:{versionNo:"desc"},select:{versionNo:true}});
-  if(!v)try{await prisma.workflowVersion.create({data:{id:randomUUID(),workflowId:w.id,versionNo:d.definition.version,definition:json(d.definition),createdBy:process.env.ADMIN_EMAIL||"system"}});}catch(e){if(!isUnique(e))throw e;}
+  const v=await prisma.workflowVersion.findFirst({where:{workflowId:w.id},orderBy:{versionNo:"desc"},select:{versionNo:true,definition:true}});
+  const definitionChanged=v && JSON.stringify(v.definition)!==JSON.stringify(d.definition);
+  if(!v || definitionChanged){
+   const nextVersion=(v?.versionNo||0)+1;
+   try{await prisma.workflowVersion.create({data:{id:randomUUID(),workflowId:w.id,versionNo:nextVersion,definition:json(d.definition),createdBy:process.env.ADMIN_EMAIL||"system"}});}catch(e){if(!isUnique(e))throw e;}
+  }
  }
 }
 export async function ensureCoreWorkflows(){if(!bootstrap)bootstrap=ensureInternal().catch(e=>{bootstrap=null;throw e;});await bootstrap;}
@@ -65,12 +69,17 @@ export async function processWorkflowExecution(id:string){
  const e=await prisma.workflowExecution.findUnique({where:{id},include:{workflow:{select:{systemKey:true,active:true}},workflowVersion:{select:{definition:true}},actions:{orderBy:{actionIndex:"asc"}}}});
  if(!e)return {status:"MISSING" as const};
  if(e.status===WorkflowExecutionStatus.COMPLETED||e.status===WorkflowExecutionStatus.CANCELLED||e.status===WorkflowExecutionStatus.SKIPPED)return {status:e.status};
+ const def=e.workflowVersion.definition as unknown as WorkflowDefinition;
+ if(def.maxLifetimeMinutes && Date.now()-e.createdAt.getTime()>def.maxLifetimeMinutes*60000){
+  await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.CANCELLED,completedAt:new Date(),lastError:"Workflow execution expired before completion."}});
+  await prisma.workflowActionExecution.updateMany({where:{executionId:id,status:{in:[WorkflowActionStatus.PENDING,WorkflowActionStatus.RUNNING]}},data:{status:WorkflowActionStatus.SKIPPED,error:"Workflow execution expired.",completedAt:new Date()}});
+  return {status:"CANCELLED" as const};
+ }
  if(!e.workflow.active){
   await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.CANCELLED,completedAt:new Date(),lastError:"Workflow is disabled."}});
   await prisma.workflowActionExecution.updateMany({where:{executionId:id,status:WorkflowActionStatus.PENDING},data:{status:WorkflowActionStatus.SKIPPED,error:"Workflow disabled before execution.",completedAt:new Date()}});
   return {status:"CANCELLED" as const};
  }
- const def=e.workflowVersion.definition as unknown as WorkflowDefinition;
  let target=e.targetType==="LEAD"?await lead(e.targetId):null;
  if(e.targetType==="LEAD"&&(!target||!matches(target,def.conditions))){
   await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.SKIPPED,completedAt:new Date(),result:json({reason:!target?"lead-not-found":"conditions-not-met"})}});
@@ -142,7 +151,20 @@ async function overdue(limit:number){
  return {overdueLeads:rows.length,triggered};
 }
 export async function runScheduledAutomation(o?:{leadLimit?:number;executionLimit?:number}){await ensureCoreWorkflows();return {overdue:await overdue(Math.max(1,Math.min(200,o?.leadLimit??100))),executions:await processDue(Math.max(1,Math.min(200,o?.executionLimit??100)))};}
-export function runLeadCreatedAutomation(id:string){return runTrigger({triggerType:WorkflowTriggerType.LEAD_CREATED,targetType:"LEAD",targetId:id,idempotencyKey:`lead-created:${id}`});}
+export async function runLeadCreatedAutomation(id:string){
+  const current=await lead(id);
+  if(!current)return [];
+  if(!current.ownerEmail){
+   const fallback=String(process.env.ADMIN_EMAIL||"").trim().toLowerCase()||null;
+   const sales=await prisma.user.findFirst({where:{active:true,role:{in:["SALES_MANAGER","SALES_OPERATOR","BUSINESS_OWNER","ADMIN","SUPER_ADMIN"]}},orderBy:[{lastLoginAt:"desc"},{createdAt:"asc"}],select:{email:true}});
+   const owner=sales?.email||fallback;
+   if(owner){
+    await prisma.lead.update({where:{id},data:{ownerEmail:owner}});
+    await prisma.activity.create({data:{type:"LEAD_OWNER_ASSIGNED",subject:"High-intent lead owner assigned",details:json({leadId:id,ownerEmail:owner,actor:"automation:lead-created"})}});
+   }
+  }
+  return runTrigger({triggerType:WorkflowTriggerType.LEAD_CREATED,targetType:"LEAD",targetId:id,idempotencyKey:`lead-created:${id}`});
+}
 export async function cancelLeadAutomation(id:string,reason:string){
  const rows=await prisma.workflowExecution.findMany({where:{targetType:"LEAD",targetId:id,status:{in:[WorkflowExecutionStatus.PENDING,WorkflowExecutionStatus.RUNNING]}},select:{id:true}});
  if(!rows.length)return {cancelled:0};const ids=rows.map(x=>x.id),msg=reason.slice(0,500);
