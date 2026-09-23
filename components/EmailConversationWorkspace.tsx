@@ -52,7 +52,12 @@ export default function EmailConversationWorkspace() {
     setDiagnostics(data); setBusy("");
   }
 
-  const diagnosticProviders: Array<[string, DiagnosticProvider | undefined]> = [\n    ["SMTP", diagnostics?.smtp],\n    ["IMAP", diagnostics?.imap],\n  ];\n\n  return <div className="mt-8 space-y-6">
+  const diagnosticProviders: Array<[string, DiagnosticProvider | undefined]> = [
+    ["SMTP", diagnostics?.smtp],
+    ["IMAP", diagnostics?.imap],
+  ];
+
+  return <div className="mt-8 space-y-6">
     <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
