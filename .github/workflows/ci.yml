@@ -37,9 +37,21 @@ jobs:
           rm -rf emerald-deploy
           mkdir -p emerald-deploy
           cp -R .next/standalone/. emerald-deploy/
+
+          # The production host must have Prisma CLI + migrations available
+          # so deploy.yml can apply schema changes before swapping releases.
+          mkdir -p emerald-deploy/prisma emerald-deploy/node_modules
+          cp -R prisma/. emerald-deploy/prisma/
+          cp -R node_modules/prisma emerald-deploy/node_modules/
+          cp -R node_modules/@prisma emerald-deploy/node_modules/
+          mkdir -p emerald-deploy/node_modules/.bin
+          cp -a node_modules/.bin/prisma emerald-deploy/node_modules/.bin/prisma
+
           test -f emerald-deploy/server.js
           test -d emerald-deploy/.next/static
           test -d emerald-deploy/public
+          test -x emerald-deploy/node_modules/.bin/prisma
+          test -d emerald-deploy/prisma/migrations
           tar -czf aslal-emerald-${GITHUB_SHA}.tar.gz -C emerald-deploy .
 
       - name: Upload Emerald deployment artifact
