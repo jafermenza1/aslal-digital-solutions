@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/security";
+import { isAdminEmail, verifySession } from "@/lib/security";
 import { canSendConversation, sendThroughAdapter } from "@/lib/messaging";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function POST(request: NextRequest, { params }: Params) {
   const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session || !isAdminEmail(session.email)) return NextResponse.json({ error: "Admin access required." }, { status: 403 });
 
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
