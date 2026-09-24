@@ -6,7 +6,13 @@ import { siteConfig } from "@/lib/config";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = { title: "Products & Services | Aslal Digital Solutions", description: "Explore Aslal Digital Solutions products and services, with clear offers and direct request paths.", metadataBase: new URL(siteConfig.url), openGraph: { title: "Products & Services | Aslal Digital Solutions", description: "Explore Aslal Digital Solutions products and services. Request a quote or demo.", url: `${siteConfig.url}/products`, siteName: siteConfig.name, type: "website", images: [{ url: `${siteConfig.url}/og/aslal-products.jpg`, width: 1200, height: 630, alt: "Aslal Digital Solutions products and services" }] }, twitter: { card: "summary_large_image", title: "Products & Services | Aslal Digital Solutions", description: "Explore Aslal Digital Solutions products and services. Request a quote or demo.", images: [`${siteConfig.url}/og/aslal-products.jpg`] } };
+export async function generateMetadata(){
+ const title="Products & Services | Aslal Digital Solutions";
+ const description="Explore Aslal Digital Solutions products and services. Request a quote, sample, or demo.";
+ const url="https://aslaldigital.com/products";
+ const image="https://aslaldigital.com/og/products.png";
+ return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"website",siteName:"Aslal Digital Solutions",images:[{url,width:1200,height:630,alt:"Aslal Digital Solutions products and services"}],locale:"en_US"},twitter:{card:"summary_large_image",title,description,images:[image]}};
+}
 
 
 export default async function ProductsPage(){

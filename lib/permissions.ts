@@ -15,6 +15,7 @@ export const PERMISSIONS = [
   "email_templates.manage",
   "users.manage",
   "partners.manage",
+  "partners.credentials",
   "partner.portal.view",
   "insights.view",
   "operations.view",
@@ -64,5 +65,6 @@ export function resolvePermissions(role: UserRole, raw: unknown) {
     if (Array.isArray(data.grant)) for (const item of data.grant) if (typeof item === "string" && allowed.has(item as Permission)) base.add(item as Permission);
     if (Array.isArray(data.revoke)) for (const item of data.revoke) if (typeof item === "string") base.delete(item as Permission);
   }
+  if (role !== "ADMIN" && role !== "SUPER_ADMIN") base.delete("partners.credentials");
   return [...base];
 }

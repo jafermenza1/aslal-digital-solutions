@@ -13,7 +13,7 @@ function adminRecipient() {
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const actor = await authorizePermission("partners.manage");
-  if (!actor || !["SUPER_ADMIN", "ADMIN"].includes(actor.role)) return NextResponse.json({ error: "Only an administrator can issue partner portal credentials." }, { status: 403 });
+  if (!actor || !["ADMIN", "SUPER_ADMIN"].includes(actor.role)) return NextResponse.json({ error: "Only an administrator can generate partner portal credentials." }, { status: 403 });
   try {
     const { id } = await params;
     const [rows] = await db.query<(RowDataPacket & { id: string; name: string; email: string | null })[]>("SELECT id, name, email, status, verification_status FROM partners WHERE id = ? LIMIT 1", [id]);
