@@ -51,7 +51,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 |---|---|---|---|
 | R27 | Campaign | IMPLEMENTED-UNVERIFIED | First-class PartnerCampaign lifecycle, budgets, partner budget, reward model, dates, status and product linkage now exist; production campaign acceptance remains. |
 | R28 | Campaign asset/content | PARTIAL | Campaign partner matching and referral distribution exist, but a first-class creative/asset/post/QR/offline-placement entity remains incomplete. |
-| R29 | Partner/referral journey | PARTIAL | Partner identity → campaign → application/invitation → referral attribution and partner performance now exist; order/payment/revenue reconstruction remains open. |
+| R29 | Partner/referral journey | IMPLEMENTED-UNVERIFIED | Partner identity → campaign → application/invitation → referral attribution → order → payment → reconciled revenue is now traceable; controlled production reconstruction remains. |
 | R30 | Commission lifecycle | PARTIAL | Existing commission status operations plus Phase F payout ledger/dispute controls exist; confirmed-payment-derived calculation remains gated on Order/Payment. |
 | R31 | Influencer/agent workspace | IMPLEMENTED-UNVERIFIED | Partner portal now exposes profile, campaign opportunities, application, earnings/payout history and disputes; controlled partner acceptance and mobile evidence remain. |
 | R32 | Supplier/product partner model | PARTIAL | Product provider/relationship exists and campaigns can link to products; explicit product eligibility, supplier workspace and commercial relationship controls remain. |
@@ -76,7 +76,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | ID | Requirement | Current status | Evidence/remaining proof |
 |---|---|---|---|
 | R43 | Complete demand-to-revenue journey | MISSING | Need acquisition → engagement → lead → quote → order → payment → customer → revenue → attribution → retention proof. |
-| R44 | Business ROI reporting | PARTIAL | Existing insights use deal values; needs confirmed paid-revenue source and campaign assets. |
+| R44 | Business ROI reporting | PARTIAL | Revenue records now provide a confirmed paid-revenue source; reporting still needs campaign-asset attribution and production acceptance. |
 | R45 | AI-assisted intelligence | MISSING / DEFERRED | Begin only after reliable transaction/attribution data and human-control gates exist. |
 | R46 | Product/service catalog | IMPLEMENTED-UNVERIFIED | Admin catalog manager, database-backed public /products, rich detail pages, optional imagery, product-ID contact attribution and gold-hover catalog links are implemented; CI/deployment and production acceptance remain. |
 | R47 | Offline/manual lead capture | IMPLEMENTED-UNVERIFIED | Admin-authorized offline lead form captures source/category, campaign/location/reference and optional product interest, then enters the normal Lead/Person/StageHistory/scoring/Phase 5 workflow. |
