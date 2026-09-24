@@ -49,12 +49,12 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 
 | ID | Requirement | Current status | Evidence/remaining proof |
 |---|---|---|---|
-| R27 | Campaign | PARTIAL | Campaign/source strings exist; first-class lifecycle is missing. |
-| R28 | Campaign asset/content | PARTIAL | Referral/source context exists; asset/post/QR/offline placement entity is missing. |
-| R29 | Partner/referral journey | PARTIAL | Partner/referral/click chain exists; complete sale/payment reconstruction remains. |
-| R30 | Commission lifecycle | PARTIAL | Status operations exist; calculation must derive from confirmed commercial outcomes. |
-| R31 | Influencer/agent workspace | PARTIAL | Partner dashboard and referral operations exist; self-service distribution needs completion. |
-| R32 | Supplier/product partner model | PARTIAL | Product provider/relationship exists; product eligibility and supplier workflow need completion. |
+| R27 | Campaign | IMPLEMENTED-UNVERIFIED | First-class PartnerCampaign lifecycle, budgets, partner budget, reward model, dates, status and product linkage now exist; production campaign acceptance remains. |
+| R28 | Campaign asset/content | PARTIAL | Campaign partner matching and referral distribution exist, but a first-class creative/asset/post/QR/offline-placement entity remains incomplete. |
+| R29 | Partner/referral journey | PARTIAL | Partner identity → campaign → application/invitation → referral attribution and partner performance now exist; order/payment/revenue reconstruction remains open. |
+| R30 | Commission lifecycle | PARTIAL | Existing commission status operations plus Phase F payout ledger/dispute controls exist; confirmed-payment-derived calculation remains gated on Order/Payment. |
+| R31 | Influencer/agent workspace | IMPLEMENTED-UNVERIFIED | Partner portal now exposes profile, campaign opportunities, application, earnings/payout history and disputes; controlled partner acceptance and mobile evidence remain. |
+| R32 | Supplier/product partner model | PARTIAL | Product provider/relationship exists and campaigns can link to products; explicit product eligibility, supplier workspace and commercial relationship controls remain. |
 
 ## Trust, customer lifecycle and platform
 
