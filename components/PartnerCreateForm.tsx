@@ -14,9 +14,10 @@ type PartnerCreateFormProps = {
   products?: Array<{ slug: string; name: string }>;
   openInitially?: boolean;
   showTrigger?: boolean;
+  canIssueCredentials?: boolean;
 };
 
-export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true }: PartnerCreateFormProps) {
+export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false }: PartnerCreateFormProps) {
   const [open, setOpen] = useState(openInitially);
   const [busy, setBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState("");
@@ -149,7 +150,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                 </div>
 
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  {adminOnlyActions ? (<section className="rounded-2xl border border-slate-200 p-5">
+                  {canIssueCredentials ? (<section className="rounded-2xl border border-slate-200 p-5">
                     <div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 2</div>
                     <h3 className="mt-1 font-black">Portal credentials</h3>
                     <p className="mt-1 text-sm text-slate-500">Create the PARTNER login independently. The password is hashed and never displayed again.</p>
