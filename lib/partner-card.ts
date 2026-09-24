@@ -28,6 +28,7 @@ type PartnerCardRow = RowDataPacket & {
 };
 
 type ReferralCardRow = RowDataPacket & { code: string };
+type ReferralCode = { code: string };
 
 async function fetchCardData(partnerId: string) {
   let lastError: unknown = null;
@@ -45,7 +46,7 @@ async function fetchCardData(partnerId: string) {
         "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
         [partnerId],
       );
-      let referral = referralRows[0];
+      let referral: ReferralCode | undefined = referralRows[0];
       if (!referral?.code) {
         const base = safeText(partner.partnerNumber, partner.id.slice(0, 12)).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         const code = `${base}-${partner.id.slice(0, 8)}`;
