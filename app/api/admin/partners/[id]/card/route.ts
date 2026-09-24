@@ -10,11 +10,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const pdf = await generatePartnerCardPdf(id);
     const body = new ArrayBuffer(pdf.byteLength);
     new Uint8Array(body).set(pdf);
-    return new NextResponse(body, {
+    const filenameKey = id.startsWith("ASL-") ? id : id.slice(0, 12);\n    return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${partnerCardFileName(id.slice(0, 12))}"`,
+        "Content-Disposition": `attachment; filename="${partnerCardFileName(filenameKey)}"`,
         "Cache-Control": "private, no-store",
       },
     });
