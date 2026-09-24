@@ -9,9 +9,6 @@ async function isAuthorized() {
   return Boolean(await authorizePermission("partners.manage"));
 }
 
-function adminRecipient() {
-  return String(process.env.PARTNER_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "admin@aslaldigital.com").trim();
-}
 
 export async function POST(request: Request) {
   if (!(await isAuthorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,7 +22,6 @@ export async function POST(request: Request) {
     const code = String(body.code ?? "").trim().toLowerCase();
     const campaign = String(body.campaign ?? "").trim() || null;
     const productSlug = String(body.productSlug ?? "").trim() || null;
-    const requestCredentials = body.requestCredentials === true || body.requestCredentials === "true";
     let destinationPath = String(body.destinationPath ?? "/").trim() || "/";
 
     if (name.length < 2 || name.length > 160) return NextResponse.json({ error: "Partner name must be 2–160 characters." }, { status: 400 });
@@ -46,7 +42,7 @@ export async function POST(request: Request) {
 
     const partnerId = crypto.randomUUID();
     await db.query("INSERT INTO partners (id, name, email, type, status, portal_requested) VALUES (?, ?, ?, ?, ?, ?)", [
-      partnerId, name, email, type, status, requestCredentials ? 1 : 0,
+      partnerId, name, email, type, status, 0,
     ]);
 
     try {
