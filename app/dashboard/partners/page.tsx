@@ -51,7 +51,7 @@ export default async function PartnersDashboard({ searchParams }: { searchParams
         <h2 className="mt-1 text-xl font-black">Partner identities & ID actions</h2>
         <p className="mt-1 text-sm text-slate-500">The catalog is always visible below the workspace tabs. Search partner IDs, portal usernames, referral codes and routing, then generate or download an ID card independently.</p>
       </div>
-      <PartnerCatalog canIssueCredentials={session.role === "ADMIN" || session.role === "SUPER_ADMIN"} partners={partnerCatalogRows.map((p) => ({
+      <PartnerCatalog partners={partnerCatalogRows.map((p) => ({
         id: String(p.id),
         name: String(p.name),
         email: p.email ? String(p.email) : null,
