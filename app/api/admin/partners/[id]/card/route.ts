@@ -10,7 +10,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const pdf = await generatePartnerCardPdf(id);
     const body = new ArrayBuffer(pdf.byteLength);
     new Uint8Array(body).set(pdf);
-    const filenameKey = id.startsWith("ASL-") ? id : id.slice(0, 12);\n    return new NextResponse(body, {
+    const filenameKey = id.startsWith("ASL-") ? id : id.slice(0, 12);
+    return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
@@ -20,6 +21,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     });
   } catch (error) {
     console.error("PARTNER_CARD_DOWNLOAD_ERROR", error);
-    return NextResponse.json({ error: "Could not generate partner card. The partner record or referral link may be incomplete." }, { status: 500 });
+    const detail = error instanceof Error ? error.message : "Partner card prerequisites could not be prepared.";
+    return NextResponse.json({ error: "Could not generate partner card.", detail }, { status: 500 });
   }
 }
