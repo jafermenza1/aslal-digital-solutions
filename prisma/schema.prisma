@@ -32,6 +32,61 @@ enum PartnerStatus {
   PENDING
 }
 
+enum PartnerVerificationStatus {
+  REGISTERED
+  VERIFIED
+  SUSPENDED
+}
+
+enum PartnerTier {
+  STARTER
+  VERIFIED
+  PRO
+  ELITE
+}
+
+enum CampaignStatus {
+  DRAFT
+  OPEN
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum CampaignPartnerStatus {
+  INVITED
+  APPLIED
+  APPROVED
+  ACTIVE
+  DECLINED
+  COMPLETED
+  REMOVED
+}
+
+enum CampaignRewardType {
+  FIXED
+  PER_LEAD
+  PERCENT_SALE
+  HYBRID
+  MARGIN
+}
+
+enum PartnerDisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum PartnerPayoutStatus {
+  PENDING
+  APPROVED
+  PAID
+  FAILED
+  VOID
+}
+
 enum ProductRelationship {
   OWNED
   AFFILIATE
@@ -257,12 +312,27 @@ model Partner {
   username       String?         @unique @db.VarChar(190)
   passwordHash   String?         @map("password_hash") @db.VarChar(255)
   portalRequested Boolean        @default(false) @map("portal_requested")
-  type           PartnerType     @default(AGENT)
-  status         PartnerStatus   @default(ACTIVE)
-  createdAt      DateTime        @default(now()) @map("created_at") @db.DateTime(0)
-  referralLinks  ReferralLink[]
-  commissions    Commission[]
-  user           User?
+  type               PartnerType               @default(AGENT)
+  status             PartnerStatus             @default(ACTIVE)
+  verificationStatus PartnerVerificationStatus @default(REGISTERED) @map("verification_status")
+  tier               PartnerTier               @default(STARTER)
+  bio                String?                   @db.Text
+  specialties        String?                   @db.Text
+  serviceAreas       String?                   @map("service_areas") @db.Text
+  audienceSize       Int?                      @map("audience_size")
+  verificationNotes  String?                   @map("verification_notes") @db.Text
+  verifiedAt         DateTime?                 @map("verified_at") @db.DateTime(0)
+  verifiedBy         String?                   @map("verified_by") @db.VarChar(190)
+  createdAt          DateTime                  @default(now()) @map("created_at") @db.DateTime(0)
+  referralLinks      ReferralLink[]
+  commissions        Commission[]
+  user               User?
+  campaignPartners   CampaignPartner[]
+  disputes           PartnerDispute[]
+  payouts            PartnerPayout[]
+
+  @@index([verificationStatus], map: "idx_partners_verification")
+  @@index([tier], map: "idx_partners_tier")
 
   @@index([status], map: "idx_partners_status")
   @@map("partners")
@@ -324,6 +394,7 @@ model Product {
   createdAt        DateTime            @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.DateTime(0)
   interests        LeadProductInterest[]
+  campaigns        PartnerCampaign[]
 
   @@index([kind, active, sortOrder], map: "idx_products_kind_active_sort")
   @@index([featured], map: "idx_products_featured")
@@ -343,6 +414,7 @@ model Commission {
   partner        Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   lead           Lead?            @relation(fields: [leadId], references: [id], onDelete: SetNull)
   referralLink   ReferralLink?    @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
+  payoutItems    PartnerPayoutItem[]
 
   @@index([partnerId], map: "idx_commission_partner")
   @@index([status], map: "idx_commission_status")
@@ -798,4 +870,109 @@ model LeadAdminAudit {
   @@index([leadId, createdAt], map: "idx_lead_admin_audit_lead_created")
   @@index([action, createdAt], map: "idx_lead_admin_audit_action_created")
   @@map("lead_admin_audits")
+}
+
+model PartnerCampaign {
+  id                  String               @id @db.Char(36)
+  name                String               @db.VarChar(190)
+  description         String?              @db.Text
+  status              CampaignStatus       @default(DRAFT)
+  targetDescription   String?              @map("target_description") @db.Text
+  location            String?              @db.VarChar(190)
+  budget              Decimal              @default(0) @db.Decimal(15,2)
+  partnerBudget       Decimal              @default(0) @map("partner_budget") @db.Decimal(15,2)
+  currency            String               @default("ETB") @db.VarChar(10)
+  rewardType          CampaignRewardType   @default(FIXED) @map("reward_type")
+  rewardAmount        Decimal?             @map("reward_amount") @db.Decimal(15,2)
+  rewardRate          Decimal?             @map("reward_rate") @db.Decimal(7,4)
+  requiredPartnerTypes String?            @map("required_partner_types") @db.Text
+  productId           String?              @map("product_id") @db.Char(36)
+  startsAt            DateTime?            @map("starts_at") @db.DateTime(0)
+  endsAt              DateTime?            @map("ends_at") @db.DateTime(0)
+  createdBy           String?              @map("created_by") @db.VarChar(190)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
+  product             Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
+  partners            CampaignPartner[]
+  disputes            PartnerDispute[]
+
+  @@index([status, startsAt, endsAt], map: "idx_partner_campaign_status_dates")
+  @@index([location], map: "idx_partner_campaign_location")
+  @@index([productId], map: "idx_partner_campaign_product")
+  @@map("partner_campaigns")
+}
+
+model CampaignPartner {
+  id           String                @id @db.Char(36)
+  campaignId   String                @map("campaign_id") @db.Char(36)
+  partnerId    String                @map("partner_id") @db.Char(36)
+  status       CampaignPartnerStatus @default(APPLIED)
+  role         PartnerType?
+  appliedAt    DateTime              @default(now()) @map("applied_at") @db.DateTime(0)
+  approvedAt   DateTime?             @map("approved_at") @db.DateTime(0)
+  completedAt  DateTime?             @map("completed_at") @db.DateTime(0)
+  notes        String?               @db.Text
+  createdAt    DateTime              @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime              @updatedAt @map("updated_at") @db.DateTime(0)
+  campaign     PartnerCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  partner      Partner               @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, partnerId], map: "uq_campaign_partner")
+  @@index([partnerId, status], map: "idx_campaign_partner_partner_status")
+  @@index([campaignId, status], map: "idx_campaign_partner_campaign_status")
+  @@map("campaign_partners")
+}
+
+model PartnerDispute {
+  id           String               @id @db.Char(36)
+  partnerId    String               @map("partner_id") @db.Char(36)
+  campaignId   String?              @map("campaign_id") @db.Char(36)
+  commissionId String?              @map("commission_id") @db.Char(36)
+  subject      String               @db.VarChar(190)
+  description  String               @db.Text
+  status       PartnerDisputeStatus @default(OPEN)
+  resolution   String?              @db.Text
+  resolvedBy   String?              @map("resolved_by") @db.VarChar(190)
+  resolvedAt   DateTime?             @map("resolved_at") @db.DateTime(0)
+  createdAt    DateTime             @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
+  partner      Partner              @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  campaign     PartnerCampaign?     @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  commission   Commission?          @relation(fields: [commissionId], references: [id], onDelete: SetNull)
+
+  @@index([partnerId, status, createdAt], map: "idx_partner_disputes_partner_status")
+  @@index([status, createdAt], map: "idx_partner_disputes_status_created")
+  @@map("partner_disputes")
+}
+
+model PartnerPayout {
+  id          String              @id @db.Char(36)
+  partnerId   String              @map("partner_id") @db.Char(36)
+  amount      Decimal             @default(0) @db.Decimal(15,2)
+  currency    String              @default("ETB") @db.VarChar(10)
+  status      PartnerPayoutStatus @default(PENDING)
+  reference   String?              @db.VarChar(190)
+  notes       String?              @db.Text
+  paidAt      DateTime?            @map("paid_at") @db.DateTime(0)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
+  partner     Partner              @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  items       PartnerPayoutItem[]
+
+  @@index([partnerId, status, createdAt], map: "idx_partner_payouts_partner_status")
+  @@index([status, createdAt], map: "idx_partner_payouts_status_created")
+  @@map("partner_payouts")
+}
+
+model PartnerPayoutItem {
+  id           String        @id @db.Char(36)
+  payoutId     String        @map("payout_id") @db.Char(36)
+  commissionId String        @map("commission_id") @db.Char(36)
+  amount       Decimal       @default(0) @db.Decimal(15,2)
+  payout       PartnerPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  commission   Commission    @relation(fields: [commissionId], references: [id], onDelete: Restrict)
+
+  @@unique([payoutId, commissionId], map: "uq_payout_commission")
+  @@index([commissionId], map: "idx_payout_item_commission")
+  @@map("partner_payout_items")
 }
