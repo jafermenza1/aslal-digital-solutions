@@ -349,7 +349,7 @@ model ReferralLink {
   campaignId      String?         @map("campaign_id") @db.Char(36)
   createdAt        DateTime        @default(now()) @map("created_at") @db.DateTime(0)
   partner         Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  campaign        PartnerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  partnerCampaign PartnerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   clicks          ReferralClick[]
   commissions     Commission[]
 
