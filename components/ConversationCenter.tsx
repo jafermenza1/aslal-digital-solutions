@@ -149,8 +149,6 @@ export default function ConversationCenter({ initialConversations, viewer }: { i
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search person, company, email…" className="w-full rounded-xl border border-white/10 bg-white/[.06] px-4 py-3 text-sm text-white placeholder:text-white/30 lg:max-w-sm" />
         </div>
         <div className="mt-4 text-xs text-white/35">Showing {visible.length} matching conversations. Open a row to work in the Conversation tab.</div>
-      </section>
-
       </section>}
 
       {workspaceTab === "conversation" && <div className="grid gap-5 xl:grid-cols-[390px_1fr]">
@@ -212,7 +210,7 @@ export default function ConversationCenter({ initialConversations, viewer }: { i
             </div>}
           </>}
         </section>
-      </div></div>}
+      </div>}
 
       {workspaceTab === "email" && <section className="portal-card p-5 sm:p-6"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-black">Email tools</h2><p className="mt-1 text-sm text-white/45">Check the mailbox and verify SMTP/IMAP connectivity without cluttering the queue.</p></div><div className="flex flex-wrap gap-2"><button onClick={()=>void checkInbox()} disabled={busy} className="rounded-xl bg-[#0F3E8A] px-4 py-2.5 text-xs font-black">Check email inbox</button><button onClick={()=>void diagnostics()} disabled={busy} className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-black text-white/75">Test email connection</button></div></div>{diagnostic&&<div className="mt-5 grid gap-3 sm:grid-cols-2">{([["SMTP",diagnostic.smtp],["IMAP",diagnostic.imap]] as const).map(([name,p])=><div key={name} className="rounded-xl border border-white/10 bg-white/[.04] p-4"><div className="flex justify-between"><b>{name}</b><span className={p?.ok?"text-emerald-300":"text-rose-300"}>{p?.ok?"READY":"FAILED"}</span></div><div className="mt-2 text-xs leading-5 text-white/45">{p?.host||"not configured"}:{p?.port} · {p?.user||"no mailbox"} · password {p?.passwordConfigured?"loaded":"missing"}</div>{p?.error&&<div className="mt-2 text-xs font-bold text-rose-300">{p.error}</div>}</div>)}</div>}</section>}
     </div>
