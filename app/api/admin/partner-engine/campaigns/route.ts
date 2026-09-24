@@ -11,11 +11,14 @@ type CampaignRow = RowDataPacket & { id:string; name:string; description:string|
 
 export async function GET() {
   if (!(await authorizePermission("partners.manage"))) return NextResponse.json({error:"Unauthorized"}, {status:401});
-  const [rows] = await db.query<CampaignRow[]>(`SELECT c.*, p.name product_name,
-    (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id) partner_count,
-    (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id AND cp.status IN ('APPROVED','ACTIVE','COMPLETED')) active_partner_count
-    FROM partner_campaigns c LEFT JOIN products p ON p.id=c.product_id ORDER BY c.created_at DESC LIMIT 250`);
-  return NextResponse.json({campaigns:rows});
+  const [rows, products] = await Promise.all([
+    db.query<CampaignRow[]>(`SELECT c.*, p.name product_name,
+      (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id) partner_count,
+      (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id AND cp.status IN ('APPROVED','ACTIVE','COMPLETED')) active_partner_count
+      FROM partner_campaigns c LEFT JOIN products p ON p.id=c.product_id ORDER BY c.created_at DESC LIMIT 250`),
+    db.query<RowDataPacket[]>(`SELECT id,name,kind FROM products WHERE active=1 ORDER BY name ASC LIMIT 250`),
+  ]);
+  return NextResponse.json({campaigns:rows[0],products:products[0]});
 }
 
 export async function POST(request:Request) {
