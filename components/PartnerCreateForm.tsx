@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 
 type Created = {
   id: string;
+  partnerNumber: string;
   name: string;
   code: string;
   url: string;
@@ -47,6 +48,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
 
       setCreated({
         id: String(data.partnerId),
+        partnerNumber: String(data.partnerNumber || ""),
         name: String(payload.name),
         code: String(data.code || ""),
         url: String(data.referralUrl || ""),
@@ -151,7 +153,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
 
                 <div className="mt-6 rounded-2xl bg-[#F8FAFC] p-5">
                   <div className="text-xs font-black uppercase text-slate-400">Partner identity</div>
-                  <div className="mt-2 font-mono text-xs font-black text-slate-500">ID: {created.id}</div>
+                  <div className="mt-2 font-mono text-xs font-black text-slate-500">Partner ID: {created.partnerNumber || created.id}</div>
                   <a href={created.url} target="_blank" rel="noreferrer" className="mt-2 block break-all font-mono text-sm font-black text-[#0F3E8A] underline">{created.url} ↗</a>
                   <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2"><div><b>Code:</b> {created.code}</div><div><b>Email:</b> {created.email || "Not registered"}</div></div>
                 </div>
