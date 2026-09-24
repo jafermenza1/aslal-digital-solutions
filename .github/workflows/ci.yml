@@ -46,7 +46,8 @@ jobs:
           # omit CLI-only transitive dependencies such as effect/fast-check.
           mkdir -p emerald-deploy/prisma emerald-deploy/.prisma-cli
           cp -R prisma/. emerald-deploy/prisma/
-          printf '{"name":"aslal-prisma-migration-runtime","private":true}\n' > emerald-deploy/.prisma-cli/package.json
+          printf '{"name":"aslal-prisma-migration-runtime","private":true}
+' > emerald-deploy/.prisma-cli/package.json
           npm install --prefix emerald-deploy/.prisma-cli --no-audit --no-fund --no-package-lock prisma@6.19.0
 
           test -f emerald-deploy/server.js
@@ -62,4 +63,4 @@ jobs:
           name: aslal-emerald-${{ github.sha }}
           path: aslal-emerald-${{ github.sha }}.tar.gz
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3
