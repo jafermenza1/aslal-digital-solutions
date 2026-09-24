@@ -11,12 +11,18 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   if (!(await authorizePermission("partners.manage"))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
-    const [rows] = await db.query<(RowDataPacket & { id: string; name: string; email: string | null })[]>("SELECT id, name, email FROM partners WHERE id = ? LIMIT 1", [id]);
+    const [rows] = await db.query<(RowDataPacket & { id: string; partnerNumber: string; name: string; email: string | null })[]>(
+      "SELECT id, partner_number AS partnerNumber, name, email FROM partners WHERE id = ? OR partner_number = ? LIMIT 1",
+      [id, id],
+    );
     const partner = rows[0];
     if (!partner) return NextResponse.json({ error: "Partner not found." }, { status: 404 });
     const pdf = await generatePartnerCardPdf(id);
     const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
-    const [referrals] = await db.query<(RowDataPacket & { code: string })[]>("SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1", [id]);
+    const [referrals] = await db.query<(RowDataPacket & { code: string })[]>(
+      "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
+      [partner.id],
+    );
     const code = referrals[0]?.code;
     if (!code) return NextResponse.json({ error: "Partner referral link is not ready." }, { status: 409 });
     const recipient = partner.email || adminRecipient();
