@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       partner: { select: { id: true, partnerNumber: true, name: true } },
       referralLink: { select: { id: true, code: true, campaign: true, productSlug: true } },
       items: { orderBy: { sortOrder: "asc" } },
-      payments: { orderBy: { createdAt: "asc" } },
+      payments: { orderBy: { createdAt: "asc" }, include: { revenue: true, commission: true } },
     },
     orderBy: { createdAt: "desc" },
   });
