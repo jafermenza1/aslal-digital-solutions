@@ -41,8 +41,8 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R21 | Automation safety | PARTIAL | Reply and terminal-state cancellation, disable handling, retries, execution audit, operator visibility and internal-only action boundaries exist; production acceptance plus customer-message safety/consent gates remain open. |
 | R22 | Quote/proposal | IMPLEMENTED-UNVERIFIED | Versioned Quote/QuoteItem domain, lifecycle API and dashboard workspace deployed; controlled send/revision/acceptance evidence remains. |
 | R23 | Negotiation | IMPLEMENTED-UNVERIFIED | NegotiationEvent history and immutable quote revisions preserve offer changes, actors and snapshots; controlled reconstruction evidence remains. |
-| R24 | Order | MISSING | Need first-class committed transaction independent of lead stage. |
-| R25 | Payment | MISSING | Need provider-neutral transaction, idempotency and reconciliation. |
+| R24 | Order | IMPLEMENTED-UNVERIFIED | First-class Order/OrderItem domain, accepted-quote conversion, committed order status, payment state, source/campaign/referral/partner/sales-owner attribution, and sales workspace now exist; production migration and controlled acceptance remain. |
+| R25 | Payment | IMPLEMENTED-UNVERIFIED | Provider-neutral Payment domain, idempotency key, explicit payment states, reconciliation states, failure/reversal/refund context, order payment-state propagation, and operator workspace now exist; provider/webhook and production reconciliation acceptance remain. |
 | R26 | Revenue attribution | PARTIAL | Deal values exist; collected/recognized revenue must be linked to payment/order evidence. |
 
 ## Campaign and partner ecosystem
