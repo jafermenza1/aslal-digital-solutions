@@ -152,7 +152,7 @@ jobs:
           if printf '%s\n' "$MIGRATION_STATUS" | grep -Fq "$FAILED_PARTNER_NUMBER_MIGRATION" &&
              printf '%s\n' "$MIGRATION_STATUS" | grep -Eiq 'failed|failed migration'; then
             echo "Recovering the known partial $FAILED_PARTNER_NUMBER_MIGRATION migration..."
-            printf '%s\n'               'ALTER TABLE partners DROP COLUMN IF EXISTS partner_number;'               | (cd "$RELEASE_PATH" && "$PRISMA" db execute --stdin)
+            printf '%s\n'               'ALTER TABLE partners DROP COLUMN IF EXISTS partner_number;'               | (cd "$RELEASE_PATH" && "$PRISMA" db execute --schema "$RELEASE_PATH/prisma/schema.prisma" --stdin)
             (cd "$RELEASE_PATH" && "$PRISMA" migrate resolve --rolled-back "$FAILED_PARTNER_NUMBER_MIGRATION")
             echo "Partial migration recovered; the corrected migration will now be reapplied."
           fi
