@@ -196,9 +196,11 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-2">
                     <a href={`/api/admin/partners/${encodeURIComponent(p.id)}/card`} className="whitespace-nowrap rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950">Generate ID</a>
-                    <button type="button" onClick={() => startEdit(p)} disabled={!adminOnlyActions} className="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#0F3E8A] disabled:cursor-not-allowed disabled:opacity-50">Edit / suspend</button>\n                    <button type="button" onClick={() => deletePartner(p)} disabled={!adminOnlyActions || busyId === p.id} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">
-                      {busyId === p.id ? "Issuing…" : p.username ? "Credentials active" : "Issue credentials"}
+                    <button type="button" onClick={() => startEdit(p)} disabled={!adminOnlyActions} className="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#0F3E8A] disabled:cursor-not-allowed disabled:opacity-50">Edit / suspend</button>
+                    <button type="button" onClick={() => issueCredentials(p.id)} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">
+                      {busyId === p.id ? "Working…" : p.username ? "Credentials active" : "Issue credentials"}
                     </button>
+                    <button type="button" onClick={() => deletePartner(p)} disabled={!adminOnlyActions || busyId === p.id} className="whitespace-nowrap rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:opacity-50">Delete</button>
                   </div>
                   {notice[p.id] && <div className="mt-2 max-w-[220px] text-[10px] font-semibold text-slate-500">{notice[p.id]}</div>}
                 </td>
@@ -214,6 +216,27 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
           </tbody>
         </table>
       </div>
+      {editing && adminOnlyActions && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div><div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Admin partner controls</div><h3 className="mt-1 text-2xl font-black">Edit {editing.partnerNumber}</h3><p className="mt-1 text-sm text-slate-500">Set status to Paused to suspend promotion and retain the partner history.</p></div>
+              <button type="button" onClick={() => setEditing(null)} className="rounded-xl border px-3 py-2 text-sm font-black">Close</button>
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <label><span className="text-xs font-black uppercase tracking-wider text-slate-500">Name</span><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" /></label>
+              <label><span className="text-xs font-black uppercase tracking-wider text-slate-500">Email</span><input type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" /></label>
+              <label><span className="text-xs font-black uppercase tracking-wider text-slate-500">Type</span><select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold"><option>AGENT</option><option>INFLUENCER</option><option>AFFILIATE</option><option>RESELLER</option></select></label>
+              <label><span className="text-xs font-black uppercase tracking-wider text-slate-500">Status</span><select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold"><option>ACTIVE</option><option>PAUSED</option><option>PENDING</option></select></label>
+              <label><span className="text-xs font-black uppercase tracking-wider text-slate-500">Audience size</span><input type="number" min="0" value={form.audienceSize} onChange={e=>setForm(f=>({...f,audienceSize:e.target.value}))} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" /></label>
+              <label><span className="text-xs font-black uppercase tracking-wider text-slate-500">Specialties</span><input value={form.specialties} onChange={e=>setForm(f=>({...f,specialties:e.target.value}))} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" /></label>
+              <label className="sm:col-span-2"><span className="text-xs font-black uppercase tracking-wider text-slate-500">Service areas</span><input value={form.serviceAreas} onChange={e=>setForm(f=>({...f,serviceAreas:e.target.value}))} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" /></label>
+              <label className="sm:col-span-2"><span className="text-xs font-black uppercase tracking-wider text-slate-500">Bio</span><textarea value={form.bio} onChange={e=>setForm(f=>({...f,bio:e.target.value}))} rows={4} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" /></label>
+            </div>
+            <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={()=>setEditing(null)} className="rounded-xl border px-5 py-3 text-sm font-black">Cancel</button><button type="button" onClick={saveEdit} disabled={busyId===editing.id} className="rounded-xl bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white disabled:opacity-50">{busyId===editing.id?"Saving…":"Save changes"}</button></div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
