@@ -66,3 +66,7 @@ html[data-theme="dark"] .dashboard-content .text-slate-400{color:#9bb0c4!importa
 html[data-theme="dark"] .dashboard-content .text-slate-500{color:#b0c1d0!important}
 html[data-theme="dark"] .dashboard-content [class*="bg-[#E2B02A]"]{color:#071F47!important}
 html[data-theme="dark"] .dashboard-content [class*="bg-[#E2B02A]"] button,html[data-theme="dark"] .dashboard-content [class*="bg-[#E2B02A]"] a{color:#071F47!important}
+
+html[data-theme="dark"] .dashboard-content .bg-slate-50,html[data-theme="dark"] .dashboard-content .bg-slate-100{background:var(--app-surface-2)!important;color:var(--app-text)!important}
+html[data-theme="dark"] .dashboard-content .text-slate-300,html[data-theme="dark"] .dashboard-content .text-slate-600{color:#b8c8d8!important}
+html[data-theme="dark"] .dashboard-content [class*="hover:bg-slate-50"]:hover,html[data-theme="dark"] .dashboard-content [class*="hover:bg-slate-100"]:hover{background:#18324d!important;color:#edf4f1!important}
