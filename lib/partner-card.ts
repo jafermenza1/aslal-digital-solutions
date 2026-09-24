@@ -21,6 +21,7 @@ function sleep(ms: number) {
 
 type PartnerCardRow = RowDataPacket & {
   id: string;
+  partnerNumber: string;
   name: string;
   type: string;
   email: string | null;
@@ -34,7 +35,7 @@ async function fetchCardData(partnerId: string) {
   for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt += 1) {
     try {
       const [partnerRows] = await db.query<PartnerCardRow[]>(
-        "SELECT id, name, type, email FROM partners WHERE id = ? LIMIT 1",
+        "SELECT id, partner_number AS partnerNumber, name, type, email FROM partners WHERE id = ? LIMIT 1",
         [partnerId],
       );
       const partner = partnerRows[0];
@@ -44,9 +45,13 @@ async function fetchCardData(partnerId: string) {
         "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
         [partnerId],
       );
-      const referral = referralRows[0];
-      if (!referral?.code) throw new Error("Partner referral link is not ready.");
-
+      let referral = referralRows[0];
+      if (!referral?.code) {
+        const base = safeText(partner.partnerNumber, partner.id.slice(0, 12)).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        const code = `${base}-${partner.id.slice(0, 8)}`;
+        await db.query("INSERT INTO referral_links (id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?)", [crypto.randomUUID(), partnerId, code, null, null, "/"]);
+        referral = { code };
+      }
       return { partner, referral };
     } catch (error) {
       lastError = error;
@@ -62,21 +67,26 @@ function createPdf(partner: PartnerCardRow, referralCode: string, referralUrl: s
   const chunks: Buffer[] = [];
   doc.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
 
-  doc.roundedRect(0, 0, WIDTH, HEIGHT, 12).fill("#0F3E8A");
-  doc.fillColor("#E2B02A").roundedRect(12, 12, 4, HEIGHT - 24, 2).fill();
+  doc.roundedRect(0, 0, WIDTH, HEIGHT, 12).fill("#082F49");
+  doc.fillOpacity(0.22).circle(220, 12, 58).fill("#38BDF8");
+  doc.fillOpacity(0.16).circle(246, 72, 72).fill("#E2B02A");
+  doc.fillOpacity(1).fillColor("#E2B02A").roundedRect(12, 12, 4, HEIGHT - 24, 2).fill();
   doc.fillColor("#FFFFFF").fontSize(9).font("Helvetica-Bold").text("ASLAL DIGITAL SOLUTIONS", 26, 17);
   doc.fillColor("#D8E5FF").fontSize(5.5).font("Helvetica").text("Growth Partner Network", 26, 30);
   doc.fillColor("#FFFFFF").fontSize(13).font("Helvetica-Bold").text(safeText(partner.name), 26, 48, { width: 140, ellipsis: true });
   doc.fillColor("#D8E5FF").fontSize(6.2).font("Helvetica").text(safeText(partner.type), 26, 64);
   doc.fillColor("#FFFFFF").fontSize(5.2).font("Helvetica-Bold").text("PARTNER ID", 26, 76);
-  doc.fillColor("#E2B02A").fontSize(5.5).font("Helvetica-Bold").text(safeText(partner.id), 26, 84, { width: 135, ellipsis: true });
+  doc.fillColor("#FFFFFF").fontSize(10.5).font("Helvetica-Bold").text(safeText(partner.partnerNumber), 26, 83, { width: 135, ellipsis: true });
   doc.fillColor("#FFFFFF").fontSize(5.5).font("Helvetica-Bold").text("REFERRAL CODE", 26, 94);
   doc.fillColor("#E2B02A").fontSize(7.5).font("Helvetica-Bold").text(safeText(referralCode), 26, 103, { width: 130, ellipsis: true });
   doc.fillColor("#D8E5FF").fontSize(5).font("Helvetica").text("Scan or use the referral link", 26, 115);
   doc.fillColor("#FFFFFF").fontSize(4.8).text(referralUrl, 26, 124, { width: 135, ellipsis: true, link: referralUrl });
 
   if (qr) {
-    doc.image(qr, WIDTH - 78, 34, { fit: [56, 56] });
+    doc.save();
+    doc.fillColor("#FFFFFF").roundedRect(WIDTH - 84, 26, 68, 76, 8).fill();
+    doc.restore();
+    doc.image(qr, WIDTH - 78, 32, { fit: [56, 56] });
     doc.fillColor("#FFFFFF").fontSize(4.8).font("Helvetica").text("aslaldigital.com", WIDTH - 78, 96, { width: 56, align: "center" });
   } else {
     doc.fillColor("#FFFFFF").fontSize(5.2).font("Helvetica-Bold").text("REFERRAL", WIDTH - 78, 54, { width: 56, align: "center" });
