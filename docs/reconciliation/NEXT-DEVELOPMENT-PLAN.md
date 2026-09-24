@@ -613,13 +613,19 @@ At least one controlled acquisition campaign must be traced to a confirmed paid 
 
 # 9. Phase 6E — Partner, Agent and Influencer Commerce
 
-The existing partner foundation should become a true distribution system.
+The existing partner foundation is now extended with the **Phase F Partner Engine** implementation on mainline. The current implementation covers partner identity/profile, verification and tiers, campaign opportunities and budgets, partner applications/invitations, matching, self-service campaign discovery, performance visibility, disputes and payout ledger history.
+
+The commercial gate is intentionally still open: payout records are operational ledger records only. Order/payment-backed revenue and commission settlement, first-class campaign assets/content, product eligibility, supplier workspace and production acceptance remain separate requirements.
 
 Partners must support:
 
 identity;
 
 type;
+
+verification;
+
+tier;
 
 approved products;
 
