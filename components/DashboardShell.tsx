@@ -10,7 +10,7 @@ import { getAppUi } from "@/lib/app-i18n";
 import type { Locale } from "@/lib/i18n";
 
 type User={name:string;email:string;role:string;permissions:string[]};
-const roleLabels:Record<string,string>={SUPER_ADMIN:"Super Administrator",ADMIN:"Administrator",BUSINESS_OWNER:"Business Owner",SALES_MANAGER:"Sales Manager",SALES_OPERATOR:"Sales Operator",MARKETING_OPERATOR:"Marketing Operator",PARTNER_MANAGER:"Partner Manager"};
+const roleLabels:Record<string,string>={SUPER_ADMIN:"Super Administrator",ADMIN:"Administrator",BUSINESS_OWNER:"Business Owner",SALES_MANAGER:"Sales Manager",SALES_OPERATOR:"Sales Operator",MARKETING_OPERATOR:"Marketing Operator",PARTNER_MANAGER:"Partner Manager",PARTNER:"Partner"};
 
 function titleFor(pathname:string,t:ReturnType<typeof getAppUi>){const entries:[string,string][]=[
 ["/dashboard/quotes",t.nav.quotes],
