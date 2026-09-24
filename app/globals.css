@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --color-aslal-blue: #0F3E8A;
+  --color-aslal-gold: #E2B02A;
+  --color-aslal-slate: #1E293B;
+  --color-aslal-ice: #F8FAFC;
+}
+
 :root{--blue:#0F3E8A;--blue-deep:#071F47;--gold:#E2B02A;--slate:#1E293B;--ice:#F8FAFC;--white:#fff;--line:rgba(15,62,138,.14);--muted:#64748b}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--ice);color:var(--slate);font-family:Inter,Plus Jakarta Sans,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid rgba(226,176,42,.55);outline-offset:3px}::selection{background:var(--gold);color:var(--slate)}
 .container-aslal{width:min(1180px,calc(100% - 40px));margin-inline:auto}.site-shell{min-height:100vh;display:flex;flex-direction:column}.site-content{display:contents}
