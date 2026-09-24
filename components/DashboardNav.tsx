@@ -36,7 +36,8 @@ const ITEMS:Item[]=[
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"management"},
 {key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"management"},
 {key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"management",nested:true},
-{key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"}
+{key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"},
+{key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"}
 ];
 
 export function DashboardNav({locale,permissions,mobile=false}:{locale:Locale;permissions:string[];mobile?:boolean}) {
@@ -45,4 +46,4 @@ export function DashboardNav({locale,permissions,mobile=false}:{locale:Locale;pe
  return <nav className="dashboard-sidebar-nav">{allowed.map((item,index)=>{const group=item.group;const showGroup=index===0||group!==allowed[index-1].group;return <div key={item.href}>{showGroup&&<div className="dashboard-nav-group">{t.groups[group]}</div>}<NavItem item={item} active={isActive(pathname,item.href)} label={t.nav[item.key]}/></div>})}</nav>;
 }
 function isActive(pathname:string,href:string){return href==="/dashboard"?pathname==="/dashboard":pathname===href||pathname.startsWith(href+"/");}
-function NavItem({item,active,label,mobile=false}:{item:Item;active:boolean;label:string;mobile?:boolean}){const icon=ICONS[item.icon];return <div className={`dashboard-nav-link-row ${active?"active":""}`}><Link href={item.href} className={`dashboard-nav-item ${active?"active ":""}${item.nested?"nested ":""}${mobile?"mobile":""}`} aria-current={active?"page":undefined}><span className="dashboard-nav-icon">{icon}</span><span>{label}</span>{active&&!mobile&&<span className="dashboard-nav-active-dot" aria-hidden="true"/>}</Link><Link href={`/dashboard/help/${item.key === "publicCatalog" ? "public-catalog" : item.key}`} target="_blank" rel="noopener noreferrer" className="dashboard-nav-help" aria-label={`Help for ${label}`}>?</Link></div>;}
+function NavItem({item,active,label,mobile=false}:{item:Item;active:boolean;label:string;mobile?:boolean}){const icon=ICONS[item.icon];return <div className={`dashboard-nav-link-row ${active?"active":""}`}><Link href={item.href} className={`dashboard-nav-item ${active?"active ":""}${item.nested?"nested ":""}${mobile?"mobile":""}`} aria-current={active?"page":undefined}><span className="dashboard-nav-icon">{icon}</span><span>{label}</span>{active&&!mobile&&<span className="dashboard-nav-active-dot" aria-hidden="true"/>}</Link></div>;}

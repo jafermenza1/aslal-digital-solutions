@@ -15,7 +15,7 @@ type UserRow = {
 const permissions = [
   "dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view",
   "conversations.view","conversations.send","conversations.manage","products.manage",
-  "email_templates.manage","users.manage","partners.manage","insights.view","operations.view",
+  "email_templates.manage","users.manage","partners.manage","partner.portal.view","insights.view","operations.view",
 ];
 
 const roleDefaults: Record<string, string[]> = {
@@ -26,6 +26,7 @@ const roleDefaults: Record<string, string[]> = {
   SALES_OPERATOR: ["dashboard.view","leads.view","leads.create","leads.edit","customers.view","conversations.view","conversations.send"],
   MARKETING_OPERATOR: ["dashboard.view","leads.view","customers.view","products.manage","email_templates.manage","insights.view"],
   PARTNER_MANAGER: ["dashboard.view","leads.view","customers.view","partners.manage","insights.view"],
+  PARTNER: ["dashboard.view","partner.portal.view"],
 };
 
 type Draft = {
@@ -153,6 +154,7 @@ export function UserManagement({ initial }: { initial: UserRow[] }) {
             <option value="SALES_OPERATOR">Sales Operator</option>
             <option value="MARKETING_OPERATOR">Marketing Operator</option>
             <option value="PARTNER_MANAGER">Partner Manager</option>
+            <option value="PARTNER">Partner</option>
           </select>
           <label className="flex items-center gap-3 text-sm font-bold text-white/70">
             <input type="checkbox" checked={draft.active} onChange={event => setDraft({ ...draft, active: event.target.checked })} />

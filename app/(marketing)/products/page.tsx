@@ -1,8 +1,12 @@
 import { PublicProductCatalog } from "@/components/PublicProductCatalog";
 import { prisma } from "@/lib/prisma";
 import { getPageContent, contentValue, contentStyle } from "@/lib/public-content";
+import type { Metadata } from "next";
+import { siteConfig } from "@/lib/config";
 
 export const revalidate = 60;
+
+export const metadata: Metadata = { title: "Products & Services | Aslal Digital Solutions", description: "Explore Aslal Digital Solutions products and services, with clear offers and direct request paths.", metadataBase: new URL(siteConfig.url), openGraph: { title: "Products & Services | Aslal Digital Solutions", description: "Explore Aslal Digital Solutions products and services. Request a quote or demo.", url: `${siteConfig.url}/products`, siteName: siteConfig.name, type: "website", images: [{ url: `${siteConfig.url}/og/aslal-products.jpg`, width: 1200, height: 630, alt: "Aslal Digital Solutions products and services" }] }, twitter: { card: "summary_large_image", title: "Products & Services | Aslal Digital Solutions", description: "Explore Aslal Digital Solutions products and services. Request a quote or demo.", images: [`${siteConfig.url}/og/aslal-products.jpg`] } };
 
 
 export default async function ProductsPage(){

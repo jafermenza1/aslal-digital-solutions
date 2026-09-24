@@ -12,14 +12,15 @@ function adminRecipient() {
 }
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await authorizePermission("partners.manage"))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const actor = await authorizePermission("partners.manage");
+  if (!actor || !["SUPER_ADMIN", "ADMIN"].includes(actor.role)) return NextResponse.json({ error: "Only an administrator can issue partner portal credentials." }, { status: 403 });
   try {
     const { id } = await params;
     const [rows] = await db.query<(RowDataPacket & { id: string; name: string; email: string | null })[]>("SELECT id, name, email FROM partners WHERE id = ? LIMIT 1", [id]);
     const partner = rows[0];
     if (!partner) return NextResponse.json({ error: "Partner not found." }, { status: 404 });
     const existing = await prisma.user.findUnique({ where: { partnerId: id }, select: { id: true, email: true } });
-    if (existing) return NextResponse.json({ ok: true, alreadyIssued: true, credentialsIssued: true, username: existing.email.replace(/@partners\\.aslaldigital\\.com$/i, ""), emailSent: false, message: "Portal credentials already exist. No new password was generated." });
+    if (existing) return NextResponse.json({ ok: true, alreadyIssued: true, credentialsIssued: true, username: existing.email.replace(/@partners\.aslaldigital\.com$/i, ""), emailSent: false, message: "Portal credentials already exist. No new password was generated." });
 
     const base = partner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70) || "partner";
     const username = base + "-" + randomBytes(4).toString("hex");
@@ -37,7 +38,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     const portalUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com") + "/login";
     const message = {
       subject: "Aslal partner portal credentials — " + partner.name,
-      body: ["Hello " + partner.name + ",", "", "Your Aslal Digital Solutions partner portal credentials have been issued.", "Portal: " + portalUrl, "Username: " + username, "Temporary password: " + temporaryPassword, "", "Please sign in and change the temporary password after your first login."].join("\
+      body: ["Hello " + partner.name + ",", "", "Your Aslal Digital Solutions partner portal credentials have been issued.", "Portal: " + portalUrl, "Username: " + username, "Temporary password: " + temporaryPassword, "", "Please sign in and change the temporary password after your first login."].join("
 "),
       html: "<p>Hello " + partner.name + ",</p><p>Your Aslal Digital Solutions partner portal credentials have been issued.</p><p><strong>Portal:</strong> <a href=\"" + portalUrl + "\">" + portalUrl + "</a><br/><strong>Username:</strong> " + username + "<br/><strong>Temporary password:</strong> " + temporaryPassword + "</p><p>Please sign in and change the temporary password after your first login.</p>",
     };

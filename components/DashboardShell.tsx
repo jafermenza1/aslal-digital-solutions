@@ -10,12 +10,12 @@ import { getAppUi } from "@/lib/app-i18n";
 import type { Locale } from "@/lib/i18n";
 
 type User={name:string;email:string;role:string;permissions:string[]};
-const roleLabels:Record<string,string>={SUPER_ADMIN:"Super Administrator",ADMIN:"Administrator",BUSINESS_OWNER:"Business Owner",SALES_MANAGER:"Sales Manager",SALES_OPERATOR:"Sales Operator",MARKETING_OPERATOR:"Marketing Operator",PARTNER_MANAGER:"Partner Manager"};
+const roleLabels:Record<string,string>={SUPER_ADMIN:"Super Administrator",ADMIN:"Administrator",BUSINESS_OWNER:"Business Owner",SALES_MANAGER:"Sales Manager",SALES_OPERATOR:"Sales Operator",MARKETING_OPERATOR:"Marketing Operator",PARTNER_MANAGER:"Partner Manager",PARTNER:"Partner"};
 
 function titleFor(pathname:string,t:ReturnType<typeof getAppUi>){const entries:[string,string][]=[
 ["/dashboard/quotes",t.nav.quotes],
 ["/dashboard/leads",t.nav.leads],["/dashboard/customers",t.nav.customers],["/dashboard/conversations",t.nav.conversations],["/dashboard/email-templates",t.nav.emailTemplates],
-["/dashboard/insights",t.nav.insights],["/dashboard/journey",t.nav.journey],["/dashboard/operations",t.nav.operations],["/dashboard/partners",t.nav.partners],["/dashboard/products",t.nav.products],["/dashboard/users",t.nav.users],["/dashboard",t.nav.overview]
+["/dashboard/insights",t.nav.insights],["/dashboard/journey",t.nav.journey],["/dashboard/operations",t.nav.operations],["/dashboard/partners",t.nav.partners],["/dashboard/partner",t.nav.partnerPortal],["/dashboard/products",t.nav.products],["/dashboard/users",t.nav.users],["/dashboard",t.nav.overview]
 ];return entries.find(([href])=>pathname===href||pathname.startsWith(href+"/"))?.[1]||t.nav.overview;}
 
 export function DashboardShell({user,locale,children}:{user:User;locale:Locale;children:React.ReactNode}){const pathname=usePathname();const t=getAppUi(locale);const title=titleFor(pathname,t);
@@ -27,7 +27,7 @@ return <div className="dashboard-app">
  </aside>
  <div className="dashboard-main">
   <header className="dashboard-topbar">
-   <div className="dashboard-topbar-heading"><span>{t.dashboard.eyebrow}</span><h1>{title}</h1></div>
+   <div className="dashboard-topbar-heading"><span>{t.dashboard.eyebrow}</span><div className="dashboard-topbar-title-row"><h1>{title}</h1><Link href={`/dashboard/help/${pathname==="/dashboard"?"overview":pathname.split("/").filter(Boolean).slice(1).join("-")}`} target="_blank" rel="noopener noreferrer" className="dashboard-topbar-help" aria-label={`Help for ${title}`}>?</Link></div></div>
    <div className="dashboard-topbar-actions"><div className="dashboard-user-chip"><span className="dashboard-user-avatar">{(user.name||user.email).charAt(0).toUpperCase()}</span><span className="dashboard-user-name">{user.name}</span></div><ThemeToggle compact/><LanguageToggle locale={locale}/><Link href="/" className="dashboard-top-link">{t.shell.website}</Link><form action="/api/auth/logout" method="post"><button className="dashboard-signout">{t.shell.signOut}</button></form></div>
   </header>
   <div className="dashboard-mobile-nav-wrap"><DashboardNav locale={locale} permissions={user.permissions} mobile/></div>

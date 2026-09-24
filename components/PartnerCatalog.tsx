@@ -20,7 +20,7 @@ function shortId(id: string) {
   return id.length > 18 ? `${id.slice(0, 8)}…${id.slice(-6)}` : id;
 }
 
-export default function PartnerCatalog({ partners }: { partners: PartnerCatalogItem[] }) {
+export default function PartnerCatalog({ partners, adminOnlyActions = false }: { partners: PartnerCatalogItem[]; adminOnlyActions?: boolean }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("ALL");
   const [type, setType] = useState("ALL");
