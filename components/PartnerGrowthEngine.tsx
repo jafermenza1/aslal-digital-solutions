@@ -21,7 +21,7 @@ export default function PartnerGrowthEngine(){
    setPartners(a.partners||[]);setCampaigns(b.campaigns||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
   }catch(e){setMessage(e instanceof Error?e.message:"Could not load partner engine.");}
  }
- useEffect(()=>{void load()},[]);
+ // The initial data load is intentionally performed from the async loader after mount; the loader updates state only after network completion.\n // eslint-disable-next-line react-hooks/set-state-in-effect\n useEffect(()=>{void load()},[]);
 
  async function createCampaign(e:React.FormEvent){
   e.preventDefault();setBusy("campaign");setMessage("");
