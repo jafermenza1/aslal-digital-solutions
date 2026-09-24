@@ -196,6 +196,30 @@ enum NegotiationEventType {
   NOTE
 }
 
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  FULFILLING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  INITIATED
+  PENDING
+  CONFIRMED
+  FAILED
+  REVERSED
+  REFUNDED
+}
+
+enum PaymentReconciliationStatus {
+  UNMATCHED
+  MATCHED
+  RECONCILED
+  EXCEPTION
+}
+
 enum CommunicationChannel {
   EMAIL
   SMS
@@ -327,6 +351,7 @@ model Partner {
   createdAt          DateTime                  @default(now()) @map("created_at") @db.DateTime(0)
   referralLinks      ReferralLink[]
   commissions        Commission[]
+  orders             Order[]
   user               User?
   campaignPartners   CampaignPartner[]
   disputes           PartnerDispute[]
@@ -352,6 +377,7 @@ model ReferralLink {
   partnerCampaign PartnerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   clicks          ReferralClick[]
   commissions     Commission[]
+  orders          Order[]
 
   @@index([partnerId], map: "idx_referral_partner")
   @@index([campaignId], map: "idx_referral_campaign")
@@ -420,6 +446,7 @@ model Commission {
   referralLink   ReferralLink?    @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
   payoutItems    PartnerPayoutItem[]
   disputes      PartnerDispute[]
+  orders        Order[]
 
   @@index([partnerId], map: "idx_commission_partner")
   @@index([status], map: "idx_commission_status")
@@ -722,6 +749,91 @@ model NegotiationEvent {
 
   @@index([quoteId, createdAt], map: "idx_negotiation_events_quote_created")
   @@map("negotiation_events")
+}
+
+model Order {
+  id                 String      @id @db.Char(36)
+  orderNumber        String      @unique @map("order_number") @db.VarChar(60)
+  quoteId            String?     @unique @map("quote_id") @db.Char(36)
+  customerId         String?     @map("customer_id") @db.Char(36)
+  opportunityId      String?     @map("opportunity_id") @db.Char(36)
+  status             OrderStatus @default(DRAFT)
+  currency           String      @default("ETB") @db.VarChar(10)
+  subtotal           Decimal     @default(0) @db.Decimal(15,2)
+  discount           Decimal     @default(0) @db.Decimal(15,2)
+  total              Decimal     @default(0) @db.Decimal(15,2)
+  paymentState       PaymentStatus @default(INITIATED) @map("payment_state")
+  fulfillmentState   String      @default("PENDING") @map("fulfillment_state") @db.VarChar(40)
+  source             String?     @db.VarChar(100)
+  campaign           String?     @db.VarChar(150)
+  referralCode       String?     @map("referral_code") @db.VarChar(100)
+  partnerId          String?     @map("partner_id") @db.Char(36)
+  referralLinkId     String?     @map("referral_link_id") @db.Char(36)
+  salesOwnerEmail    String?     @map("sales_owner_email") @db.VarChar(190)
+  createdAt          DateTime    @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt          DateTime    @updatedAt @map("updated_at") @db.DateTime(0)
+  confirmedAt        DateTime?   @map("confirmed_at") @db.DateTime(0)
+  completedAt        DateTime?   @map("completed_at") @db.DateTime(0)
+  cancelledAt        DateTime?   @map("cancelled_at") @db.DateTime(0)
+  quote              Quote?      @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  customer           Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  opportunity        Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  partner            Partner?    @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  referralLink       ReferralLink? @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
+  items              OrderItem[]
+  payments           Payment[]
+
+  @@index([customerId, createdAt], map: "idx_orders_customer_created")
+  @@index([opportunityId, createdAt], map: "idx_orders_opportunity_created")
+  @@index([status, createdAt], map: "idx_orders_status_created")
+  @@index([partnerId, createdAt], map: "idx_orders_partner_created")
+  @@index([referralCode], map: "idx_orders_referral")
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @db.Char(36)
+  orderId     String   @map("order_id") @db.Char(36)
+  description String   @db.VarChar(500)
+  quantity    Decimal  @default(1) @db.Decimal(15,3)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(15,2)
+  discount    Decimal  @default(0) @db.Decimal(15,2)
+  lineTotal   Decimal  @map("line_total") @db.Decimal(15,2)
+  sortOrder   Int      @default(0) @map("sort_order")
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, sortOrder], map: "idx_order_items_order_sort")
+  @@map("order_items")
+}
+
+model Payment {
+  id                     String                      @id @db.Char(36)
+  orderId                String                      @map("order_id") @db.Char(36)
+  customerId             String?                     @map("customer_id") @db.Char(36)
+  provider               String                      @db.VarChar(80)
+  providerTransactionRef String?                     @map("provider_transaction_ref") @db.VarChar(190)
+  idempotencyKey         String                      @unique @map("idempotency_key") @db.VarChar(255)
+  amount                 Decimal                     @db.Decimal(15,2)
+  currency               String                    @db.VarChar(10)
+  method                 String?                    @db.VarChar(50)
+  status                 PaymentStatus              @default(INITIATED)
+  reconciliationStatus   PaymentReconciliationStatus @default(UNMATCHED) @map("reconciliation_status")
+  failureReason          String?                   @map("failure_reason") @db.Text
+  reversalReason         String?                   @map("reversal_reason") @db.Text
+  refundReason           String?                   @map("refund_reason") @db.Text
+  metadata               Json?
+  confirmedAt            DateTime?                 @map("confirmed_at") @db.DateTime(0)
+  reconciledAt           DateTime?                 @map("reconciled_at") @db.DateTime(0)
+  createdAt              DateTime                  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt              DateTime                  @updatedAt @map("updated_at") @db.DateTime(0)
+  order                  Order                     @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  customer               Customer?                 @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt], map: "idx_payments_order_created")
+  @@index([status, createdAt], map: "idx_payments_status_created")
+  @@index([reconciliationStatus, createdAt], map: "idx_payments_reconciliation_created")
+  @@index([provider, providerTransactionRef], map: "idx_payments_provider_ref")
+  @@map("payments")
 }
 
 model GrowthOpportunity {
