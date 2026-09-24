@@ -63,10 +63,17 @@ async function fetchCardData(partnerIdentifier: string) {
 
         try {
           await db.query(
-            "INSERT INTO referral_links (id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?)",
-            [crypto.randomUUID(), partner.id, code, null, null, "/"],
+            "INSERT INTO referral_links (id, partner_id, code, destination_path) VALUES (?, ?, ?, ?)",
+            [crypto.randomUUID(), partner.id, code, "/"],
           );
-          referral = { code };
+          const [createdRows] = await db.query<ReferralCardRow[]>(
+            "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
+            [partner.id],
+          );
+          if (!createdRows[0]?.code) {
+            throw new Error(`Referral link was not persisted for partner ${partner.id}`);
+          }
+          referral = { code: createdRows[0].code };
         } catch (insertError) {
           // A concurrent request may have created the link between SELECT and
           // INSERT. Re-read by the resolved UUID before treating it as fatal.
