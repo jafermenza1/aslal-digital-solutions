@@ -27,7 +27,7 @@ return <div className="dashboard-app">
  </aside>
  <div className="dashboard-main">
   <header className="dashboard-topbar">
-   <div className="dashboard-topbar-heading"><span>{t.dashboard.eyebrow}</span><h1>{title}</h1></div>
+   <div className="dashboard-topbar-heading"><span>{t.dashboard.eyebrow}</span><div className="dashboard-topbar-title-row"><h1>{title}</h1><Link href={`/dashboard/help/${pathname==="/dashboard"?"overview":pathname.split("/").filter(Boolean).slice(1).join("-")}`} target="_blank" rel="noopener noreferrer" className="dashboard-topbar-help" aria-label={`Help for ${title}`}>?</Link></div></div>
    <div className="dashboard-topbar-actions"><div className="dashboard-user-chip"><span className="dashboard-user-avatar">{(user.name||user.email).charAt(0).toUpperCase()}</span><span className="dashboard-user-name">{user.name}</span></div><ThemeToggle compact/><LanguageToggle locale={locale}/><Link href="/" className="dashboard-top-link">{t.shell.website}</Link><form action="/api/auth/logout" method="post"><button className="dashboard-signout">{t.shell.signOut}</button></form></div>
   </header>
   <div className="dashboard-mobile-nav-wrap"><DashboardNav locale={locale} permissions={user.permissions} mobile/></div>
