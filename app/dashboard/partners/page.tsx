@@ -12,7 +12,7 @@ import PartnerGrowthEngine from "@/components/PartnerGrowthEngine";
 
 type KpiRow = RowDataPacket & { active_partners: number; clicks: number; referred_leads: number; won_deals: number; attributed_revenue: number | string | null; payable_commissions: number | string | null };
 type PartnerRow = RowDataPacket & { id: string; name: string; type: string; status: string; links: number; clicks: number; leads: number; qualified: number; won: number; revenue: number | string | null; commissions: number | string | null; payable: number | string | null };
-type PartnerCatalogRow = RowDataPacket & { id: string; partner_number: string; name: string; email: string | null; username: string | null; type: string; status: string; code: string | null; campaign: string | null; product_slug: string | null; destination_path: string | null; created_at: Date | string };
+type PartnerCatalogRow = RowDataPacket & { id: string; partner_number: string; name: string; email: string | null; username: string | null; type: string; status: string; bio: string | null; specialties: string | null; service_areas: string | null; audience_size: number | null; code: string | null; campaign: string | null; product_slug: string | null; destination_path: string | null; created_at: Date | string };
 type LinkRow = RowDataPacket & { code: string; partner_name: string; type: string; campaign: string | null; product_slug: string | null; clicks: number; leads: number; won: number; revenue: number | string | null };
 type CommissionRow = RowDataPacket & { status: string; count: number; amount: number | string | null };
 const money = (value: number | string | null | undefined) => Number(value ?? 0).toLocaleString("en-ET", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -31,7 +31,7 @@ export default async function PartnersDashboard({ searchParams }: { searchParams
     db.query<LinkRow[]>(`SELECT rl.code,p.name partner_name,p.type,rl.campaign,rl.product_slug,COALESCE(c.clicks,0) clicks,COALESCE(l.leads,0) leads,COALESCE(l.won,0) won,COALESCE(l.revenue,0) revenue FROM referral_links rl INNER JOIN partners p ON p.id=rl.partner_id LEFT JOIN (SELECT referral_link_id,COUNT(*) clicks FROM referral_clicks GROUP BY referral_link_id) c ON c.referral_link_id=rl.id LEFT JOIN (SELECT referral_code,COUNT(*) leads,COUNT(CASE WHEN status='WON' THEN 1 END) won,COALESCE(SUM(CASE WHEN status='WON' THEN deal_value ELSE 0 END),0) revenue FROM leads WHERE referral_code IS NOT NULL GROUP BY referral_code) l ON l.referral_code=rl.code ORDER BY COALESCE(l.revenue,0) DESC,c.clicks DESC,rl.created_at DESC LIMIT 100`),
     db.query<CommissionRow[]>(`SELECT status,COUNT(*) count,COALESCE(SUM(amount),0) amount FROM commissions GROUP BY status ORDER BY FIELD(status,'PENDING','QUALIFIED','APPROVED','PAYABLE','PAID','VOID')`),
     db.query<RowDataPacket[]>(`SELECT slug,name FROM products WHERE active=1 ORDER BY name ASC`),
-    db.query<PartnerCatalogRow[]>(`SELECT p.id,p.partner_number,p.name,p.email,p.username,p.type,p.status,rl.code,rl.campaign,rl.product_slug,rl.destination_path,p.created_at FROM partners p LEFT JOIN referral_links rl ON rl.partner_id=p.id ORDER BY p.created_at DESC,rl.created_at ASC`),
+    db.query<PartnerCatalogRow[]>(`SELECT p.id,p.partner_number,p.name,p.email,p.username,p.type,p.status,p.bio,p.specialties,p.service_areas,p.audience_size,rl.code,rl.campaign,rl.product_slug,rl.destination_path,p.created_at FROM partners p LEFT JOIN referral_links rl ON rl.partner_id=p.id ORDER BY p.created_at DESC,rl.created_at ASC`),
   ]);
   const kpi = kpiRows[0] ?? { active_partners: 0, clicks: 0, referred_leads: 0, won_deals: 0, attributed_revenue: 0, payable_commissions: 0 };
   return <main className="min-h-screen bg-[#F8FAFC] py-10"><div className="container-aslal">
@@ -59,6 +59,10 @@ export default async function PartnersDashboard({ searchParams }: { searchParams
         campaign: p.campaign ? String(p.campaign) : null,
         productSlug: p.product_slug ? String(p.product_slug) : null,
         destinationPath: p.destination_path ? String(p.destination_path) : null,
+        bio: p.bio ? String(p.bio) : null,
+        specialties: p.specialties ? String(p.specialties) : null,
+        serviceAreas: p.service_areas ? String(p.service_areas) : null,
+        audienceSize: p.audience_size == null ? null : Number(p.audience_size),
         createdAt: p.created_at instanceof Date ? p.created_at.toISOString() : String(p.created_at),
       }))} adminOnlyActions={adminOnlyActions} />
     </section> : null}
