@@ -35,7 +35,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const order = await prisma.order.findUnique({ where: { id: orderId } });
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
     if (order.status === "CANCELLED") return NextResponse.json({ error: "Cancelled orders cannot receive payments." }, { status: 409 });
-    if (amount > Number(order.total)) return NextResponse.json({ error: "Payment cannot exceed the order total." }, { status: 409 });
+
+    const confirmedPayments = await prisma.payment.aggregate({
+      where: { orderId, status: { in: ["CONFIRMED", "PENDING", "INITIATED"] } },
+      _sum: { amount: true },
+    });
+    const outstanding = Math.max(0, Number(order.total) - Number(confirmedPayments._sum.amount || 0));
+    if (amount > outstanding) {
+      return NextResponse.json({ error: `Payment exceeds the remaining order balance of ${outstanding.toFixed(2)} ${order.currency}.` }, { status: 409 });
+    }
 
     const payment = await prisma.$transaction(async (tx) => {
       const created = await tx.payment.create({
