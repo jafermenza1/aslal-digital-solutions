@@ -415,6 +415,7 @@ model Commission {
   lead           Lead?            @relation(fields: [leadId], references: [id], onDelete: SetNull)
   referralLink   ReferralLink?    @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
   payoutItems    PartnerPayoutItem[]
+  disputes      PartnerDispute[]
 
   @@index([partnerId], map: "idx_commission_partner")
   @@index([status], map: "idx_commission_status")
