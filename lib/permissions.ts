@@ -15,6 +15,7 @@ export const PERMISSIONS = [
   "email_templates.manage",
   "users.manage",
   "partners.manage",
+  "partners.credentials",
   "partner.portal.view",
   "insights.view",
   "operations.view",
