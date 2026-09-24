@@ -636,6 +636,7 @@ model Opportunity {
   conversations   Conversation[]
   activities      Activity[]
   quotes          Quote[]
+  orders          Order[]
 
   @@index([leadId, stage], map: "idx_opportunities_lead_stage")
   @@index([ownerEmail, stage], map: "idx_opportunities_owner_stage")
@@ -658,6 +659,8 @@ model Customer {
   activities    Activity[]
   conversations Conversation[]
   quotes        Quote[]
+  orders        Order[]
+  payments      Payment[]
 
   @@index([email], map: "idx_customer_email")
   @@index([phone], map: "idx_customer_phone")
