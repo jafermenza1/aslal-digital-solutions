@@ -30,48 +30,76 @@ type PartnerCardRow = RowDataPacket & {
 type ReferralCardRow = RowDataPacket & { code: string };
 type ReferralCode = { code: string };
 
-async function fetchCardData(partnerId: string) {
+async function fetchCardData(partnerIdentifier: string) {
   let lastError: unknown = null;
 
   for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt += 1) {
     try {
+      // Always resolve the partner first. The dashboard may pass either the
+      // internal UUID or the human-facing ASL-... partner number.
       const [partnerRows] = await db.query<PartnerCardRow[]>(
         "SELECT id, partner_number AS partnerNumber, name, type, email FROM partners WHERE id = ? OR partner_number = ? LIMIT 1",
-        [partnerId, partnerId],
+        [partnerIdentifier, partnerIdentifier],
       );
       const partner = partnerRows[0];
-      if (!partner) throw new Error("Partner not found.");
+      if (!partner) throw new Error(`Partner not found: ${partnerIdentifier}`);
+      if (!partner.partnerNumber) throw new Error(`Partner ${partner.id} has no partner number`);
 
+      // Use the resolved UUID for every referral operation. This avoids the
+      // previous failure mode where a request using ASL-... could not find an
+      // existing referral and then attempted to create a duplicate link.
       const [referralRows] = await db.query<ReferralCardRow[]>(
         "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
-        [partnerId],
+        [partner.id],
       );
       let referral: ReferralCode | undefined = referralRows[0];
+
       if (!referral?.code) {
-        const base = safeText(partner.partnerNumber, partner.id.slice(0, 12)).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        const base = safeText(partner.partnerNumber, partner.id.slice(0, 12))
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
         const code = `${base}-${partner.id.slice(0, 8)}`;
+
         try {
-          await db.query("INSERT INTO referral_links (id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?)", [crypto.randomUUID(), partner.id, code, null, null, "/"]);
+          await db.query(
+            "INSERT INTO referral_links (id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?)",
+            [crypto.randomUUID(), partner.id, code, null, null, "/"],
+          );
           referral = { code };
         } catch (insertError) {
+          // A concurrent request may have created the link between SELECT and
+          // INSERT. Re-read by the resolved UUID before treating it as fatal.
           const [existingRows] = await db.query<ReferralCardRow[]>(
             "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
             [partner.id],
           );
-          if (existingRows[0]?.code) referral = { code: existingRows[0].code };
-          else throw insertError;
+          if (existingRows[0]?.code) {
+            referral = { code: existingRows[0].code };
+          } else {
+            throw insertError;
+          }
         }
       }
+
+      if (!referral?.code) {
+        throw new Error(`Partner ${partner.id} has no usable referral code`);
+      }
+
       return { partner, referral };
     } catch (error) {
       lastError = error;
+      console.error("PARTNER_CARD_DATA_ATTEMPT", {
+        partnerIdentifier,
+        attempt,
+        error: error instanceof Error ? error.message : error,
+      });
       if (attempt < FETCH_ATTEMPTS) await sleep(FETCH_DELAY_MS * attempt);
     }
   }
 
   throw lastError instanceof Error ? lastError : new Error("Partner card data is not ready.");
 }
-
 function createPdf(partner: PartnerCardRow, referralCode: string, referralUrl: string, qr?: Buffer) {
   const doc = new PDFDocument({ size: [WIDTH, HEIGHT], margin: 0, autoFirstPage: true });
   const chunks: Buffer[] = [];
