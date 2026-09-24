@@ -157,7 +157,9 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                     <button type="button" onClick={issueCredentials} disabled={actionBusy === "credentials" || Boolean(credentials)} className="mt-4 rounded-full bg-[#0F3E8A] px-4 py-2.5 text-sm font-black text-white disabled:opacity-50">{actionBusy === "credentials" ? "Issuing…" : credentials ? "Credentials issued" : "Issue portal credentials"}</button>
                   </section>
 
-                                      ) : (<section className="rounded-2xl border border-slate-200 p-5"><div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 2</div><h3 className="mt-1 font-black">Portal credentials</h3><p className="mt-1 text-sm text-slate-500">Credential issuance is restricted to administrators. Ask an administrator to complete this step.</p></section>)}\n\n                  <section className="rounded-2xl border border-slate-200 p-5">
+                                      ) : (<section className="rounded-2xl border border-slate-200 p-5"><div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 2</div><h3 className="mt-1 font-black">Portal credentials</h3><p className="mt-1 text-sm text-slate-500">Credential issuance is restricted to administrators. Ask an administrator to complete this step.</p></section>)}
+
+                  <section className="rounded-2xl border border-slate-200 p-5">
                     <div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 3</div>
                     <h3 className="mt-1 font-black">Partner ID card</h3>
                     <p className="mt-1 text-sm text-slate-500">Generate the printable PDF independently. PDF/SMTP failures cannot block partner creation.</p>
