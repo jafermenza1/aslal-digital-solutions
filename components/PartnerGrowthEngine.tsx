@@ -2,15 +2,16 @@
 import { useEffect,useState } from "react";
 
 type Partner={id:string;name:string;type:string;status:string;verification_status:string;tier:string;audience_size:number|null;campaigns:number;active_campaigns:number;leads:number;won:number;revenue:number|string|null;open_disputes:number};
-type Campaign={id:string;name:string;status:string;target_description:string|null;location:string|null;budget:number|string;partner_budget:number|string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;partner_count:number;active_partner_count:number};
+type Campaign={id:string;name:string;status:string;target_description:string|null;location:string|null;budget:number|string;partner_budget:number|string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;product_id:string|null;product_name:string|null;currency:string;partner_count:number;active_partner_count:number};
+type Product={id:string;name:string;kind:string};
 type Dispute={id:string;partner_name:string;campaign_name:string|null;subject:string;description:string;status:string};
 type Payout={id:string;partner_name:string;amount:number|string;currency:string;status:string;reference:string|null;commission_count:number;created_at:string;paid_at:string|null};
 const money=(v:number|string|null|undefined)=>Number(v??0).toLocaleString("en-ET",{maximumFractionDigits:2});
 
 export default function PartnerGrowthEngine(){
- const [partners,setPartners]=useState<Partner[]>([]),[campaigns,setCampaigns]=useState<Campaign[]>([]),[disputes,setDisputes]=useState<Dispute[]>([]),[payouts,setPayouts]=useState<Payout[]>([]);
+ const [partners,setPartners]=useState<Partner[]>([]),[campaigns,setCampaigns]=useState<Campaign[]>([]),[products,setProducts]=useState<Product[]>([]),[disputes,setDisputes]=useState<Dispute[]>([]),[payouts,setPayouts]=useState<Payout[]>([]);
  const [message,setMessage]=useState(""),[busy,setBusy]=useState("");
- const [form,setForm]=useState({name:"",targetDescription:"",location:"",budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:"AGENT,INFLUENCER",description:""});
+ const [form,setForm]=useState({name:"",targetDescription:"",location:"",budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:"AGENT,INFLUENCER",productId:"",description:""});
  const [payout,setPayout]=useState({partnerId:"",amount:"",status:"PENDING",reference:"",notes:""});
 
  async function load(){
@@ -18,15 +19,16 @@ export default function PartnerGrowthEngine(){
    const rs=await Promise.all(["/api/admin/partner-engine/partners","/api/admin/partner-engine/campaigns","/api/admin/partner-engine/disputes","/api/admin/partner-engine/payouts"].map(u=>fetch(u)));
    if(rs.some(r=>!r.ok))throw new Error("Could not load partner engine data.");
    const [a,b,c,d]=await Promise.all(rs.map(r=>r.json()));
-   setPartners(a.partners||[]);setCampaigns(b.campaigns||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
+   setPartners(a.partners||[]);setCampaigns(b.campaigns||[]);setProducts(b.products||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
   }catch(e){setMessage(e instanceof Error?e.message:"Could not load partner engine.");}
  }
  // The initial data load is intentionally performed from the async loader after mount; the loader updates state only after network completion.\n // eslint-disable-next-line react-hooks/set-state-in-effect\n useEffect(()=>{void load()},[]);
 
  async function createCampaign(e:React.FormEvent){
   e.preventDefault();setBusy("campaign");setMessage("");
-  try{const r=await fetch("/api/admin/partner-engine/campaigns",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...form,status:"OPEN",currency:"ETB"})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign creation failed.");setMessage("Campaign created.");setForm({name:"",targetDescription:"",location:"",budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:"AGENT,INFLUENCER",description:""});await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign creation failed.")}finally{setBusy("")}
+  try{const r=await fetch("/api/admin/partner-engine/campaigns",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...form,status:"DRAFT",currency:"ETB"})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign creation failed.");setMessage("Campaign draft created. Open it when ready for partner applications.");setForm({name:"",targetDescription:"",location:"",budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:"AGENT,INFLUENCER",description:""});await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign creation failed.")}finally{setBusy("")}
  }
+ async function updateCampaign(id:string,value:string){setBusy("campaign:"+id);try{const r=await fetch("/api/admin/partner-engine/campaigns/"+encodeURIComponent(id),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:value})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign update failed.");await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign update failed.")}finally{setBusy("")}}
  async function updatePartner(id:string,field:string,value:string){
   setBusy(id);try{const r=await fetch("/api/admin/partner-engine/partners/"+encodeURIComponent(id),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({[field]:value})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Partner update failed.");await load()}catch(e){setMessage(e instanceof Error?e.message:"Partner update failed.")}finally{setBusy("")}
  }
@@ -90,7 +92,7 @@ export default function PartnerGrowthEngine(){
    </div>
   </section>
 
-  <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+  <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm"><h3 className="text-xl font-black">Campaign marketplace</h3><p className="mt-1 text-sm text-slate-500">Draft → Open → Active → Paused → Completed/Cancelled.</p><div className="mt-4 space-y-3">{campaigns.map(c=><div key={c.id} className="rounded-2xl border border-slate-100 p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><div className="font-black">{c.name}</div><div className="mt-1 text-xs text-slate-500">{c.product_name||"No product/service"} · {c.location||"Any location"} · {c.target_description||"No objective"}</div><div className="mt-1 text-xs text-slate-400">Total {c.currency} {money(c.budget)} · Partner {c.currency} {money(c.partner_budget)} · {c.reward_type.replaceAll("_"," ")}</div></div><select aria-label={"Campaign status for "+c.name} value={c.status} disabled={busy==="campaign:"+c.id} onChange={e=>updateCampaign(c.id,e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black">{["DRAFT","OPEN","ACTIVE","PAUSED","COMPLETED","CANCELLED"].map(s=><option key={s} value={s}>{s}</option>)}</select></div></div>)}</div></section><section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
    <div className="border-b border-slate-100 p-6"><h3 className="text-xl font-black">Partner directory</h3><p className="mt-1 text-sm text-slate-500">Use factual verification, tier, type, audience and actual attributed outcomes for partner selection.</p></div>
    <div className="overflow-x-auto"><table className="w-full min-w-[1100px] text-left text-sm"><thead className="bg-[#0F3E8A] text-white"><tr>{["Partner","Type","Verification","Tier","Audience","Campaigns","Leads/Won","Revenue","Disputes","Status"].map(x=><th key={x} className="px-4 py-3">{x}</th>)}</tr></thead><tbody>{partners.map(p=><tr key={p.id} className="border-t border-slate-100"><td className="px-4 py-4 font-black">{p.name}</td><td className="px-4 py-4">{p.type}</td><td className="px-4 py-4"><select value={p.verification_status} disabled={busy===p.id} onChange={e=>updatePartner(p.id,"verificationStatus",e.target.value)} className="rounded-lg border px-2 py-1 text-xs">{["REGISTERED","VERIFIED","SUSPENDED"].map(x=><option key={x}>{x}</option>)}</select></td><td className="px-4 py-4"><select value={p.tier} disabled={busy===p.id} onChange={e=>updatePartner(p.id,"tier",e.target.value)} className="rounded-lg border px-2 py-1 text-xs">{["STARTER","VERIFIED","PRO","ELITE"].map(x=><option key={x}>{x}</option>)}</select></td><td className="px-4 py-4">{p.audience_size?.toLocaleString("en-ET")||"—"}</td><td className="px-4 py-4">{p.active_campaigns}/{p.campaigns}</td><td className="px-4 py-4">{p.leads}/{p.won}</td><td className="px-4 py-4 font-black">ETB {money(p.revenue)}</td><td className="px-4 py-4">{p.open_disputes}</td><td className="px-4 py-4"><select value={p.status} disabled={busy===p.id} onChange={e=>updatePartner(p.id,"status",e.target.value)} className="rounded-lg border px-2 py-1 text-xs">{["ACTIVE","PAUSED","PENDING"].map(x=><option key={x}>{x}</option>)}</select></td></tr>)}</tbody></table></div>
   </section>
