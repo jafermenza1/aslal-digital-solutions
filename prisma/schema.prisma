@@ -213,6 +213,12 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum RevenueStatus {
+  PENDING
+  RECOGNIZED
+  REVERSED
+}
+
 enum PaymentReconciliationStatus {
   UNMATCHED
   MATCHED
@@ -432,11 +438,43 @@ model Product {
   @@map("products")
 }
 
+model Revenue {
+  id                String        @id @db.Char(36)
+  orderId           String        @map("order_id") @db.Char(36)
+  paymentId         String        @unique @map("payment_id") @db.Char(36)
+  customerId        String?       @map("customer_id") @db.Char(36)
+  partnerId         String?       @map("partner_id") @db.Char(36)
+  referralLinkId    String?       @map("referral_link_id") @db.Char(36)
+  collectedAmount   Decimal       @default(0) @map("collected_amount") @db.Decimal(15,2)
+  recognizedAmount  Decimal       @default(0) @map("recognized_amount") @db.Decimal(15,2)
+  commissionableAmount Decimal    @default(0) @map("commissionable_amount") @db.Decimal(15,2)
+  currency          String        @default("ETB") @db.VarChar(10)
+  status            RevenueStatus @default(PENDING)
+  basis             String        @default("CONFIRMED_RECONCILED_PAYMENT") @db.VarChar(80)
+  recognizedAt      DateTime?     @map("recognized_at") @db.DateTime(0)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.DateTime(0)
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  payment           Payment       @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  customer          Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  partner           Partner?      @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  referralLink      ReferralLink? @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
+  commission        Commission?
+
+  @@index([orderId, createdAt], map: "idx_revenue_order_created")
+  @@index([partnerId, createdAt], map: "idx_revenue_partner_created")
+  @@index([status, recognizedAt], map: "idx_revenue_status_recognized")
+  @@map("revenues")
+}
+
 model Commission {
   id             String           @id @db.Char(36)
   partnerId      String           @map("partner_id") @db.Char(36)
   leadId         String?          @map("lead_id") @db.Char(36)
   referralLinkId String?          @map("referral_link_id") @db.Char(36)
+  orderId        String?          @map("order_id") @db.Char(36)
+  paymentId      String?          @map("payment_id") @db.Char(36)
+  revenueId      String?          @unique @map("revenue_id") @db.Char(36)
   amount         Decimal          @default(0) @db.Decimal(15, 2)
   currency       String           @default("ETB") @db.VarChar(10)
   status         CommissionStatus @default(PENDING)
@@ -444,11 +482,22 @@ model Commission {
   partner        Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   lead           Lead?            @relation(fields: [leadId], references: [id], onDelete: SetNull)
   referralLink   ReferralLink?    @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
+  orderId        String?          @unique @map("order_id") @db.Char(36)
+  paymentId      String?          @unique @map("payment_id") @db.Char(36)
+  revenueId      String?          @unique @map("revenue_id") @db.Char(36)
+  order          Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  payment        Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  revenue        Revenue?         @relation(fields: [revenueId], references: [id], onDelete: SetNull)
   payoutItems    PartnerPayoutItem[]
   disputes      PartnerDispute[]
+  revenue       Revenue?
+  order          Order?          @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  payment        Payment?        @relation(fields: [paymentId], references: [id], onDelete: SetNull)
 
   @@index([partnerId], map: "idx_commission_partner")
   @@index([status], map: "idx_commission_status")
+  @@index([orderId], map: "idx_commission_order")
+  @@index([paymentId], map: "idx_commission_payment")
   @@map("commissions")
 }
 
@@ -785,6 +834,8 @@ model Order {
   referralLink       ReferralLink? @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
   items              OrderItem[]
   payments           Payment[]
+  revenues           Revenue[]
+  commissions        Commission[]
 
   @@index([customerId, createdAt], map: "idx_orders_customer_created")
   @@index([opportunityId, createdAt], map: "idx_orders_opportunity_created")
