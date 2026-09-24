@@ -1,0 +1,38 @@
+CREATE TABLE `revenues` (
+  `id` CHAR(36) NOT NULL,
+  `order_id` CHAR(36) NOT NULL,
+  `payment_id` CHAR(36) NOT NULL,
+  `customer_id` CHAR(36) NULL,
+  `partner_id` CHAR(36) NULL,
+  `referral_link_id` CHAR(36) NULL,
+  `collected_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
+  `recognized_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
+  `commissionable_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
+  `currency` VARCHAR(10) NOT NULL DEFAULT 'ETB',
+  `status` ENUM('PENDING','RECOGNIZED','REVERSED') NOT NULL DEFAULT 'PENDING',
+  `basis` VARCHAR(80) NOT NULL DEFAULT 'CONFIRMED_RECONCILED_PAYMENT',
+  `recognized_at` DATETIME(0) NULL,
+  `created_at` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` DATETIME(0) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `revenues_payment_id_key` (`payment_id`),
+  KEY `idx_revenue_order_created` (`order_id`,`created_at`),
+  KEY `idx_revenue_partner_created` (`partner_id`,`created_at`),
+  KEY `idx_revenue_status_recognized` (`status`,`recognized_at`),
+  CONSTRAINT `revenues_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `revenues_payment_id_fkey` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `revenues_customer_id_fkey` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `revenues_partner_id_fkey` FOREIGN KEY (`partner_id`) REFERENCES `partners` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `revenues_referral_link_id_fkey` FOREIGN KEY (`referral_link_id`) REFERENCES `referral_links` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+ALTER TABLE `commissions`
+  ADD COLUMN `order_id` CHAR(36) NULL,
+  ADD COLUMN `payment_id` CHAR(36) NULL,
+  ADD COLUMN `revenue_id` CHAR(36) NULL,
+  ADD UNIQUE KEY `commissions_revenue_id_key` (`revenue_id`),
+  ADD KEY `idx_commission_order` (`order_id`),
+  ADD KEY `idx_commission_payment` (`payment_id`),
+  ADD CONSTRAINT `commissions_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `commissions_payment_id_fkey` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `commissions_revenue_id_fkey` FOREIGN KEY (`revenue_id`) REFERENCES `revenues` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
