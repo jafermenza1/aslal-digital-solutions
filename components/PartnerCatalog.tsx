@@ -10,6 +10,10 @@ export type PartnerCatalogItem = {
   username: string | null;
   type: string;
   status: string;
+  bio: string | null;
+  specialties: string | null;
+  serviceAreas: string | null;
+  audienceSize: number | null;
   code: string | null;
   campaign: string | null;
   productSlug: string | null;
@@ -27,6 +31,8 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
   const [type, setType] = useState("ALL");
   const [busyId, setBusyId] = useState("");
   const [notice, setNotice] = useState<Record<string,string>>({});
+  const [editing, setEditing] = useState<PartnerCatalogItem | null>(null);
+  const [form, setForm] = useState({ name: "", email: "", type: "AGENT", status: "PENDING", bio: "", specialties: "", serviceAreas: "", audienceSize: "" });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -39,6 +45,45 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
       return matchesQuery && (status === "ALL" || p.status === status) && (type === "ALL" || p.type === type);
     });
   }, [partners, query, status, type]);
+
+  function startEdit(p: PartnerCatalogItem) {
+    setEditing(p);
+    setForm({ name: p.name, email: p.email || "", type: p.type, status: p.status, bio: p.bio || "", specialties: p.specialties || "", serviceAreas: p.serviceAreas || "", audienceSize: p.audienceSize == null ? "" : String(p.audienceSize) });
+    setNotice((n) => ({ ...n, [p.id]: "" }));
+  }
+
+  async function saveEdit() {
+    if (!editing) return;
+    setBusyId(editing.id);
+    try {
+      const response = await fetch(`/api/admin/partners/${encodeURIComponent(editing.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, audienceSize: form.audienceSize }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not update partner.");
+      setNotice((n) => ({ ...n, [editing.id]: data.message || "Partner updated." }));
+      setEditing(null);
+      window.location.reload();
+    } catch (error) {
+      setNotice((n) => ({ ...n, [editing.id]: error instanceof Error ? error.message : "Update failed." }));
+    } finally { setBusyId(""); }
+  }
+
+  async function deletePartner(p: PartnerCatalogItem) {
+    const confirmed = window.confirm(`Delete partner ${p.partnerNumber} — ${p.name}? This permanently removes the partner record and related cascade records. Use Suspend instead when you need to retain history.`);
+    if (!confirmed) return;
+    setBusyId(p.id);
+    try {
+      const response = await fetch(`/api/admin/partners/${encodeURIComponent(p.id)}`, { method: "DELETE" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not delete partner.");
+      window.location.reload();
+    } catch (error) {
+      setNotice((n) => ({ ...n, [p.id]: error instanceof Error ? error.message : "Delete failed." }));
+    } finally { setBusyId(""); }
+  }
 
   async function issueCredentials(id: string) {
     setBusyId(id); setNotice((n) => ({ ...n, [id]: "" }));
@@ -151,7 +196,7 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-2">
                     <a href={`/api/admin/partners/${encodeURIComponent(p.id)}/card`} className="whitespace-nowrap rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950">Generate ID</a>
-                    <button type="button" onClick={() => issueCredentials(p.id)} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">
+                    <button type="button" onClick={() => startEdit(p)} disabled={!adminOnlyActions} className="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#0F3E8A] disabled:cursor-not-allowed disabled:opacity-50">Edit / suspend</button>\n                    <button type="button" onClick={() => deletePartner(p)} disabled={!adminOnlyActions || busyId === p.id} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">
                       {busyId === p.id ? "Issuing…" : p.username ? "Credentials active" : "Issue credentials"}
                     </button>
                   </div>
