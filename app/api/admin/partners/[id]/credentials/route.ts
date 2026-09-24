@@ -20,7 +20,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     const partner = rows[0];
     if (!partner) return NextResponse.json({ error: "Partner not found." }, { status: 404 });
     const existing = await prisma.user.findUnique({ where: { partnerId: id }, select: { id: true, email: true } });
-    if (existing) return NextResponse.json({ ok: true, alreadyIssued: true, credentialsIssued: true, username: existing.email.replace(/@partners\\.aslaldigital\\.com$/i, ""), emailSent: false, message: "Portal credentials already exist. No new password was generated." });
+    if (existing) return NextResponse.json({ ok: true, alreadyIssued: true, credentialsIssued: true, username: existing.email.replace(/@partners\.aslaldigital\.com$/i, ""), emailSent: false, message: "Portal credentials already exist. No new password was generated." });
 
     const base = partner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70) || "partner";
     const username = base + "-" + randomBytes(4).toString("hex");
