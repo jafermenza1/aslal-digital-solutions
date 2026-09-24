@@ -95,6 +95,29 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
     } finally { setBusyId(""); }
   }
 
+  async function generateCard(p: PartnerCatalogItem) {
+    setBusyId(p.id); setNotice((n) => ({ ...n, [p.id]: "" }));
+    try {
+      const response = await fetch(`/api/admin/partners/${encodeURIComponent(p.id)}/card`);
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || data.error || "Could not generate the partner ID card.");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `aslal-partner-card-${p.partnerNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setNotice((n) => ({ ...n, [p.id]: "Partner ID card generated successfully." }));
+    } catch (error) {
+      setNotice((n) => ({ ...n, [p.id]: error instanceof Error ? error.message : "ID card generation failed." }));
+    } finally { setBusyId(""); }
+  }
+
   async function issueCredentials(id: string) {
     setBusyId(id); setNotice((n) => ({ ...n, [id]: "" }));
     try {
@@ -206,7 +229,7 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
                 <td className="whitespace-nowrap px-4 py-4 text-xs text-slate-500">{new Date(p.createdAt).toLocaleString("en-ET")}</td>
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-2">
-                    <a href={`/api/admin/partners/${encodeURIComponent(p.id)}/card`} className="whitespace-nowrap rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950">Generate ID</a>
+                    <button type="button" onClick={() => generateCard(p)} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950 disabled:opacity-50">{busyId === p.id ? "Preparing ID…" : "Generate ID"}</button>
                     <button type="button" onClick={() => startEdit(p)} disabled={!adminOnlyActions} className="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#0F3E8A] disabled:cursor-not-allowed disabled:opacity-50">Edit / suspend</button>
                     <button type="button" onClick={() => issueCredentials(p.id)} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">
                       {busyId === p.id ? "Working…" : p.username ? "Credentials active" : "Issue credentials"}
@@ -241,7 +264,7 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
               <div className="rounded-xl bg-slate-50 p-3"><div className="font-black uppercase tracking-wider text-slate-400">Product</div><div className="mt-1 font-bold">{p.productSlug || "All products"}</div></div>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <a href={`/api/admin/partners/${encodeURIComponent(p.id)}/card`} className="rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950">ID card</a>
+              <button type="button" onClick={() => generateCard(p)} disabled={busyId === p.id} className="rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950 disabled:opacity-50">{busyId === p.id ? "Preparing…" : "ID card"}</button>
               <button type="button" onClick={() => startEdit(p)} disabled={!adminOnlyActions} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#0F3E8A] disabled:opacity-50">Edit / suspend</button>
               <button type="button" onClick={() => issueCredentials(p.id)} disabled={busyId === p.id} className="rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">{busyId === p.id ? "Working…" : p.username ? "Credentials active" : "Issue credentials"}</button>
               <button type="button" onClick={() => deletePartner(p)} disabled={!adminOnlyActions || busyId === p.id} className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:opacity-50">Delete</button>
