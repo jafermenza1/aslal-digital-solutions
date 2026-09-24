@@ -4,6 +4,14 @@ import { getPageContent, contentValue, contentStyle } from "@/lib/public-content
 
 export const revalidate = 60;
 
+export async function generateMetadata(){
+ const title="Products & Services | Aslal Digital Solutions";
+ const description="Explore Aslal Digital Solutions products and services. Request a quote, sample, or demo.";
+ const url="https://aslaldigital.com/products";
+ const image="https://aslaldigital.com/og/products.png";
+ return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"website",siteName:"Aslal Digital Solutions",images:[{url,width:1200,height:630,alt:"Aslal Digital Solutions products and services"}],locale:"en_US"},twitter:{card:"summary_large_image",title,description,images:[image]}};
+}
+
 
 export default async function ProductsPage(){
  const content=await getPageContent("/products");
