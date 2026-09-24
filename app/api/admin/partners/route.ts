@@ -65,88 +65,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: 409 });
     }
 
-    let username = "";
-    let temporaryPassword = "";
-    let credentialsError = "";
-    if (requestCredentials) {
-      username = generatedBase + "-" + crypto.randomUUID().slice(0, 6);
-      temporaryPassword = randomBytes(12).toString("base64url");
-      const loginEmail = username + "@partners.aslaldigital.com";
-
-      try {
-        await prisma.user.create({
-          data: {
-            id: crypto.randomUUID(),
-            email: loginEmail,
-            name,
-            passwordHash: hashPassword(temporaryPassword),
-            role: "PARTNER",
-            active: true,
-            partnerId,
-            permissions: { grant: [], revoke: [] },
-          },
-        });
-        await db.query("UPDATE partners SET username = ? WHERE id = ?", [username, partnerId]);
-      } catch (error) {
-        console.error("PARTNER_CREDENTIAL_CREATE_ERROR", error);
-        credentialsError = "Partner was created, but portal credentials could not be issued. The referral record remains active.";
-        username = "";
-        temporaryPassword = "";
-        await db.query("UPDATE partners SET portal_requested = 0, username = NULL WHERE id = ?", [partnerId]).catch(() => undefined);
-      }
-    }
-
-    let emailSent = false;
-    let emailFallbackUsed = false;
-    let emailError = "";
-    let emailRecipient = email || adminRecipient();
-    try {
-      const pdf = await generatePartnerCardPdf(partnerId);
-      const message = {
-        subject: `Aslal partner card — ${name}`,
-        body: [
-          `Hello ${name},`,
-          "",
-          "Your Aslal Digital Solutions partner card is attached.",
-          `Referral code: ${finalCode}`,
-          `Referral link: ${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}`,
-          (requestCredentials && !credentialsError) ? `Partner username: ${username}` : "",
-          (requestCredentials && !credentialsError) ? `Temporary password: ${temporaryPassword}` : "",
-          (requestCredentials && !credentialsError) ? "Please sign in and change the temporary password after first login." : "",
-        ].filter(Boolean).join("\n"),
-        html: `<p>Hello ${name},</p><p>Your Aslal Digital Solutions partner card is attached.</p><p><strong>Referral code:</strong> ${finalCode}<br/><strong>Referral link:</strong> <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}">${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}</a></p>${requestCredentials && !credentialsError ? `<p><strong>Username:</strong> ${username}<br/><strong>Temporary password:</strong> ${temporaryPassword}</p>` : ""}`,
-        attachments: [{ filename: partnerCardFileName(finalCode), content: pdf, contentType: "application/pdf" }],
-      };
-      try {
-        const result = await sendEmail({ recipient: emailRecipient, ...message });
-        if (!result.accepted?.length) {
-          throw new Error(result.rejected?.length ? `SMTP rejected recipient: ${result.rejected.join(", ")}` : "SMTP did not accept the message.");
-        }
-        emailSent = true;
-      } catch (primaryError) {
-        console.error("PARTNER_CARD_EMAIL_ERROR", primaryError);
-        emailError = primaryError instanceof Error ? primaryError.message : "Primary email delivery failed.";
-        const fallback = adminRecipient();
-        if (emailRecipient !== fallback) {
-          try {
-            const result = await sendEmail({ recipient: fallback, ...message });
-            if (!result.accepted?.length) {
-              throw new Error(result.rejected?.length ? `SMTP rejected fallback recipient: ${result.rejected.join(", ")}` : "SMTP did not accept the fallback message.");
-            }
-            emailRecipient = fallback;
-            emailFallbackUsed = true;
-            emailSent = true;
-          } catch (fallbackError) {
-            console.error("PARTNER_CARD_EMAIL_FALLBACK_ERROR", fallbackError);
-            emailError += ` Fallback failed: ${fallbackError instanceof Error ? fallbackError.message : "unknown SMTP error"}`;
-          }
-        }
-      }
-    } catch (error) {
-      console.error("PARTNER_CARD_GENERATION_ERROR", error);
-      emailError = error instanceof Error ? error.message : "Partner card generation failed.";
-    }
-
+    // Partner creation is intentionally isolated from portal credentials and ID-card generation.
+    // This keeps the core partner/referral record usable even when email or PDF tooling fails.
+    const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}`;
+    return NextResponse.json({
+      ok: true,
+      partnerId,
+      code: finalCode,
+      referralUrl: publicUrl,
+      credentialsIssued: false,
+      emailSent: false,
+      emailRecipient: email || null,
+      emailFallbackUsed: false,
+      emailError: null,
+      nextActions: {
+        credentials: `/api/admin/partners/${partnerId}/credentials`,
+        card: `/api/admin/partners/${partnerId}/card`,
+      },
+    }, { status: 201 });
     const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}`;
     return NextResponse.json({
       ok: true,
