@@ -17,7 +17,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     );
     const partner = rows[0];
     if (!partner) return NextResponse.json({ error: "Partner not found." }, { status: 404 });
-    const pdf = await generatePartnerCardPdf(id);
+    const pdf = await generatePartnerCardPdf(partner.id);
     const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
     const [referrals] = await db.query<(RowDataPacket & { code: string })[]>(
       "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
