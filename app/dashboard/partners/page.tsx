@@ -12,7 +12,7 @@ import PartnerGrowthEngine from "@/components/PartnerGrowthEngine";
 
 type KpiRow = RowDataPacket & { active_partners: number; clicks: number; referred_leads: number; won_deals: number; attributed_revenue: number | string | null; payable_commissions: number | string | null };
 type PartnerRow = RowDataPacket & { id: string; name: string; type: string; status: string; links: number; clicks: number; leads: number; qualified: number; won: number; revenue: number | string | null; commissions: number | string | null; payable: number | string | null };
-type PartnerCatalogRow = RowDataPacket & { id: string; name: string; email: string | null; username: string | null; type: string; status: string; code: string | null; campaign: string | null; product_slug: string | null; destination_path: string | null; created_at: Date | string };
+type PartnerCatalogRow = RowDataPacket & { id: string; partner_number: string; name: string; email: string | null; username: string | null; type: string; status: string; code: string | null; campaign: string | null; product_slug: string | null; destination_path: string | null; created_at: Date | string };
 type LinkRow = RowDataPacket & { code: string; partner_name: string; type: string; campaign: string | null; product_slug: string | null; clicks: number; leads: number; won: number; revenue: number | string | null };
 type CommissionRow = RowDataPacket & { status: string; count: number; amount: number | string | null };
 const money = (value: number | string | null | undefined) => Number(value ?? 0).toLocaleString("en-ET", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -49,6 +49,7 @@ export default async function PartnersDashboard({ searchParams }: { searchParams
       </div>
       <PartnerCatalog partners={partnerCatalogRows.map((p) => ({
         id: String(p.id),
+        partnerNumber: String(p.partner_number),
         name: String(p.name),
         email: p.email ? String(p.email) : null,
         username: p.username ? String(p.username) : null,
