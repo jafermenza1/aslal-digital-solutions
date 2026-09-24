@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorizePermission } from "@/lib/authorization";
@@ -20,7 +21,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   try {
     const { id } = await params;
     const body = await request.json();
-    const payment = await prisma.payment.findUnique({ where: { id } });
+    const payment = await prisma.payment.findUnique({
+      where: { id },
+      include: { order: true },
+    });
     if (!payment) return NextResponse.json({ error: "Payment not found" }, { status: 404 });
 
     const nextStatus = body.status ? String(body.status).toUpperCase() : null;
@@ -31,6 +35,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
     if (nextStatus && (!Object.prototype.hasOwnProperty.call(allowed, payment.status) || !allowed[payment.status].includes(nextStatus))) {
       return NextResponse.json({ error: `Cannot move payment from ${payment.status} to ${nextStatus}` }, { status: 409 });
+    }
+    if (nextReconciliation === "RECONCILED" && (nextStatus && nextStatus !== "CONFIRMED" ? nextStatus : payment.status) !== "CONFIRMED") {
+      return NextResponse.json({ error: "Only a confirmed payment can be reconciled into revenue." }, { status: 409 });
+    }
+    if (nextReconciliation === "RECONCILED" && payment.reconciliationStatus === "RECONCILED") {
+      return NextResponse.json({ error: "Payment is already reconciled." }, { status: 409 });
     }
 
     const updated = await prisma.$transaction(async (tx) => {
@@ -46,11 +56,100 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         data.reconciliationStatus = nextReconciliation;
         if (nextReconciliation === "RECONCILED") data.reconciledAt = new Date();
       }
+
       const result = await tx.payment.update({ where: { id }, data });
-      if (nextStatus === "CONFIRMED") await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "CONFIRMED" } });
-      if (nextStatus === "FAILED") await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "FAILED" } });
-      if (nextStatus === "REVERSED") await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "REVERSED" } });
-      if (nextStatus === "REFUNDED") await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "REFUNDED" } });
+
+      if (nextStatus === "CONFIRMED") {
+        await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "CONFIRMED" } });
+      } else if (nextStatus === "FAILED") {
+        await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "FAILED" } });
+      } else if (nextStatus === "REVERSED") {
+        await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "REVERSED" } });
+      } else if (nextStatus === "REFUNDED") {
+        await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "REFUNDED" } });
+      }
+
+      if (nextReconciliation === "RECONCILED") {
+        const revenue = await tx.revenue.upsert({
+          where: { paymentId: payment.id },
+          create: {
+            id: randomUUID(),
+            orderId: payment.orderId,
+            paymentId: payment.id,
+            customerId: payment.customerId || payment.order.customerId || undefined,
+            partnerId: payment.order.partnerId || undefined,
+            referralLinkId: payment.order.referralLinkId || undefined,
+            collectedAmount: payment.amount,
+            recognizedAmount: payment.amount,
+            commissionableAmount: payment.amount,
+            currency: payment.currency,
+            status: "RECOGNIZED",
+            recognizedAt: new Date(),
+          },
+          update: {
+            collectedAmount: payment.amount,
+            recognizedAmount: payment.amount,
+            commissionableAmount: payment.amount,
+            status: "RECOGNIZED",
+            recognizedAt: new Date(),
+          },
+        });
+
+        if (payment.order.partnerId) {
+          const referralLink = payment.order.referralLinkId
+            ? await tx.referralLink.findUnique({ where: { id: payment.order.referralLinkId }, select: { campaignId: true } })
+            : null;
+          const campaign = referralLink?.campaignId
+            ? await tx.partnerCampaign.findUnique({
+                where: { id: referralLink.campaignId },
+                select: { rewardType: true, rewardAmount: true, rewardRate: true },
+              })
+            : null;
+
+          if (campaign && ["FIXED", "PERCENT_SALE", "HYBRID"].includes(campaign.rewardType)) {
+            const collected = Number(payment.amount);
+            const fixed = Number(campaign.rewardAmount || 0);
+            const rate = Number(campaign.rewardRate || 0);
+            const commissionAmount =
+              campaign.rewardType === "FIXED" ? fixed :
+              campaign.rewardType === "PERCENT_SALE" ? collected * rate / 100 :
+              fixed + collected * rate / 100;
+
+            if (commissionAmount > 0) {
+              await tx.commission.upsert({
+                where: { revenueId: revenue.id },
+                create: {
+                  id: randomUUID(),
+                  partnerId: payment.order.partnerId,
+                  referralLinkId: payment.order.referralLinkId || undefined,
+                  orderId: payment.orderId,
+                  paymentId: payment.id,
+                  revenueId: revenue.id,
+                  amount: commissionAmount,
+                  currency: payment.currency,
+                  status: "QUALIFIED",
+                },
+                update: {
+                  amount: commissionAmount,
+                  status: "QUALIFIED",
+                  paymentId: payment.id,
+                  orderId: payment.orderId,
+                  partnerId: payment.order.partnerId,
+                },
+              });
+            }
+          }
+        }
+      }
+
+      if (nextStatus === "REVERSED" || nextStatus === "REFUNDED") {
+        const revenue = await tx.revenue.findUnique({ where: { paymentId: payment.id } });
+        if (revenue) {
+          await tx.revenue.update({ where: { id: revenue.id }, data: { status: "REVERSED", recognizedAmount: 0, commissionableAmount: 0 } });
+          await tx.commission.updateMany({ where: { revenueId: revenue.id }, data: { status: "VOID", amount: 0 } });
+        }
+      }
+
       return result;
     });
 
