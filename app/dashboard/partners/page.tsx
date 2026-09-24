@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { verifySession } from "@/lib/security";\nimport { requirePermission } from "@/lib/authorization";
+import { verifySession } from "@/lib/security";
+import { requirePermission } from "@/lib/authorization";
 import type { RowDataPacket } from "mysql2/promise";
 import PartnerCreateForm from "@/components/PartnerCreateForm";
 import CommissionOperations from "@/components/CommissionOperations";
@@ -20,7 +21,9 @@ export default async function PartnersDashboard({ searchParams }: { searchParams
   const session = verifySession((await cookies()).get("aslal_session")?.value);
   const requestedTab = (await searchParams).tab || "overview";
   const tab = ["overview","partners","links","commissions","add"].includes(requestedTab) ? requestedTab : "overview";
-  if (!session) redirect("/login");\n  const actor = await requirePermission("partners.manage");\n  const adminOnlyActions = actor.role === "ADMIN" || actor.role === "SUPER_ADMIN";
+  if (!session) redirect("/login");
+  const actor = await requirePermission("partners.manage");
+  const adminOnlyActions = actor.role === "ADMIN" || actor.role === "SUPER_ADMIN";
   const [[kpiRows], [partnerRows], [linkRows], [commissionRows], [products], [partnerCatalogRows]] = await Promise.all([
     db.query<KpiRow[]>(`SELECT (SELECT COUNT(*) FROM partners WHERE status='ACTIVE') active_partners,(SELECT COUNT(*) FROM referral_clicks) clicks,(SELECT COUNT(*) FROM leads WHERE referral_code IS NOT NULL AND referral_code <> '') referred_leads,(SELECT COUNT(*) FROM leads WHERE referral_code IS NOT NULL AND referral_code <> '' AND status='WON') won_deals,(SELECT COALESCE(SUM(deal_value),0) FROM leads WHERE referral_code IS NOT NULL AND referral_code <> '' AND status='WON') attributed_revenue,(SELECT COALESCE(SUM(amount),0) FROM commissions WHERE status IN ('PENDING','QUALIFIED','APPROVED','PAYABLE')) payable_commissions`),
     db.query<PartnerRow[]>(`SELECT p.id,p.name,p.type,p.status,COALESCE(rls.links,0) links,COALESCE(rcs.clicks,0) clicks,COALESCE(ls.leads,0) leads,COALESCE(ls.qualified,0) qualified,COALESCE(ls.won,0) won,COALESCE(ls.revenue,0) revenue,COALESCE(cs.commissions,0) commissions,COALESCE(cs.payable,0) payable FROM partners p LEFT JOIN (SELECT partner_id,COUNT(*) links FROM referral_links GROUP BY partner_id) rls ON rls.partner_id=p.id LEFT JOIN (SELECT rl.partner_id,COUNT(rc.id) clicks FROM referral_links rl LEFT JOIN referral_clicks rc ON rc.referral_link_id=rl.id GROUP BY rl.partner_id) rcs ON rcs.partner_id=p.id LEFT JOIN (SELECT rl.partner_id,COUNT(DISTINCT l.id) leads,COUNT(DISTINCT CASE WHEN l.status IN ('QUALIFIED','DEMO','PROPOSAL','NEGOTIATION','WON') THEN l.id END) qualified,COUNT(DISTINCT CASE WHEN l.status='WON' THEN l.id END) won,COALESCE(SUM(CASE WHEN l.status='WON' THEN l.deal_value ELSE 0 END),0) revenue FROM referral_links rl LEFT JOIN leads l ON l.referral_code=rl.code GROUP BY rl.partner_id) ls ON ls.partner_id=p.id LEFT JOIN (SELECT partner_id,COALESCE(SUM(amount),0) commissions,COALESCE(SUM(CASE WHEN status IN ('PENDING','QUALIFIED','APPROVED','PAYABLE') THEN amount ELSE 0 END),0) payable FROM commissions GROUP BY partner_id) cs ON cs.partner_id=p.id ORDER BY COALESCE(ls.revenue,0) DESC,p.created_at DESC`),
