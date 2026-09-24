@@ -357,6 +357,7 @@ model Partner {
   createdAt          DateTime                  @default(now()) @map("created_at") @db.DateTime(0)
   referralLinks      ReferralLink[]
   commissions        Commission[]
+  revenues           Revenue[]
   orders             Order[]
   user               User?
   campaignPartners   CampaignPartner[]
@@ -384,6 +385,7 @@ model ReferralLink {
   clicks          ReferralClick[]
   commissions     Commission[]
   orders          Order[]
+  revenues        Revenue[]
 
   @@index([partnerId], map: "idx_referral_partner")
   @@index([campaignId], map: "idx_referral_campaign")
@@ -704,6 +706,7 @@ model Customer {
   quotes        Quote[]
   orders        Order[]
   payments      Payment[]
+  revenues      Revenue[]
 
   @@index([email], map: "idx_customer_email")
   @@index([phone], map: "idx_customer_phone")
