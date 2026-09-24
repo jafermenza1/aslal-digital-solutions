@@ -7,7 +7,8 @@ import { siteConfig } from "@/lib/config";
 
 export const revalidate = 60;
 
-function lines(value:string|null) { return (value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean); }
+function lines(value:string|null) { return (value||"").split(/\r?
+/).map(x=>x.trim()).filter(Boolean); }
 
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}): Promise<Metadata> {
   const {slug}=await params;
