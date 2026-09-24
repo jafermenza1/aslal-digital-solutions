@@ -482,17 +482,11 @@ model Commission {
   partner        Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   lead           Lead?            @relation(fields: [leadId], references: [id], onDelete: SetNull)
   referralLink   ReferralLink?    @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
-  orderId        String?          @unique @map("order_id") @db.Char(36)
-  paymentId      String?          @unique @map("payment_id") @db.Char(36)
-  revenueId      String?          @unique @map("revenue_id") @db.Char(36)
   order          Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
   payment        Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   revenue        Revenue?         @relation(fields: [revenueId], references: [id], onDelete: SetNull)
   payoutItems    PartnerPayoutItem[]
-  disputes      PartnerDispute[]
-  revenue       Revenue?
-  order          Order?          @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  payment        Payment?        @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  disputes       PartnerDispute[]
 
   @@index([partnerId], map: "idx_commission_partner")
   @@index([status], map: "idx_commission_status")
@@ -868,20 +862,22 @@ model Payment {
   providerTransactionRef String?                     @map("provider_transaction_ref") @db.VarChar(190)
   idempotencyKey         String                      @unique @map("idempotency_key") @db.VarChar(255)
   amount                 Decimal                     @db.Decimal(15,2)
-  currency               String                    @db.VarChar(10)
-  method                 String?                    @db.VarChar(50)
-  status                 PaymentStatus              @default(INITIATED)
+  currency               String                      @db.VarChar(10)
+  method                 String?                     @db.VarChar(50)
+  status                 PaymentStatus               @default(INITIATED)
   reconciliationStatus   PaymentReconciliationStatus @default(UNMATCHED) @map("reconciliation_status")
-  failureReason          String?                   @map("failure_reason") @db.Text
-  reversalReason         String?                   @map("reversal_reason") @db.Text
-  refundReason           String?                   @map("refund_reason") @db.Text
+  failureReason          String?                     @map("failure_reason") @db.Text
+  reversalReason         String?                     @map("reversal_reason") @db.Text
+  refundReason           String?                     @map("refund_reason") @db.Text
   metadata               Json?
-  confirmedAt            DateTime?                 @map("confirmed_at") @db.DateTime(0)
-  reconciledAt           DateTime?                 @map("reconciled_at") @db.DateTime(0)
-  createdAt              DateTime                  @default(now()) @map("created_at") @db.DateTime(0)
-  updatedAt              DateTime                  @updatedAt @map("updated_at") @db.DateTime(0)
-  order                  Order                     @relation(fields: [orderId], references: [id], onDelete: Restrict)
-  customer               Customer?                 @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  confirmedAt            DateTime?                   @map("confirmed_at") @db.DateTime(0)
+  reconciledAt           DateTime?                   @map("reconciled_at") @db.DateTime(0)
+  createdAt              DateTime                    @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt              DateTime                    @updatedAt @map("updated_at") @db.DateTime(0)
+  order                  Order                       @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  customer               Customer?                   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  revenue                Revenue?
+  commission             Commission?
 
   @@index([orderId, createdAt], map: "idx_payments_order_created")
   @@index([status, createdAt], map: "idx_payments_status_created")
