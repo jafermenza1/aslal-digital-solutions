@@ -39,5 +39,25 @@ export default async function PartnersDashboard({ searchParams }: { searchParams
 </> : tab==="links" ? <>    <div className="mt-8 grid gap-8 xl:grid-cols-[1.5fr_1fr]"><section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm"><div className="border-b border-slate-100 p-6"><h2 className="text-xl font-black">Referral links</h2><p className="mt-1 text-sm text-slate-500">Product and campaign-level performance for referral URLs.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-slate-50"><tr>{["Public link","Partner","Campaign / product","Clicks","Leads","Won","Conversion","Revenue"].map(h=><th key={h} className="px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-500">{h}</th>)}</tr></thead><tbody>{linkRows.map(l=><tr key={l.code} className="border-t border-slate-100"><td className="px-4 py-4"><a href={`${siteConfig.url}/go/${l.code}`} target="_blank" rel="noreferrer" className="font-mono text-xs font-bold text-[#0F3E8A] underline">Open /go/{l.code} ↗</a><div className="mt-1 break-all text-[10px] text-slate-400">{siteConfig.url}/go/{l.code}</div></td><td className="px-4 py-4 font-bold">{l.partner_name}<div className="text-xs text-slate-400">{l.type}</div></td><td className="px-4 py-4">{l.campaign||"—"}<div className="text-xs text-slate-400">{l.product_slug||"All products"}</div></td><td className="px-4 py-4">{l.clicks}</td><td className="px-4 py-4">{l.leads}</td><td className="px-4 py-4 font-black">{l.won}</td><td className="px-4 py-4">{pct(l.won,l.leads)}</td><td className="px-4 py-4 font-black">ETB {money(l.revenue)}</td></tr>)}{!linkRows.length&&<tr><td colSpan={8} className="px-4 py-12 text-center text-slate-500">No referral links have been created yet.</td></tr>}</tbody></table></div></section><section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-xl font-black">Commission ledger</h2><p className="mt-1 text-sm text-slate-500">ETB totals by operational status.</p><div className="mt-5 space-y-3">{commissionRows.map(c=><div key={c.status} className="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-4"><div><div className="font-black">{c.status}</div><div className="text-xs text-slate-400">{c.count} commission{Number(c.count)===1?"":"s"}</div></div><div className="font-black text-[#0F3E8A]">ETB {money(c.amount)}</div></div>)}{!commissionRows.length&&<div className="rounded-2xl bg-slate-50 p-6 text-sm text-slate-500">No commissions recorded yet.</div>}</div></section></div>
 </> : tab==="commissions" ? <section className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-xl font-black">Commission operations</h2><p className="mt-1 text-sm text-slate-500">Review and operate the commission ledger without mixing it with partner and referral data.</p><div className="mt-6"><CommissionOperations /></div></section> : <section className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm"><div className="mb-5"><h2 className="text-xl font-black">Add partner</h2><p className="mt-1 text-sm text-slate-500">Create the partner, referral identity, attribution link, card and optional portal credentials in one controlled workflow.</p></div><PartnerCreateForm openInitially showTrigger={false} products={products.map(p => ({ slug: String(p.slug), name: String(p.name) }))} /></section>}
 
+    <section className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-2">
+        <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Partner catalog</div>
+        <h2 className="mt-1 text-xl font-black">Partner identities & ID actions</h2>
+        <p className="mt-1 text-sm text-slate-500">The catalog is always visible below the workspace tabs. Search partner IDs, portal usernames, referral codes and routing, then generate or download an ID card independently.</p>
+      </div>
+      <PartnerCatalog partners={partnerCatalogRows.map((p) => ({
+        id: String(p.id),
+        name: String(p.name),
+        email: p.email ? String(p.email) : null,
+        username: p.username ? String(p.username) : null,
+        type: String(p.type),
+        status: String(p.status),
+        code: p.code ? String(p.code) : null,
+        campaign: p.campaign ? String(p.campaign) : null,
+        productSlug: p.product_slug ? String(p.product_slug) : null,
+        destinationPath: p.destination_path ? String(p.destination_path) : null,
+        createdAt: p.created_at instanceof Date ? p.created_at.toISOString() : String(p.created_at),
+      }))} />
+    </section>
   </div></main>;
 }
