@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
 import { getAppUi } from "@/lib/app-i18n";
 
-type Item={key:keyof ReturnType<typeof getAppUi>["nav"];href:string;permission:string;icon:keyof typeof ICONS;group:keyof ReturnType<typeof getAppUi>["groups"];nested?:boolean};
+type Item={key:keyof ReturnType<typeof getAppUi>["nav"];href:string;permission:string;icon:keyof typeof ICONS;group:keyof ReturnType<typeof getAppUi>["groups"];nested?:boolean;label?:string;match?:string};
 
 const ICONS={
 home:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/></svg>,
@@ -33,6 +34,7 @@ const ITEMS:Item[]=[
 {key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"intelligence"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"intelligence"},
 {key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"management"},
+{key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"management",label:"Partner Marketplace",match:"/dashboard/partners?tab=engine"},
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"management"},
 {key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"management"},
 {key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"management",nested:true},
@@ -42,8 +44,11 @@ const ITEMS:Item[]=[
 
 export function DashboardNav({locale,permissions,mobile=false}:{locale:Locale;permissions:string[];mobile?:boolean}) {
  const pathname=usePathname(); const t=getAppUi(locale); const allowed=ITEMS.filter(item=>permissions.includes(item.permission));
- if(mobile)return <nav className="dashboard-mobile-nav">{allowed.map(item=><NavItem key={item.href} item={item} active={isActive(pathname,item.href)} label={t.nav[item.key]} mobile/>)}</nav>;
- return <nav className="dashboard-sidebar-nav">{allowed.map((item,index)=>{const group=item.group;const showGroup=index===0||group!==allowed[index-1].group;return <div key={item.href}>{showGroup&&<div className="dashboard-nav-group">{t.groups[group]}</div>}<NavItem item={item} active={isActive(pathname,item.href)} label={t.nav[item.key]}/></div>})}</nav>;
+ const groups=Array.from(new Set(allowed.map(item=>item.group))); const activeGroup=allowed.find(item=>isActive(pathname,item.href))?.group;
+ const [openGroups,setOpenGroups]=useState<Record<string,boolean>>(()=>Object.fromEntries(groups.map(group=>[group,group===activeGroup||group==="work"])));
+ const toggle=(group:string)=>setOpenGroups(current=>({...current,[group]:!current[group]}));
+ if(mobile)return <nav className="dashboard-mobile-nav space-y-2">{groups.map(group=>{const items=allowed.filter(item=>item.group===group);const open=openGroups[group]??false;return <section key={group} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[.03]"><button type="button" onClick={()=>toggle(group)} aria-expanded={open} className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-black uppercase tracking-[.14em] text-white/55"><span>{t.groups[group]}</span><span aria-hidden="true">{open?"−":"+"}</span></button>{open&&<div className="space-y-1 border-t border-white/10 p-2">{items.map(item=><NavItem key={item.href} item={item} active={isActive(pathname,item.href,item.match)} label={item.label || t.nav[item.key]} mobile/>)}</div>}</section>})}</nav>;
+ return <nav className="dashboard-sidebar-nav space-y-2">{groups.map(group=>{const items=allowed.filter(item=>item.group===group);const open=openGroups[group]??false;return <section key={group} className="overflow-hidden rounded-2xl border border-white/5 bg-white/[.02]"><button type="button" onClick={()=>toggle(group)} aria-expanded={open} className="flex w-full items-center justify-between px-3 py-3 text-left text-[10px] font-black uppercase tracking-[.18em] text-white/45 hover:bg-white/[.04] hover:text-white/70"><span>{t.groups[group]}</span><span aria-hidden="true">{open?"−":"+"}</span></button>{open&&<div className="space-y-1 border-t border-white/5 p-1.5">{items.map(item=><NavItem key={item.href} item={item} active={isActive(pathname,item.href)} label={t.nav[item.key]}/>)}</div>}</section>})}</nav>;
 }
-function isActive(pathname:string,href:string){return href==="/dashboard"?pathname==="/dashboard":pathname===href||pathname.startsWith(href+"/");}
+function isActive(pathname:string,href:string,match?:string){return match?pathname===match.split("?")[0]:href==="/dashboard"?pathname==="/dashboard":pathname===href||pathname.startsWith(href+"/");}
 function NavItem({item,active,label,mobile=false}:{item:Item;active:boolean;label:string;mobile?:boolean}){const icon=ICONS[item.icon];const helpHref=`/dashboard/help/${item.key === "publicCatalog" ? "public-catalog" : item.key}`;return <div className={`dashboard-nav-link-row flex items-center ${active?"active":""}`}><Link href={item.href} className={`dashboard-nav-item min-w-0 flex-1 ${active?"active ":""}${item.nested?"nested ":""}${mobile?"mobile":""}`} aria-current={active?"page":undefined}><span className="dashboard-nav-icon shrink-0">{icon}</span><span className="truncate">{label}</span>{active&&!mobile&&<span className="dashboard-nav-active-dot shrink-0" aria-hidden="true"/>}<span className="ml-auto inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current/20 text-[10px] font-black opacity-70 transition group-hover:opacity-100" title={`Help for ${label}`}>?</span></Link><Link href={helpHref} target="_blank" rel="noopener noreferrer" className="sr-only" aria-label={`Open help for ${label}`}>Help</Link></div>;}

@@ -47,8 +47,16 @@ export async function POST(request: Request) {
     }
 
     const partnerId = crypto.randomUUID();
-    await db.query("INSERT INTO partners (id, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-      partnerId, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
+    // Human-facing partner IDs are sequential business identifiers; the UUID remains the internal DB key.
+    const year = new Date().getFullYear();
+    const [seqRows] = await db.query<{ next: number }[] & import("mysql2").RowDataPacket[]>(
+      "SELECT COALESCE(MAX(CAST(SUBSTRING(partner_number, 5, 10) AS UNSIGNED)), 100) + 1 AS next FROM partners WHERE partner_number LIKE CONCAT('ASL-', '%', '-', ?) ",
+      [year],
+    );
+    const nextNumber = Number(seqRows[0]?.next || 101);
+    const partnerNumber = `ASL-${nextNumber}-${year}`;
+    await db.query("INSERT INTO partners (id, partner_number, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+      partnerId, partnerNumber, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
     ]);
 
     try {
@@ -68,6 +76,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       partnerId,
+      partnerNumber,
       code: finalCode,
       referralUrl: publicUrl,
       credentialsIssued: false,

@@ -32,6 +32,7 @@ export default function ConversationCenter({ initialConversations, viewer }: { i
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [diagnostic, setDiagnostic] = useState<Diagnostic | null>(null);
+  const [workspaceTab, setWorkspaceTab] = useState<"queue"|"conversation"|"email">("queue");
 
   const stats = useMemo(() => ({
     total: conversations.length,
@@ -138,28 +139,19 @@ export default function ConversationCenter({ initialConversations, viewer }: { i
         </div>
       </header>
 
-      <section className="portal-card p-4 sm:p-5">
+      <div className="flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/[.03] p-2" role="tablist" aria-label="Conversation workspace"><button type="button" role="tab" aria-selected={workspaceTab==="queue"} onClick={()=>setWorkspaceTab("queue")} className={"whitespace-nowrap rounded-xl px-4 py-3 text-sm font-black "+(workspaceTab==="queue"?"bg-[#E2B02A] text-[#1E293B]":"text-white/60")}>Queue</button><button type="button" role="tab" aria-selected={workspaceTab==="conversation"} onClick={()=>setWorkspaceTab("conversation")} className={"whitespace-nowrap rounded-xl px-4 py-3 text-sm font-black "+(workspaceTab==="conversation"?"bg-[#E2B02A] text-[#1E293B]":"text-white/60")}>Conversation</button><button type="button" role="tab" aria-selected={workspaceTab==="email"} onClick={()=>setWorkspaceTab("email")} className={"whitespace-nowrap rounded-xl px-4 py-3 text-sm font-black "+(workspaceTab==="email"?"bg-[#E2B02A] text-[#1E293B]":"text-white/60")}>Email tools</button></div>
+
+      {workspaceTab === "queue" && <section className="portal-card p-4 sm:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap gap-2">
             {filters.map(f => <button key={f} onClick={() => setFilter(f)} className={`rounded-full px-4 py-2 text-xs font-black ${filter === f ? "bg-[#E2B02A] text-[#1E293B]" : "bg-white/[.06] text-white/65"}`}>{f === "NEEDS_ATTENTION" ? "Needs attention" : f}</button>)}
           </div>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search person, company, email…" className="w-full rounded-xl border border-white/10 bg-white/[.06] px-4 py-3 text-sm text-white placeholder:text-white/30 lg:max-w-sm" />
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
-          <button onClick={() => void checkInbox()} disabled={busy} className="rounded-xl bg-[#0F3E8A] px-4 py-2.5 text-xs font-black">Check email inbox</button>
-          <button onClick={() => void diagnostics()} disabled={busy} className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-black text-white/75">Test email connection</button>
-          <span className="text-xs text-white/35">Last-loaded queue: {conversations.length} conversations</span>
-        </div>
-        {diagnostic && <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {([["SMTP",diagnostic.smtp],["IMAP",diagnostic.imap]] as const).map(([name,p]) => <div key={name} className="rounded-xl border border-white/10 bg-white/[.04] p-4">
-            <div className="flex justify-between"><b>{name}</b><span className={p?.ok ? "text-emerald-300" : "text-rose-300"}>{p?.ok ? "READY" : "FAILED"}</span></div>
-            <div className="mt-2 text-xs leading-5 text-white/45">{p?.host || "not configured"}:{p?.port} · {p?.user || "no mailbox"} · password {p?.passwordConfigured ? "loaded" : "missing"}</div>
-            {p?.error && <div className="mt-2 text-xs font-bold text-rose-300">{p.error}</div>}
-          </div>)}
-        </div>}
-      </section>
+        <div className="mt-4 text-xs text-white/35">Showing {visible.length} matching conversations. Open a row to work in the Conversation tab.</div>
+      </section>}
 
-      <div className="grid gap-5 xl:grid-cols-[390px_1fr]">
+      {workspaceTab === "conversation" && <div className="grid gap-5 xl:grid-cols-[390px_1fr]">
         <section className="portal-card overflow-hidden">
           <div className="border-b border-white/10 p-4"><div className="flex justify-between"><h2 className="font-black">Work queue</h2><span className="text-xs text-white/35">{visible.length}</span></div></div>
           <div className="max-h-[720px] overflow-y-auto p-2">
@@ -218,7 +210,9 @@ export default function ConversationCenter({ initialConversations, viewer }: { i
             </div>}
           </>}
         </section>
-      </div>
+      </div>}
+
+      {workspaceTab === "email" && <section className="portal-card p-5 sm:p-6"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-black">Email tools</h2><p className="mt-1 text-sm text-white/45">Check the mailbox and verify SMTP/IMAP connectivity without cluttering the queue.</p></div><div className="flex flex-wrap gap-2"><button onClick={()=>void checkInbox()} disabled={busy} className="rounded-xl bg-[#0F3E8A] px-4 py-2.5 text-xs font-black">Check email inbox</button><button onClick={()=>void diagnostics()} disabled={busy} className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-black text-white/75">Test email connection</button></div></div>{diagnostic&&<div className="mt-5 grid gap-3 sm:grid-cols-2">{([["SMTP",diagnostic.smtp],["IMAP",diagnostic.imap]] as const).map(([name,p])=><div key={name} className="rounded-xl border border-white/10 bg-white/[.04] p-4"><div className="flex justify-between"><b>{name}</b><span className={p?.ok?"text-emerald-300":"text-rose-300"}>{p?.ok?"READY":"FAILED"}</span></div><div className="mt-2 text-xs leading-5 text-white/45">{p?.host||"not configured"}:{p?.port} · {p?.user||"no mailbox"} · password {p?.passwordConfigured?"loaded":"missing"}</div>{p?.error&&<div className="mt-2 text-xs font-bold text-rose-300">{p.error}</div>}</div>)}</div>}</section>}
     </div>
   );
 }

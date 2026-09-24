@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 export type PartnerCatalogItem = {
   id: string;
+  partnerNumber: string;
   name: string;
   email: string | null;
   username: string | null;
@@ -111,13 +112,14 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
               <tr key={p.id} className="border-t border-slate-100 align-top hover:bg-slate-50">
                 <td className="px-4 py-4">
                   <div className="font-black">{p.name}</div>
+                  <div className="mt-1 font-mono text-xs font-black text-[#0F3E8A]">{p.partnerNumber}</div>
                   <button
                     type="button"
                     title={p.id}
                     onClick={() => copy(p.id)}
                     className="mt-1 font-mono text-[10px] text-slate-400 hover:text-[#0F3E8A]"
                   >
-                    ID: {shortId(p.id)} · copy
+                    DB ID: {shortId(p.id)} · copy
                   </button>
                 </td>
                 <td className="px-4 py-4">
