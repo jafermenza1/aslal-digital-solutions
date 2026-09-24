@@ -60,16 +60,16 @@ export default function PartnerGrowthEngine(){
 
   <section className="grid gap-8 xl:grid-cols-[1.2fr_.8fr]">
    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-    <h3 className="text-xl font-black">Create campaign opportunity</h3>
-    <p className="mt-1 text-sm text-slate-500">Reserve a total campaign budget and a partner budget, then recruit verified partners.</p>
+    <div className="flex items-start justify-between gap-4"><div><h3 className="text-xl font-black">Create campaign opportunity</h3>
+    <p className="mt-1 text-sm text-slate-500">Reserve a total campaign budget and a partner budget, then recruit verified partners.</p></div><span className="rounded-full bg-[#0F3E8A]/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#0F3E8A]">Step 1</span></div>
     <form onSubmit={createCampaign} className="mt-5 grid gap-3 sm:grid-cols-2">
-     <Input label="Campaign name" value={form.name} onChange={v=>setForm({...form,name:v})}/>
-     <Input label="Target / objective" value={form.targetDescription} onChange={v=>setForm({...form,targetDescription:v})}/>
+     <Input required label="Campaign name" value={form.name} onChange={v=>setForm({...form,name:v})}/>
+     <Input required label="Target / objective" value={form.targetDescription} onChange={v=>setForm({...form,targetDescription:v})}/>
      <Input label="Location" value={form.location} onChange={v=>setForm({...form,location:v})}/>
-     <Input label="Total budget" value={form.budget} onChange={v=>setForm({...form,budget:v})}/>
-     <Input label="Partner budget" value={form.partnerBudget} onChange={v=>setForm({...form,partnerBudget:v})}/>
-     <Input label="Reward amount" value={form.rewardAmount} onChange={v=>setForm({...form,rewardAmount:v})}/>
-     <Input label="Sale rate %" value={form.rewardRate} onChange={v=>setForm({...form,rewardRate:v})}/>
+     <Input required type="number" min="0" label="Total budget" value={form.budget} onChange={v=>setForm({...form,budget:v})}/>
+     <Input required type="number" min="0" label="Partner budget" value={form.partnerBudget} onChange={v=>setForm({...form,partnerBudget:v})}/>
+     <Input type="number" min="0" label="Reward amount" value={form.rewardAmount} onChange={v=>setForm({...form,rewardAmount:v})}/>
+     <Input type="number" min="0" max="100" label="Sale rate %" value={form.rewardRate} onChange={v=>setForm({...form,rewardRate:v})}/>
      <Input label="Partner types" value={form.requiredPartnerTypes} onChange={v=>setForm({...form,requiredPartnerTypes:v})}/>
      <label className="text-sm font-bold">Reward model<select value={form.rewardType} onChange={e=>setForm({...form,rewardType:e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5">{["FIXED","PER_LEAD","PERCENT_SALE","HYBRID","MARGIN"].map(x=><option key={x}>{x}</option>)}</select></label>
      <label className="sm:col-span-2 text-sm font-bold">Description<textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} className="mt-1 min-h-20 w-full rounded-xl border border-slate-200 px-3 py-2.5"/></label>
@@ -105,7 +105,7 @@ export default function PartnerGrowthEngine(){
 }
 
 function Stat({label,value}:{label:string;value:string|number}){return <div className="rounded-2xl bg-white/10 p-4"><div className="text-[10px] font-black uppercase tracking-wider text-white/50">{label}</div><div className="mt-1 text-xl font-black">{value}</div></div>}
-function Input({label,value,onChange}:{label:string;value:string;onChange:(v:string)=>void}){return <label className="text-sm font-bold text-slate-700">{label}<input value={value} onChange={e=>onChange(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5"/></label>}
+function Input({label,value,onChange,required=false,type="text",min,max}:{label:string;value:string;onChange:(v:string)=>void;required?:boolean;type?:string;min?:string;max?:string}){return <label className="text-sm font-bold text-slate-700">{label}{required&&<span className="ml-1 text-[#0F3E8A]" aria-hidden="true">*</span>}<input required={required} type={type} min={min} max={max} value={value} onChange={e=>onChange(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-[#0F3E8A] focus:ring-2 focus:ring-[#0F3E8A]/10"/></label>}
 function CampaignCard({campaign,partners,onInvite,busy}:{campaign:Campaign;partners:Partner[];onInvite:(c:string,p:string)=>void;busy:string}){
  const [open,setOpen]=useState(false); const types=(campaign.required_partner_types||"").split(",").map(x=>x.trim()).filter(Boolean);
  const matches=partners.filter(p=>p.status==="ACTIVE"&&p.verification_status==="VERIFIED"&&(!types.length||types.includes(p.type)));
