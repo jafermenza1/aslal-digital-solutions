@@ -475,7 +475,7 @@ model Commission {
   leadId         String?          @map("lead_id") @db.Char(36)
   referralLinkId String?          @map("referral_link_id") @db.Char(36)
   orderId        String?          @map("order_id") @db.Char(36)
-  paymentId      String?          @map("payment_id") @db.Char(36)
+  paymentId      String?          @unique @map("payment_id") @db.Char(36)
   revenueId      String?          @unique @map("revenue_id") @db.Char(36)
   amount         Decimal          @default(0) @db.Decimal(15, 2)
   currency       String           @default("ETB") @db.VarChar(10)
