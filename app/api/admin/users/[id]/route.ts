@@ -55,28 +55,37 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (actor.id === target.id && !resolvePermissions(role, permissions).includes("users.manage" as Permission)) {
     return NextResponse.json({ error: "You cannot remove your own user-management permission." }, { status: 400 });
   }
-  const updated = await prisma.user.update({
-    where: { id },
-    data: {
-      name,
-      email,
-      role,
-      active,
-      permissions,
-      ...(password ? { passwordHash: hashPassword(password) } : {}),
-    },
-  });
-
-  await prisma.userAudit.create({
-    data: {
-      id: randomUUID(),
-      userId: target.id,
-      actor: actor.email,
-      action: "UPDATE",
-      reason,
-      details: { role, active, passwordChanged: Boolean(password), permissions },
-    },
-  });
-
-  return NextResponse.json({ ok:true, user: present(updated) });
+  try {
+    const updated = await prisma.$transaction(async (tx) => {
+      const saved = await tx.user.update({
+        where: { id },
+        data: {
+          name,
+          email,
+          role,
+          active,
+          permissions,
+          ...(password ? { passwordHash: hashPassword(password) } : {}),
+        },
+      });
+      await tx.userAudit.create({
+        data: {
+          id: randomUUID(),
+          userId: target.id,
+          actor: actor.email,
+          action: "UPDATE",
+          reason,
+          details: { role, active, passwordChanged: Boolean(password), permissions },
+        },
+      });
+      return saved;
+    });
+    return NextResponse.json({ ok:true, user: present(updated) });
+  } catch (error) {
+    console.error("USER_UPDATE_ERROR", error);
+    const message = error instanceof Error && /unique|duplicate/i.test(error.message)
+      ? "That email is already assigned to another user."
+      : "Could not save the user. No partial access change was committed.";
+    return NextResponse.json({ error: message }, { status: message.includes("email") ? 409 : 500 });
+  }
 }

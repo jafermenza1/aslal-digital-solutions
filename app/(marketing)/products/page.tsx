@@ -1,6 +1,8 @@
 import { PublicProductCatalog } from "@/components/PublicProductCatalog";
 import { prisma } from "@/lib/prisma";
 import { getPageContent, contentValue, contentStyle } from "@/lib/public-content";
+import type { Metadata } from "next";
+import { siteConfig } from "@/lib/config";
 
 export const revalidate = 60;
 

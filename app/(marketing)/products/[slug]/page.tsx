@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { EventTracker } from "@/components/EventTracker";
+import type { Metadata } from "next";
+import { siteConfig } from "@/lib/config";
 
 export const revalidate = 60;
 
 function lines(value:string|null) { return (value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean); }
 
-export async function generateMetadata({params}:{params:Promise<{slug:string}>}) {
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}): Promise<Metadata> {
   const {slug}=await params;
   const p=await prisma.product.findUnique({where:{slug},select:{name:true,tagline:true,shortDescription:true}});
   const title=p?.name ? `${p.name} | Aslal Digital Solutions` : "Product | Aslal Digital Solutions";

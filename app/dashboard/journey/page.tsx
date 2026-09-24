@@ -5,9 +5,9 @@ import { BUSINESS_EVENTS, BUSINESS_EVENT_DESCRIPTIONS } from "@/lib/event-taxono
 
 export const dynamic="force-dynamic";
 
-export default async function JourneyExplorer({searchParams}:{searchParams:Promise<{visitor?:string}>}) {
+export default async function JourneyExplorer({searchParams}:{searchParams:Promise<{visitor?:string;q?:string}>}) {
  await requirePermission("dashboard.view");
- const params=await searchParams; const selectedId=params.visitor||"";
+ const params=await searchParams; const selectedId=params.visitor||""; const query=(params.q||"").trim().toLowerCase();
  const [visitors,selected]=await Promise.all([
   prisma.visitor.findMany({orderBy:{lastSeenAt:"desc"},take:40,select:{id:true,anonymousId:true,firstSeenAt:true,lastSeenAt:true,firstSource:true,firstMedium:true,firstCampaign:true,firstReferralCode:true,_count:{select:{events:true,leads:true,growthOpportunities:true}}}}),
   selectedId ? prisma.visitor.findUnique({where:{id:selectedId},select:{
@@ -18,6 +18,7 @@ export default async function JourneyExplorer({searchParams}:{searchParams:Promi
     referralClicks:{orderBy:{createdAt:"asc"},take:50,select:{id:true,createdAt:true,referralLink:{select:{code:true,campaign:true,productSlug:true}}}},
   }}):null
  ]);
+ const visibleVisitors = query ? visitors.filter((v) => [v.anonymousId, v.firstSource, v.firstMedium, v.firstCampaign, v.firstReferralCode].some((value) => value?.toLowerCase().includes(query))) : visitors;
  return <main className="min-h-screen bg-[#F8FAFC] py-8"><div className="container-aslal">
   <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Growth OS / Journey</div><h1 className="mt-2 text-4xl font-black">Visitor & journey explorer</h1><p className="mt-2 max-w-3xl text-slate-500">Inspect the first-party trail from anonymous visitor to identified lead. Anonymous activity stays separate from Person identity until legitimate lead capture.</p></div><div className="flex gap-2"><Link href="/dashboard" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold">← Dashboard</Link><Link href="/dashboard/insights" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold">Insights</Link></div></div>
   <div className="mt-7 grid gap-6 lg:grid-cols-[.75fr_1.25fr]"><section className="rounded-[2rem] border border-slate-200 bg-white p-5 lg:sticky lg:top-6 lg:self-start"><div className="mb-4 flex items-center justify-between gap-3"><div><div className="text-xs font-black uppercase tracking-[.15em] text-slate-400">Recent visitors</div><div className="mt-1 text-sm font-bold text-slate-600">Latest visitor activity</div></div>{selectedId&&<Link href="/dashboard/journey" className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-50">Clear</Link>}</div><div className="space-y-2">{visitors.map(v=><Link key={v.id} href={`/dashboard/journey?visitor=${v.id}`} className={`block rounded-2xl border p-4 ${selectedId===v.id?"border-[#0F3E8A] bg-blue-50":"border-slate-100 hover:bg-slate-50"}`}><div className="flex items-center justify-between gap-3"><span className="truncate font-black">{v.anonymousId.slice(0,16)}…</span><span className="text-xs font-bold text-slate-400">{v._count.events} events</span></div><div className="mt-2 text-xs text-slate-500">{v.firstReferralCode?"partner":(v.firstSource||"direct")}{v.firstReferralCode?` · ref ${v.firstReferralCode}`:""}</div><div className="mt-2 flex flex-wrap gap-2 text-[11px] font-bold text-slate-400"><span>{v._count.growthOpportunities} growth signals</span><span>{v._count.leads} lead{v._count.leads===1?"":"s"}</span></div></Link>)}{!visitors.length&&<p className="py-10 text-center text-sm text-slate-500">No visitors have been tracked yet.</p>}</div></section>

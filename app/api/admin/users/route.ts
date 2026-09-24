@@ -55,26 +55,37 @@ export async function POST(request: Request) {
   if (existing) return NextResponse.json({ error: "A user with that email already exists." }, { status: 409 });
 
   const permissions = permissionOverrides(body.permissions);
-  const user = await prisma.user.create({
-    data: {
-      id: randomUUID(),
-      name,
-      email,
-      passwordHash: hashPassword(password),
-      role,
-      active,
-      permissions,
-    },
-  });
-  await prisma.userAudit.create({
-    data: {
-      id: randomUUID(),
-      userId: user.id,
-      actor: actor.email,
-      action: "CREATE",
-      reason,
-      details: { role, active },
-    },
-  });
-  return NextResponse.json({ ok:true, user: present(user) });
+  try {
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          id: randomUUID(),
+          name,
+          email,
+          passwordHash: hashPassword(password),
+          role,
+          active,
+          permissions,
+        },
+      });
+      await tx.userAudit.create({
+        data: {
+          id: randomUUID(),
+          userId: created.id,
+          actor: actor.email,
+          action: "CREATE",
+          reason,
+          details: { role, active },
+        },
+      });
+      return created;
+    });
+    return NextResponse.json({ ok:true, user: present(user) });
+  } catch (error) {
+    console.error("USER_CREATE_ERROR", error);
+    const message = error instanceof Error && /unique|duplicate/i.test(error.message)
+      ? "A user with that email already exists."
+      : "Could not create the user. No partial user record was saved.";
+    return NextResponse.json({ error: message }, { status: message.includes("email") ? 409 : 500 });
+  }
 }

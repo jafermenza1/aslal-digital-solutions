@@ -18,8 +18,12 @@ export async function POST(request: Request) {
     const name = String(body.name ?? "").trim();
     const email = String(body.email ?? "").trim().toLowerCase() || null;
     const type = String(body.type ?? "AGENT").toUpperCase();
-    const status = String(body.status ?? "ACTIVE").toUpperCase();
+    const status = "PENDING";
     const code = String(body.code ?? "").trim().toLowerCase();
+    const bio = String(body.bio ?? "").trim() || null;
+    const specialties = String(body.specialties ?? "").trim() || null;
+    const serviceAreas = String(body.serviceAreas ?? "").trim() || null;
+    const audienceSize = body.audienceSize === undefined || body.audienceSize === "" ? null : Number(body.audienceSize);
     const campaign = String(body.campaign ?? "").trim() || null;
     const productSlug = String(body.productSlug ?? "").trim() || null;
     let destinationPath = String(body.destinationPath ?? "/").trim() || "/";
@@ -27,6 +31,8 @@ export async function POST(request: Request) {
     if (name.length < 2 || name.length > 160) return NextResponse.json({ error: "Partner name must be 2–160 characters." }, { status: 400 });
     if (!PARTNER_TYPES.has(type) || !PARTNER_STATUSES.has(status)) return NextResponse.json({ error: "Invalid partner type or status." }, { status: 400 });
     if (email && email.length > 190) return NextResponse.json({ error: "Email is too long." }, { status: 400 });
+    if (bio && bio.length > 5000 || specialties && specialties.length > 5000 || serviceAreas && serviceAreas.length > 5000) return NextResponse.json({ error: "Partner profile text is too long." }, { status: 400 });
+    if (audienceSize !== null && (!Number.isInteger(audienceSize) || audienceSize < 0)) return NextResponse.json({ error: "Audience size must be a non-negative integer." }, { status: 400 });
 
     const generatedBase = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "partner";
     const generatedCode = code || `${generatedBase}-${crypto.randomUUID().slice(0, 8)}`;
@@ -41,8 +47,8 @@ export async function POST(request: Request) {
     }
 
     const partnerId = crypto.randomUUID();
-    await db.query("INSERT INTO partners (id, name, email, type, status, portal_requested) VALUES (?, ?, ?, ?, ?, ?)", [
-      partnerId, name, email, type, status, 0,
+    await db.query("INSERT INTO partners (id, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+      partnerId, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
     ]);
 
     try {
@@ -65,6 +71,8 @@ export async function POST(request: Request) {
       code: finalCode,
       referralUrl: publicUrl,
       credentialsIssued: false,
+      verificationStatus: "REGISTERED",
+      workflow: ["REGISTERED","PROFILE_COMPLETED","VERIFICATION","APPROVED","CREDENTIALS","CAMPAIGN_MATCHING","ACTIVE"],
       emailSent: false,
       emailRecipient: email || null,
       emailFallbackUsed: false,

@@ -27,6 +27,7 @@ const roleDefaults: Record<string, string[]> = {
   MARKETING_OPERATOR: ["dashboard.view","leads.view","customers.view","products.manage","email_templates.manage","insights.view"],
   PARTNER: ["dashboard.view","partner.portal.view"],
   PARTNER_MANAGER: ["dashboard.view","leads.view","customers.view","partners.manage","insights.view"],
+  PARTNER: ["dashboard.view","partner.portal.view"],
 };
 
 type Draft = {

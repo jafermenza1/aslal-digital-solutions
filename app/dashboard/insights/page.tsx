@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/authorization";
@@ -131,8 +129,19 @@ export default async function InsightsPage({searchParams}:{searchParams?:Promise
   // Use one database clock value for the whole render so overdue classification is deterministic.
   const now = new Date(clockRows[0][0]?.now ?? 0).getTime();
 
+  const tabs = [
+    ["products", "Product demand"],
+    ["acquisition", "Acquisition"],
+    ["referrals", "Referrals"],
+    ["activity", "Live activity"],
+    ["follow-up", "Follow-up"],
+  ] as const;
+
   return <main className="min-h-screen bg-[#F8FAFC] py-10"><div className="container-aslal">
-    <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Growth OS / Insights</div><h1 className="mt-2 text-4xl font-black tracking-tight">Demand intelligence</h1><p className="mt-2 max-w-3xl text-slate-500">Connect product interest, acquisition, referrals, sales outcomes, and follow-up so the team can act on demand instead of only reporting it.</p></div><Link href="/dashboard" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-[#0F3E8A]">← Dashboard</Link></div>
+    <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+      <div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Growth OS / Insights</div><h1 className="mt-2 text-4xl font-black tracking-tight">Demand intelligence</h1><p className="mt-2 max-w-3xl text-slate-500">One decision window at a time: product demand, acquisition, referrals, activity, or follow-up.</p></div>
+      <Link href="/dashboard" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-[#0F3E8A]">← Dashboard</Link>
+    </div>
 
     <nav aria-label="Insights sections" className="mt-7 flex gap-2 overflow-x-auto pb-1">{[["products","Product demand"],["acquisition","Acquisition"],["referrals","Referrals"],["activity","Live activity"],["followups","Follow-up queue"]].map(([key,label])=><Link key={key} href={`/dashboard/insights?tab=${key}`} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-black transition ${tab===key?"border-[#0F3E8A] bg-[#0F3E8A] text-white":"border-slate-200 bg-white text-slate-600 hover:border-[#0F3E8A]/30 hover:bg-slate-50"}`}>{label}</Link>)}</nav>
 
@@ -148,7 +157,7 @@ export default async function InsightsPage({searchParams}:{searchParams?:Promise
       <div className={tab==="followups"?"":"hidden"}><Panel title="Follow-up queue"><div className="space-y-2">{followUps.map(x => { const overdue = x.due_at ? new Date(x.due_at).getTime() < now : false; return <Link key={x.id} href={`/dashboard/leads/${x.lead_id}`} className="block rounded-xl bg-[#F8FAFC] px-4 py-3 hover:bg-slate-100"><div className="flex items-center justify-between gap-3"><span className="font-bold">{x.name}</span><span className={`text-xs font-black uppercase ${overdue ? "text-red-600" : "text-[#0F3E8A]"}`}>{overdue ? "Overdue" : x.priority}</span></div><div className="mt-1 text-sm text-slate-600">{x.title}</div><div className="mt-1 text-xs text-slate-400">Score {x.score} · {x.due_at ? new Date(x.due_at).toLocaleString() : "No due date"}</div></Link>})}{followUps.length === 0 && <Empty text="No dated open follow-ups are waiting." />}</div></Panel></div>
     </div>
 
-    <div className="mt-6 rounded-[2rem] bg-[#0F3E8A] p-7 text-white"><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Operating rule</div><h2 className="mt-3 text-2xl font-black">Prioritize demand that can become revenue.</h2><p className="mt-2 max-w-3xl leading-7 text-white/70">Use product demand, lead quality, referral attribution, and overdue follow-ups together. High-interest products and high-score leads should shape the next sales action, campaign, and partner conversation.</p></div>
+    <div className="mt-6 rounded-[2rem] bg-[#0F3E8A] p-7 text-white"><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Data rule</div><p className="mt-2 max-w-3xl leading-7 text-white/80">A view, visitor, signal, demo interaction, or attributed WON value is not automatically collected revenue. Use the relevant operational workspace before treating a metric as a commercial outcome.</p></div>
   </div></main>;
 }
 
