@@ -59,6 +59,10 @@ export default async function PartnersDashboard({ searchParams }: { searchParams
         campaign: p.campaign ? String(p.campaign) : null,
         productSlug: p.product_slug ? String(p.product_slug) : null,
         destinationPath: p.destination_path ? String(p.destination_path) : null,
+        bio: p.bio ? String(p.bio) : null,
+        specialties: p.specialties ? String(p.specialties) : null,
+        serviceAreas: p.service_areas ? String(p.service_areas) : null,
+        audienceSize: p.audience_size == null ? null : Number(p.audience_size),
         createdAt: p.created_at instanceof Date ? p.created_at.toISOString() : String(p.created_at),
       }))} adminOnlyActions={adminOnlyActions} />
     </section> : null}
