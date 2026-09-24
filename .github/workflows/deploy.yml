@@ -137,8 +137,28 @@ jobs:
 
           test -x "$RELEASE_PATH/.prisma-cli/node_modules/.bin/prisma"
           test -d "$RELEASE_PATH/prisma/migrations"
+
+          PRISMA="$RELEASE_PATH/.prisma-cli/node_modules/.bin/prisma"
+          FAILED_PARTNER_NUMBER_MIGRATION="20260924220000_partner_business_numbers"
+
+          echo "Checking Prisma migration state..."
+          MIGRATION_STATUS="$(cd "$RELEASE_PATH" && "$PRISMA" migrate status 2>&1 || true)"
+          printf '%s\n' "$MIGRATION_STATUS"
+
+          # The first production attempt of this migration added partner_number,
+          # then failed during the backfill because MySQL does not allow a window
+          # function directly in UPDATE. The fixed migration must be rerun from a
+          # clean pre-migration state. Recover only this exact known partial state.
+          if printf '%s\n' "$MIGRATION_STATUS" | grep -Fq "$FAILED_PARTNER_NUMBER_MIGRATION" &&
+             printf '%s\n' "$MIGRATION_STATUS" | grep -Eiq 'failed|failed migration'; then
+            echo "Recovering the known partial $FAILED_PARTNER_NUMBER_MIGRATION migration..."
+            printf '%s\n'               'ALTER TABLE partners DROP COLUMN IF EXISTS partner_number;'               | (cd "$RELEASE_PATH" && "$PRISMA" db execute --stdin)
+            (cd "$RELEASE_PATH" && "$PRISMA" migrate resolve --rolled-back "$FAILED_PARTNER_NUMBER_MIGRATION")
+            echo "Partial migration recovered; the corrected migration will now be reapplied."
+          fi
+
           echo "Applying Prisma migrations before production restart..."
-          (cd "$RELEASE_PATH" && ./.prisma-cli/node_modules/.bin/prisma migrate deploy)
+          (cd "$RELEASE_PATH" && "$PRISMA" migrate deploy)
 
           rm -rf "$BACKUP_PATH"
           mkdir -p "$BACKUP_PATH"
