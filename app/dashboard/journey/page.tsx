@@ -5,7 +5,7 @@ import { BUSINESS_EVENTS, BUSINESS_EVENT_DESCRIPTIONS } from "@/lib/event-taxono
 
 export const dynamic="force-dynamic";
 
-export default async function JourneyExplorer({searchParams}:{searchParams:Promise<{visitor?:string}>}) {
+export default async function JourneyExplorer({searchParams}:{searchParams:Promise<{visitor?:string;q?:string}>}) {
  await requirePermission("dashboard.view");
  const params=await searchParams; const selectedId=params.visitor||"";
  const [visitors,selected]=await Promise.all([
