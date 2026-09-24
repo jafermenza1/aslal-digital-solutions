@@ -52,7 +52,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
         url: String(data.referralUrl || ""),
         email: String(payload.email || ""),
       });
-      setMessage("Partner and referral identity created. Portal credentials and ID card are separate actions below.");
+      setMessage("Registration submitted. Partner ID and referral identity are created; next steps are profile review → verification → approval → credentials → campaign matching.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not create partner.");
     } finally {
@@ -114,7 +114,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                   <div>
                     <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Partner operations</div>
                     <h2 className="mt-1 text-2xl font-black">Create partner</h2>
-                    <p className="mt-1 text-sm text-slate-500">Step 1 only: create the partner and referral identity. Credentials and ID card generation are deliberately separated.</p>
+                    <p className="mt-1 text-sm text-slate-500">Step 1: register the partner. The partner stays Pending until profile review and verification are completed. Credentials come only after approval.</p>
                   </div>
                   <button type="button" onClick={resetAndClose} className="rounded-full border px-3 py-1 text-slate-500">×</button>
                 </div>
@@ -123,11 +123,15 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                   <Field label="Name" name="name" required placeholder="Partner or agent name" />
                   <Field label="Registered email" name="email" type="email" placeholder="name@example.com" />
                   <label className="text-sm font-bold text-slate-700">Type<select name="type" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option>AGENT</option><option>INFLUENCER</option><option>AFFILIATE</option><option>RESELLER</option></select></label>
-                  <label className="text-sm font-bold text-slate-700">Status<select name="status" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option>ACTIVE</option><option>PENDING</option><option>PAUSED</option></select></label>
+                  <label className="text-sm font-bold text-slate-700">Registration status<select name="status" defaultValue="PENDING" disabled className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><option>PENDING</option></select><input type="hidden" name="status" value="PENDING" /></label>
                   <Field label="Referral code" name="code" placeholder="e.g. agent-abebe" />
                   <Field label="Campaign" name="campaign" placeholder="e.g. september" />
                   <label className="text-sm font-bold text-slate-700">Product / service<select name="productSlug" defaultValue="" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option value="">All solutions</option>{products.map(p => <option key={p.slug} value={p.slug}>{p.name}</option>)}</select></label>
                   <Field label="Destination" name="destinationPath" defaultValue="/" placeholder="/products/crm-pro" />
+                  <Field label="Specialties" name="specialties" placeholder="What products/services do you promote?" />
+                  <Field label="Service areas" name="serviceAreas" placeholder="Cities, regions or online" />
+                  <Field label="Audience size" name="audienceSize" type="number" placeholder="0" />
+                  <label className="sm:col-span-2 text-sm font-bold text-slate-700">Partner bio<textarea name="bio" maxLength={5000} placeholder="Experience, market focus and relevant capabilities" className="mt-2 min-h-20 w-full rounded-xl border border-slate-200 px-4 py-3" /></label>
                 </div>
 
                 {message && <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700">{message}</div>}
@@ -140,9 +144,9 @@ export default function PartnerCreateForm({ products = [], openInitially = false
               <div>
                 <div className="text-center">
                   <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-50 text-3xl font-black text-emerald-600">✓</div>
-                  <div className="mt-4 text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Partner created</div>
+                  <div className="mt-4 text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Registration received</div>
                   <h2 className="mt-2 text-2xl font-black">{created.name}</h2>
-                  <p className="mt-2 text-sm text-slate-500">The partner record and referral link are ready. Complete credentials and ID separately.</p>
+                  <p className="mt-2 text-sm text-slate-500">The partner record and referral link are ready. The registration is Pending until an authorized manager verifies the profile.</p>
                 </div>
 
                 <div className="mt-6 rounded-2xl bg-[#F8FAFC] p-5">
@@ -152,7 +156,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                   <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2"><div><b>Code:</b> {created.code}</div><div><b>Email:</b> {created.email || "Not registered"}</div></div>
                 </div>
 
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div className="mb-5 grid gap-2 sm:grid-cols-6">{["1 Register","2 Review","3 Verify","4 Approve","5 Credentials","6 Match"].map((step,i)=><div key={step} className={"rounded-xl p-2 text-center text-[10px] font-black uppercase "+(i===0?"bg-[#E2B02A] text-slate-950":"bg-slate-100 text-slate-500")}>{step}</div>)}</div><div className="mt-5 grid gap-4 md:grid-cols-2">
                   {credentialsAllowed ? (<section className="rounded-2xl border border-slate-200 p-5">
                     <div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 2</div>
                     <h3 className="mt-1 font-black">Portal credentials</h3>
