@@ -23,6 +23,6 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
     values.push(id);
     const [result]=await db.query<ResultSetHeader>(`UPDATE partners SET ${fields.join(", ")} WHERE id=?`,values);
     if(!result.affectedRows)return NextResponse.json({error:"Partner not found."},{status:404});
-    return NextResponse.json({ok:true,workflow:v=>v});
+    return NextResponse.json({ok:true});
   }catch(error){console.error("PARTNER_PROFILE_UPDATE_ERROR",error);return NextResponse.json({error:"Could not update partner."},{status:500});}
 }
