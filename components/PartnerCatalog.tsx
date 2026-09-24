@@ -24,6 +24,8 @@ export default function PartnerCatalog({ partners }: { partners: PartnerCatalogI
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("ALL");
   const [type, setType] = useState("ALL");
+  const [busyId, setBusyId] = useState("");
+  const [notice, setNotice] = useState<Record<string,string>>({});
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -36,6 +38,18 @@ export default function PartnerCatalog({ partners }: { partners: PartnerCatalogI
       return matchesQuery && (status === "ALL" || p.status === status) && (type === "ALL" || p.type === type);
     });
   }, [partners, query, status, type]);
+
+  async function issueCredentials(id: string) {
+    setBusyId(id); setNotice((n) => ({ ...n, [id]: "" }));
+    try {
+      const response = await fetch(`/api/admin/partners/${encodeURIComponent(id)}/credentials`, { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not issue credentials.");
+      setNotice((n) => ({ ...n, [id]: data.emailSent ? "Credentials issued and emailed." : data.message || "Credentials issued." }));
+    } catch (error) {
+      setNotice((n) => ({ ...n, [id]: error instanceof Error ? error.message : "Credential action failed." }));
+    } finally { setBusyId(""); }
+  }
 
   async function copy(value: string) {
     try {
