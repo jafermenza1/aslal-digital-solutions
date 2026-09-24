@@ -10,7 +10,11 @@ function lines(value:string|null) { return (value||"").split(/\r?\n/).map(x=>x.t
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}) {
   const {slug}=await params;
   const p=await prisma.product.findUnique({where:{slug},select:{name:true,tagline:true,shortDescription:true}});
-  return { title:p?.name ? `${p.name} | Aslal Digital Solutions` : "Product | Aslal Digital Solutions", description:p?.tagline||p?.shortDescription||"Aslal Digital Solutions product and service." };
+  const title=p?.name ? `${p.name} | Aslal Digital Solutions` : "Product | Aslal Digital Solutions";
+  const description=p?.tagline||p?.shortDescription||"Explore this Aslal Digital Solutions product or service and request a quote, sample, or demo.";
+  const url=`https://aslaldigital.com/products/${encodeURIComponent(slug)}`;
+  const image="https://aslaldigital.com/og/products.png";
+  return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"website",siteName:"Aslal Digital Solutions",images:[{url,width:1200,height:630,alt:`${p?.name||"Aslal product"} — Aslal Digital Solutions`}],locale:"en_US"},twitter:{card:"summary_large_image",title,description,images:[image]}};
 }
 
 export default async function ProductPage({params}:{params:Promise<{slug:string}>}) {
