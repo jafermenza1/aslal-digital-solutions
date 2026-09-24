@@ -16,9 +16,10 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   if (!actor || !["SUPER_ADMIN", "ADMIN"].includes(actor.role)) return NextResponse.json({ error: "Only an administrator can issue partner portal credentials." }, { status: 403 });
   try {
     const { id } = await params;
-    const [rows] = await db.query<(RowDataPacket & { id: string; name: string; email: string | null })[]>("SELECT id, name, email FROM partners WHERE id = ? LIMIT 1", [id]);
+    const [rows] = await db.query<(RowDataPacket & { id: string; name: string; email: string | null })[]>("SELECT id, name, email, status, verification_status FROM partners WHERE id = ? LIMIT 1", [id]);
     const partner = rows[0];
     if (!partner) return NextResponse.json({ error: "Partner not found." }, { status: 404 });
+    if (partner.status !== "ACTIVE" || partner.verification_status !== "VERIFIED") return NextResponse.json({ error: "Verify and activate the partner before issuing portal credentials." }, { status: 409 });
     const existing = await prisma.user.findUnique({ where: { partnerId: id }, select: { id: true, email: true } });
     if (existing) return NextResponse.json({ ok: true, alreadyIssued: true, credentialsIssued: true, username: existing.email.replace(/@partners\.aslaldigital\.com$/i, ""), emailSent: false, message: "Portal credentials already exist. No new password was generated." });
 
