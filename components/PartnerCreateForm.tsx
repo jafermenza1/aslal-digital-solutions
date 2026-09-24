@@ -15,9 +15,12 @@ type PartnerCreateFormProps = {
   openInitially?: boolean;
   showTrigger?: boolean;
   canIssueCredentials?: boolean;
+  /** Backward-compatible admin gate used by the partner dashboard. */
+  adminOnlyActions?: boolean;
 };
 
-export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false }: PartnerCreateFormProps) {
+export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false, adminOnlyActions }: PartnerCreateFormProps) {
+  const credentialsAllowed = adminOnlyActions ?? canIssueCredentials;
   const [open, setOpen] = useState(openInitially);
   const [busy, setBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState("");
@@ -150,7 +153,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                 </div>
 
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  {canIssueCredentials ? (<section className="rounded-2xl border border-slate-200 p-5">
+                  {credentialsAllowed ? (<section className="rounded-2xl border border-slate-200 p-5">
                     <div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 2</div>
                     <h3 className="mt-1 font-black">Portal credentials</h3>
                     <p className="mt-1 text-sm text-slate-500">Create the PARTNER login independently. The password is hashed and never displayed again.</p>
