@@ -14,9 +14,10 @@ type PartnerCreateFormProps = {
   products?: Array<{ slug: string; name: string }>;
   openInitially?: boolean;
   showTrigger?: boolean;
+  canIssueCredentials?: boolean;
 };
 
-export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true }: PartnerCreateFormProps) {
+export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false }: PartnerCreateFormProps) {
   const [open, setOpen] = useState(openInitially);
   const [busy, setBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState("");
@@ -154,7 +155,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                     <h3 className="mt-1 font-black">Portal credentials</h3>
                     <p className="mt-1 text-sm text-slate-500">Create the PARTNER login independently. The password is hashed and never displayed again.</p>
                     {credentials ? <div className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">Username: <span className="font-mono">{credentials.username}</span><br/>{credentials.emailSent ? "Credentials emailed to " + credentials.emailRecipient + "." : "Credentials created; email delivery needs attention."}</div> : null}
-                    <button type="button" onClick={issueCredentials} disabled={actionBusy === "credentials" || Boolean(credentials)} className="mt-4 rounded-full bg-[#0F3E8A] px-4 py-2.5 text-sm font-black text-white disabled:opacity-50">{actionBusy === "credentials" ? "Issuing…" : credentials ? "Credentials issued" : "Issue portal credentials"}</button>
+                    {canIssueCredentials ? <button type="button" onClick={issueCredentials} disabled={actionBusy === "credentials" || Boolean(credentials)} className="mt-4 rounded-full bg-[#0F3E8A] px-4 py-2.5 text-sm font-black text-white disabled:opacity-50">{actionBusy === "credentials" ? "Issuing…" : credentials ? "Credentials issued" : "Issue portal credentials"}</button> : <div className="mt-4 rounded-xl bg-slate-50 p-3 text-xs font-bold text-slate-500">Administrator-only action.</div>}
                   </section>
 
                   <section className="rounded-2xl border border-slate-200 p-5">
