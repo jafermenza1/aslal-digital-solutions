@@ -1,8 +1,9 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `986ba2bdf6e47fb5c553fcbe3bddee59d1c14f32`
-**Latest verified deployment:** Emerald workflow run `35923977700` for `986ba2bdf6e47fb5c553fcbe3bddee59d1c14f32` — SUCCESS
+**Current mainline:** `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd`
+**Latest verified CI:** workflow run `36011102581` for `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd` — SUCCESS (typecheck, lint, production build, Emerald packaging)
+**Latest verified deployment:** Emerald workflow run `36011395603` for `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd` — SUCCESS
 
 ## Authority chain
 
@@ -28,7 +29,7 @@
 | Quote/negotiation | IMPLEMENTED-UNVERIFIED | Phase 6A first-class versioned Quote, QuoteItem and NegotiationEvent records plus controlled lifecycle/revision API and dashboard workspace are deployed; controlled send/revise/accept/reject reconstruction evidence remains. Order/payment remain unimplemented by design. |
 | Revenue attribution | PARTIAL | Lead/opportunity deal values and reports exist; collected-payment evidence is not yet the source of revenue truth. |
 | Campaign/asset attribution | PARTIAL | Source/campaign/referral strings exist; first-class Campaign/Campaign Asset lifecycle is absent. |
-| Partner/influencer commerce | PARTIAL | Partner/referral/commission foundations exist; revenue-confirmed commission lineage is incomplete. |
+| Partner/influencer commerce | PARTIAL | Phase F now provides first-class campaign opportunities, partner matching/application, verification/tier controls, partner self-service workspace, disputes and payout ledger; confirmed-payment commission lineage and product eligibility remain incomplete. |
 | Trust/reviews | MISSING | Target-state trust layer is not implemented as a complete domain. |
 | Retention/referral | MISSING | Post-sale retention and customer-advocacy workflows are not complete. |
 | RBAC/multi-tenancy | PARTIAL / SCALE BLOCKER | Single-admin access exists; tenant isolation and full role matrix do not. |
@@ -59,7 +60,7 @@ This is historical evidence, not current post-migration truth. The latest migrat
 
 ## Operations and partner workspace extension
 
-The operations workspace was tightened around real sales execution: the readiness narrative was removed, new follow-up tasks require an internal owner and due date, owners are selected from active internal users rather than free-text addresses, and existing unassigned tasks remain visible for explicit correction. The partner workspace now creates a referral identity, wallet-size printable partner card with QR code, automatic card email delivery with admin fallback, and optional partner login credentials stored only as a password hash. A partner portal route exposes only partner-attributed performance. This remains **PARTIAL** for the broader partner-commerce domain because revenue-confirmed commission lineage and the remaining roadmap controls are not thereby satisfied.
+The operations workspace was tightened around real sales execution: the readiness narrative was removed, new follow-up tasks require an internal owner and due date, owners are selected from active internal users rather than free-text addresses, and existing unassigned tasks remain visible for explicit correction. The partner workspace now creates a referral identity, wallet-size printable partner card with QR code, automatic card email delivery with admin fallback, optional partner login credentials stored only as a password hash, campaign opportunities and partner self-service operations. A partner portal route exposes only partner-attributed performance. Phase F extends this with campaign matching, verification/tier controls, disputes and payout ledger history. This remains **PARTIAL** for the broader partner-commerce domain because revenue-confirmed commission lineage, product eligibility and the remaining commercial gates are not thereby satisfied.
 
 CI `35923732403` passed typecheck, lint, production build, standalone packaging and artifact upload. Emerald deployment `35923977700` passed artifact verification, release installation and production health.
 
