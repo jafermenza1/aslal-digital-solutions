@@ -446,7 +446,6 @@ model Commission {
   referralLink   ReferralLink?    @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
   payoutItems    PartnerPayoutItem[]
   disputes      PartnerDispute[]
-  orders        Order[]
 
   @@index([partnerId], map: "idx_commission_partner")
   @@index([status], map: "idx_commission_status")
@@ -714,6 +713,7 @@ model Quote {
   revisions       Quote[]    @relation("QuoteRevision")
   items           QuoteItem[]
   events          NegotiationEvent[]
+  order           Order?
 
   @@index([customerId, createdAt], map: "idx_quotes_customer_created")
   @@index([opportunityId, createdAt], map: "idx_quotes_opportunity_created")
