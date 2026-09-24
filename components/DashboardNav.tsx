@@ -26,6 +26,7 @@ store:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10h16l
 const ITEMS:Item[]=[
 {key:"overview",href:"/dashboard",permission:"dashboard.view",icon:"home",group:"work"},
 {key:"quotes",href:"/dashboard/quotes",permission:"leads.view",icon:"quotes",group:"work"},
+{key:"quotes",href:"/dashboard/orders",permission:"leads.view",icon:"box",group:"work",label:"Orders"},
 {key:"leads",href:"/dashboard/leads",permission:"leads.view",icon:"leads",group:"work"},
 {key:"customers",href:"/dashboard/customers",permission:"customers.view",icon:"users",group:"work"},
 {key:"conversations",href:"/dashboard/conversations",permission:"conversations.view",icon:"message",group:"work"},
