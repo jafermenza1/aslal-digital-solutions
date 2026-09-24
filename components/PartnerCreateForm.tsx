@@ -15,9 +15,12 @@ type PartnerCreateFormProps = {
   openInitially?: boolean;
   showTrigger?: boolean;
   canIssueCredentials?: boolean;
+  /** Backward-compatible admin gate used by the partner dashboard. */
+  adminOnlyActions?: boolean;
 };
 
-export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false }: PartnerCreateFormProps) {
+export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false, adminOnlyActions }: PartnerCreateFormProps) {
+  const credentialsAllowed = adminOnlyActions ?? canIssueCredentials;
   const [open, setOpen] = useState(openInitially);
   const [busy, setBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState("");
@@ -159,7 +162,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                     <h3 className="mt-1 font-black">Portal credentials</h3>
                     <p className="mt-1 text-sm text-slate-500">Create the PARTNER login independently. The password is hashed and never displayed again.</p>
                     {credentials ? <div className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">Username: <span className="font-mono">{credentials.username}</span><br/>{credentials.emailSent ? "Credentials emailed to " + credentials.emailRecipient + "." : "Credentials created; email delivery needs attention."}</div> : null}
-                    {canIssueCredentials ? {canIssueCredentials ? <button type="button" onClick={issueCredentials} disabled={actionBusy === "credentials" || Boolean(credentials)} className="mt-4 rounded-full bg-[#0F3E8A] px-4 py-2.5 text-sm font-black text-white disabled:opacity-50">{actionBusy === "credentials" ? "Issuing…" : credentials ? "Credentials issued" : "Issue portal credentials"}</button> : <div className="mt-4 rounded-xl bg-slate-50 p-3 text-xs font-bold text-slate-500">Administrator-only action.</div>} : <div className="mt-4 rounded-xl bg-slate-50 p-3 text-xs font-bold text-slate-500">Administrator-only action.</div>}
+                    <button type="button" onClick={issueCredentials} disabled={actionBusy === "credentials" || Boolean(credentials)} className="mt-4 rounded-full bg-[#0F3E8A] px-4 py-2.5 text-sm font-black text-white disabled:opacity-50">{actionBusy === "credentials" ? "Issuing…" : credentials ? "Credentials issued" : "Issue portal credentials"}</button>
                   </section>
 
                                       ) : (<section className="rounded-2xl border border-slate-200 p-5"><div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 2</div><h3 className="mt-1 font-black">Portal credentials</h3><p className="mt-1 text-sm text-slate-500">Credential issuance is restricted to administrators. Ask an administrator to complete this step.</p></section>)}
