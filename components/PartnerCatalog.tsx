@@ -20,7 +20,7 @@ function shortId(id: string) {
   return id.length > 18 ? `${id.slice(0, 8)}…${id.slice(-6)}` : id;
 }
 
-export default function PartnerCatalog({ partners }: { partners: PartnerCatalogItem[] }) {
+export default function PartnerCatalog({ partners, canIssueCredentials = false }: { partners: PartnerCatalogItem[]; canIssueCredentials?: boolean }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("ALL");
   const [type, setType] = useState("ALL");
@@ -149,11 +149,11 @@ export default function PartnerCatalog({ partners }: { partners: PartnerCatalogI
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-2">
                     <a href={`/api/admin/partners/${encodeURIComponent(p.id)}/card`} className="whitespace-nowrap rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950">Generate ID</a>
-                    <button type="button" onClick={() => issueCredentials(p.id)} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">
+                    {canIssueCredentials && <button type="button" onClick={() => issueCredentials(p.id)} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">
                       {busyId === p.id ? "Issuing…" : p.username ? "Credentials active" : "Issue credentials"}
                     </button>
                   </div>
-                  {notice[p.id] && <div className="mt-2 max-w-[220px] text-[10px] font-semibold text-slate-500">{notice[p.id]}</div>}
+                  {notice[p.id] && <div className="mt-2 max-w-[220px] text-[10px] font-semibold text-slate-500">{notice[p.id]}</div>}{!canIssueCredentials && <div className="mt-2 text-[10px] font-semibold text-slate-400">Credential generation is administrator-only.</div>}
                 </td>
               </tr>
             ))}
