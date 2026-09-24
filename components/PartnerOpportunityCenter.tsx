@@ -10,7 +10,7 @@ export default function PartnerOpportunityCenter(){
  const [campaigns,setCampaigns]=useState<Campaign[]>([]),[disputes,setDisputes]=useState<Dispute[]>([]),[payouts,setPayouts]=useState<Payout[]>([]),[commissions,setCommissions]=useState<Commission[]>([]);
  const [profile,setProfile]=useState({bio:"",specialties:"",serviceAreas:"",audienceSize:""}),[message,setMessage]=useState(""),[busy,setBusy]=useState("");
  async function load(){
-  try{const [a,b]=await Promise.all([fetch("/api/partner/opportunities"),fetch("/api/partner/payouts")]);const x=await a.json(),y=await b.json();if(!a.ok)throw new Error(x.error||"Could not load opportunities.");if(!b.ok)throw new Error(y.error||"Could not load earnings.");setCampaigns(x.campaigns||[]);setPayouts(y.payouts||[]);setCommissions(y.commissions||[])}catch(e){setMessage(e instanceof Error?e.message:"Could not load partner workspace.")}
+  try{const [a,b,p]=await Promise.all([fetch("/api/partner/opportunities"),fetch("/api/partner/payouts"),fetch("/api/partner/profile")]);const x=await a.json(),y=await b.json(),z=await p.json();if(!a.ok)throw new Error(x.error||"Could not load opportunities.");if(!b.ok)throw new Error(y.error||"Could not load earnings.");setCampaigns(x.campaigns||[]);setPayouts(y.payouts||[]);setCommissions(y.commissions||[]);if(p.ok&&z.partner)setProfile({bio:z.partner.bio||"",specialties:z.partner.specialties||"",serviceAreas:z.partner.service_areas||"",audienceSize:z.partner.audience_size?String(z.partner.audience_size):""})}catch(e){setMessage(e instanceof Error?e.message:"Could not load partner workspace.")}
   try{const r=await fetch("/api/partner/disputes");const d=await r.json();if(r.ok)setDisputes(d.disputes||[])}catch{}
  }
  useEffect(()=>{void load()},[]);
