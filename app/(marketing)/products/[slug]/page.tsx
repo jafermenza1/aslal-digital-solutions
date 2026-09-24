@@ -2,15 +2,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { EventTracker } from "@/components/EventTracker";
+import type { Metadata } from "next";
+import { siteConfig } from "@/lib/config";
 
 export const revalidate = 60;
 
 function lines(value:string|null) { return (value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean); }
 
-export async function generateMetadata({params}:{params:Promise<{slug:string}>}) {
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}): Promise<Metadata> {
   const {slug}=await params;
-  const p=await prisma.product.findUnique({where:{slug},select:{name:true,tagline:true,shortDescription:true}});
-  return { title:p?.name ? `${p.name} | Aslal Digital Solutions` : "Product | Aslal Digital Solutions", description:p?.tagline||p?.shortDescription||"Aslal Digital Solutions product and service." };
+  const p=await prisma.product.findUnique({where:{slug},select:{name:true,tagline:true,shortDescription:true,ctaLabel:true,ctaNote:true}});
+  const title=p?.name ? `${p.name} | Aslal Digital Solutions` : "Product | Aslal Digital Solutions";
+  const description=[p?.tagline||p?.shortDescription||"Aslal Digital Solutions product and service.", p?.ctaLabel ? `CTA: ${p.ctaLabel}.` : "Request a quote or demo.", p?.ctaNote||""].filter(Boolean).join(" ");
+  const url=`${siteConfig.url}/products/${encodeURIComponent(slug)}`;
+  const image=`${siteConfig.url}/api/og/products`;
+  return {title,description,metadataBase:new URL(siteConfig.url),alternates:{canonical:url},openGraph:{title,description,url,siteName:siteConfig.name,type:"website",images:[{url,width:1200,height:630,alt:`${p?.name||"Aslal product"} — Aslal Digital Solutions`}]},twitter:{card:"summary_large_image",title,description,images:[image]}};
 }
 
 export default async function ProductPage({params}:{params:Promise<{slug:string}>}) {
