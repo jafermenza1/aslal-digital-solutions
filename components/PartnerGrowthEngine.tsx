@@ -69,6 +69,7 @@ export default function PartnerGrowthEngine(){
      <Input required label="Target / objective" value={form.targetDescription} onChange={v=>setForm({...form,targetDescription:v})}/>
      <Input label="Location" value={form.location} onChange={v=>setForm({...form,location:v})}/>
      <Input required type="number" min="0" label="Total budget" value={form.budget} onChange={v=>setForm({...form,budget:v})}/>
+     <label className="text-sm font-bold text-slate-700">Product / service association<select value={form.productId} onChange={e=>setForm({...form,productId:e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5"><option value="">No association</option>{products.map(p=><option key={p.id} value={p.id}>{p.name} · {p.kind}</option>)}</select></label>
      <Input required type="number" min="0" label="Partner budget" value={form.partnerBudget} onChange={v=>setForm({...form,partnerBudget:v})}/>
      <Input type="number" min="0" label="Reward amount" value={form.rewardAmount} onChange={v=>setForm({...form,rewardAmount:v})}/>
      <Input type="number" min="0" max="100" label="Sale rate %" value={form.rewardRate} onChange={v=>setForm({...form,rewardRate:v})}/>
