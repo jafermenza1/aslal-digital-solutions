@@ -39,6 +39,18 @@ export default function PartnerCatalog({ partners, canIssueCredentials = false }
     });
   }, [partners, query, status, type]);
 
+  async function generateCard(id: string) {
+    setBusyId("card:"+id); setNotice((n) => ({ ...n, [id]: "" }));
+    try {
+      const response = await fetch(`/api/admin/partners/${encodeURIComponent(id)}/card`, { method: "GET" });
+      const type = response.headers.get("content-type") || "";
+      if (!response.ok || !type.includes("application/pdf")) { const data = await response.json().catch(() => ({})); throw new Error(data.error || "Could not generate the partner ID card."); }
+      const blob = await response.blob(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `aslal-partner-card-${id.slice(0,12)}.pdf`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+      setNotice((n) => ({ ...n, [id]: "ID card generated and downloaded." }));
+    } catch (error) { setNotice((n) => ({ ...n, [id]: error instanceof Error ? error.message : "ID card generation failed." })); }
+    finally { setBusyId(""); }
+  }
+
   async function issueCredentials(id: string) {
     setBusyId(id); setNotice((n) => ({ ...n, [id]: "" }));
     try {
@@ -148,7 +160,7 @@ export default function PartnerCatalog({ partners, canIssueCredentials = false }
                 <td className="whitespace-nowrap px-4 py-4 text-xs text-slate-500">{new Date(p.createdAt).toLocaleString("en-ET")}</td>
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-2">
-                    <a href={`/api/admin/partners/${encodeURIComponent(p.id)}/card`} className="whitespace-nowrap rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950">Generate ID</a>
+                    <button type="button" onClick={() => generateCard(p.id)} disabled={busyId === "card:"+p.id} className="whitespace-nowrap rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950 disabled:opacity-50">{busyId === "card:"+p.id ? "Generating…" : "Generate ID"}</button>
                     {canIssueCredentials && <button type="button" onClick={() => issueCredentials(p.id)} disabled={busyId === p.id} className="whitespace-nowrap rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">
                       {busyId === p.id ? "Issuing…" : p.username ? "Credentials active" : "Issue credentials"}
                     </button>
