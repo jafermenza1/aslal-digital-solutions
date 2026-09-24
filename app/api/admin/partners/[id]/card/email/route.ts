@@ -15,7 +15,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     const partner = rows[0];
     if (!partner) return NextResponse.json({ error: "Partner not found." }, { status: 404 });
     const pdf = await generatePartnerCardPdf(id);
-    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com").replace(/\\/$/, "");
+    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
     const [referrals] = await db.query<(RowDataPacket & { code: string })[]>("SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1", [id]);
     const code = referrals[0]?.code;
     if (!code) return NextResponse.json({ error: "Partner referral link is not ready." }, { status: 409 });
@@ -23,8 +23,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     const result = await sendEmail({
       recipient,
       subject: "Aslal partner ID card — " + partner.name,
-      body: ["Hello " + partner.name + ",", "", "Your Aslal Digital Solutions partner ID card is attached.", "Referral code: " + code, "Referral link: " + baseUrl + "/go/" + code].join("\
-"),
+      body: ["Hello " + partner.name + ",", "", "Your Aslal Digital Solutions partner ID card is attached.", "Referral code: " + code, "Referral link: " + baseUrl + "/go/" + code].join("\n"),
       html: "<p>Hello " + partner.name + ",</p><p>Your Aslal Digital Solutions partner ID card is attached.</p><p><strong>Referral code:</strong> " + code + "<br/><strong>Referral link:</strong> <a href=\"" + baseUrl + "/go/" + code + "\">" + baseUrl + "/go/" + code + "</a></p>",
       attachments: [{ filename: partnerCardFileName(code), content: pdf, contentType: "application/pdf" }],
     });
