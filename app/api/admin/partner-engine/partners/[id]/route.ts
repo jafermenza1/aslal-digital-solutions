@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authorizePermission } from "@/lib/authorization";
+import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 
 const VERIFICATION=new Set(["REGISTERED","VERIFIED","SUSPENDED"]);
 const TIERS=new Set(["STARTER","VERIFIED","PRO","ELITE"]);
@@ -20,7 +21,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
     if(b.audienceSize!==undefined){const v=Number(b.audienceSize);if(!Number.isInteger(v)||v<0||v>2147483647)return NextResponse.json({error:"Audience size must be a non-negative integer."},{status:400});fields.push("audience_size=?");values.push(v);}
     if(!fields.length)return NextResponse.json({error:"No partner changes supplied."},{status:400});
     values.push(id);
-    const [result]=await db.query<{affectedRows:number}>(`UPDATE partners SET ${fields.join(", ")} WHERE id=?`,values);
+    const [result]=await db.query<ResultSetHeader>(`UPDATE partners SET ${fields.join(", ")} WHERE id=?`,values);
     if(!result.affectedRows)return NextResponse.json({error:"Partner not found."},{status:404});
     return NextResponse.json({ok:true});
   }catch(error){console.error("PARTNER_PROFILE_UPDATE_ERROR",error);return NextResponse.json({error:"Could not update partner."},{status:500});}
