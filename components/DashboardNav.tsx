@@ -36,7 +36,8 @@ const ITEMS:Item[]=[
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"management"},
 {key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"management"},
 {key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"management",nested:true},
-{key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"}
+{key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"},
+{key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"}
 ];
 
 export function DashboardNav({locale,permissions,mobile=false}:{locale:Locale;permissions:string[];mobile?:boolean}) {
