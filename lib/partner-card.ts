@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -43,7 +44,21 @@ async function fetchCardData(partnerIdentifier: string) {
       );
       const partner = partnerRows[0];
       if (!partner) throw new Error(`Partner not found: ${partnerIdentifier}`);
-      if (!partner.partnerNumber) throw new Error(`Partner ${partner.id} has no partner number`);
+      if (!partner.partnerNumber) {
+        const year = new Date().getFullYear();
+        const [sequenceRows] = await db.query<(RowDataPacket & { nextNumber: number })[]>(
+          "SELECT COALESCE(MAX(CAST(SUBSTRING(partner_number, 5, 10) AS UNSIGNED)), 100) + 1 AS nextNumber FROM partners WHERE partner_number LIKE CONCAT('ASL-%', '-', ?) ",
+          [year],
+        );
+        const generatedNumber = `ASL-${Number(sequenceRows[0]?.nextNumber || 101)}-${year}`;
+        await db.query("UPDATE partners SET partner_number = ? WHERE id = ? AND (partner_number IS NULL OR partner_number = '')", [generatedNumber, partner.id]);
+        const [refreshedPartnerRows] = await db.query<PartnerCardRow[]>(
+          "SELECT id, partner_number AS partnerNumber, name, type, email FROM partners WHERE id = ? LIMIT 1",
+          [partner.id],
+        );
+        if (!refreshedPartnerRows[0]?.partnerNumber) throw new Error(`Partner ${partner.id} has no usable business ID`);
+        partner.partnerNumber = refreshedPartnerRows[0].partnerNumber;
+      }
 
       // Use the resolved UUID for every referral operation. This avoids the
       // previous failure mode where a request using ASL-... could not find an
@@ -64,7 +79,7 @@ async function fetchCardData(partnerIdentifier: string) {
         try {
           await db.query(
             "INSERT INTO referral_links (id, partner_id, code, destination_path) VALUES (?, ?, ?, ?)",
-            [crypto.randomUUID(), partner.id, code, "/"],
+            [randomUUID(), partner.id, code, "/"],
           );
           const [createdRows] = await db.query<ReferralCardRow[]>(
             "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
@@ -105,7 +120,8 @@ async function fetchCardData(partnerIdentifier: string) {
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error("Partner card data is not ready.");
+  const detail = lastError instanceof Error ? lastError.message : "Partner card data is not ready.";
+  throw new Error(`Partner card prerequisites could not be prepared: ${detail}`);
 }
 function createPdf(partner: PartnerCardRow, referralCode: string, referralUrl: string, qr?: Buffer) {
   const doc = new PDFDocument({ size: [WIDTH, HEIGHT], margin: 0, autoFirstPage: true });
