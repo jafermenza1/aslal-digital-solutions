@@ -74,20 +74,6 @@ export async function POST(request: Request) {
         card: `/api/admin/partners/${partnerId}/card`,
       },
     }, { status: 201 });
-    const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com"}/go/${finalCode}`;
-    return NextResponse.json({
-      ok: true,
-      partnerId,
-      code: finalCode,
-      referralUrl: publicUrl,
-      username: requestCredentials ? username : null,
-      credentialsIssued: requestCredentials && !credentialsError,
-      credentialsError: credentialsError || null,
-      emailSent,
-      emailRecipient,
-      emailFallbackUsed,
-      emailError: emailError || null,
-    }, { status: 201 });
   } catch (error) {
     console.error("PARTNER_CREATE_ERROR", error);
     return NextResponse.json({ error: "Could not create partner." }, { status: 500 });
