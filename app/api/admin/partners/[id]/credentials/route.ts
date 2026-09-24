@@ -38,8 +38,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     const portalUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com") + "/login";
     const message = {
       subject: "Aslal partner portal credentials — " + partner.name,
-      body: ["Hello " + partner.name + ",", "", "Your Aslal Digital Solutions partner portal credentials have been issued.", "Portal: " + portalUrl, "Username: " + username, "Temporary password: " + temporaryPassword, "", "Please sign in and change the temporary password after your first login."].join("
-"),
+      body: ["Hello " + partner.name + ",", "", "Your Aslal Digital Solutions partner portal credentials have been issued.", "Portal: " + portalUrl, "Username: " + username, "Temporary password: " + temporaryPassword, "", "Please sign in and change the temporary password after your first login."].join("\n"),
       html: "<p>Hello " + partner.name + ",</p><p>Your Aslal Digital Solutions partner portal credentials have been issued.</p><p><strong>Portal:</strong> <a href=\"" + portalUrl + "\">" + portalUrl + "</a><br/><strong>Username:</strong> " + username + "<br/><strong>Temporary password:</strong> " + temporaryPassword + "</p><p>Please sign in and change the temporary password after your first login.</p>",
     };
     try {
