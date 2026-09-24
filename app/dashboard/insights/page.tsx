@@ -159,6 +159,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
 
     <div className="mt-6 rounded-[2rem] bg-[#0F3E8A] p-7 text-white"><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Data rule</div><p className="mt-2 max-w-3xl leading-7 text-white/80">A view, visitor, signal, demo interaction, or attributed WON value is not automatically collected revenue. Use the relevant operational workspace before treating a metric as a commercial outcome.</p></div>
   </div></main>;
+}
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) { return <section className="rounded-[2rem] border border-slate-200 bg-white p-7"><h2 className="text-xl font-black">{title}</h2><div className="mt-5">{children}</div></section>; }
 function Empty({ text }: { text: string }) { return <p className="rounded-xl bg-[#F8FAFC] px-4 py-5 text-sm text-slate-500">{text}</p>; }
