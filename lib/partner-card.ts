@@ -36,8 +36,8 @@ async function fetchCardData(partnerId: string) {
   for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt += 1) {
     try {
       const [partnerRows] = await db.query<PartnerCardRow[]>(
-        "SELECT id, partner_number AS partnerNumber, name, type, email FROM partners WHERE id = ? LIMIT 1",
-        [partnerId],
+        "SELECT id, partner_number AS partnerNumber, name, type, email FROM partners WHERE id = ? OR partner_number = ? LIMIT 1",
+        [partnerId, partnerId],
       );
       const partner = partnerRows[0];
       if (!partner) throw new Error("Partner not found.");
@@ -50,8 +50,17 @@ async function fetchCardData(partnerId: string) {
       if (!referral?.code) {
         const base = safeText(partner.partnerNumber, partner.id.slice(0, 12)).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         const code = `${base}-${partner.id.slice(0, 8)}`;
-        await db.query("INSERT INTO referral_links (id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?)", [crypto.randomUUID(), partnerId, code, null, null, "/"]);
-        referral = { code };
+        try {
+          await db.query("INSERT INTO referral_links (id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?)", [crypto.randomUUID(), partner.id, code, null, null, "/"]);
+          referral = { code };
+        } catch (insertError) {
+          const [existingRows] = await db.query<ReferralCardRow[]>(
+            "SELECT code FROM referral_links WHERE partner_id = ? ORDER BY created_at ASC LIMIT 1",
+            [partner.id],
+          );
+          if (existingRows[0]?.code) referral = { code: existingRows[0].code };
+          else throw insertError;
+        }
       }
       return { partner, referral };
     } catch (error) {
@@ -123,6 +132,7 @@ export async function generatePartnerCardPdf(partnerId: string) {
   return createPdf(partner, referral.code, referralUrl, qr);
 }
 
-export function partnerCardFileName(code: string) {
-  return `aslal-partner-card-${code}.pdf`;
+export function partnerCardFileName(identifier: string) {
+  const safe = identifier.replace(/[^a-zA-Z0-9_-]+/g, "-");
+  return `aslal-partner-card-${safe}.pdf`;
 }
