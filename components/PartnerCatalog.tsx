@@ -25,6 +25,16 @@ function shortId(id: string) {
   return id.length > 18 ? `${id.slice(0, 8)}…${id.slice(-6)}` : id;
 }
 
+function statusLabel(status: string) {
+  return status === "PAUSED" ? "Suspended" : status === "PENDING" ? "Pending review" : "Active";
+}
+
+function statusClasses(status: string) {
+  if (status === "PAUSED") return "bg-amber-50 text-amber-800 ring-1 ring-amber-200";
+  if (status === "PENDING") return "bg-slate-100 text-slate-700 ring-1 ring-slate-200";
+  return "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200";
+}
+
 export default function PartnerCatalog({ partners, adminOnlyActions = false }: { partners: PartnerCatalogItem[]; adminOnlyActions?: boolean }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("ALL");
@@ -121,6 +131,7 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
           </div>
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_170px_170px]">
+          <div className="md:col-span-3 rounded-2xl bg-[#0F3E8A]/5 p-4 text-sm text-slate-600"><span className="font-black text-[#0F3E8A]">Admin actions:</span> Edit partner details here, or set status to <b>Paused</b> to suspend promotion while retaining history. Use Delete only for permanent removal.</div>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -143,7 +154,7 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="hidden overflow-x-auto lg:block">
         <table className="w-full min-w-[1250px] text-left text-sm">
           <thead className="bg-[#0F3E8A] text-white">
             <tr>
@@ -175,7 +186,7 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
                 </td>
                 <td className="px-4 py-4 font-bold">{p.type}</td>
                 <td className="px-4 py-4">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black">{p.status}</span>
+                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${statusClasses(p.status)}`}>{statusLabel(p.status)}</span>{p.status === "PAUSED" && <div className="mt-1 text-[11px] font-semibold text-amber-700">Promotion suspended</div>}{p.status === "PENDING" && <div className="mt-1 text-[11px] font-semibold text-slate-500">Needs review</div>}
                 </td>
                 <td className="px-4 py-4">
                   {p.code ? (
@@ -215,6 +226,30 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
             )}
           </tbody>
         </table>
+      </div>
+      <div className="divide-y divide-slate-100 lg:hidden">
+        {filtered.map((p) => (
+          <article key={p.id} className="p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div><h3 className="font-black text-slate-950">{p.name}</h3><div className="mt-1 font-mono text-xs font-black text-[#0F3E8A]">{p.partnerNumber}</div><div className="mt-1 text-xs text-slate-400">{p.email || "No email"}{p.username ? " · Portal: " + p.username : ""}</div></div>
+              <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-black ${statusClasses(p.status)}`}>{statusLabel(p.status)}</span>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-xl bg-slate-50 p-3"><div className="font-black uppercase tracking-wider text-slate-400">Type</div><div className="mt-1 font-bold">{p.type}</div></div>
+              <div className="rounded-xl bg-slate-50 p-3"><div className="font-black uppercase tracking-wider text-slate-400">Referral</div><div className="mt-1 font-mono font-bold text-[#0F3E8A]">{p.code || "Not created"}</div></div>
+              <div className="rounded-xl bg-slate-50 p-3"><div className="font-black uppercase tracking-wider text-slate-400">Campaign</div><div className="mt-1 font-bold">{p.campaign || "—"}</div></div>
+              <div className="rounded-xl bg-slate-50 p-3"><div className="font-black uppercase tracking-wider text-slate-400">Product</div><div className="mt-1 font-bold">{p.productSlug || "All products"}</div></div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a href={`/api/admin/partners/${encodeURIComponent(p.id)}/card`} className="rounded-xl bg-[#E2B02A] px-3 py-2 text-xs font-black text-slate-950">ID card</a>
+              <button type="button" onClick={() => startEdit(p)} disabled={!adminOnlyActions} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#0F3E8A] disabled:opacity-50">Edit / suspend</button>
+              <button type="button" onClick={() => issueCredentials(p.id)} disabled={busyId === p.id} className="rounded-xl bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white disabled:opacity-50">{busyId === p.id ? "Working…" : p.username ? "Credentials active" : "Issue credentials"}</button>
+              <button type="button" onClick={() => deletePartner(p)} disabled={!adminOnlyActions || busyId === p.id} className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:opacity-50">Delete</button>
+            </div>
+            {notice[p.id] && <div className="mt-3 rounded-xl bg-slate-50 p-3 text-xs font-semibold text-slate-600">{notice[p.id]}</div>}
+          </article>
+        ))}
+        {!filtered.length && <div className="px-5 py-14 text-center text-slate-500">{partners.length ? "No partners match the current filters." : "No partners have been added yet."}</div>}
       </div>
       {editing && adminOnlyActions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true">
