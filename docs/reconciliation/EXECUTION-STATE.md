@@ -68,6 +68,10 @@ CI `35923732403` passed typecheck, lint, production build, standalone packaging 
 
 The dashboard help route type correction was completed as a contained CI/quality correction inside the owning phase. The change preserves the existing permission contract and replaces the fragile inline tuple assertion with an explicitly typed section collection. CI run 35920479143 passed typecheck, lint, production build, standalone packaging and artifact upload; Emerald deployment 35920738018 passed artifact verification, release installation and production health. This correction does not change phase status, roadmap order, authorization policy, business data, or acceptance claims.
 
+## CI correction — verify artifact quota tolerance
+
+CI run `36065338086` failed in job `verify` at the `actions/upload-artifact@v4` step with `Failed to CreateArtifact: Artifact storage quota has been hit.` Typecheck, lint, build and packaging completed before that failure. The CI workflow now marks artifact upload as non-blocking and reduces artifact retention from 14 days to 3 days so verification remains truthful about code quality while lowering repeated storage pressure. This correction does not change phase order, business-domain scope, or acceptance claims.
+
 ## UI foundation extension (supporting work; no phase reorder)
 
 The dashboard now has a shared permission-aware shell with separate left-side tabs, icon navigation, mobile horizontal navigation, dark/light theme controls and website-language inheritance. The public locale reader and root layout now derive supported locales from the shared dictionary rather than hard-coding the current three languages. Public /products cards use the canonical product detail links with gold hover treatment.

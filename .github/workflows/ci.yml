@@ -58,6 +58,7 @@ jobs:
           tar -czf aslal-emerald-${GITHUB_SHA}.tar.gz -C emerald-deploy .
 
       - name: Upload Emerald deployment artifact
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: aslal-emerald-${{ github.sha }}
