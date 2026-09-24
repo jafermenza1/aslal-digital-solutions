@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   reactStrictMode: true,
+  serverExternalPackages: ["pdfkit"],
   experimental: {
     cpus: 1,
     workerThreads: false,
