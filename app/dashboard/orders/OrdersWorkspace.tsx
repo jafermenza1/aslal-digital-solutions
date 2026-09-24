@@ -71,7 +71,8 @@ export default function OrdersWorkspace({ initialOrders }: { initialOrders: Orde
     <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
       <div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Growth OS / Commerce</div><h1 className="mt-2 text-4xl font-black tracking-tight">Orders & payments</h1><p className="mt-2 max-w-3xl text-slate-500">A confirmed order is a commercial commitment. Payments are recorded separately and reconciliation is explicit.</p></div>
     </div>
-    {message && <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-[#0F3E8A]">{message}</div>}\n    {selected && <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+    {message && <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-[#0F3E8A]">{message}</div>}
+    {selected && <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div><div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Commercial journey</div><h2 className="mt-1 text-xl font-black">From captured demand to partner commission</h2><p className="mt-1 text-sm text-slate-500">Each step has a clear owner, record and next action. Nothing is counted as revenue until payment reconciliation is complete.</p></div>
         <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">Order {selected.orderNumber}</div>
