@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { isAdminEmail, verifySession } from "@/lib/security";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { canSendConversation, sendThroughAdapter } from "@/lib/messaging";
 
 type Params = { params: Promise<{ id: string }> };
@@ -12,6 +13,9 @@ export async function POST(request: NextRequest, { params }: Params) {
   if (!session || !isAdminEmail(session.email)) return NextResponse.json({ error: "Admin access required." }, { status: 403 });
 
   const { id } = await params;
+  const workspaceId = new URL(request.url).searchParams.get("workspaceId");
+  const access = await authorizeWorkspacePermission("leads.view", workspaceId);
+  if (!access) return NextResponse.json({ error: "Workspace access denied." }, { status: 403 });
   const body = await request.json().catch(() => ({}));
   const text = typeof body.body === "string" ? body.body.trim().slice(0, 10000) : "";
   const recipient = typeof body.recipient === "string" ? body.recipient.trim().slice(0, 190) : "";
@@ -19,7 +23,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   if (!text || !recipient) return NextResponse.json({ error: "body and recipient are required" }, { status: 400 });
 
   const conversation = await prisma.conversation.findUnique({
-    where: { id },
+    where: { id, workspaceId: access.workspace.id },
     include: { person: { include: { communicationPreference: true } } },
   });
   if (!conversation) return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
@@ -138,8 +142,11 @@ export async function GET(request: Request, { params }: Params) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+  const workspaceId = new URL(request.url).searchParams.get("workspaceId");
+  const access = await authorizeWorkspacePermission("leads.view", workspaceId);
+  if (!access) return NextResponse.json({ error: "Workspace access denied." }, { status: 403 });
   const conversation = await prisma.conversation.findUnique({
-    where: { id },
+    where: { id, workspaceId: access.workspace.id },
     select: { id: true },
   });
   if (!conversation) return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
