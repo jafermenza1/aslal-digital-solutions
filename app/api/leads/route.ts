@@ -8,6 +8,7 @@ import { runLeadCreatedAutomation } from "@/lib/automation";
 import { sendContactAutoReply } from "@/lib/contact-autoreply";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
+import { INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
 
 type VisitorRow = RowDataPacket & {
   first_source: string | null;
@@ -128,10 +129,11 @@ export async function POST(request: NextRequest) {
 
       await connection.execute(
         `INSERT INTO leads
-          (id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code, capture_mode, lead_category)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, 'WEB', 'Website contact')`,
+          (id, workspace_id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code, capture_mode, lead_category)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, 'WEB', 'Website contact')`,
         [
           leadId,
+          INTERNAL_WORKSPACE_ID,
           visitorId,
           personId,
           name,
