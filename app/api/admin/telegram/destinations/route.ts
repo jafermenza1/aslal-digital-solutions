@@ -13,7 +13,14 @@ export async function GET(request: Request) {
     "SELECT id,chat_id,type,label,active,opt_in,lead_id,product_id,campaign_id,partner_id,referral_code,source,medium,follow_up_enabled,follow_up_interval_minutes,follow_up_max_attempts,follow_up_attempts,next_follow_up_at,last_inbound_at,handed_off_at,created_at,updated_at FROM telegram_destinations WHERE workspace_id=? ORDER BY created_at DESC LIMIT 200",
     [access.workspace.id],
   );
-  return NextResponse.json({ destinations: rows });
+  const [products] = await db.query(
+    "SELECT id,name,kind,short_description,starting_price,cta_label FROM products WHERE active=1 ORDER BY name ASC LIMIT 200",
+  );
+  const [campaigns] = await db.query(
+    "SELECT id,name,status FROM partner_campaigns WHERE workspace_id=? AND status IN ('OPEN','ACTIVE','PUBLISHED') ORDER BY created_at DESC LIMIT 200",
+    [access.workspace.id],
+  );
+  return NextResponse.json({ destinations: rows, products, campaigns });
 }
 
 export async function POST(request: Request) {
