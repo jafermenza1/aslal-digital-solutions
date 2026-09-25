@@ -51,10 +51,17 @@ jobs:
         run: |
           set -euo pipefail
           ARCHIVE="aslal-emerald-${SHA}.tar.gz"
-          tar -C .next/standalone -czf "$ARCHIVE" .
+          RELEASE_ROOT=".next/emerald-release"
+          rm -rf "$RELEASE_ROOT"
+          mkdir -p "$RELEASE_ROOT"
+          cp -a .next/standalone/. "$RELEASE_ROOT/"
+          cp -a prisma "$RELEASE_ROOT/prisma"
+          test -f "$RELEASE_ROOT/prisma/schema.prisma"
+          test -d "$RELEASE_ROOT/prisma/migrations"
+          tar -C "$RELEASE_ROOT" -czf "$ARCHIVE" .
           test -s "$ARCHIVE"
           tar -tzf "$ARCHIVE" >/dev/null
-          echo "Created $ARCHIVE"
+          echo "Created $ARCHIVE with Prisma migration bundle."
           sha256sum "$ARCHIVE"
 
       - name: Upload Emerald deployment artifact
