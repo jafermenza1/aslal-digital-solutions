@@ -13,7 +13,8 @@
     "db:check": "node scripts/db-check.mjs",
     "db:seed": "node scripts/seed.mjs",
     "prisma:generate": "prisma generate",
-    "prisma:deploy": "prisma migrate deploy"
+    "prisma:deploy": "prisma migrate deploy",
+    "q1:test-boundary": "node script/q1-workspace-boundary-negative-tests.mjs"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
