@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   const lead = leadId
     ? await prisma.lead.findUnique({
         where: { id: leadId },
-        select: { id: true, personId: true, name: true, email: true, phone: true },
+        select: { id: true, workspaceId: true, personId: true, name: true, email: true, phone: true },
       })
     : null;
 
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
     conversation = await prisma.conversation.create({
       data: {
         id: randomUUID(),
+        workspaceId: lead.workspaceId || "00000000-0000-0000-0000-000000000001",
         personId: person.id,
         leadId: lead.id,
         channel,
