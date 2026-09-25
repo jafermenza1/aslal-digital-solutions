@@ -226,6 +226,15 @@ enum PaymentReconciliationStatus {
   EXCEPTION
 }
 
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+}
+
 enum CommunicationChannel {
   EMAIL
   SMS
@@ -710,6 +719,7 @@ model Customer {
   orders        Order[]
   payments      Payment[]
   revenues      Revenue[]
+  invoices      Invoice[]
 
   @@index([email], map: "idx_customer_email")
   @@index([phone], map: "idx_customer_phone")
@@ -835,6 +845,7 @@ model Order {
   items              OrderItem[]
   payments           Payment[]
   revenues           Revenue[]
+  invoices           Invoice[]
   commissions        Commission[]
 
   @@index([customerId, createdAt], map: "idx_orders_customer_created")
@@ -887,12 +898,73 @@ model Payment {
   customer               Customer?                   @relation(fields: [customerId], references: [id], onDelete: SetNull)
   revenue                Revenue?
   commission             Commission?
+  invoicePayments        InvoicePayment[]
 
   @@index([orderId, createdAt], map: "idx_payments_order_created")
   @@index([status, createdAt], map: "idx_payments_status_created")
   @@index([reconciliationStatus, createdAt], map: "idx_payments_reconciliation_created")
   @@index([provider, providerTransactionRef], map: "idx_payments_provider_ref")
   @@map("payments")
+}
+
+model Invoice {
+  id             String        @id @db.Char(36)
+  invoiceNumber  String        @unique @map("invoice_number") @db.VarChar(60)
+  customerId     String?       @map("customer_id") @db.Char(36)
+  orderId        String?       @map("order_id") @db.Char(36)
+  status         InvoiceStatus @default(DRAFT)
+  currency       String        @default("ETB") @db.VarChar(10)
+  subtotal       Decimal       @default(0) @db.Decimal(15,2)
+  taxAmount      Decimal       @default(0) @map("tax_amount") @db.Decimal(15,2)
+  total          Decimal       @default(0) @db.Decimal(15,2)
+  amountPaid     Decimal       @default(0) @map("amount_paid") @db.Decimal(15,2)
+  balanceDue     Decimal       @default(0) @map("balance_due") @db.Decimal(15,2)
+  issuedAt       DateTime?     @map("issued_at") @db.DateTime(0)
+  dueAt          DateTime?     @map("due_at") @db.DateTime(0)
+  paidAt         DateTime?     @map("paid_at") @db.DateTime(0)
+  voidedAt       DateTime?     @map("voided_at") @db.DateTime(0)
+  notes          String?       @db.Text
+  createdBy      String?       @map("created_by") @db.VarChar(190)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.DateTime(0)
+  customer       Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  order          Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  items          InvoiceItem[]
+  payments       InvoicePayment[]
+
+  @@index([customerId, status, createdAt], map: "idx_invoices_customer_status")
+  @@index([orderId], map: "idx_invoices_order")
+  @@index([status, dueAt], map: "idx_invoices_status_due")
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String   @id @db.Char(36)
+  invoiceId   String   @map("invoice_id") @db.Char(36)
+  description String   @db.VarChar(500)
+  quantity    Decimal  @default(1) @db.Decimal(15,3)
+  unitPrice   Decimal  @default(0) @map("unit_price") @db.Decimal(15,2)
+  amount      Decimal  @default(0) @db.Decimal(15,2)
+  sortOrder   Int      @default(0) @map("sort_order")
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId, sortOrder], map: "idx_invoice_items_invoice_sort")
+  @@map("invoice_items")
+}
+
+model InvoicePayment {
+  id          String   @id @db.Char(36)
+  invoiceId   String   @map("invoice_id") @db.Char(36)
+  paymentId   String   @map("payment_id") @db.Char(36)
+  amount      Decimal  @db.Decimal(15,2)
+  allocatedAt DateTime @default(now()) @map("allocated_at") @db.DateTime(0)
+  allocatedBy String?  @map("allocated_by") @db.VarChar(190)
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@unique([invoiceId, paymentId], map: "uq_invoice_payment")
+  @@index([paymentId], map: "idx_invoice_payment_payment")
+  @@map("invoice_payments")
 }
 
 model GrowthOpportunity {
