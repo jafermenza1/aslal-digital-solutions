@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { randomUUID } from "node:crypto";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
- const actor=await authorizePermission("commerce.manage");
- if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
  const {id:invoiceId}=await params;
  try{
   const b=await request.json();
+  const access=await authorizeWorkspacePermission("commerce.manage", typeof b.workspaceId==="string" ? b.workspaceId : undefined);
+  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
   const paymentId=String(b.paymentId??"").trim();
   const requestedAmount=Number(b.amount);
   if(!paymentId||!Number.isFinite(requestedAmount)||requestedAmount<=0)return NextResponse.json({error:"A positive payment allocation amount is required."},{status:400});
@@ -17,7 +17,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   try{
    await conn.beginTransaction();
    const [invoices]=await conn.query<any[]>(
-    `SELECT id,order_id,currency,status,total,amount_paid,balance_due FROM invoices WHERE id=? FOR UPDATE`,[invoiceId]
+    `SELECT id,order_id,currency,status,total,amount_paid,balance_due FROM invoices WHERE id=? AND workspace_id=? FOR UPDATE`,[invoiceId,access.workspace.id]
    );
    const invoice=invoices[0];
    if(!invoice)return NextResponse.json({error:"Invoice not found."},{status:404});
@@ -58,7 +58,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
    await conn.query(
     `INSERT INTO user_audits (id,user_id,actor,action,reason,details,created_at)
      VALUES (UUID(),NULL,?,?,?,?,?,NOW())`,
-    [actor.email,"INVOICE_PAYMENT_ALLOCATED","Reconciled payment allocated to invoice.",
+    [access.user.email,"INVOICE_PAYMENT_ALLOCATED","Reconciled payment allocated to invoice.",
      JSON.stringify({invoiceId,paymentId,amount:requestedAmount,newPaid,newBalance,status})]
    );
    await conn.commit();
