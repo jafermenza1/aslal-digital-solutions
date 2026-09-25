@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/security";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import type { RowDataPacket } from "mysql2/promise";
 
 const STATUSES = ["PENDING", "QUALIFIED", "APPROVED", "PAYABLE", "PAID", "VOID"] as const;
@@ -16,20 +17,24 @@ async function authorized() {
 }
 
 export async function GET() {
-  if (!(await authorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await authorizeWorkspacePermission("partners.manage");
+  if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { workspace } = access;
 
   const [[partners], [leads], [links], [commissions]] = await Promise.all([
-    db.query<PartnerRow[]>(`SELECT id,name,status FROM partners ORDER BY status='ACTIVE' DESC,name ASC LIMIT 500`),
-    db.query<LeadRow[]>(`SELECT id,name,company,status,deal_value FROM leads ORDER BY created_at DESC LIMIT 250`),
-    db.query<LinkRow[]>(`SELECT rl.id,rl.code,rl.partner_id,p.name partner_name FROM referral_links rl INNER JOIN partners p ON p.id=rl.partner_id ORDER BY rl.created_at DESC LIMIT 500`),
-    db.query<CommissionRow[]>(`SELECT c.id,c.partner_id,p.name partner_name,c.lead_id,l.name lead_name,c.referral_link_id,rl.code referral_code,c.amount,c.currency,c.status,c.created_at FROM commissions c INNER JOIN partners p ON p.id=c.partner_id LEFT JOIN leads l ON l.id=c.lead_id LEFT JOIN referral_links rl ON rl.id=c.referral_link_id ORDER BY c.created_at DESC LIMIT 100`),
+    db.query<PartnerRow[]>(`SELECT id,name,status FROM partners WHERE workspace_id=? ORDER BY status='ACTIVE' DESC,name ASC LIMIT 500`, [workspace.id]),
+    db.query<LeadRow[]>(`SELECT id,name,company,status,deal_value FROM leads WHERE workspace_id=? ORDER BY created_at DESC LIMIT 250`, [workspace.id]),
+    db.query<LinkRow[]>(`SELECT rl.id,rl.code,rl.partner_id,p.name partner_name FROM referral_links rl INNER JOIN partners p ON p.id=rl.partner_id WHERE rl.workspace_id=? AND p.workspace_id=? ORDER BY rl.created_at DESC LIMIT 500`, [workspace.id, workspace.id]),
+    db.query<CommissionRow[]>(`SELECT c.id,c.partner_id,p.name partner_name,c.lead_id,l.name lead_name,c.referral_link_id,rl.code referral_code,c.amount,c.currency,c.status,c.created_at FROM commissions c INNER JOIN partners p ON p.id=c.partner_id LEFT JOIN leads l ON l.id=c.lead_id LEFT JOIN referral_links rl ON rl.id=c.referral_link_id WHERE c.workspace_id=? ORDER BY c.created_at DESC LIMIT 100`, [workspace.id]),
   ]);
 
   return NextResponse.json({ partners, leads, links, commissions });
 }
 
 export async function POST(request: Request) {
-  if (!(await authorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await authorizeWorkspacePermission("partners.manage");
+  if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { workspace } = access;
 
   try {
     const body = await request.json();
@@ -51,14 +56,14 @@ export async function POST(request: Request) {
     const connection = await db.getConnection();
     try {
       await connection.beginTransaction();
-      const [partnerRows] = await connection.query<PartnerRow[]>(`SELECT id,status FROM partners WHERE id=? LIMIT 1`, [partnerId]);
+      const [partnerRows] = await connection.query<PartnerRow[]>(`SELECT id,status FROM partners WHERE id=? AND workspace_id=? LIMIT 1`, [partnerId, workspace.id]);
       if (!partnerRows[0]) {
         await connection.rollback();
         return NextResponse.json({ error: "Partner not found." }, { status: 404 });
       }
 
       if (leadId) {
-        const [leadRows] = await connection.query<RowDataPacket[]>(`SELECT id FROM leads WHERE id=? LIMIT 1`, [leadId]);
+        const [leadRows] = await connection.query<RowDataPacket[]>(`SELECT id FROM leads WHERE id=? AND workspace_id=? LIMIT 1`, [leadId, workspace.id]);
         if (!leadRows[0]) {
           await connection.rollback();
           return NextResponse.json({ error: "Lead not found." }, { status: 404 });
@@ -66,7 +71,7 @@ export async function POST(request: Request) {
       }
 
       if (referralLinkId) {
-        const [linkRows] = await connection.query<RowDataPacket[]>(`SELECT id FROM referral_links WHERE id=? AND partner_id=? LIMIT 1`, [referralLinkId, partnerId]);
+        const [linkRows] = await connection.query<RowDataPacket[]>(`SELECT id FROM referral_links WHERE id=? AND partner_id=? AND workspace_id=? LIMIT 1`, [referralLinkId, partnerId, workspace.id]);
         if (!linkRows[0]) {
           await connection.rollback();
           return NextResponse.json({ error: "Referral link not found for this partner." }, { status: 400 });
@@ -74,7 +79,7 @@ export async function POST(request: Request) {
       }
 
       const commissionId = crypto.randomUUID();
-      await connection.query(`INSERT INTO commissions (id,partner_id,lead_id,referral_link_id,amount,currency,status) VALUES (?,?,?,?,?,?,?)`, [commissionId, partnerId, leadId, referralLinkId, amount.toFixed(2), currency, status]);
+      await connection.query(`INSERT INTO commissions (id,workspace_id,partner_id,lead_id,referral_link_id,amount,currency,status) VALUES (?,?,?,?,?,?,?,?)`, [commissionId, workspace.id, partnerId, leadId, referralLinkId, amount.toFixed(2), currency, status]);
       await connection.commit();
       return NextResponse.json({ ok: true, id: commissionId }, { status: 201 });
     } catch (error) {
