@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const leadId = typeof body.leadId === "string" ? body.leadId : "";
   if (!leadId) return NextResponse.json({ error: "leadId is required" }, { status: 400 });
 
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+  const lead = await prisma.lead.findFirst({ where: { id: leadId, workspaceId: access.workspace.id } });
   if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   if (lead.status !== "WON") return NextResponse.json({ error: "Only a verified WON lead can become a customer." }, { status: 409 });
   if (!lead.dealValue || Number(lead.dealValue) <= 0) return NextResponse.json({ error: "A positive deal value is required." }, { status: 409 });
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     await tx.activity.create({
       data: {
         type: "CUSTOMER_CREATED", subject: "Customer created from verified won opportunity",
-        details: { leadId: lead.id, actor: session.email }, personId: person.id, customerId: customer.id, opportunityId: opportunity.id,
+        details: { leadId: lead.id, actor: access.user.email }, personId: person.id, customerId: customer.id, opportunityId: opportunity.id,
       },
     });
     return { customer, created: true };
