@@ -1,5 +1,5 @@
 import { requirePermission } from "@/lib/authorization";
-import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { getWorkspaceForUser } from "@/lib/workspaces";
 import { prisma } from "@/lib/prisma";
 import PartnerOpportunityCenter from "@/components/PartnerOpportunityCenter";
 
@@ -7,11 +7,11 @@ export const dynamic = "force-dynamic";
 
 export default async function PartnerPortalPage() {
   const user = await requirePermission("partner.portal.view");
-  const access = await authorizeWorkspacePermission("partners.manage");
-  if (!access) return <main className="min-h-screen p-6"><div className="portal-card mx-auto max-w-3xl p-8"><h1 className="text-2xl font-black">Workspace access unavailable</h1><p className="mt-2 text-sm text-white/60">Your partner workspace is not available.</p></div></main>;
+  const workspace = await getWorkspaceForUser(user);
+  if (!workspace) return <main className="min-h-screen p-6"><div className="portal-card mx-auto max-w-3xl p-8"><h1 className="text-2xl font-black">Workspace access unavailable</h1><p className="mt-2 text-sm text-white/60">Your partner workspace is not available.</p></div></main>;
   const userRecord = await prisma.user.findUnique({ where: { id: user.id }, select: { partnerId: true } });
   const partner = userRecord?.partnerId ? await prisma.partner.findUnique({
-    where: { id: userRecord.partnerId, workspaceId: access.workspace.id },
+    where: { id: userRecord.partnerId, workspaceId: workspace.id },
     include: {
       referralLinks: {
         orderBy: { createdAt: "desc" },
@@ -37,7 +37,7 @@ export default async function PartnerPortalPage() {
   return <main className="min-h-screen bg-[#F8FAFC] py-10">
     <div className="container-aslal">
       <header className="rounded-[2rem] bg-[#0F3E8A] p-7 text-white shadow-sm sm:p-9">
-        <div className="text-[10px] font-black uppercase tracking-[.2em] text-[#E2B02A]">Aslal Partner Portal · {access.workspace.name}</div>
+        <div className="text-[10px] font-black uppercase tracking-[.2em] text-[#E2B02A]">Aslal Partner Portal · {workspace.name}</div>
         <h1 className="mt-2 text-3xl font-black sm:text-4xl">{partner.name}</h1>
         <p className="mt-2 text-sm text-white/65">Your referral identity, activity and attributable commercial outcomes.</p>
       </header>
