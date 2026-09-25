@@ -1,28 +1,32 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
-export async function GET(){
- const actor=await authorizePermission("commerce.view");
- if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
+export async function GET(request:Request){
+ const {searchParams}=new URL(request.url);
+ const access=await authorizeWorkspacePermission("commerce.view",searchParams.get("workspaceId"));
+ if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
  const [rows]=await db.query(
   `SELECT i.id,i.invoice_number,i.customer_id,c.name customer_name,i.order_id,o.order_number,
           i.status,i.currency,i.subtotal,i.tax_amount,i.total,i.amount_paid,i.balance_due,
           i.issued_at,i.due_at,i.paid_at,i.created_at
      FROM invoices i
      LEFT JOIN customers c ON c.id=i.customer_id
+    WHERE i.workspace_id=?
      LEFT JOIN orders o ON o.id=i.order_id
-    ORDER BY i.created_at DESC LIMIT 250`
+    ORDER BY i.created_at DESC LIMIT 250`,[access.workspace.id]
  );
  return NextResponse.json({invoices:rows});
 }
 
 export async function POST(request:Request){
- const actor=await authorizePermission("commerce.manage");
+ const access=await authorizeWorkspacePermission("commerce.manage", typeof b.workspaceId==="string" ? b.workspaceId : undefined);
  if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
  try{
   const b=await request.json();
+  const access=await authorizeWorkspacePermission("commerce.manage", typeof b.workspaceId==="string" ? b.workspaceId : undefined);
+  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
   const orderId=String(b.orderId??"").trim();
   const dueAt=String(b.dueAt??"").trim()||null;
   const notes=String(b.notes??"").trim()||null;
@@ -31,7 +35,7 @@ export async function POST(request:Request){
   if(!Number.isFinite(taxAmount)||taxAmount<0)return NextResponse.json({error:"Tax amount must be zero or greater."},{status:400});
 
   const [orders]=await db.query<any[]>(
-   `SELECT id,order_number,customer_id,currency,subtotal,total,status FROM orders WHERE id=? LIMIT 1`,[orderId]
+   `SELECT id,order_number,customer_id,currency,subtotal,total,status FROM orders WHERE id=? AND workspace_id=? LIMIT 1`,[orderId,access.workspace.id]
   );
   const order=orders[0];
   if(!order)return NextResponse.json({error:"Order not found."},{status:404});
