@@ -156,10 +156,11 @@ jobs:
             echo "Production .env is required before Prisma migrations."
             exit 1
           fi
-          set -a
-          . "$RELEASE_PATH/.env"
-          set +a
-          test -n "${DATABASE_URL:-}"
+          # Do not shell-source the production .env here. Existing production
+          # values may contain spaces or other dotenv-valid characters that are
+          # not valid shell assignments (for example product names in values).
+          # Prisma reads the dotenv file directly from the release directory.
+          cd "$RELEASE_PATH"
           npx --yes prisma@6.19.0 migrate deploy --schema "$RELEASE_PATH/prisma/schema.prisma"
           echo "Prisma migrations applied successfully."
 
