@@ -72,7 +72,7 @@ export async function POST(request: Request) {
         },
         include: { items: true },
       });
-      await tx.negotiationEvent.create({ data: { id: randomUUID(), quoteId: created.id, type: "CREATED", actor: user.email, snapshot: { id: created.id, quoteNumber: created.quoteNumber, status: created.status, currency: created.currency, subtotal: String(created.subtotal), discount: String(created.discount), total: String(created.total), version: created.version } } });
+      await tx.negotiationEvent.create({ data: { id: randomUUID(), quoteId: created.id, type: "CREATED", actor: access.user.email, snapshot: { id: created.id, quoteNumber: created.quoteNumber, status: created.status, currency: created.currency, subtotal: String(created.subtotal), discount: String(created.discount), total: String(created.total), version: created.version } } });
       return created;
     });
     return NextResponse.json({ quote }, { status: 201 });
