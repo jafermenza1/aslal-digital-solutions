@@ -112,3 +112,92 @@ html[data-theme="dark"] .dashboard-content [class*="hover:bg-slate-50"]:hover,ht
 }
 
 .dashboard-workspace-identity{display:inline-flex;align-items:center;margin-top:10px;padding:7px 10px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(255,255,255,.07);font-size:9px;font-weight:900;letter-spacing:.12em;color:rgba(255,255,255,.75);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+
+/* Global application theme contract: every dashboard tab/control inherits the active light/dark tokens. */
+html[data-theme="light"],html[data-theme="dark"]{
+  --app-success:#16a34a;
+  --app-danger:#dc2626;
+  --app-warning:#a56f00;
+  --app-icon:var(--app-brand);
+  --app-hover:rgba(226,176,42,.12);
+  --app-hover-text:var(--app-text);
+}
+html[data-theme="dark"]{
+  --app-success:#4ade80;
+  --app-danger:#f87171;
+  --app-warning:#f4c45b;
+  --app-hover:rgba(226,176,42,.16);
+}
+.dashboard-content,.dashboard-content *{--tw-ring-color:rgba(226,176,42,.45)}
+.dashboard-content button:not(.dashboard-primary-link):not(.dashboard-secondary-link),
+.dashboard-content [role="button"]{
+  color:var(--app-text);
+}
+.dashboard-content button:hover:not(:disabled):not(.dashboard-primary-link):not(.dashboard-secondary-link),
+.dashboard-content [role="button"]:hover{
+  color:var(--app-hover-text);
+}
+.dashboard-content svg{color:currentColor}
+.dashboard-content button svg,.dashboard-content a svg,.dashboard-content [role="button"] svg{color:currentColor;stroke:currentColor}
+.dashboard-content input,.dashboard-content textarea,.dashboard-content select{
+  background:var(--app-surface)!important;
+  color:var(--app-text)!important;
+  border-color:var(--app-border)!important;
+}
+.dashboard-content input::placeholder,.dashboard-content textarea::placeholder{color:var(--app-muted)!important;opacity:1}
+.dashboard-content input:hover,.dashboard-content textarea:hover,.dashboard-content select:hover{
+  border-color:rgba(226,176,42,.55)!important;
+}
+.dashboard-content input:focus,.dashboard-content textarea:focus,.dashboard-content select:focus{
+  border-color:var(--app-brand)!important;
+  box-shadow:0 0 0 3px rgba(226,176,42,.14);
+}
+.dashboard-content option{background:var(--app-surface);color:var(--app-text)}
+.dashboard-content table{color:var(--app-text)}
+.dashboard-content th{color:var(--app-muted)}
+.dashboard-content td{color:var(--app-text)}
+.dashboard-content a{color:inherit}
+.dashboard-content a:hover{color:var(--app-brand)}
+.dashboard-content .dashboard-primary-link,
+.dashboard-content .dashboard-primary-link:hover{
+  background:var(--app-gold);
+  color:#071F47!important;
+  border-color:var(--app-gold);
+}
+.dashboard-content .dashboard-secondary-link{
+  border-color:var(--app-border);
+  background:var(--app-surface-2);
+  color:var(--app-text);
+}
+.dashboard-content .dashboard-secondary-link:hover{
+  background:var(--app-hover);
+  color:var(--app-text);
+  border-color:rgba(226,176,42,.55);
+}
+.dashboard-content .dashboard-kpi-card,
+.dashboard-content .dashboard-feature-card,
+.dashboard-content .dashboard-panel,
+.dashboard-content .dashboard-workspace-card{
+  background:var(--app-surface);
+  color:var(--app-text);
+}
+.dashboard-content .dashboard-kicker{color:var(--app-warning)}
+.dashboard-content .dashboard-card-icon,
+.dashboard-content .dashboard-feature-icon{
+  color:var(--app-icon);
+}
+.dashboard-content .dashboard-nav-item svg{color:currentColor}
+.dashboard-content .dashboard-nav-item:hover,
+.dashboard-content .dashboard-nav-item.active{color:#fff}
+html[data-theme="light"] .dashboard-content .dashboard-nav-item{color:rgba(255,255,255,.67)}
+html[data-theme="dark"] .dashboard-content .dashboard-nav-item{color:rgba(237,244,241,.72)}
+html[data-theme="dark"] .dashboard-content .dashboard-nav-item:hover,
+html[data-theme="dark"] .dashboard-content .dashboard-nav-item.active{color:#fff}
+.dashboard-content .border-white\/10,
+.dashboard-content .border-white\/15{border-color:var(--app-border)!important}
+html[data-theme="light"] .dashboard-content [class*="text-white/"]{color:var(--app-muted)!important}
+html[data-theme="dark"] .dashboard-content [class*="text-white/"]{color:var(--app-text)!important}
+html[data-theme="light"] .dashboard-content [class*="bg-white/"]{background:var(--app-surface-2)!important}
+html[data-theme="dark"] .dashboard-content [class*="bg-white/"]{background:var(--app-surface-2)!important}
+.dashboard-content .text-muted,.dashboard-content .muted{color:var(--app-muted)!important}
