@@ -329,18 +329,18 @@ async function attachIdentity(sender: string) {
     where: { email: { equals: sender } },
     select: { id: true },
   });
-  if (!person) return { personId: null, leadId: null, customerId: null };
+  if (!person) return { personId: null, leadId: null, customerId: null, workspaceId: null };
 
   const [lead, customer] = await Promise.all([
     prisma.lead.findFirst({
       where: { personId: person.id },
       orderBy: { updatedAt: "desc" },
-      select: { id: true },
+      select: { id: true, workspaceId: true },
     }),
     prisma.customer.findFirst({
       where: { personId: person.id },
       orderBy: { updatedAt: "desc" },
-      select: { id: true },
+      select: { id: true, workspaceId: true },
     }),
   ]);
 
@@ -348,6 +348,7 @@ async function attachIdentity(sender: string) {
     personId: person.id,
     leadId: lead?.id ?? null,
     customerId: customer?.id ?? null,
+    workspaceId: lead?.workspaceId ?? customer?.workspaceId ?? null,
   };
 }
 
@@ -372,6 +373,7 @@ async function persistInbound(mail: ParsedMail) {
     conversation = await prisma.conversation.create({
       data: {
         id: randomUUID(),
+        workspaceId: identity.workspaceId || "00000000-0000-0000-0000-000000000001",
         channel: "EMAIL",
         status: "OPEN",
         externalThreadId: externalMessageId,
