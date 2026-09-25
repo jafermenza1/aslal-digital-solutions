@@ -247,7 +247,7 @@ export default async function OperationsPage({
                 <div className="text-xs font-bold text-white/35">{tasks.length} tasks loaded</div>
               </div>
 
-              <form action={createTask}><input type="hidden" name="workspaceId" value={workspaceAccess.workspace.id} /> className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+              <form action={createTask} className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6"><input type="hidden" name="workspaceId" value={workspaceAccess.workspace.id} />
                 <select name="leadId" required className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-sm text-white lg:col-span-2">
                   <option value="">Select active lead</option>
                   {leads.map((lead) => (
