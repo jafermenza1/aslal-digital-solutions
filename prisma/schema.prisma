@@ -294,6 +294,7 @@ model Visitor {
 }
 
 model Lead {
+  workspaceId       String?            @map("workspace_id") @db.Char(36)
   id                String             @id @db.Char(36)
   visitorId         String?            @map("visitor_id") @db.Char(36)
   personId          String?            @map("person_id") @db.Char(36)
@@ -341,6 +342,7 @@ model Lead {
   @@index([captureMode, createdAt], map: "idx_leads_capture_mode_created")
   @@index([leadCategory, createdAt], map: "idx_leads_category_created")
   @@map("leads")
+  workspace         Workspace?         @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
 
 model Event {
@@ -687,6 +689,7 @@ model Person {
 }
 
 model Opportunity {
+  workspaceId       String?            @map("workspace_id") @db.Char(36)
   id              String     @id @db.Char(36)
   leadId          String     @map("lead_id") @db.Char(36)
   name            String     @db.VarChar(190)
@@ -713,9 +716,11 @@ model Opportunity {
   @@index([leadId, stage], map: "idx_opportunities_lead_stage")
   @@index([ownerEmail, stage], map: "idx_opportunities_owner_stage")
   @@map("opportunities")
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
 
 model Customer {
+  workspaceId   String?       @map("workspace_id") @db.Char(36)
   id            String        @id @db.Char(36)
   personId      String?       @map("person_id") @db.Char(36)
   opportunityId String?       @unique @map("opportunity_id") @db.Char(36)
@@ -740,6 +745,7 @@ model Customer {
   @@index([phone], map: "idx_customer_phone")
   @@index([status], map: "idx_customer_status")
   @@map("customers")
+  workspace     Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
 
 model Activity {
@@ -762,6 +768,7 @@ model Activity {
 }
 
 model Quote {
+  workspaceId     String?      @map("workspace_id") @db.Char(36)
   id              String      @id @db.Char(36)
   quoteNumber     String      @unique @map("quote_number") @db.VarChar(60)
   customerId      String?     @map("customer_id") @db.Char(36)
@@ -797,6 +804,7 @@ model Quote {
   @@index([parentQuoteId], map: "idx_quotes_parent")
   @@index([status, expiresAt], map: "idx_quotes_status_expires")
   @@map("quotes")
+  workspace       Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
 
 model QuoteItem {
@@ -829,6 +837,7 @@ model NegotiationEvent {
 }
 
 model Order {
+  workspaceId         String?     @map("workspace_id") @db.Char(36)
   id                 String      @id @db.Char(36)
   orderNumber        String      @unique @map("order_number") @db.VarChar(60)
   quoteId            String?     @unique @map("quote_id") @db.Char(36)
@@ -869,6 +878,7 @@ model Order {
   @@index([partnerId, createdAt], map: "idx_orders_partner_created")
   @@index([referralCode], map: "idx_orders_referral")
   @@map("orders")
+  workspace          Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
 
 model OrderItem {
@@ -887,6 +897,7 @@ model OrderItem {
 }
 
 model Payment {
+  workspaceId        String?             @map("workspace_id") @db.Char(36)
   id                     String                      @id @db.Char(36)
   orderId                String                      @map("order_id") @db.Char(36)
   customerId             String?                     @map("customer_id") @db.Char(36)
@@ -920,9 +931,11 @@ model Payment {
   @@index([reconciliationStatus, createdAt], map: "idx_payments_reconciliation_created")
   @@index([provider, providerTransactionRef], map: "idx_payments_provider_ref")
   @@map("payments")
+  workspace           Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
 
 model Invoice {
+  workspaceId   String?       @map("workspace_id") @db.Char(36)
   id             String        @id @db.Char(36)
   invoiceNumber  String        @unique @map("invoice_number") @db.VarChar(60)
   customerId     String?       @map("customer_id") @db.Char(36)
@@ -951,6 +964,7 @@ model Invoice {
   @@index([orderId], map: "idx_invoices_order")
   @@index([status, dueAt], map: "idx_invoices_status_due")
   @@map("invoices")
+  workspace     Workspace?   @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
 
 model InvoiceItem {
@@ -1071,6 +1085,42 @@ model ChannelAccount {
   @@index([channel, active], map: "idx_channel_account_active")
   @@map("channel_accounts")
 }
+model Workspace {
+  id          String      @id @db.Char(36)
+  name        String      @db.VarChar(190)
+  slug        String      @unique @db.VarChar(120)
+  clientType  String?     @map("client_type") @db.VarChar(100)
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.DateTime(0)
+  users       WorkspaceUser[]
+  leads       Lead[]
+  opportunities Opportunity[]
+  customers   Customer[]
+  quotes      Quote[]
+  orders      Order[]
+  payments    Payment[]
+  invoices    Invoice[]
+  campaigns   PartnerCampaign[]
+
+  @@index([active, name], map: "idx_workspaces_active_name")
+  @@map("workspaces")
+}
+
+model WorkspaceUser {
+  id          String    @id @db.Char(36)
+  workspaceId String    @map("workspace_id") @db.Char(36)
+  userId      String    @map("user_id") @db.Char(36)
+  role        String?   @db.VarChar(80)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId], map: "uq_workspace_user")
+  @@index([userId], map: "idx_workspace_user_user")
+  @@map("workspace_users")
+}
+
 model User {
   id              String   @id @db.Char(36)
   email           String   @unique @db.VarChar(190)
@@ -1084,6 +1134,7 @@ model User {
   updatedAt       DateTime @updatedAt @map("updated_at") @db.DateTime(0)
   partnerId       String?  @unique @map("partner_id") @db.Char(36)
   partner         Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  workspaceUsers   WorkspaceUser[]
   audits          UserAudit[]
 
   @@index([active, role], map: "idx_users_active_role")
@@ -1136,6 +1187,7 @@ model LeadAdminAudit {
 }
 
 model PartnerCampaign {
+  workspaceId          String?              @map("workspace_id") @db.Char(36)
   id                  String               @id @db.Char(36)
   name                String               @db.VarChar(190)
   description         String?              @db.Text
@@ -1165,6 +1217,7 @@ model PartnerCampaign {
   @@index([location], map: "idx_partner_campaign_location")
   @@index([productId], map: "idx_partner_campaign_product")
   @@map("partner_campaigns")
+  workspace             Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
 
 model CampaignAsset {
