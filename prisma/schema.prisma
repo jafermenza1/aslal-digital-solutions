@@ -363,7 +363,7 @@ model Event {
 }
 
 model Partner {
-  workspaceId     String?         @map("workspace_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
   id             String          @id @db.Char(36)
   partnerNumber  String          @unique @map("partner_number") @db.VarChar(30)
   name           String          @db.VarChar(160)
@@ -393,7 +393,7 @@ model Partner {
   competingDisputes  PartnerDispute[] @relation("PartnerDisputeCompetingPartner")
   awardedDisputes    PartnerDispute[] @relation("PartnerDisputeAwardedPartner")
   payouts            PartnerPayout[]
-  workspace          Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
   @@index([tier], map: "idx_partners_tier")
@@ -403,7 +403,7 @@ model Partner {
 }
 
 model ReferralLink {
-  workspaceId     String?          @map("workspace_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
   id              String          @id @db.Char(36)
   partnerId       String          @map("partner_id") @db.Char(36)
   code            String           @unique @db.VarChar(100)
@@ -418,7 +418,7 @@ model ReferralLink {
   commissions     Commission[]
   orders          Order[]
   revenues        Revenue[]
-  workspace       Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([partnerId], map: "idx_referral_partner")
   @@index([campaignId], map: "idx_referral_campaign")
@@ -474,7 +474,7 @@ model Product {
 }
 
 model Revenue {
-  workspaceId        String?       @map("workspace_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
   id                String        @id @db.Char(36)
   orderId           String        @map("order_id") @db.Char(36)
   paymentId         String        @unique @map("payment_id") @db.Char(36)
@@ -496,7 +496,7 @@ model Revenue {
   partner           Partner?      @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   referralLink      ReferralLink? @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
   commission        Commission?
-  workspace          Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([orderId, createdAt], map: "idx_revenue_order_created")
   @@index([partnerId, createdAt], map: "idx_revenue_partner_created")
@@ -505,7 +505,7 @@ model Revenue {
 }
 
 model Commission {
-  workspaceId    String?          @map("workspace_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
   id             String           @id @db.Char(36)
   partnerId      String           @map("partner_id") @db.Char(36)
   leadId         String?          @map("lead_id") @db.Char(36)
@@ -525,7 +525,7 @@ model Commission {
   revenue        Revenue?         @relation(fields: [revenueId], references: [id], onDelete: SetNull)
   payoutItems    PartnerPayoutItem[]
   disputes       PartnerDispute[]
-  workspace      Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([partnerId], map: "idx_commission_partner")
   @@index([status], map: "idx_commission_status")
@@ -1236,7 +1236,7 @@ model PartnerCampaign {
 }
 
 model CampaignAsset {
-  workspaceId String?             @map("workspace_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
   id          String              @id @db.Char(36)
   campaignId  String              @map("campaign_id") @db.Char(36)
   name        String              @db.VarChar(190)
@@ -1251,7 +1251,7 @@ model CampaignAsset {
   createdAt   DateTime            @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt   DateTime            @updatedAt @map("updated_at") @db.DateTime(0)
   campaign    PartnerCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  workspace   Workspace?           @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([campaignId, status, type], map: "idx_campaign_assets_campaign_status_type")
   @@index([trackingCode], map: "idx_campaign_assets_tracking_code")
@@ -1280,7 +1280,7 @@ model CampaignPartner {
 }
 
 model PartnerDispute {
-  workspaceId          String?              @map("workspace_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
   id                  String               @id @db.Char(36)
   partnerId           String               @map("partner_id") @db.Char(36)
   competingPartnerId  String?              @map("competing_partner_id") @db.Char(36)
@@ -1304,7 +1304,7 @@ model PartnerDispute {
   lead                Lead?                @relation(fields: [leadId], references: [id], onDelete: SetNull)
   campaign            PartnerCampaign?     @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   commission          Commission?          @relation(fields: [commissionId], references: [id], onDelete: SetNull)
-  workspace            Workspace?            @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([partnerId, status, createdAt], map: "idx_partner_disputes_partner_status")
   @@index([competingPartnerId, status], map: "idx_partner_disputes_competing_status")
@@ -1315,7 +1315,7 @@ model PartnerDispute {
 }
 
 model PartnerPayout {
-  workspaceId String?             @map("workspace_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
   id          String              @id @db.Char(36)
   partnerId   String              @map("partner_id") @db.Char(36)
   amount      Decimal             @default(0) @db.Decimal(15,2)
@@ -1328,7 +1328,7 @@ model PartnerPayout {
   updatedAt   DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
   partner     Partner              @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   items       PartnerPayoutItem[]
-  workspace   Workspace?           @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([partnerId, status, createdAt], map: "idx_partner_payouts_partner_status")
   @@index([status, createdAt], map: "idx_partner_payouts_status_created")
