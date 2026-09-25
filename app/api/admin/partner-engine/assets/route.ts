@@ -7,7 +7,8 @@ const TYPES=new Set(["CREATIVE","COPY","PRICE_SHEET","QR","POSTER","LINK"]);
 const STATUSES=new Set(["DRAFT","PUBLISHED","ARCHIVED"]);
 
 export async function GET(request:Request){
- const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId"));\n const actor=access?.user;
+ const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId"));
+ const actor=access?.user;
  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
  const campaignId=new URL(request.url).searchParams.get("campaignId")?.trim()||"";
  const [rows]=await db.query(
