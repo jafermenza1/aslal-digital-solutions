@@ -304,6 +304,7 @@ model Lead {
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
   conversations     Conversation[]
+  partnerDisputes    PartnerDispute[]
 
   @@index([status], map: "idx_leads_status")
   @@index([score], map: "idx_leads_score")
@@ -362,6 +363,8 @@ model Partner {
   user               User?
   campaignPartners   CampaignPartner[]
   disputes           PartnerDispute[]
+  competingDisputes  PartnerDispute[] @relation("PartnerDisputeCompetingPartner")
+  awardedDisputes    PartnerDispute[] @relation("PartnerDisputeAwardedPartner")
   payouts            PartnerPayout[]
 
   @@index([verificationStatus], map: "idx_partners_verification")
@@ -1098,23 +1101,34 @@ model CampaignPartner {
 }
 
 model PartnerDispute {
-  id           String               @id @db.Char(36)
-  partnerId    String               @map("partner_id") @db.Char(36)
-  campaignId   String?              @map("campaign_id") @db.Char(36)
-  commissionId String?              @map("commission_id") @db.Char(36)
-  subject      String               @db.VarChar(190)
-  description  String               @db.Text
-  status       PartnerDisputeStatus @default(OPEN)
-  resolution   String?              @db.Text
-  resolvedBy   String?              @map("resolved_by") @db.VarChar(190)
-  resolvedAt   DateTime?             @map("resolved_at") @db.DateTime(0)
-  createdAt    DateTime             @default(now()) @map("created_at") @db.DateTime(0)
-  updatedAt    DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
-  partner      Partner              @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  campaign     PartnerCampaign?     @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  commission   Commission?          @relation(fields: [commissionId], references: [id], onDelete: SetNull)
+  id                  String               @id @db.Char(36)
+  partnerId           String               @map("partner_id") @db.Char(36)
+  competingPartnerId  String?              @map("competing_partner_id") @db.Char(36)
+  awardedPartnerId    String?              @map("awarded_partner_id") @db.Char(36)
+  leadId              String?              @map("lead_id") @db.Char(36)
+  campaignId          String?              @map("campaign_id") @db.Char(36)
+  commissionId        String?              @map("commission_id") @db.Char(36)
+  subject             String               @db.VarChar(190)
+  description         String               @db.Text
+  evidenceRef         String?              @map("evidence_ref") @db.VarChar(1000)
+  decisionNotes       String?              @map("decision_notes") @db.Text
+  status              PartnerDisputeStatus @default(OPEN)
+  resolution          String?              @db.Text
+  resolvedBy          String?              @map("resolved_by") @db.VarChar(190)
+  resolvedAt          DateTime?            @map("resolved_at") @db.DateTime(0)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
+  partner             Partner              @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  competingPartner    Partner?             @relation("PartnerDisputeCompetingPartner", fields: [competingPartnerId], references: [id], onDelete: SetNull)
+  awardedPartner      Partner?             @relation("PartnerDisputeAwardedPartner", fields: [awardedPartnerId], references: [id], onDelete: SetNull)
+  lead                Lead?                @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  campaign            PartnerCampaign?     @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  commission          Commission?          @relation(fields: [commissionId], references: [id], onDelete: SetNull)
 
   @@index([partnerId, status, createdAt], map: "idx_partner_disputes_partner_status")
+  @@index([competingPartnerId, status], map: "idx_partner_disputes_competing_status")
+  @@index([awardedPartnerId, status], map: "idx_partner_disputes_awarded_status")
+  @@index([leadId, status], map: "idx_partner_disputes_lead_status")
   @@index([status, createdAt], map: "idx_partner_disputes_status_created")
   @@map("partner_disputes")
 }
