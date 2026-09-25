@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { requireSameWorkspace } from "@/lib/workspace-boundary";
 
 const allowed: Record<string, string[]> = {
   INITIATED: ["PENDING", "CONFIRMED", "FAILED"],
@@ -27,6 +28,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       include: { order: true },
     });
     if (!payment) return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+    requireSameWorkspace(workspace.id, payment.workspaceId, payment.order.workspaceId);
 
     const nextStatus = body.status ? String(body.status).toUpperCase() : null;
     const nextReconciliation = body.reconciliationStatus ? String(body.reconciliationStatus).toUpperCase() : null;
