@@ -15,7 +15,7 @@ const roleLabels:Record<string,string>={SUPER_ADMIN:"Super Administrator",ADMIN:
 function titleFor(pathname:string,t:ReturnType<typeof getAppUi>){const entries:[string,string][]=[
 ["/dashboard/quotes",t.nav.quotes],
 ["/dashboard/leads",t.nav.leads],["/dashboard/customers",t.nav.customers],["/dashboard/conversations",t.nav.conversations],["/dashboard/email-templates",t.nav.emailTemplates],
-["/dashboard/insights",t.nav.insights],["/dashboard/journey",t.nav.journey],["/dashboard/operations",t.nav.operations],["/dashboard/partners",t.nav.partners],["/dashboard/partner",t.nav.partnerPortal],["/dashboard/products",t.nav.products],["/dashboard/users",t.nav.users],["/dashboard",t.nav.overview]
+["/dashboard/insights",t.nav.insights],["/dashboard/journey",t.nav.journey],["/dashboard/operations",t.nav.operations],["/dashboard/partners",t.nav.partners],["/dashboard/partner",t.nav.partnerPortal],["/dashboard/products",t.nav.products],["/dashboard/users",t.nav.users],["/dashboard/telegram",t.nav.telegramSales],["/dashboard",t.nav.overview]
 ];return entries.find(([href])=>pathname===href||pathname.startsWith(href+"/"))?.[1]||t.nav.overview;}
 
 export function DashboardShell({user,locale,children}:{user:User;locale:Locale;children:React.ReactNode}){const pathname=usePathname();const t=getAppUi(locale);const title=titleFor(pathname,t);
