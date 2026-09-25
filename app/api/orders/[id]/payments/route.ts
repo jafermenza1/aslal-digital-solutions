@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const existing = await prisma.payment.findUnique({ where: { idempotencyKey } });
     if (existing) {
-      if (existing.orderId !== orderId || Number(existing.amount) !== amount || existing.currency !== currency) {
+      if (existing.workspaceId !== access.workspace.id || existing.orderId !== orderId || Number(existing.amount) !== amount || existing.currency !== currency) {
         return NextResponse.json({ error: "Idempotency key was already used for a different payment." }, { status: 409 });
       }
       return NextResponse.json({ payment: existing, alreadyExists: true });
@@ -38,7 +38,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (order.status === "CANCELLED") return NextResponse.json({ error: "Cancelled orders cannot receive payments." }, { status: 409 });
 
     const confirmedPayments = await prisma.payment.aggregate({
-      where: { orderId, status: { in: ["CONFIRMED", "PENDING", "INITIATED"] } },
+      where: { orderId, workspaceId: access.workspace.id, status: { in: ["CONFIRMED", "PENDING", "INITIATED"] } },
       _sum: { amount: true },
     });
     const outstanding = Math.max(0, Number(order.total) - Number(confirmedPayments._sum.amount || 0));
@@ -50,6 +50,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const created = await tx.payment.create({
         data: {
           id: randomUUID(),
+          workspaceId: access.workspace.id,
           orderId,
           customerId: order.customerId || undefined,
           provider,
@@ -66,7 +67,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       });
 
       if (status === "CONFIRMED") {
-        await tx.order.update({ where: { id: orderId }, data: { paymentState: "CONFIRMED" } });
+        await tx.order.update({ where: { id: orderId, workspaceId: access.workspace.id }, data: { paymentState: "CONFIRMED" } });
       } else if (status === "PENDING" || status === "INITIATED") {
         await tx.order.update({ where: { id: orderId }, data: { paymentState: status as never } });
       } else if (status === "FAILED") {
