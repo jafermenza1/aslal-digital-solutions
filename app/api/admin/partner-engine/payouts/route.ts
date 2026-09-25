@@ -21,7 +21,7 @@ export async function POST(request:Request){
  const actor=access.user;
  try{
   const fail=(message:string,status:number)=>{const error=new Error(message) as Error & {status?:number};error.status=status;throw error;};
-  const b=await request.json(),partnerId=String(b.partnerId??"").trim(),status=String(b.status??"PENDING").toUpperCase(),amount=Number(b.amount??0),currency=String(b.currency??"ETB").toUpperCase(),reference=String(b.reference??"").trim()||null,notes=String(b.notes??"").trim()||null;
+  const b=bodyPreview,partnerId=String(b.partnerId??"").trim(),status=String(b.status??"PENDING").toUpperCase(),amount=Number(b.amount??0),currency=String(b.currency??"ETB").toUpperCase(),reference=String(b.reference??"").trim()||null,notes=String(b.notes??"").trim()||null;
   const commissionIds=Array.isArray(b.commissionIds)?[...new Set(b.commissionIds.map((x:unknown)=>String(x).trim()).filter(Boolean))]:[];
   if(!partnerId||!STATUS.has(status)||!Number.isFinite(amount)||amount<0||amount>999999999999.99||(!commissionIds.length&&amount<=0))return NextResponse.json({error:"Partner, valid status and a positive amount (or selected commissions) are required."},{status:400});
   if(!/^[A-Z]{3}$/.test(currency))return NextResponse.json({error:"Currency must be a 3-letter code."},{status:400});
@@ -42,7 +42,7 @@ export async function POST(request:Request){
    }
    if(!Number.isFinite(payoutAmount)||payoutAmount<=0)fail("Payout amount must be positive.",400);
    const id=crypto.randomUUID();
-   await conn.query(`INSERT INTO partner_payouts (id,workspace_id,partner_id,amount,currency,status,reference,notes,paid_at) VALUES (?,?,?,?,?,?,?,?)`,[id,access.workspace.id,partnerId,payoutAmount.toFixed(2),currency,status,reference,notes,status==="PAID"?new Date():null]);
+   await conn.query(`INSERT INTO partner_payouts (id,workspace_id,partner_id,amount,currency,status,reference,notes,paid_at) VALUES (?,?,?,?,?,?,?,?,?)`,[id,access.workspace.id,partnerId,payoutAmount.toFixed(2),currency,status,reference,notes,status==="PAID"?new Date():null]);
    for(const commissionId of commissionIds){
     const [rows]=await conn.query<RowDataPacket[]>(`SELECT amount FROM commissions WHERE id=? LIMIT 1`,[commissionId]);
     await conn.query(`INSERT INTO partner_payout_items (id,payout_id,commission_id,amount) VALUES (?,?,?,?)`,[crypto.randomUUID(),id,commissionId,Number(rows[0].amount).toFixed(2)]);
