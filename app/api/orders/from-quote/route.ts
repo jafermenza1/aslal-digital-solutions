@@ -1,29 +1,30 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 function orderNumber() {
   return `SO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
 export async function POST(request: Request) {
-  const user = await authorizePermission("leads.edit");
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await request.json();
+  const access = await authorizeWorkspacePermission("leads.edit", typeof body.workspaceId === "string" ? body.workspaceId : undefined);
+  if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
 
   try {
-    const body = await request.json();
+
     const quoteId = String(body.quoteId || "");
     if (!quoteId) return NextResponse.json({ error: "quoteId is required" }, { status: 400 });
 
     const existing = await prisma.order.findUnique({
-      where: { quoteId },
+      where: { quoteId, workspaceId: access.workspace.id },
       include: { items: { orderBy: { sortOrder: "asc" } }, payments: { orderBy: { createdAt: "asc" } } },
     });
     if (existing) return NextResponse.json({ order: existing, alreadyExists: true });
 
     const quote = await prisma.quote.findUnique({
-      where: { id: quoteId },
+      where: { id: quoteId, workspaceId: access.workspace.id },
       include: {
         items: { orderBy: { sortOrder: "asc" } },
         customer: true,
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
         customer = await tx.customer.create({
           data: {
             id: randomUUID(),
+            workspaceId: access.workspace.id,
             personId: lead.personId || undefined,
             opportunityId: quote.opportunity.id,
             name: lead.name,
@@ -64,6 +66,7 @@ export async function POST(request: Request) {
       const created = await tx.order.create({
         data: {
           id: randomUUID(),
+          workspaceId: access.workspace.id,
           orderNumber: orderNumber(),
           quoteId: quote.id,
           customerId: customer.id,
@@ -79,7 +82,7 @@ export async function POST(request: Request) {
           referralCode: referralCode || undefined,
           partnerId: referral?.partnerId || undefined,
           referralLinkId: referral?.id || undefined,
-          salesOwnerEmail: opportunity?.ownerEmail || user.email,
+          salesOwnerEmail: opportunity?.ownerEmail || access.user.email,
           confirmedAt: new Date(),
           items: {
             create: quote.items.map((item) => ({
