@@ -42,6 +42,7 @@ export async function processInboundMessagingWebhook(
   const recipient = typeof body.recipient === "string" ? body.recipient.slice(0, 190) : "";
   const messageBody = typeof body.body === "string" ? body.body.slice(0, 10000) : "";
   const externalMessageId = typeof body.externalMessageId === "string" ? body.externalMessageId.slice(0, 190) : null;
+  const workspaceId = typeof body.workspaceId === "string" ? body.workspaceId : "00000000-0000-0000-0000-000000000001";
 
   if (!externalThreadId || !sender || !messageBody) {
     throw Object.assign(new Error("externalThreadId, sender and body are required"), { status: 400 });
@@ -56,13 +57,14 @@ export async function processInboundMessagingWebhook(
   }
 
   let conversation = await prisma.conversation.findFirst({
-    where: { channel: normalized, externalThreadId, status: { not: "CLOSED" } },
+    where: { workspaceId, channel: normalized, externalThreadId, status: { not: "CLOSED" } },
   });
 
   if (!conversation) {
     conversation = await prisma.conversation.create({
       data: {
         id: randomUUID(),
+        workspaceId,
         channel: normalized,
         externalThreadId,
         personId: typeof body.personId === "string" ? body.personId : null,
