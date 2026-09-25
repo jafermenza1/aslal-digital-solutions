@@ -143,15 +143,30 @@ jobs:
           test -f "$RELEASE_PATH/package.json"
           test -d "$RELEASE_PATH/.next/static"
           test -d "$RELEASE_PATH/public"
+          test -f "$RELEASE_PATH/prisma/schema.prisma"
+          test -d "$RELEASE_PATH/prisma/migrations"
 
           if [ -f "$APP_PATH/.env" ]; then
             cp "$APP_PATH/.env" "$RELEASE_PATH/.env"
           fi
 
+          # Apply repository migrations before changing the live application.
+          # If migration fails, the existing release remains active.
+          if [ ! -f "$RELEASE_PATH/.env" ]; then
+            echo "Production .env is required before Prisma migrations."
+            exit 1
+          fi
+          set -a
+          . "$RELEASE_PATH/.env"
+          set +a
+          test -n "${DATABASE_URL:-}"
+          npx --yes prisma@6.19.0 migrate deploy --schema "$RELEASE_PATH/prisma/schema.prisma"
+          echo "Prisma migrations applied successfully."
+
           rm -rf "$BACKUP_PATH"
           mkdir -p "$BACKUP_PATH"
 
-          for item in server.js package.json node_modules .next public; do
+          for item in server.js package.json node_modules .next public prisma; do
             if [ -e "$APP_PATH/$item" ]; then
               cp -a "$APP_PATH/$item" "$BACKUP_PATH/$item"
             fi
