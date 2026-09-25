@@ -284,7 +284,7 @@ export default async function OperationsPage({
                           <div className="mt-1 max-w-[340px] text-xs leading-5 text-white/35">{task.description || "No description"}</div>
                         </td>
                         <td className="px-4 py-4">
-                          <form action={updateTask}><input type="hidden" name="workspaceId" value={workspaceAccess.workspace.id} /> className="grid gap-2">
+                          <form action={updateTask} className="grid gap-2"><input type="hidden" name="workspaceId" value={workspaceAccess.workspace.id} />
                             <input type="hidden" name="taskId" value={task.id} />
                             <select name="status" defaultValue={task.status} className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white">
                               <option>OPEN</option><option>IN_PROGRESS</option><option>DONE</option><option>CANCELLED</option>
