@@ -1,12 +1,3 @@
--- Production compatibility: the Aslal database predates the Q1 invoice foundation in some environments.
--- Keep the existing production parent tables untouched.
--- MariaDB 10.11 on Emerald rejects a new FK from this legacy customers table even though
--- its id is CHAR(36), PRIMARY KEY, InnoDB, utf8mb4_unicode_ci and is already referenced
--- successfully by orders. Do not rebuild/drop customers or orders to work around that.
--- customer_id/order_id remain indexed relational references and are validated by the
--- invoice API against the same workspace-owned order/customer records before insertion.
--- This preserves the business integrity purpose without a destructive parent-table rebuild.
-
 CREATE TABLE invoices (
   id CHAR(36) NOT NULL,
   invoice_number VARCHAR(60) NOT NULL,
@@ -32,10 +23,9 @@ CREATE TABLE invoices (
   KEY idx_invoices_customer_status (customer_id,status,created_at),
   KEY idx_invoices_order (order_id),
   KEY idx_invoices_status_due (status,due_at),
-  -- Referential integrity for customer_id/order_id is enforced by the workspace-scoped
-  -- invoice API before creation; MariaDB production compatibility requires these to remain
-  -- indexed IDs rather than physical foreign keys on the legacy parent tables.
-) ENGINE=InnoDB;
+  CONSTRAINT fk_invoices_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+  CONSTRAINT fk_invoices_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE invoice_items (
   id CHAR(36) NOT NULL,
@@ -48,7 +38,7 @@ CREATE TABLE invoice_items (
   PRIMARY KEY (id),
   KEY idx_invoice_items_invoice_sort (invoice_id,sort_order),
   CONSTRAINT fk_invoice_items_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE invoice_payments (
   id CHAR(36) NOT NULL,
@@ -62,4 +52,4 @@ CREATE TABLE invoice_payments (
   KEY idx_invoice_payment_payment (payment_id),
   CONSTRAINT fk_invoice_payment_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
   CONSTRAINT fk_invoice_payment_payment FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE RESTRICT
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
