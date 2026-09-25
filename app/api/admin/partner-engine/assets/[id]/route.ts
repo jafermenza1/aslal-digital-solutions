@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import type { ResultSetHeader } from "mysql2";
+import { db from "@/lib/db";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 const TYPES=new Set(["CREATIVE","COPY","PRICE_SHEET","QR","POSTER","LINK"]);
@@ -23,7 +24,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   ];
   const name=String(fields[0].value),type=String(fields[1].value),status=String(fields[2].value);
   if(!name||!TYPES.has(type)||!STATUSES.has(status))return NextResponse.json({error:"Name, valid asset type and status are required."},{status:400});
-  const [r]=await db.query<any[]>(
+  const [r]=await db.query<ResultSetHeader>(
    `UPDATE campaign_assets SET name=?,type=?,status=?,description=?,content=?,asset_url=?,placement=?,tracking_code=?,updated_at=NOW() WHERE id=? AND workspace_id=?`,
    [...fields.slice(0,8).map(x=>x.value),id,access.workspace.id]
   );
