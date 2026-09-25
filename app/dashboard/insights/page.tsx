@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 type ProductDemandRow = RowDataPacket & {
   product_slug: string;
@@ -22,9 +23,12 @@ type ActivityRow = RowDataPacket & { id: string; event_name: string; page_path: 
 type FollowUpRow = RowDataPacket & { id: string; lead_id: string; name: string; title: string; priority: string; due_at: Date | null; score: number };
 type ClockRow = RowDataPacket & { now: Date };
 
-export default async function InsightsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  await requirePermission("insights.view");
-  const requestedTab = (await searchParams).tab || "products";
+export default async function InsightsPage({ searchParams }: { searchParams: Promise<{ tab?: string; workspaceId?: string }> }) {
+  const params = await searchParams;
+  const access = await authorizeWorkspacePermission("dashboard.view", params.workspaceId);
+  if (!access) return null;
+  const workspaceId = access.workspace.id;
+  const requestedTab = params.tab || "products";
   const tab = ["products","acquisition","referrals","activity","follow-up"].includes(requestedTab) ? requestedTab : "products";
 
   const [productRows, sourceRows, referralRows, activityRows, followUpRows, clockRows] = await Promise.all([
@@ -56,6 +60,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
           GROUP BY visitor_id
         ) v ON v.visitor_id = e.visitor_id
         WHERE e.product_slug IS NOT NULL
+          AND EXISTS (SELECT 1 FROM leads scope_lead WHERE scope_lead.visitor_id = e.visitor_id AND scope_lead.workspace_id = ?)
         GROUP BY e.product_slug
       ) e ON e.product_slug = p.slug
       LEFT JOIN (
@@ -67,23 +72,26 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
           SUM(CASE WHEN l.status = 'WON' THEN COALESCE(l.deal_value, 0) ELSE 0 END) AS attributed_revenue
         FROM lead_product_interest lpi
         INNER JOIN leads l ON l.id = lpi.lead_id
+        WHERE l.workspace_id = ?
         GROUP BY lpi.product_id
       ) i ON i.product_id = p.id
       WHERE p.active = 1
       ORDER BY leads_generated DESC, views DESC
-      LIMIT 20`
+      LIMIT 20`,
+      [workspaceId, workspaceId]
     ),
     db.query<SourceRow[]>(
       `SELECT
         COALESCE(v.first_source, 'website') AS source,
-        COUNT(DISTINCT v.id) AS visitors,
-        COUNT(DISTINCT l.id) AS leads,
-        COUNT(DISTINCT CASE WHEN l.status = 'WON' THEN l.id END) AS won_deals
+        COUNT(DISTINCT CASE WHEN l.workspace_id = ? THEN v.id END) AS visitors,
+        COUNT(DISTINCT CASE WHEN l.workspace_id = ? THEN l.id END) AS leads,
+        COUNT(DISTINCT CASE WHEN l.workspace_id = ? AND l.status = 'WON' THEN l.id END) AS won_deals
       FROM visitors v
       LEFT JOIN leads l ON l.visitor_id = v.id
       GROUP BY COALESCE(v.first_source, 'website')
       ORDER BY leads DESC, visitors DESC
-      LIMIT 10`
+      LIMIT 10`,
+      [workspaceId, workspaceId, workspaceId]
     ),
     db.query<ReferralRow[]>(
       `SELECT
@@ -96,27 +104,31 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
       LEFT JOIN (
         SELECT rl.code, COUNT(DISTINCT rc.id) AS clicks
         FROM referral_links rl
+        WHERE rl.workspace_id = ?
         LEFT JOIN referral_clicks rc ON rc.referral_link_id = rl.id
         GROUP BY rl.code
       ) c ON c.code = l.referral_code
+      WHERE l.workspace_id = ?
       GROUP BY COALESCE(l.referral_code, 'direct'), c.clicks
       ORDER BY leads DESC, clicks DESC
-      LIMIT 10`
+      LIMIT 10`,
+      [workspaceId, workspaceId]
     ),
     db.query<ActivityRow[]>(
       `SELECT id, event_name, page_path, product_slug, created_at
-       FROM events
+       FROM events e
+       WHERE EXISTS (SELECT 1 FROM leads l_scope WHERE l_scope.visitor_id = e.visitor_id AND l_scope.workspace_id = ?)
        ORDER BY created_at DESC
-       LIMIT 12`
+       LIMIT 12`, [workspaceId]
     ),
     db.query<FollowUpRow[]>(
       `SELECT t.id, t.lead_id, l.name, t.title, t.priority, t.due_at, l.score
        FROM lead_tasks t
        INNER JOIN leads l ON l.id = t.lead_id
-       WHERE t.status IN ('OPEN','IN_PROGRESS')
+       WHERE l.workspace_id = ? AND t.status IN ('OPEN','IN_PROGRESS')
          AND t.due_at IS NOT NULL
        ORDER BY (t.due_at < NOW()) DESC, t.due_at ASC
-       LIMIT 10`
+       LIMIT 10`, [workspaceId]
     ),
     db.query<ClockRow[]>(`SELECT NOW() AS now`),
   ]);
