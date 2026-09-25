@@ -8,7 +8,14 @@ export async function GET(){
  const [rows]=await db.query<RowDataPacket[]>(`SELECT pp.id,pp.partner_id,p.name partner_name,pp.amount,pp.currency,pp.status,pp.reference,pp.notes,pp.paid_at,pp.created_at,
  (SELECT COUNT(*) FROM partner_payout_items pi WHERE pi.payout_id=pp.id) commission_count
  FROM partner_payouts pp JOIN partners p ON p.id=pp.partner_id ORDER BY pp.created_at DESC LIMIT 250`);
- return NextResponse.json({payouts:rows});
+ const [payableCommissions]=await db.query<RowDataPacket[]>(`SELECT c.id,c.partner_id,p.name partner_name,c.amount,c.currency,c.status,o.order_number,c.created_at
+ FROM commissions c JOIN partners p ON p.id=c.partner_id LEFT JOIN orders o ON o.id=c.order_id
+ LEFT JOIN partner_payout_items pi ON pi.commission_id=c.id
+ LEFT JOIN revenues r ON r.id=c.revenue_id
+ LEFT JOIN payments pm ON pm.id=c.payment_id
+ WHERE c.status="PAYABLE" AND pi.id IS NULL AND r.status="RECOGNIZED" AND pm.reconciliation_status="RECONCILED"
+ ORDER BY p.name ASC,c.created_at ASC LIMIT 500`);
+ return NextResponse.json({payouts:rows,payableCommissions});
 }
 export async function POST(request:Request){
  const actor=await authorizePermission("partners.manage");if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
