@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { getProductionIntegrityReport } from "@/lib/production-integrity";
 import { TestDataReset } from "@/components/LeadAdminControls";
 import { getAutomationSnapshot } from "@/lib/automation";
@@ -16,13 +17,15 @@ const tabs: Array<{ key: Tab; label: string; short: string; description: string 
   { key: "audit", label: "Admin audit", short: "Audit", description: "Review administrative corrections and test-data controls." },
 ];
 
-async function requireAdmin() {
-  return requirePermission("operations.view");
+async function requireAdmin(workspaceId?: string) {
+  const access = await authorizeWorkspacePermission("operations.view", workspaceId);
+  if (!access) redirect("/dashboard");
+  return access;
 }
 
 async function updateTask(formData: FormData) {
   "use server";
-  await requireAdmin();
+  const access = await requireAdmin(String(formData.get("workspaceId") || ""));
 
   const taskId = String(formData.get("taskId") || "");
   const status = String(formData.get("status") || "");
@@ -34,6 +37,8 @@ async function updateTask(formData: FormData) {
   const dueAt = dueAtRaw ? new Date(dueAtRaw) : null;
   if (!assignedTo || !dueAt || Number.isNaN(dueAt.getTime())) return;
 
+  const existing = await prisma.leadTask.findFirst({ where: { id: taskId, lead: { workspaceId: access.workspace.id } }, select: { id: true } });
+  if (!existing) return;
   await prisma.leadTask.update({
     where: { id: taskId },
     data: {
@@ -51,7 +56,7 @@ async function updateTask(formData: FormData) {
 
 async function createTask(formData: FormData) {
   "use server";
-  await requireAdmin();
+  const access = await requireAdmin(String(formData.get("workspaceId") || ""));
 
   const leadId = String(formData.get("leadId") || "").trim();
   const title = String(formData.get("title") || "").trim().slice(0, 190);
@@ -60,6 +65,8 @@ async function createTask(formData: FormData) {
   const priority = String(formData.get("priority") || "NORMAL");
 
   if (!leadId || !title || !assignedTo || !["LOW", "NORMAL", "HIGH", "URGENT"].includes(priority)) return;
+  const lead = await prisma.lead.findFirst({ where: { id: leadId, workspaceId: access.workspace.id }, select: { id: true } });
+  if (!lead) return;
 
   const dueAt = dueAtRaw ? new Date(dueAtRaw) : null;
   if (!dueAt || Number.isNaN(dueAt.getTime())) return;
@@ -87,9 +94,8 @@ export default async function OperationsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireAdmin();
-
   const params = await searchParams;
+  const workspaceAccess = await requireAdmin(typeof params.workspaceId === "string" ? params.workspaceId : undefined);
   const rawTab = typeof params.tab === "string" ? params.tab : "overview";
   const tab: Tab = tabs.some((item) => item.key === rawTab) ? (rawTab as Tab) : "overview";
   const activeTab = tabs.find((item) => item.key === tab) || tabs[0];
@@ -100,6 +106,7 @@ export default async function OperationsPage({
     tab === "tasks"
       ? await Promise.all([
           prisma.leadTask.findMany({
+            where: { lead: { workspaceId: workspaceAccess.workspace.id } },
             orderBy: [{ status: "asc" }, { dueAt: "asc" }, { createdAt: "desc" }],
             take: 150,
             include: {
@@ -107,7 +114,7 @@ export default async function OperationsPage({
             },
           }),
           prisma.lead.findMany({
-            where: { status: { notIn: ["WON", "LOST"] } },
+            where: { workspaceId: workspaceAccess.workspace.id, status: { notIn: ["WON", "LOST"] } },
             select: { id: true, name: true, company: true },
             orderBy: { updatedAt: "desc" },
             take: 300,
@@ -241,7 +248,7 @@ export default async function OperationsPage({
                 <div className="text-xs font-bold text-white/35">{tasks.length} tasks loaded</div>
               </div>
 
-              <form action={createTask} className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+              <form action={createTask}><input type="hidden" name="workspaceId" value={workspaceAccess.workspace.id} /> className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
                 <select name="leadId" required className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-3 text-sm text-white lg:col-span-2">
                   <option value="">Select active lead</option>
                   {leads.map((lead) => (
@@ -278,7 +285,7 @@ export default async function OperationsPage({
                           <div className="mt-1 max-w-[340px] text-xs leading-5 text-white/35">{task.description || "No description"}</div>
                         </td>
                         <td className="px-4 py-4">
-                          <form action={updateTask} className="grid gap-2">
+                          <form action={updateTask}><input type="hidden" name="workspaceId" value={workspaceAccess.workspace.id} /> className="grid gap-2">
                             <input type="hidden" name="taskId" value={task.id} />
                             <select name="status" defaultValue={task.status} className="rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-xs text-white">
                               <option>OPEN</option><option>IN_PROGRESS</option><option>DONE</option><option>CANCELLED</option>
