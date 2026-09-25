@@ -24,7 +24,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
    if(invoice.status==="VOID"||invoice.status==="PAID")return NextResponse.json({error:"This invoice cannot accept another payment."},{status:400});
 
    const [payments]=await conn.query<any[]>(
-    `SELECT id,order_id,currency,status,reconciliation_status,amount FROM payments WHERE id=? FOR UPDATE`,[paymentId]
+    `SELECT id,order_id,currency,status,reconciliation_status,amount FROM payments WHERE id=? AND workspace_id=? FOR UPDATE`,[paymentId]
    );
    const payment=payments[0];
    if(!payment)return NextResponse.json({error:"Payment not found."},{status:404});
