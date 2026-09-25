@@ -82,3 +82,24 @@ The branch currently has **no GitHub Actions workflow run for the latest Step 8 
 ### Remaining Step 8 boundary note
 
 Visitor/event records are currently global acquisition records rather than explicit workspace-owned records. Insights therefore scopes event-derived reporting through visitors that have a lead in the active workspace. A future explicit workspace ownership model for anonymous acquisition events can be added if independent pre-lead tenant attribution becomes a requirement.
+
+
+## Increment 4 — Step 6 negative-boundary enforcement
+
+Implemented the reusable boundary primitives in `lib/workspace-boundary.ts`:
+
+- `requireWorkspaceAccess`
+- `requireWorkspaceRecord`
+- `requireSameWorkspace`
+
+Critical commercial paths now use or reinforce these checks, including quote creation/revision, order creation from quote, payment transitions/payment creation, and lead→customer conversion.
+
+Added `scripts/q1-workspace-boundary-negative-tests.mjs`, an authenticated two-workspace integration harness covering:
+- Workspace A cannot read a Workspace B lead/quote.
+- Workspace A cannot update a Workspace B lead/payment/commission.
+- Workspace A cannot create a payment against a Workspace B order.
+- The harness is intentionally staging/test oriented and requires two authenticated sessions plus test record IDs; it is not claimed as executed in CI.
+
+### Step 6 verification status
+
+The negative-test harness is committed, but execution requires an authenticated two-workspace test environment. CI remains typecheck/lint only and does not receive production build/deployment work.
