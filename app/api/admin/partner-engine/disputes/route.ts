@@ -4,8 +4,9 @@ import { db } from "@/lib/db";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export async function POST(request:Request){
- const access=await authorizeWorkspacePermission("partners.manage",typeof new URL(request.url).searchParams.get("workspaceId")==="string"?new URL(request.url).searchParams.get("workspaceId"):undefined); const actor=access?.user;
+ const access=await authorizeWorkspacePermission("partners.manage",typeof new URL(request.url).searchParams.get("workspaceId")==="string"?new URL(request.url).searchParams.get("workspaceId"):undefined);
  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
+ const actor=access.user;
  try{
   const b=await request.json();
   const partnerId=String(b.partnerId??"").trim();
