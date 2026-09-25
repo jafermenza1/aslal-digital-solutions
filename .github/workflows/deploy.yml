@@ -161,6 +161,18 @@ jobs:
           # not valid shell assignments (for example product names in values).
           # Prisma reads the dotenv file directly from the release directory.
           cd "$RELEASE_PATH"
+
+          # The previous Q1 invoice migration attempt is recorded by Prisma as
+          # failed. Recover that failed migration explicitly before retrying.
+          # This is conditional and targeted; successful migration history is
+          # never marked rolled back.
+          MIGRATION_STATUS="$(npx --yes prisma@6.19.0 migrate status --schema "$RELEASE_PATH/prisma/schema.prisma" 2>&1 || true)"
+          printf '%s\n' "$MIGRATION_STATUS"
+          if printf '%s\n' "$MIGRATION_STATUS" | grep -q "20260925140000_invoice_billing_foundation"; then
+            echo "Recovering failed migration 20260925140000_invoice_billing_foundation..."
+            npx --yes prisma@6.19.0 migrate resolve               --rolled-back "20260925140000_invoice_billing_foundation"               --schema "$RELEASE_PATH/prisma/schema.prisma"
+          fi
+
           npx --yes prisma@6.19.0 migrate deploy --schema "$RELEASE_PATH/prisma/schema.prisma"
           echo "Prisma migrations applied successfully."
 
