@@ -169,18 +169,27 @@ jobs:
             fi
           done
 
-          rm -rf \
-            "$APP_PATH/.next" \
-            "$APP_PATH/node_modules" \
-            "$APP_PATH/public" \
-            "$APP_PATH/server.js" \
-            "$APP_PATH/package.json"
+          # CloudLinux NodeJS Selector owns application-root node_modules as a
+          # virtualenv symlink. Do not replace it with the standalone release's
+          # real node_modules directory. The launcher starts Next from the
+          # isolated release, where Prisma/Next/React resolve locally.
+          rm -f "$APP_PATH/server.js" "$APP_PATH/package.json"
 
-          cp -a "$RELEASE_PATH/server.js" "$APP_PATH/server.js"
+          cat > "$APP_PATH/server.js" <<EOF
+          const path = require("node:path");
+          const Module = require("node:module");
+
+          const releasePath = path.join(__dirname, ".releases", "$SHA");
+          const runtimeNodeModules = path.join(releasePath, "node_modules");
+          process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]
+            .filter(Boolean)
+            .join(path.delimiter);
+          Module._initPaths();
+
+          require(path.join(releasePath, "next-server.js"));
+          EOF
+
           cp -a "$RELEASE_PATH/package.json" "$APP_PATH/package.json"
-          cp -a "$RELEASE_PATH/node_modules" "$APP_PATH/node_modules"
-          cp -a "$RELEASE_PATH/.next" "$APP_PATH/.next"
-          cp -a "$RELEASE_PATH/public" "$APP_PATH/public"
 
           mkdir -p "$APP_PATH/tmp"
           touch "$APP_PATH/tmp/restart.txt"
