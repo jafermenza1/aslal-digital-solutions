@@ -54,7 +54,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         });
         await tx.quote.update({where:{id:current.id},data:{status:"SUPERSEDED",supersededAt:new Date()}});
         await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:current.id,type:"SUPERSEDED",actor:access.user.email,snapshot:{replacedBy:next.id,version:next.version}}});
-        await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:next.id,type:"REVISED",actor:user.email,note:body.note?String(body.note):undefined,snapshot:{previousQuoteId:current.id,previousVersion:current.version}}});
+        await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:next.id,type:"REVISED",actor:access.user.email,note:body.note?String(body.note):undefined,snapshot:{previousQuoteId:current.id,previousVersion:current.version}}});
         return next;
       });
       return NextResponse.json({ quote: revised });
@@ -75,7 +75,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (action==="REJECTED") data.rejectedAt=now;
     if (action==="CANCELLED") data.cancelledAt=now;
     const quote=await prisma.$transaction(async tx=>{
-      const updated=await tx.quote.update({where:{id},data});
+      const updated=await tx.quote.update({where:{id,workspaceId:access.workspace.id},data});
       await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:id,type:action as any,actor:user.email,note:body.note?String(body.note):undefined,snapshot:{statusFrom:current.status,statusTo:action}}});
       return updated;
     });
