@@ -14,17 +14,16 @@ export async function POST(request: Request) {
   if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
 
   try {
-
     const quoteId = String(body.quoteId || "");
     if (!quoteId) return NextResponse.json({ error: "quoteId is required" }, { status: 400 });
 
-    const existing = await prisma.order.findUnique({
+    const existing = await prisma.order.findFirst({
       where: { quoteId, workspaceId: access.workspace.id },
       include: { items: { orderBy: { sortOrder: "asc" } }, payments: { orderBy: { createdAt: "asc" } } },
     });
     if (existing) return NextResponse.json({ order: existing, alreadyExists: true });
 
-    const quote = await prisma.quote.findUnique({
+    const quote = await prisma.quote.findFirst({
       where: { id: quoteId, workspaceId: access.workspace.id },
       include: {
         items: { orderBy: { sortOrder: "asc" } },
@@ -33,9 +32,14 @@ export async function POST(request: Request) {
       },
     });
     if (!quote) return NextResponse.json({ error: "Quote not found" }, { status: 404 });
-    if (quote.status !== "ACCEPTED") {
-      return NextResponse.json({ error: "Only an accepted quote can become an order." }, { status: 409 });
+    requireSameWorkspace(access.workspace.id, quote.workspaceId);
+    if (quote.customer) requireSameWorkspace(access.workspace.id, quote.customer.workspaceId);
+    if (quote.opportunity) {
+      requireSameWorkspace(access.workspace.id, quote.opportunity.workspaceId);
+      if (quote.opportunity.customer) requireSameWorkspace(access.workspace.id, quote.opportunity.customer.workspaceId);
+      if (quote.opportunity.lead) requireSameWorkspace(access.workspace.id, quote.opportunity.lead.workspaceId);
     }
+    if (quote.status !== "ACCEPTED") return NextResponse.json({ error: "Only an accepted quote can become an order." }, { status: 409 });
 
     const order = await prisma.$transaction(async (tx) => {
       let customer = quote.customer || quote.opportunity?.customer || null;
@@ -54,50 +58,33 @@ export async function POST(request: Request) {
           },
         });
       }
-      if (!customer) {
-        throw new Error("An accepted quote must have a customer before it can become an order.");
-      }
+      if (!customer) throw new Error("An accepted quote must have a customer before it can become an order.");
+      requireSameWorkspace(access.workspace.id, customer.workspaceId);
 
       const opportunity = quote.opportunity;
       const referralCode = opportunity?.referralCode || null;
       const referral = referralCode
-        ? await tx.referralLink.findFirst({ where: { code: referralCode, workspaceId: access.workspace.id }, select: { id: true, partnerId: true, campaign: true, workspaceId: true } }) : null;
+        ? await tx.referralLink.findFirst({
+            where: { code: referralCode, workspaceId: access.workspace.id },
+            select: { id: true, partnerId: true, campaign: true, workspaceId: true, partner: { select: { workspaceId: true } } },
+          })
+        : null;
       if (referralCode && !referral) throw new Error("Referral link is not owned by this workspace.");
-      if (referral?.workspaceId) requireSameWorkspace(access.workspace.id, referral.workspaceId);
-      const referralChecked = referral;
+      if (referral) requireSameWorkspace(access.workspace.id, referral.workspaceId, referral.partner.workspaceId);
 
       const created = await tx.order.create({
         data: {
-          id: randomUUID(),
-          workspaceId: access.workspace.id,
-          orderNumber: orderNumber(),
-          quoteId: quote.id,
-          customerId: customer.id,
-          opportunityId: quote.opportunityId || undefined,
-          status: "CONFIRMED",
-          currency: quote.currency,
-          subtotal: quote.subtotal,
-          discount: quote.discount,
-          total: quote.total,
-          paymentState: "INITIATED",
-          source: opportunity?.source || undefined,
-          campaign: opportunity?.campaign || referralChecked?.campaign || undefined,
-          referralCode: referralCode || undefined,
-          partnerId: referralChecked?.partnerId || undefined,
-          referralLinkId: referralChecked?.id || undefined,
-          salesOwnerEmail: opportunity?.ownerEmail || access.user.email,
-          confirmedAt: new Date(),
-          items: {
-            create: quote.items.map((item) => ({
-              id: randomUUID(),
-              description: item.description,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              discount: item.discount,
-              lineTotal: item.lineTotal,
-              sortOrder: item.sortOrder,
-            })),
-          },
+          id: randomUUID(), workspaceId: access.workspace.id, orderNumber: orderNumber(),
+          quoteId: quote.id, customerId: customer.id, opportunityId: quote.opportunityId || undefined,
+          status: "CONFIRMED", currency: quote.currency, subtotal: quote.subtotal, discount: quote.discount, total: quote.total,
+          paymentState: "INITIATED", source: opportunity?.source || undefined,
+          campaign: opportunity?.campaign || referral?.campaign || undefined, referralCode: referralCode || undefined,
+          partnerId: referral?.partnerId || undefined, referralLinkId: referral?.id || undefined,
+          salesOwnerEmail: opportunity?.ownerEmail || access.user.email, confirmedAt: new Date(),
+          items: { create: quote.items.map((item) => ({
+            id: randomUUID(), description: item.description, quantity: item.quantity, unitPrice: item.unitPrice,
+            discount: item.discount, lineTotal: item.lineTotal, sortOrder: item.sortOrder,
+          })) },
         },
         include: { items: { orderBy: { sortOrder: "asc" } }, payments: true },
       });
