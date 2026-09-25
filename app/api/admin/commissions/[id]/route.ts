@@ -1,7 +1,6 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { verifySession } from "@/lib/security";
+import { authorizePermission } from "@/lib/authorization";
 import type { RowDataPacket } from "mysql2/promise";
 
 const transitions: Record<string, string[]> = {
@@ -16,12 +15,9 @@ const transitions: Record<string, string[]> = {
 type CommissionStatusRow = RowDataPacket & { status: string; revenue_id: string | null; revenue_status: string | null; reconciliation_status: string | null; };
 
 
-async function authorized() {
-  return Boolean(verifySession((await cookies()).get("aslal_session")?.value));
-}
-
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-  if (!(await authorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const actor = await authorizePermission("partners.manage");
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await context.params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error: "Invalid commission ID." }, { status: 400 });
