@@ -9,7 +9,9 @@ const TYPES = new Set(["AGENT","INFLUENCER","AFFILIATE","RESELLER"]);
 
 type CampaignRow = RowDataPacket & { id:string; name:string; description:string|null; status:string; target_description:string|null; location:string|null; budget:number|string; partner_budget:number|string; currency:string; reward_type:string; reward_amount:number|string|null; reward_rate:number|string|null; required_partner_types:string|null; product_id:string|null; product_name:string|null; starts_at:Date|null; ends_at:Date|null; created_by:string|null; created_at:Date; partner_count:number; active_partner_count:number };
 
-export async function GET(request:Request) {\n  const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId"));\n  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
+export async function GET(request:Request) {
+  const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId"));
+  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
   if (!(await authorizePermission("partners.manage"))) return NextResponse.json({error:"Unauthorized"}, {status:401});
   const [rows, products] = await Promise.all([
     db.query<CampaignRow[]>(`SELECT c.*, p.name product_name,
@@ -41,7 +43,8 @@ export async function POST(request:Request) {
     if(rewardAmount!==null && (!Number.isFinite(rewardAmount)||rewardAmount<0)) return NextResponse.json({error:"Reward amount must be non-negative."},{status:400});
     if(rewardRate!==null && (!Number.isFinite(rewardRate)||rewardRate<0||rewardRate>100)) return NextResponse.json({error:"Reward rate must be between 0 and 100."},{status:400});
     if(!/^[A-Z]{3}$/.test(currency)) return NextResponse.json({error:"Currency must be a 3-letter code."},{status:400});
-    const id=crypto.randomUUID();\n    if(!actor)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
+    const id=crypto.randomUUID();
+    if(!actor)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
     const starts=b.startsAt?new Date(String(b.startsAt)):null;
     const ends=b.endsAt?new Date(String(b.endsAt)):null;
     if(starts && Number.isNaN(starts.getTime()) || ends && Number.isNaN(ends.getTime())) return NextResponse.json({error:"Invalid campaign dates."},{status:400});
