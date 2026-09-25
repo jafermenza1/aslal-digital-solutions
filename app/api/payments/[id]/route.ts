@@ -39,6 +39,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (nextReconciliation === "RECONCILED" && (nextStatus && nextStatus !== "CONFIRMED" ? nextStatus : payment.status) !== "CONFIRMED") {
       return NextResponse.json({ error: "Only a confirmed payment can be reconciled into revenue." }, { status: 409 });
     }
+    if (nextReconciliation === "RECONCILED" && !String(body.reconciliationEvidenceRef ?? "").trim()) {
+      return NextResponse.json({ error: "Reconciliation evidence reference is required before marking a payment reconciled." }, { status: 400 });
+    }
+    if (nextReconciliation === "EXCEPTION" && !String(body.reconciliationNotes ?? "").trim()) {
+      return NextResponse.json({ error: "An exception reason is required." }, { status: 400 });
+    }
     if (nextReconciliation === "RECONCILED" && payment.reconciliationStatus === "RECONCILED") {
       return NextResponse.json({ error: "Payment is already reconciled." }, { status: 409 });
     }
@@ -54,7 +60,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
       if (nextReconciliation) {
         data.reconciliationStatus = nextReconciliation;
-        if (nextReconciliation === "RECONCILED") data.reconciledAt = new Date();
+        const evidence = String(body.reconciliationEvidenceRef ?? "").trim();
+        const notes = String(body.reconciliationNotes ?? "").trim();
+        if (evidence) data.reconciliationEvidenceRef = evidence.slice(0, 1000);
+        if (notes) data.reconciliationNotes = notes.slice(0, 5000);
+        if (nextReconciliation === "RECONCILED") {
+          data.reconciledAt = new Date();
+          data.reconciledBy = user.email;
+        }
       }
 
       const result = await tx.payment.update({ where: { id }, data });
@@ -148,6 +161,25 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           await tx.revenue.update({ where: { id: revenue.id }, data: { status: "REVERSED", recognizedAmount: 0, commissionableAmount: 0 } });
           await tx.commission.updateMany({ where: { revenueId: revenue.id }, data: { status: "VOID", amount: 0 } });
         }
+      }
+
+      if (nextReconciliation) {
+        await tx.activity.create({
+          data: {
+            type: "PAYMENT_RECONCILIATION",
+            subject: `Payment ${payment.id} marked ${nextReconciliation}`,
+            details: {
+              paymentId: payment.id,
+              orderId: payment.orderId,
+              reconciliationStatus: nextReconciliation,
+              evidenceReference: String(body.reconciliationEvidenceRef ?? "").trim() || null,
+              notes: String(body.reconciliationNotes ?? "").trim() || null,
+              actor: user.email,
+            },
+            customerId: payment.order.customerId || undefined,
+            opportunityId: payment.order.opportunityId || undefined,
+          },
+        });
       }
 
       return result;
