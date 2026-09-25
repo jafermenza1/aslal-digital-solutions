@@ -23,6 +23,6 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(!fields.length)return NextResponse.json({error:"No campaign changes supplied."},{status:400});
   values.push(id);values.push(id,actor.workspace.id); const [result]=await db.query<ResultSetHeader>(`UPDATE partner_campaigns SET ${fields.join(", ")} WHERE id=? AND workspace_id=?`,values);
   if(!result.affectedRows)return NextResponse.json({error:"Campaign not found."},{status:404});
-  return NextResponse.json({ok:true,updatedBy:actor.email});
+  return NextResponse.json({ok:true,updatedBy:actor.user.email});
  }catch(error){console.error("PARTNER_CAMPAIGN_UPDATE_ERROR",error);return NextResponse.json({error:"Could not update campaign."},{status:500});}
 }
