@@ -29,7 +29,9 @@ export async function POST(request:Request){
    if(!lead[0])return NextResponse.json({error:"Lead not found."},{status:400});
   }
 
-  const id=randomUUID();\n  if(campaignId){const [r]=await db.query<any[]>(`SELECT id FROM partner_campaigns WHERE id=? AND workspace_id=? LIMIT 1`,[campaignId,access.workspace.id]);if(!r[0])return NextResponse.json({error:"Campaign not found in this workspace."},{status:400});}\n  if(commissionId){const [r]=await db.query<any[]>(`SELECT id FROM commissions WHERE id=? AND workspace_id=? LIMIT 1`,[commissionId,access.workspace.id]);if(!r[0])return NextResponse.json({error:"Commission not found in this workspace."},{status:400});}
+  const id=randomUUID();
+  if(campaignId){const [r]=await db.query<any[]>(`SELECT id FROM partner_campaigns WHERE id=? AND workspace_id=? LIMIT 1`,[campaignId,access.workspace.id]);if(!r[0])return NextResponse.json({error:"Campaign not found in this workspace."},{status:400});}
+  if(commissionId){const [r]=await db.query<any[]>(`SELECT id FROM commissions WHERE id=? AND workspace_id=? LIMIT 1`,[commissionId,access.workspace.id]);if(!r[0])return NextResponse.json({error:"Commission not found in this workspace."},{status:400});}
   await db.query(
    `INSERT INTO partner_disputes
       (id,workspace_id,partner_id,competing_partner_id,lead_id,campaign_id,commission_id,subject,description,evidence_ref,status,created_at,updated_at)
