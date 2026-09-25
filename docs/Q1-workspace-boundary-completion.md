@@ -94,11 +94,14 @@ Implemented the reusable boundary primitives in `lib/workspace-boundary.ts`:
 
 Critical commercial paths now use or reinforce these checks, including quote creation/revision, order creation from quote, payment transitions/payment creation, and lead→customer conversion.
 
-Added `scripts/q1-workspace-boundary-negative-tests.mjs`, an authenticated two-workspace integration harness covering:
+Added `script/q1-workspace-boundary-negative-tests.mjs` and the `npm run q1:test-boundary` command, an authenticated two-workspace integration harness covering:
 - Workspace A cannot read a Workspace B lead/quote.
 - Workspace A cannot update a Workspace B lead/payment/commission.
 - Workspace A cannot create a payment against a Workspace B order.
-- The harness is intentionally staging/test oriented and requires two authenticated sessions plus test record IDs; it is not claimed as executed in CI.
+- The harness is intentionally staging/test oriented and requires two authenticated sessions plus test record IDs.
+- It now covers cross-workspace reads, updates, payment creation against a foreign order, quote creation against a foreign customer, order creation from a foreign quote, invoice/payment allocation, and payout attachment attempts using foreign commission/partner IDs.
+- Every rejected operation is required to return a denial/not-found response. No accepted mutation is expected.
+- Execution remains pending until an authenticated two-workspace staging/test environment is supplied; it is not claimed as executed in CI.
 
 ### Step 6 verification status
 
