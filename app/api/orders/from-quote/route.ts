@@ -60,7 +60,9 @@ export async function POST(request: Request) {
       const opportunity = quote.opportunity;
       const referralCode = opportunity?.referralCode || null;
       const referral = referralCode
-        ? await tx.referralLink.findUnique({ where: { code: referralCode }, select: { id: true, partnerId: true, campaign: true, workspaceId: true } })
+        ? await tx.referralLink.findFirst({ where: { code: referralCode, workspaceId: access.workspace.id }, select: { id: true, partnerId: true, campaign: true, workspaceId: true } }) : null;
+      if (referralCode && !referral) throw new Error("Referral link is not owned by this workspace.");
+      const referralChecked = referral;
         : null;
 
       const created = await tx.order.create({
@@ -78,10 +80,10 @@ export async function POST(request: Request) {
           total: quote.total,
           paymentState: "INITIATED",
           source: opportunity?.source || undefined,
-          campaign: opportunity?.campaign || referral?.campaign || undefined,
+          campaign: opportunity?.campaign || referralChecked?.campaign || undefined,
           referralCode: referralCode || undefined,
-          partnerId: referral?.partnerId || undefined,
-          referralLinkId: referral?.id || undefined,
+          partnerId: referralChecked?.partnerId || undefined,
+          referralLinkId: referralChecked?.id || undefined,
           salesOwnerEmail: opportunity?.ownerEmail || access.user.email,
           confirmedAt: new Date(),
           items: {
