@@ -99,7 +99,7 @@ export default async function OperationsPage({
   const tab: Tab = tabs.some((item) => item.key === rawTab) ? (rawTab as Tab) : "overview";
   const activeTab = tabs.find((item) => item.key === tab) || tabs[0];
 
-  const report = tab === "overview" ? await getProductionIntegrityReport() : null;
+  const report = tab === "overview" ? await getProductionIntegrityReport(workspaceAccess.workspace.id) : null;
 
   const [tasks, leads, owners] =
     tab === "tasks"
@@ -122,7 +122,7 @@ export default async function OperationsPage({
         ])
       : [[], [], []];
 
-  const automation = tab === "automation" ? await getAutomationSnapshot(30) : null;
+  const automation = tab === "automation" ? await getAutomationSnapshot(30, workspaceAccess.workspace.id) : null;
   const audits =
     tab === "audit"
       ? await prisma.leadAdminAudit.findMany({ orderBy: { createdAt: "desc" }, take: 40 })
