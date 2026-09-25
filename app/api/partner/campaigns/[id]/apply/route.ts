@@ -19,7 +19,7 @@ export async function POST(_request:Request,{params}:{params:Promise<{id:string}
     if(!["OPEN","ACTIVE"].includes(c[0].status))return NextResponse.json({error:"This campaign is not accepting partner applications."},{status:409});
     const required=(c[0].required_partner_types||"").split(",").map(v=>v.trim()).filter(Boolean);
     if(required.length&&!required.includes(p[0].type))return NextResponse.json({error:"This campaign is not recruiting your partner type."},{status:403});
-    const [existing]=await db.query<(RowDataPacket & {status:string})[]>(`SELECT status FROM campaign_partners WHERE campaign_id=? AND partner_id=? LIMIT 1`,[campaignId,partnerId]);
+    const [existing]=await db.query<(RowDataPacket & {status:string})[]>(`SELECT cp.status FROM campaign_partners cp JOIN partner_campaigns c ON c.id=cp.campaign_id AND c.workspace_id=? WHERE cp.campaign_id=? AND cp.partner_id=? LIMIT 1`,[p[0].workspace_id,campaignId,partnerId]);
     if(existing[0])return NextResponse.json({ok:true,status:existing[0].status,alreadyApplied:true});
     await db.query(`INSERT INTO campaign_partners (id,campaign_id,partner_id,status,role) VALUES (?,?,?,?,?)`,[crypto.randomUUID(),campaignId,partnerId,"APPLIED",p[0].type]);
     return NextResponse.json({ok:true,status:"APPLIED"},{status:201});
