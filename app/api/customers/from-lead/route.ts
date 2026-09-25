@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const existing = await tx.customer.findUnique({ where: { opportunityId: opportunity.id } });
     if (existing) return { customer: existing, created: false };
     const customer = await tx.customer.create({
-      data: { id: randomUUID(), personId: person.id, opportunityId: opportunity.id, name: lead.name, email: lead.email, phone: lead.phone, status: "ACTIVE" },
+      data: { id: randomUUID(), workspaceId: access.workspace.id, personId: person.id, opportunityId: opportunity.id, name: lead.name, email: lead.email, phone: lead.phone, status: "ACTIVE" },
     });
     await tx.activity.create({
       data: {
