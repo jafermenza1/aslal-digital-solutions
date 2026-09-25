@@ -4,9 +4,11 @@ import OrdersWorkspace from "./OrdersWorkspace";
 
 export const dynamic = "force-dynamic";
 
-export default async function OrdersPage() {
-  await requirePermission("leads.view");
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ workspaceId?: string }> }) {
+  const access = await authorizeWorkspacePermission("commerce.view", (await searchParams).workspaceId);
+  if (!access) return null;
   const orders = await prisma.order.findMany({
+    where: { workspaceId: access.workspace.id },
     include: {
       customer: { select: { id: true, name: true, email: true, phone: true } },
       opportunity: { select: { id: true, name: true, ownerEmail: true, referralCode: true } },
