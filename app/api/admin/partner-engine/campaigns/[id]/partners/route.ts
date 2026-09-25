@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
-import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import type { RowDataPacket } from "mysql2/promise";
 
 const STATUSES=new Set(["INVITED","APPLIED","APPROVED","ACTIVE","DECLINED","COMPLETED","REMOVED"]);
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){
- const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId")); if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
+ const access=await authorizeWorkspacePermission("partners.manage",new URL(_request.url).searchParams.get("workspaceId")); if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
  const {id}=await params;
  const [rows]=await db.query(`SELECT cp.id,cp.partner_id,cp.status,cp.role,cp.applied_at,cp.approved_at,cp.completed_at,cp.notes,p.name,p.email,p.type,p.verification_status,p.tier
  FROM campaign_partners cp JOIN partners p ON p.id=cp.partner_id WHERE cp.campaign_id=? AND p.workspace_id=? AND EXISTS(SELECT 1 FROM partner_campaigns c WHERE c.id=cp.campaign_id AND c.workspace_id=?) ORDER BY cp.created_at DESC`,[id,access.workspace.id,access.workspace.id]);
@@ -33,8 +33,8 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
     const base=(campaignRows[0].name||"campaign").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,45)||"campaign";
     const code=`${base}-${id.slice(0,8)}-${partnerId.slice(0,8)}`;
     let destination="/";
-    if(campaignRows[0].product_id){const [product]=await db.query<(RowDataPacket&{slug:string})[]>(`SELECT slug FROM products WHERE id=? LIMIT 1`,[campaignRows[0].product_id]);if(product[0]?.slug)destination=`/products/${encodeURIComponent(product[0].slug)}`;}
-    await db.query(`INSERT INTO referral_links (id,workspace_id,partner_id,code,campaign,product_slug,destination_path,campaign_id) VALUES (?,?,?,?,?,?,?)`,[crypto.randomUUID(),actor.workspace.id,partnerId,code,campaignRows[0].name,null,destination,id]);
+    if(campaignRows[0].product_id){const [product]=await db.query<(RowDataPacket&{slug:string})[]>(`SELECT slug FROM products WHERE id=? LIMIT 1`,[campaignRows[0].product_id]);if(product[0]?.slug)destination=`/products/${product[0].slug}`;}
+    await db.query(`INSERT INTO referral_links (id,workspace_id,partner_id,code,campaign,product_slug,destination_path,campaign_id) VALUES (?,?,?,?,?,?,?,?)`,[crypto.randomUUID(),actor.workspace.id,partnerId,code,campaignRows[0].name,null,destination,id]);
    }
   }
   return NextResponse.json({ok:true,status,actor:actor.email});
