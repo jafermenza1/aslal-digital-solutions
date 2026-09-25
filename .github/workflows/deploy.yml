@@ -186,7 +186,10 @@ jobs:
           touch "$APP_PATH/tmp/restart.txt"
 
           test -f "$APP_PATH/server.js"
-          test -d "$APP_PATH/.next/static"
+          test -f "$RELEASE_PATH/next-server.js"
+          test -d "$RELEASE_PATH/.next/static"
+          test -d "$RELEASE_PATH/node_modules/@prisma/client"
+          test -d "$RELEASE_PATH/node_modules/.prisma/client"
 
           rm -f "$ARCHIVE"
 
