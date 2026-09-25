@@ -18,7 +18,7 @@ async function count(sql: TemplateStringsArray, ...values: unknown[]) {
   return Number(rows[0]?.count ?? 0);
 }
 
-export async function getProductionIntegrityReport(workspaceId?: string): Promise<ProductionIntegrityReport> {
+export async function getProductionIntegrityReport(workspaceId: string): Promise<ProductionIntegrityReport> {
   const requiredTables = [
     "visitors","events","leads","lead_tasks","lead_stage_history",
     "opportunities","customers","persons","activities","growth_opportunities",
@@ -60,26 +60,26 @@ export async function getProductionIntegrityReport(workspaceId?: string): Promis
       opportunitiesWithoutLead, wonLeadsWithoutCustomer, customersWithoutOpportunity,
       workflowCount, activeWorkflowCount, pendingWorkflowExecutions, runningWorkflowExecutions,
       failedWorkflowExecutionsRecent, stuckWorkflowExecutions] = await Promise.all([
-      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND (owner_email IS NULL OR TRIM(owner_email)='') AND workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND (next_action IS NULL OR TRIM(next_action)='') AND workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND next_action_due_at IS NULL AND workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND next_action_due_at IS NOT NULL AND next_action_due_at < NOW() AND workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM leads WHERE status='WON' AND (deal_value IS NULL OR deal_value <= 0) AND workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM lead_tasks t INNER JOIN leads l ON l.id=t.lead_id WHERE t.status IN ('OPEN','IN_PROGRESS') AND l.workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM lead_tasks t INNER JOIN leads l ON l.id=t.lead_id WHERE t.status IN ('OPEN','IN_PROGRESS') AND t.due_at IS NULL AND l.workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM lead_tasks t INNER JOIN leads l ON l.id=t.lead_id WHERE t.status IN ('OPEN','IN_PROGRESS') AND (t.assigned_to IS NULL OR TRIM(t.assigned_to)='') AND l.workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM lead_tasks t INNER JOIN leads l ON l.id=t.lead_id WHERE t.status IN ('OPEN','IN_PROGRESS') AND t.due_at IS NOT NULL AND t.due_at < NOW() AND l.workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM leads WHERE visitor_id IS NULL AND workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM opportunities o LEFT JOIN leads l ON l.id=o.lead_id WHERE l.workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM leads l LEFT JOIN opportunities o ON o.lead_id=l.id AND o.stage='WON' LEFT JOIN customers c ON c.opportunity_id=o.id WHERE l.status='WON' AND c.id IS NULL AND l.workspace_id=\${workspaceId}`,
-      count`SELECT COUNT(*) AS count FROM customers c LEFT JOIN opportunities o ON o.id=c.opportunity_id WHERE c.workspace_id=\${workspaceId} AND o.id IS NULL`,
+      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND (owner_email IS NULL OR TRIM(owner_email)='') AND workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND (next_action IS NULL OR TRIM(next_action)='') AND workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND next_action_due_at IS NULL AND workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM leads WHERE status NOT IN ('WON','LOST') AND next_action_due_at IS NOT NULL AND next_action_due_at < NOW() AND workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM leads WHERE status='WON' AND (deal_value IS NULL OR deal_value <= 0) AND workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM lead_tasks t INNER JOIN leads l ON l.id=t.lead_id WHERE t.status IN ('OPEN','IN_PROGRESS') AND l.workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM lead_tasks t INNER JOIN leads l ON l.id=t.lead_id WHERE t.status IN ('OPEN','IN_PROGRESS') AND t.due_at IS NULL AND l.workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM lead_tasks t INNER JOIN leads l ON l.id=t.lead_id WHERE t.status IN ('OPEN','IN_PROGRESS') AND (t.assigned_to IS NULL OR TRIM(t.assigned_to)='') AND l.workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM lead_tasks t INNER JOIN leads l ON l.id=t.lead_id WHERE t.status IN ('OPEN','IN_PROGRESS') AND t.due_at IS NOT NULL AND t.due_at < NOW() AND l.workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM leads WHERE visitor_id IS NULL AND workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM opportunities o LEFT JOIN leads l ON l.id=o.lead_id WHERE l.workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM leads l LEFT JOIN opportunities o ON o.lead_id=l.id AND o.stage='WON' LEFT JOIN customers c ON c.opportunity_id=o.id WHERE l.status='WON' AND c.id IS NULL AND l.workspace_id=${workspaceId}`,
+      count`SELECT COUNT(*) AS count FROM customers c LEFT JOIN opportunities o ON o.id=c.opportunity_id WHERE c.workspace_id=${workspaceId} AND o.id IS NULL`,
       count`SELECT COUNT(*) AS count FROM workflows`,
       count`SELECT COUNT(*) AS count FROM workflows WHERE active=TRUE`,
-      count`SELECT COUNT(*) AS count FROM workflow_executions e WHERE e.status='PENDING' AND e.target_type='LEAD' AND EXISTS (SELECT 1 FROM leads l WHERE l.id=e.target_id AND l.workspace_id=\${workspaceId})`,
-      count`SELECT COUNT(*) AS count FROM workflow_executions e WHERE e.status='RUNNING' AND e.target_type='LEAD' AND EXISTS (SELECT 1 FROM leads l WHERE l.id=e.target_id AND l.workspace_id=\${workspaceId})`,
-      count`SELECT COUNT(*) AS count FROM workflow_executions e WHERE e.status='FAILED' AND e.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) AND e.target_type='LEAD' AND EXISTS (SELECT 1 FROM leads l WHERE l.id=e.target_id AND l.workspace_id=\${workspaceId})`,
-      count`SELECT COUNT(*) AS count FROM workflow_executions e WHERE e.status='RUNNING' AND e.started_at IS NOT NULL AND e.started_at < DATE_SUB(NOW(), INTERVAL 15 MINUTE) AND e.target_type='LEAD' AND EXISTS (SELECT 1 FROM leads l WHERE l.id=e.target_id AND l.workspace_id=\${workspaceId})`
+      count`SELECT COUNT(*) AS count FROM workflow_executions e WHERE e.status='PENDING' AND e.target_type='LEAD' AND EXISTS (SELECT 1 FROM leads l WHERE l.id=e.target_id AND l.workspace_id=${workspaceId})`,
+      count`SELECT COUNT(*) AS count FROM workflow_executions e WHERE e.status='RUNNING' AND e.target_type='LEAD' AND EXISTS (SELECT 1 FROM leads l WHERE l.id=e.target_id AND l.workspace_id=${workspaceId})`,
+      count`SELECT COUNT(*) AS count FROM workflow_executions e WHERE e.status='FAILED' AND e.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) AND e.target_type='LEAD' AND EXISTS (SELECT 1 FROM leads l WHERE l.id=e.target_id AND l.workspace_id=${workspaceId})`,
+      count`SELECT COUNT(*) AS count FROM workflow_executions e WHERE e.status='RUNNING' AND e.started_at IS NOT NULL AND e.started_at < DATE_SUB(NOW(), INTERVAL 15 MINUTE) AND e.target_type='LEAD' AND EXISTS (SELECT 1 FROM leads l WHERE l.id=e.target_id AND l.workspace_id=${workspaceId})`
     ]);
 
     const executionGaps = missingOwner + missingNextAction + missingDueDate;
