@@ -30,3 +30,37 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Production build
+        run: npm run build
+
+      - name: Verify standalone bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .next/standalone/server.js
+          test -f .next/standalone/package.json
+          test -d .next/standalone/.next/static
+          test -d .next/standalone/public
+          echo "Standalone bundle verified."
+
+      - name: Package Emerald deployment artifact
+        shell: bash
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ARCHIVE="aslal-emerald-${SHA}.tar.gz"
+          tar -C .next/standalone -czf "$ARCHIVE" .
+          test -s "$ARCHIVE"
+          tar -tzf "$ARCHIVE" >/dev/null
+          echo "Created $ARCHIVE"
+          sha256sum "$ARCHIVE"
+
+      - name: Upload Emerald deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aslal-emerald-${{ github.sha }}
+          path: aslal-emerald-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 14
