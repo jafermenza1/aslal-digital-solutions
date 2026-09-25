@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { requireSameWorkspace } from "@/lib/workspace-boundary";
 
 function orderNumber() {
   return `SO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomUUID().slice(0, 8).toUpperCase()}`;
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
       const referral = referralCode
         ? await tx.referralLink.findFirst({ where: { code: referralCode, workspaceId: access.workspace.id }, select: { id: true, partnerId: true, campaign: true, workspaceId: true } }) : null;
       if (referralCode && !referral) throw new Error("Referral link is not owned by this workspace.");
+      if (referral?.workspaceId) requireSameWorkspace(access.workspace.id, referral.workspaceId);
       const referralChecked = referral;
         : null;
 
