@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-The current Growth OS has a substantial acquisition, CRM, conversation, quote, partner and campaign foundation, but the commercial system is not yet connected end-to-end.
+The current Growth OS has a substantial acquisition, CRM, conversation, quote, order/payment, partner and campaign foundation. The remaining work is to harden the commercial chain with evidence, payout controls, attribution controls and production acceptance.
 
 The next phase must close the highest-value gap:
 
@@ -27,11 +27,11 @@ This phase is intentionally transaction-first. It must not add AI or additional 
 | Unified timeline | IMPLEMENTED-UNVERIFIED | Demonstrate one reconstructable record across events, activities, conversations, opportunity and customer |
 | Sales follow-up automation | IMPLEMENTED-UNVERIFIED | Scheduler/production acceptance and safety proof |
 | Quote / negotiation | IMPLEMENTED-UNVERIFIED | Controlled create → send → view/negotiation → revision → accept/reject reconstruction |
-| Order | MISSING | First-class committed purchase domain |
-| Payment | MISSING | Provider-neutral payment transaction domain, idempotency, confirmation, failure, reversal/refund and reconciliation |
-| Revenue attribution | PARTIAL | Payment-backed collected/reconciled revenue as source of truth |
+| Order | IMPLEMENTED-UNVERIFIED | First-class committed purchase domain exists; controlled production reconstruction remains |
+| Payment | IMPLEMENTED-UNVERIFIED | Provider-neutral payment domain, idempotency, state transitions and reconciliation exist; manual evidence/verification controls are being hardened |
+| Revenue attribution | IMPLEMENTED-UNVERIFIED | Reconciled payments create recognized revenue; controlled production evidence remains |
 | Campaign / asset attribution | PARTIAL | First-class Campaign Asset and placement/content lineage |
-| Partner commerce | PARTIAL | Order/payment-backed commission lineage and asset/product eligibility |
+| Partner commerce | PARTIAL | Reconciled payment → revenue → commission lineage exists; payout linkage, product eligibility and controlled production acceptance remain |
 | Trust / reviews | MISSING | Permission, provenance, moderation and publication lifecycle |
 | Retention / customer referral | MISSING / PARTIAL | Post-sale lifecycle and customer advocacy |
 | RBAC | PARTIAL | Full permission enforcement across legacy routes |
@@ -103,7 +103,7 @@ The salesperson workspace should make the next action obvious at every stage.
 
 Acceptance requires a controlled test customer and evidence of each transition.
 
-### Phase 3 — First-class Order
+### Phase 3 — First-class Order (implemented; acceptance gate remains)
 
 Introduce a first-class Order independent of Lead/Opportunity stage.
 
@@ -130,7 +130,7 @@ Minimum concepts:
 
 An accepted quote does not itself equal an order unless an explicit order-creation transition occurs.
 
-### Phase 4 — First-class Payment
+### Phase 4 — First-class Payment (implemented; evidence hardening remains)
 
 Introduce a provider-neutral Payment domain.
 
@@ -164,7 +164,7 @@ Provider callbacks must be idempotent. Replayed callbacks must not create duplic
 
 Payment failure must not delete or corrupt the order.
 
-### Phase 5 — Reconciliation and confirmed revenue
+### Phase 5 — Reconciliation and confirmed revenue (implemented; controlled acceptance remains)
 
 Separate these values:
 
@@ -189,7 +189,7 @@ Required chain:
 
 Every financial correction must be auditable.
 
-### Phase 6 — Commission connection
+### Phase 6 — Commission connection (implemented; payout control remains)
 
 Only after payment/revenue evidence exists:
 
