@@ -13,7 +13,8 @@ const transitions: Record<string, string[]> = {
   VOID: [],
 };
 
-type CommissionStatusRow = RowDataPacket & { status: string };
+type CommissionStatusRow = RowDataPacket & { status: string; revenue_id: string | null; revenue_status: string | null; reconciliation_status: string | null; };
+
 
 async function authorized() {
   return Boolean(verifySession((await cookies()).get("aslal_session")?.value));
@@ -32,11 +33,14 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return NextResponse.json({ error: "Invalid commission status." }, { status: 400 });
     }
 
-    const [rows] = await db.query<CommissionStatusRow[]>(`SELECT status FROM commissions WHERE id=? LIMIT 1`, [id]);
+    const [rows] = await db.query<CommissionStatusRow[]>(`SELECT c.status,c.revenue_id,r.status revenue_status,p.reconciliation_status FROM commissions c LEFT JOIN revenues r ON r.id=c.revenue_id LEFT JOIN payments p ON p.id=c.payment_id WHERE c.id=? LIMIT 1`, [id]);
     const current = rows[0]?.status;
     if (!current) return NextResponse.json({ error: "Commission not found." }, { status: 404 });
     if (!transitions[current]?.includes(nextStatus)) {
       return NextResponse.json({ error: `Cannot move commission from ${current} to ${nextStatus}.` }, { status: 409 });
+    }
+    if (["APPROVED", "PAYABLE", "PAID"].includes(nextStatus) && (rows[0]?.revenue_status !== "RECOGNIZED" || rows[0]?.reconciliation_status !== "RECONCILED")) {
+      return NextResponse.json({ error: "Commission can only advance after the linked payment is reconciled and revenue is recognized." }, { status: 409 });
     }
 
     await db.query(`UPDATE commissions SET status=? WHERE id=?`, [nextStatus, id]);
