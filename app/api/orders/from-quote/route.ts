@@ -65,7 +65,6 @@ export async function POST(request: Request) {
       if (referralCode && !referral) throw new Error("Referral link is not owned by this workspace.");
       if (referral?.workspaceId) requireSameWorkspace(access.workspace.id, referral.workspaceId);
       const referralChecked = referral;
-        : null;
 
       const created = await tx.order.create({
         data: {
