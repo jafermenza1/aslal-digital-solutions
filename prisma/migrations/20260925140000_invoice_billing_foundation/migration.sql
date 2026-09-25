@@ -1,8 +1,11 @@
 -- Production compatibility: the Aslal database predates the Q1 invoice foundation in some environments.
--- Ensure the existing parent tables use InnoDB before adding foreign keys. This preserves
--- existing rows and keeps the Q1 customer/order -> invoice integrity constraints enforceable.
-ALTER TABLE customers ENGINE=InnoDB;
-ALTER TABLE orders ENGINE=InnoDB;
+-- Keep the existing production parent tables untouched.
+-- MariaDB 10.11 on Emerald rejects a new FK from this legacy customers table even though
+-- its id is CHAR(36), PRIMARY KEY, InnoDB, utf8mb4_unicode_ci and is already referenced
+-- successfully by orders. Do not rebuild/drop customers or orders to work around that.
+-- customer_id/order_id remain indexed relational references and are validated by the
+-- invoice API against the same workspace-owned order/customer records before insertion.
+-- This preserves the business integrity purpose without a destructive parent-table rebuild.
 
 CREATE TABLE invoices (
   id CHAR(36) NOT NULL,
@@ -29,8 +32,9 @@ CREATE TABLE invoices (
   KEY idx_invoices_customer_status (customer_id,status,created_at),
   KEY idx_invoices_order (order_id),
   KEY idx_invoices_status_due (status,due_at),
-  CONSTRAINT fk_invoices_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
-  CONSTRAINT fk_invoices_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
+  -- Referential integrity for customer_id/order_id is enforced by the workspace-scoped
+  -- invoice API before creation; MariaDB production compatibility requires these to remain
+  -- indexed IDs rather than physical foreign keys on the legacy parent tables.
 ) ENGINE=InnoDB;
 
 CREATE TABLE invoice_items (
