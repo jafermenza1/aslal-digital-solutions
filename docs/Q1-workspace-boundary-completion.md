@@ -174,3 +174,17 @@ A dispute can identify a competing partner and an awarded partner, but the syste
 Implementation is committed on q1-workspace-boundary-completion. The mandatory two-workspace integration harness remains execution-pending until an authenticated isolated test environment and Workspace A/B fixtures are available. No production build or deployment was run.
 
 CI remains intentionally limited to **typecheck + lint**. The latest CI result must be checked after the Step 7 commits; a CI failure must not be interpreted as a deployment failure because build/deployment is intentionally out of scope for this phase.
+
+
+## Increment 7 — Step 8 workspace-scoped admin reporting
+
+Admin reporting was rechecked against the workspace contract and hardened where global operational diagnostics could leak records:
+
+- Production integrity now requires an explicit workspace and scopes lead, task, journey and lead-targeted automation health checks to that workspace.
+- The production-integrity API authorizes the requested workspace for authenticated admins; token access also requires an explicit workspaceId rather than returning an unscoped report.
+- Operations dashboard integrity and automation panels receive the active workspace ID.
+- Automation execution reporting is restricted to lead executions belonging to the active workspace; workflow definitions remain shared configuration rather than workspace business records.
+- Operations admin audit reporting is restricted to audit records attached to leads in the active workspace.
+- Existing dashboard reporting for leads, customers, quotes, orders, insights and partners remains workspace-scoped as established in the earlier increments.
+
+This closes the Step 8 boundary review for the current reporting surfaces. Anonymous visitor/event reporting remains the previously documented limitation because those records are not yet explicitly workspace-owned.
