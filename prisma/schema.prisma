@@ -72,6 +72,21 @@ enum CampaignRewardType {
   MARGIN
 }
 
+enum CampaignAssetType {
+  CREATIVE
+  COPY
+  PRICE_SHEET
+  QR
+  POSTER
+  LINK
+}
+
+enum CampaignAssetStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 enum PartnerDisputeStatus {
   OPEN
   UNDER_REVIEW
@@ -1143,12 +1158,34 @@ model PartnerCampaign {
   product             Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
   partners            CampaignPartner[]
   referralLinks       ReferralLink[]
+  assets              CampaignAsset[]
   disputes            PartnerDispute[]
 
   @@index([status, startsAt, endsAt], map: "idx_partner_campaign_status_dates")
   @@index([location], map: "idx_partner_campaign_location")
   @@index([productId], map: "idx_partner_campaign_product")
   @@map("partner_campaigns")
+}
+
+model CampaignAsset {
+  id          String              @id @db.Char(36)
+  campaignId  String              @map("campaign_id") @db.Char(36)
+  name        String              @db.VarChar(190)
+  type        CampaignAssetType
+  status      CampaignAssetStatus @default(DRAFT)
+  description String?             @db.Text
+  content     String?             @db.Text
+  assetUrl    String?             @map("asset_url") @db.VarChar(1000)
+  placement   String?             @db.VarChar(190)
+  trackingCode String?            @map("tracking_code") @db.VarChar(190)
+  createdBy   String?             @map("created_by") @db.VarChar(190)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.DateTime(0)
+  campaign    PartnerCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, status, type], map: "idx_campaign_assets_campaign_status_type")
+  @@index([trackingCode], map: "idx_campaign_assets_tracking_code")
+  @@map("campaign_assets")
 }
 
 model CampaignPartner {
