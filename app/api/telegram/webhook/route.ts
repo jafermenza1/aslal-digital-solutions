@@ -154,8 +154,10 @@ async function handle(update:TelegramUpdate){
       if(!rows[0])return reply(chatId,"This client connection link is invalid or already used.");
       if(rows[0].type!=="PRIVATE"||chatType!=="private")return reply(chatId,"This client link must be opened in a private chat with the Aslal bot.");
       await db.query("UPDATE telegram_destinations SET chat_id=?,link_token=NULL,opt_in=1 WHERE id=?",[chatId,rows[0].id]);
-      const [dRows]=await db.query("SELECT id,lead_id,person_id,product_id,campaign_id,partner_id,referral_code,source,medium FROM telegram_destinations WHERE id=? AND workspace_id=? LIMIT 1",[rows[0].id,rows[0].workspace_id]);
-      await createPrivateLead(rows[0].workspace_id,dRows[0] as any,m);
+      const [dRows]=await db.query<(RowDataPacket&{id:string;lead_id:string|null;person_id:string|null;product_id:string|null;campaign_id:string|null;partner_id:string|null;referral_code:string|null;source:string|null;medium:string|null})[]>("SELECT id,lead_id,person_id,product_id,campaign_id,partner_id,referral_code,source,medium FROM telegram_destinations WHERE id=? AND workspace_id=? LIMIT 1",[rows[0].id,rows[0].workspace_id]);
+      const destination=dRows[0];
+      if(!destination)return reply(chatId,"Telegram client connection could not be initialized.");
+      await createPrivateLead(rows[0].workspace_id,destination,m);
       return reply(chatId,"You are connected. Reply with your question or interest and our sales team will respond.");
     }
     const p=await partnerForChat(chatId);
