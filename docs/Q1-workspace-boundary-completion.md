@@ -188,3 +188,19 @@ Admin reporting was rechecked against the workspace contract and hardened where 
 - Existing dashboard reporting for leads, customers, quotes, orders, insights and partners remains workspace-scoped as established in the earlier increments.
 
 This closes the Step 8 boundary review for the current reporting surfaces. Anonymous visitor/event reporting remains the previously documented limitation because those records are not yet explicitly workspace-owned.
+
+
+## Increment 8 — Step 9 UI/mobile acceptance
+
+- Dashboard sidebar collapses below 1024px and mobile navigation is exposed.
+- Dashboard top-bar controls compress on narrow screens while core actions remain reachable.
+- Dashboard cards and panels stack at mobile widths.
+- KPI/workspace cards collapse to two columns and then one column.
+- Tables retain local horizontal scrolling instead of forcing page-wide overflow.
+- Form controls are constrained to the viewport.
+- Partner portal queries enforce active-workspace ownership and its header identifies the workspace.
+- Dashboard home visibly identifies the active workspace.
+
+### Verification
+
+Responsive hardening is committed. Browser/device visual acceptance has not been manually executed here, so visual acceptance is not claimed as verified. Production build/deployment remains deferred; CI remains typecheck + lint only.
