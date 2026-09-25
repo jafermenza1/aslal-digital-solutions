@@ -123,9 +123,13 @@ export default async function OperationsPage({
       : [[], [], []];
 
   const automation = tab === "automation" ? await getAutomationSnapshot(30, workspaceAccess.workspace.id) : null;
-  const audits =
+  const workspaceLeadIds =
     tab === "audit"
-      ? await prisma.leadAdminAudit.findMany({ orderBy: { createdAt: "desc" }, take: 40 })
+      ? (await prisma.lead.findMany({ where: { workspaceId: workspaceAccess.workspace.id }, select: { id: true }, take: 5000 })).map((lead) => lead.id)
+      : [];
+  const audits =
+    tab === "audit" && workspaceLeadIds.length
+      ? await prisma.leadAdminAudit.findMany({ where: { leadId: { in: workspaceLeadIds } }, orderBy: { createdAt: "desc" }, take: 40 })
       : [];
 
   return (
