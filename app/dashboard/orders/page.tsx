@@ -1,7 +1,7 @@
 import { requirePermission } from "@/lib/authorization";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { prisma } from "@\/lib\/prisma";
 import OrdersWorkspace from "./OrdersWorkspace";
 
 export const dynamic = "force-dynamic";
