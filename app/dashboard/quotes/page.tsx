@@ -1,23 +1,29 @@
 import { requirePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { prisma } from "@/lib/prisma";
 import QuotesWorkspace from "./QuotesWorkspace";
 
 export const dynamic = "force-dynamic";
 
-export default async function QuotesPage() {
-  await requirePermission("leads.view");
+export default async function QuotesPage({ searchParams }: { searchParams: Promise<{ workspaceId?: string }> }) {
+  const access = await authorizeWorkspacePermission("commerce.view", (await searchParams).workspaceId);
+  if (!access) return null;
+  const workspaceId = access.workspace.id;
   const [quotes, opportunities, customers] = await Promise.all([
     prisma.quote.findMany({
+      where: { workspaceId },
       include: { items: true, customer: true, opportunity: true, events: { orderBy: { createdAt: "asc" } } },
       orderBy: { createdAt: "desc" },
       take: 100,
     }),
     prisma.opportunity.findMany({
+      where: { workspaceId },
       orderBy: { updatedAt: "desc" },
       take: 200,
       select: { id: true, name: true, expectedValue: true, currency: true, stage: true, ownerEmail: true, lead: { select: { name: true, company: true } } },
     }),
     prisma.customer.findMany({
+      where: { workspaceId },
       orderBy: { updatedAt: "desc" },
       take: 200,
       select: { id: true, name: true, email: true },
