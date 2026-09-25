@@ -59,3 +59,26 @@ Run against a database containing at least Workspace A and Workspace B:
 - Existing records have no NULL workspace after migration.
 
 CI remains intentionally limited to typecheck and lint; deployment/build verification is deferred until the quota/billing adjustment requested for the current phase.
+
+
+## Increment 3 — workspace-scoped reporting
+
+Step 8 reporting boundaries are now implemented on the management dashboards and lead export:
+
+- Main dashboard pipeline, won revenue, customer, lead, opportunity, overdue and recent-demand metrics are filtered by the active workspace.
+- Customers, quotes and orders dashboard reads require workspace authorization and filter their root records by workspace.
+- Lead dashboard counts, grouped stage/value metrics, source filters, execution-gap counts and lead rows are workspace-scoped.
+- Operations task queues and task create/update actions validate the task/lead against the active workspace.
+- Insights acquisition, referral, product-attribution, activity and follow-up reporting are constrained through workspace-owned lead/referral relationships.
+- Partner dashboard KPIs, partner performance, referral links, commission status totals and partner catalog are workspace-scoped.
+- Lead CSV export now requires workspace authorization and exports only that workspace.
+- Workspace authorization supports dashboard/operations/insights reporting permissions.
+- No production build was added or run; CI remains typecheck/lint only as required.
+
+### Step 8 verification status
+
+The branch currently has **no GitHub Actions workflow run for the latest Step 8 head**, so typecheck/lint are not yet claimed as passed. Build/deployment remains intentionally deferred.
+
+### Remaining Step 8 boundary note
+
+Visitor/event records are currently global acquisition records rather than explicit workspace-owned records. Insights therefore scopes event-derived reporting through visitors that have a lead in the active workspace. A future explicit workspace ownership model for anonymous acquisition events can be added if independent pre-lead tenant attribution becomes a requirement.
