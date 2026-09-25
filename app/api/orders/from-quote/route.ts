@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       const opportunity = quote.opportunity;
       const referralCode = opportunity?.referralCode || null;
       const referral = referralCode
-        ? await tx.referralLink.findUnique({ where: { code: referralCode }, select: { id: true, partnerId: true, campaign: true } })
+        ? await tx.referralLink.findUnique({ where: { code: referralCode }, select: { id: true, partnerId: true, campaign: true, workspaceId: true } })
         : null;
 
       const created = await tx.order.create({
