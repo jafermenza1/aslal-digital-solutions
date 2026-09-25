@@ -114,14 +114,25 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
         if (payment.order.partnerId) {
           const referralLink = payment.order.referralLinkId
-            ? await tx.referralLink.findUnique({ where: { id: payment.order.referralLinkId }, select: { campaignId: true } })
-            : null;
-          const campaign = referralLink?.campaignId
-            ? await tx.partnerCampaign.findUnique({
-                where: { id: referralLink.campaignId },
-                select: { rewardType: true, rewardAmount: true, rewardRate: true },
+            ? await tx.referralLink.findFirst({
+                where: { id: payment.order.referralLinkId, workspaceId: workspace.id, partnerId: payment.order.partnerId },
+                select: { id: true, campaignId: true, workspaceId: true, partner: { select: { workspaceId: true } } },
               })
             : null;
+          if (payment.order.referralLinkId && !referralLink) {
+            throw new Error("Payment order referral link is outside the active workspace or partner attribution.");
+          }
+          if (referralLink) requireSameWorkspace(workspace.id, referralLink.workspaceId, referralLink.partner.workspaceId);
+          const campaign = referralLink?.campaignId
+            ? await tx.partnerCampaign.findFirst({
+                where: { id: referralLink.campaignId, workspaceId: workspace.id },
+                select: { rewardType: true, rewardAmount: true, rewardRate: true, workspaceId: true },
+              })
+            : null;
+          if (referralLink?.campaignId && !campaign) {
+            throw new Error("Payment referral campaign is outside the active workspace.");
+          }
+          if (campaign) requireSameWorkspace(workspace.id, campaign.workspaceId);
 
           if (campaign && ["FIXED", "PERCENT_SALE", "HYBRID"].includes(campaign.rewardType)) {
             const collected = Number(payment.amount);
@@ -161,7 +172,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
 
       if (nextStatus === "REVERSED" || nextStatus === "REFUNDED") {
-        const revenue = await tx.revenue.findUnique({ where: { paymentId: payment.id } });
+        const revenue = await tx.revenue.findFirst({ where: { paymentId: payment.id, workspaceId: workspace.id } });
         if (revenue) {
           await tx.revenue.update({ where: { id: revenue.id }, data: { status: "REVERSED", recognizedAmount: 0, commissionableAmount: 0 } });
           await tx.commission.updateMany({ where: { revenueId: revenue.id, workspaceId: workspace.id }, data: { status: "VOID", amount: 0 } });
