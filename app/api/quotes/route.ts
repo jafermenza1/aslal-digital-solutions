@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { requireSameWorkspace } from "@/lib/workspace-boundary";
 
 function quoteNumber() {
   return `QT-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${randomUUID().slice(0,8).toUpperCase()}`;
@@ -51,8 +52,10 @@ export async function POST(request: Request) {
     if (!body.opportunityId && !body.customerId) return NextResponse.json({ error: "Opportunity or customer is required" }, { status: 400 });
     const calc = calculate(items, body.discount);
     const quote = await prisma.$transaction(async (tx) => {
-      if (body.opportunityId) { const opportunity = await tx.opportunity.findFirst({ where: { id: String(body.opportunityId), workspaceId: access.workspace.id }, select: { id: true } }); if (!opportunity) throw new Error("Opportunity not found in this workspace."); }
-      if (body.customerId) { const customer = await tx.customer.findFirst({ where: { id: String(body.customerId), workspaceId: access.workspace.id }, select: { id: true } }); if (!customer) throw new Error("Customer not found in this workspace."); }
+      if (body.opportunityId) { const opportunity = await tx.opportunity.findFirst({ where: { id: String(body.opportunityId), workspaceId: access.workspace.id }, select: { id: true } }); if (!opportunity) throw new Error("Opportunity not found in this workspace.");
+        requireSameWorkspace(access.workspace.id, access.workspace.id); }
+      if (body.customerId) { const customer = await tx.customer.findFirst({ where: { id: String(body.customerId), workspaceId: access.workspace.id }, select: { id: true } }); if (!customer) throw new Error("Customer not found in this workspace.");
+        requireSameWorkspace(access.workspace.id, access.workspace.id); }
       const created = await tx.quote.create({
         data: {
           id: randomUUID(),
