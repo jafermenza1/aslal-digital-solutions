@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authorizePermission } from "@/lib/authorization";
 import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { runLeadCreatedAutomation } from "@/lib/automation";
@@ -13,12 +12,11 @@ const OFFLINE_CHANNELS = ["Radio","Television","Outdoor / Billboard","Flyer / Br
 const clean = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
 
 export async function POST(request: Request) {
-  
+  const body = await request.json().catch(() => ({}));
   const workspace = await authorizeWorkspacePermission("leads.create", typeof body.workspaceId === "string" ? body.workspaceId : undefined);
   if (!workspace) return NextResponse.json({ error: "You do not have access to this workspace." }, { status: 403 });
   const actor = workspace.user;
 
-  const body = await request.json().catch(() => ({}));
   const name = clean(body.name,160);
   const company = clean(body.company,190);
   const businessType = clean(body.businessType,100);
