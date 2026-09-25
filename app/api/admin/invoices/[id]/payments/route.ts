@@ -49,7 +49,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
    const status=newBalance<=0.0001?"PAID":"PARTIALLY_PAID";
    await conn.query(
     `INSERT INTO invoice_payments (id,invoice_id,payment_id,amount,allocated_at,allocated_by) VALUES (?,?,?,?,NOW(),?)`,
-    [randomUUID(),invoiceId,paymentId,requestedAmount,actor.email]
+    [randomUUID(),invoiceId,paymentId,requestedAmount,access.user.email]
    );
    await conn.query(
     `UPDATE invoices SET amount_paid=?,balance_due=?,status=?,paid_at=?,updated_at=NOW() WHERE id=?`,
