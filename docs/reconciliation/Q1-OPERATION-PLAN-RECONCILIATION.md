@@ -25,6 +25,20 @@ However, several Q1 operational controls are still missing or only partial:
 
 The correct implementation priority is to close these gaps without replacing the existing commercial foundation.
 
+## Reconciliation changes applied in mainline
+
+The following Q1 controls have now been hardened in code without replacing the existing commercial chain:
+
+- manual payment reconciliation stores an evidence reference, verification notes and verifier identity;
+- RECONCILED payments require evidence and create a customer/order activity record;
+- payment mutation now requires the explicit `commerce.manage` permission;
+- commission approval/payable/paid transitions require reconciled payment and recognized revenue;
+- payout batches can be built from PAYABLE commissions only, create payout-item links, and prevent double settlement;
+- partner payout workspace now exposes eligible payable commissions for batch selection;
+- the Q1 reconciliation document is linked from the repository README.
+
+These changes still require CI, migration deployment and controlled production acceptance. They do not constitute proof that the Q1 operating plan is fully accepted.
+
 ## Q1 requirement matrix
 
 | Q1 requirement | Current mainline | Status | Gap to close |
