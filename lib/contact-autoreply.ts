@@ -37,7 +37,7 @@ export async function sendContactAutoReply(leadId: string) {
     where: { channel:"EMAIL", leadId:lead.id, status:{not:"CLOSED"} },
     orderBy:{updatedAt:"desc"},
   }) || await prisma.conversation.create({
-    data:{id:randomUUID(),channel:"EMAIL",status:"OPEN",personId:lead.personId,leadId:lead.id,externalThreadId:`contact:${lead.id}`},
+    data:{id:randomUUID(),workspaceId:lead.workspaceId || "00000000-0000-0000-0000-000000000001",channel:"EMAIL",status:"OPEN",personId:lead.personId,leadId:lead.id,externalThreadId:`contact:${lead.id}`},
   });
 
   const message = await prisma.message.create({
