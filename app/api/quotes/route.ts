@@ -30,7 +30,6 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const access = await authorizeWorkspacePermission("leads.view", searchParams.get("workspaceId"));
   if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
-  const { searchParams } = new URL(request.url);
   const opportunityId = searchParams.get("opportunityId") || undefined;
   const customerId = searchParams.get("customerId") || undefined;
   const quotes = await prisma.quote.findMany({
