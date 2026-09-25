@@ -18,16 +18,25 @@ export default function PartnerPayoutBatch() {
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-
-  async function load() {
-    const res = await fetch("/api/admin/partner-engine/payouts", { cache: "no-store" });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Could not load payable commissions.");
-    setRows(data.payableCommissions || []);
-  }
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    void load().catch((error) => setMessage(error instanceof Error ? error.message : "Could not load payable commissions."));
+    let cancelled = false;
+    void fetch("/api/admin/partner-engine/payouts", { cache: "no-store" })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Could not load payable commissions.");
+        if (!cancelled) setRows(data.payableCommissions || []);
+      })
+      .catch((error) => {
+        if (!cancelled) setMessage(error instanceof Error ? error.message : "Could not load payable commissions.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const grouped = rows.reduce<Record<string, Commission[]>>((out, row) => {
@@ -50,7 +59,10 @@ export default function PartnerPayoutBatch() {
       if (!res.ok) throw new Error(data.error || "Could not create payout batch.");
       setSelected((current) => current.filter((id) => !ids.includes(id)));
       setMessage("Payout batch created from reconciled, payable commissions.");
-      await load();
+      const refresh = await fetch("/api/admin/partner-engine/payouts", { cache: "no-store" });
+      const refreshData = await refresh.json();
+      if (!refresh.ok) throw new Error(refreshData.error || "Could not refresh payable commissions.");
+      setRows(refreshData.payableCommissions || []);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not create payout batch.");
     } finally {
@@ -82,7 +94,7 @@ export default function PartnerPayoutBatch() {
           </div>
         </div>;
       })}
-      {!Object.keys(grouped).length && <p className="text-sm text-slate-500">No payable commissions are currently eligible for payout.</p>}
+      {loaded && !Object.keys(grouped).length && <p className="text-sm text-slate-500">No payable commissions are currently eligible for payout.</p>}
     </div>
   </section>;
 }
