@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
-import { requirePermission } from "@/lib/authorization";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 type ProductDemandRow = RowDataPacket & {
@@ -104,8 +103,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
       LEFT JOIN (
         SELECT rl.code, COUNT(DISTINCT rc.id) AS clicks
         FROM referral_links rl
-        WHERE rl.workspace_id = ?
         LEFT JOIN referral_clicks rc ON rc.referral_link_id = rl.id
+        WHERE rl.workspace_id = ?
         GROUP BY rl.code
       ) c ON c.code = l.referral_code
       WHERE l.workspace_id = ?
