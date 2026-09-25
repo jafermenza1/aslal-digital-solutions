@@ -144,3 +144,33 @@ This means a captured lead or claimed attribution does not create a payable fina
 ### Step 5 verification status
 
 The cross-record implementation is committed on q1-workspace-boundary-completion. Typecheck/lint still require the latest CI run to complete. Production build/deployment remains intentionally deferred until the quota/billing adjustment requested for this phase.
+
+
+## Increment 6 — Step 7 partner campaign / asset / dispute / payout boundary
+
+Step 7 hardening is now implemented around the complete partner-commerce chain:
+
+**Workspace → Campaign → Campaign Partner → Referral Link → Lead/Order → Payment → Revenue → Commission → Dispute/Payout**
+
+### Boundary fixes completed
+
+- Campaign list/create/update remains explicitly workspace-scoped.
+- Campaign-partner reads require both the campaign and partner to belong to the active workspace.
+- Campaign approval/referral-link creation now writes the referral link with the active workspace and uses the complete insert column/value set.
+- Campaign assets are created and updated only inside the active workspace; the asset update path cannot address an asset from another workspace.
+- Partner opportunity discovery now filters campaigns and referral links to the partner's workspace.
+- Partner campaign application validates partner/campaign workspace alignment before creating the application.
+- Partner disputes validate claimant, competing attribution references, campaign and commission against the partner's workspace; newly opened portal disputes are explicitly OPEN.
+- Admin dispute reads/updates are workspace-scoped, and a resolved dispute must identify an awarded disputing partner plus evidence.
+- PAYABLE commission selection for payout excludes commissions attached to an OPEN or UNDER_REVIEW attribution dispute. This prevents disputed financial attribution from entering settlement while the dispute is unresolved.
+- Payout creation continues to lock and revalidate workspace, partner, commission, payment/reconciliation, revenue, currency and existing payout-item state before settlement.
+
+### Competing attribution rule
+
+A dispute can identify a competing partner and an awarded partner, but the system does not silently rewrite historical attribution or financial records merely because a dispute was opened. While OPEN/UNDER_REVIEW, the linked commission is ineligible for payout. Resolution records the awarded partner and evidence; any subsequent financial attribution correction must use an explicit controlled commission mutation rather than an implicit side effect.
+
+### Step 7 verification status
+
+Implementation is committed on q1-workspace-boundary-completion. The mandatory two-workspace integration harness remains execution-pending until an authenticated isolated test environment and Workspace A/B fixtures are available. No production build or deployment was run.
+
+CI remains intentionally limited to **typecheck + lint**. The latest CI result must be checked after the Step 7 commits; a CI failure must not be interpreted as a deployment failure because build/deployment is intentionally out of scope for this phase.
