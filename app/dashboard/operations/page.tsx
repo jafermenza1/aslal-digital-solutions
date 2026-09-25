@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authorization";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { getProductionIntegrityReport } from "@/lib/production-integrity";
 import { TestDataReset } from "@/components/LeadAdminControls";
