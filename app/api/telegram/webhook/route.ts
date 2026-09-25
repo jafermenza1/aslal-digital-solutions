@@ -85,8 +85,11 @@ async function staffForChat(chatId:string){
 }
 
 async function notifyAssignedStaff(workspaceId:string,ownerEmail:string|null,body:string){
-  const [owner]=ownerEmail ? await db.query<(RowDataPacket&{telegram_chat_id:string|null})[]>("SELECT telegram_chat_id FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE u.email=? AND u.active=1 AND wu.workspace_id=? LIMIT 1",[ownerEmail,workspaceId]) : [[] as any[]];
-  let chatId=(owner as Array<{telegram_chat_id:string|null}>)[0]?.telegram_chat_id||null;
+  let chatId:string|null=null;
+  if(ownerEmail){
+    const [ownerRows]=await db.query<(RowDataPacket&{telegram_chat_id:string|null})[]>("SELECT telegram_chat_id FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE u.email=? AND u.active=1 AND wu.workspace_id=? LIMIT 1",[ownerEmail,workspaceId]);
+    chatId=ownerRows[0]?.telegram_chat_id||null;
+  }
   if(!chatId){
     const [admins]=await db.query<(RowDataPacket&{telegram_chat_id:string|null})[]>("SELECT u.telegram_chat_id FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_MANAGER','ADMIN','SUPER_ADMIN','BUSINESS_OWNER') AND u.telegram_chat_id IS NOT NULL ORDER BY FIELD(u.role,'SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1",[workspaceId]);
     chatId=admins[0]?.telegram_chat_id||null;
