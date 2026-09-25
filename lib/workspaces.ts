@@ -31,7 +31,7 @@ export async function getWorkspaceForUser(user: CurrentUser, workspaceId?: strin
   return null;
 }
 
-export async function authorizeWorkspacePermission(permission:"dashboard.view"|"customers.view"|"leads.view"|"leads.create"|"leads.edit"|"customers.view"|"commerce.view"|"commerce.manage"|"partners.manage", workspaceId?:string|null) {
+export async function authorizeWorkspacePermission(permission:"dashboard.view"|"customers.view"|"leads.view"|"leads.create"|"leads.edit"|"customers.view"|"commerce.view"|"commerce.manage"|"partners.manage"|"operations.view"|"insights.view", workspaceId?:string|null) {
   const user = await authorizePermission(permission);
   if (!user) return null;
   const workspace = await getWorkspaceForUser(user, workspaceId);

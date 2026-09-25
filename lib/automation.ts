@@ -175,13 +175,19 @@ export async function cancelLeadAutomation(id:string,reason:string){
 }
 export function handleConversationInbound(leadId:string|null|undefined){return leadId?cancelLeadAutomation(leadId,"Customer reply received; eligible follow-up automation cancelled."):Promise.resolve({cancelled:0});}
 export function handleLeadStatusChange(i:{leadId:string;fromStatus:string;toStatus:string;actor:string}){return ["WON","LOST"].includes(i.toStatus)?cancelLeadAutomation(i.leadId,`Lead moved from ${i.fromStatus} to ${i.toStatus} by ${i.actor}; prospecting automation cancelled.`):Promise.resolve({cancelled:0});}
-export async function getAutomationSnapshot(limit=30){
+export async function getAutomationSnapshot(limit=30, workspaceId?: string){
  await ensureCoreWorkflows();const cutoff=new Date(Date.now()-24*60*60000);
+ const leadIds = workspaceId
+   ? (await prisma.lead.findMany({where:{workspaceId},select:{id:true}})).map((lead)=>lead.id)
+   : [];
+ const executionScope = workspaceId
+   ? { targetType: "LEAD" as const, targetId: { in: leadIds } }
+   : undefined;
  const [workflows,recent,failed,counts]=await Promise.all([
   prisma.workflow.findMany({orderBy:{name:"asc"},include:{versions:{orderBy:{versionNo:"desc"},take:1}}}),
-  prisma.workflowExecution.findMany({orderBy:{createdAt:"desc"},take:limit,include:{workflow:{select:{systemKey:true,name:true}},actions:{orderBy:{actionIndex:"asc"}}}}),
-  prisma.workflowExecution.count({where:{status:WorkflowExecutionStatus.FAILED,createdAt:{gte:cutoff}}}),
-  prisma.workflowExecution.groupBy({by:["status"],_count:{_all:true}})
+  prisma.workflowExecution.findMany({where:executionScope,orderBy:{createdAt:"desc"},take:limit,include:{workflow:{select:{systemKey:true,name:true}},actions:{orderBy:{actionIndex:"asc"}}}}),
+  prisma.workflowExecution.count({where:{...executionScope,status:WorkflowExecutionStatus.FAILED,createdAt:{gte:cutoff}}}),
+  prisma.workflowExecution.groupBy({by:["status"],where:executionScope,_count:{_all:true}})
  ]);
  const n=(s:WorkflowExecutionStatus)=>counts.find(x=>x.status===s)?._count._all??0;
  return {workflows:workflows.map(w=>({id:w.id,systemKey:w.systemKey,name:w.name,active:w.active,triggerType:w.triggerType,version:w.versions[0]?.versionNo??null})),executions:{recentTotal:recent.length,completed:n(WorkflowExecutionStatus.COMPLETED),pending:n(WorkflowExecutionStatus.PENDING),running:n(WorkflowExecutionStatus.RUNNING),failedRecent:failed},recentExecutions:recent};

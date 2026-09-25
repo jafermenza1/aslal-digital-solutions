@@ -70,3 +70,45 @@ html[data-theme="dark"] .dashboard-content [class*="bg-[#E2B02A]"] button,html[d
 html[data-theme="dark"] .dashboard-content .bg-slate-50,html[data-theme="dark"] .dashboard-content .bg-slate-100{background:var(--app-surface-2)!important;color:var(--app-text)!important}
 html[data-theme="dark"] .dashboard-content .text-slate-300,html[data-theme="dark"] .dashboard-content .text-slate-600{color:#b8c8d8!important}
 html[data-theme="dark"] .dashboard-content [class*="hover:bg-slate-50"]:hover,html[data-theme="dark"] .dashboard-content [class*="hover:bg-slate-100"]:hover{background:#18324d!important;color:#edf4f1!important}
+
+/* Q1 Step 9 — dashboard mobile acceptance */
+@media(max-width:1023px){
+  .dashboard-app{grid-template-columns:1fr}
+  .dashboard-sidebar{display:none}
+  .dashboard-mobile-nav-wrap{display:block}
+  .dashboard-topbar{padding:10px 14px;gap:10px}
+  .dashboard-topbar-actions{gap:5px;flex-wrap:nowrap}
+  .dashboard-topbar .dashboard-top-link{display:none}
+  .dashboard-user-name{display:none}
+  .dashboard-content{overflow-x:hidden}
+  .dashboard-home{padding:14px}
+}
+@media(max-width:720px){
+  .dashboard-topbar{align-items:flex-start}
+  .dashboard-topbar-heading h1{font-size:17px}
+  .dashboard-topbar-heading span{font-size:8px}
+  .dashboard-topbar-help{display:none}
+  .dashboard-topbar-actions .dashboard-signout{padding:7px 9px;font-size:9px}
+  .dashboard-home{padding:12px}
+  .dashboard-hero-card{padding:20px;align-items:stretch;flex-direction:column;gap:16px}
+  .dashboard-hero-actions{display:flex;flex-wrap:wrap}
+  .dashboard-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dashboard-feature-grid,.dashboard-lower-grid{grid-template-columns:1fr}
+  .dashboard-workspace-grid{grid-template-columns:1fr 1fr}
+  .dashboard-panel,.dashboard-feature-card,.dashboard-workspace-card{min-width:0}
+  .dashboard-demand-row{min-width:0}
+  .dashboard-content table{min-width:0}
+  .dashboard-content .overflow-x-auto{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .dashboard-content input,.dashboard-content textarea,.dashboard-content select{max-width:100%;min-width:0}
+  .portal-shell{overflow-x:hidden}
+  .portal-card{border-radius:16px}
+}
+@media(max-width:480px){
+  .dashboard-kpi-grid{grid-template-columns:1fr}
+  .dashboard-workspace-grid{grid-template-columns:1fr}
+  .dashboard-nav-item.mobile{font-size:10px;padding-inline:9px}
+  .dashboard-mobile-nav-wrap{padding:7px 8px}
+  .dashboard-topbar-actions .language-toggle{display:none}
+}
+
+.dashboard-workspace-identity{display:inline-flex;align-items:center;margin-top:10px;padding:7px 10px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(255,255,255,.07);font-size:9px;font-weight:900;letter-spacing:.12em;color:rgba(255,255,255,.75);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
