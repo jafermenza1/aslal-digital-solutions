@@ -175,19 +175,19 @@ jobs:
           # isolated release, where Prisma/Next/React resolve locally.
           rm -f "$APP_PATH/server.js" "$APP_PATH/package.json"
 
-          cat > "$APP_PATH/server.js" <<EOF
-          const path = require("node:path");
-          const Module = require("node:module");
-
-          const releasePath = path.join(__dirname, ".releases", "$SHA");
-          const runtimeNodeModules = path.join(releasePath, "node_modules");
-          process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]
-            .filter(Boolean)
-            .join(path.delimiter);
-          Module._initPaths();
-
-          require(path.join(releasePath, "next-server.js"));
-          EOF
+          printf '%s\\n' \
+            'const path = require("node:path");' \
+            'const Module = require("node:module");' \
+            '' \
+            'const releasePath = path.join(__dirname, ".releases", "'$SHA'");' \
+            'const runtimeNodeModules = path.join(releasePath, "node_modules");' \
+            'process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]' \
+            '  .filter(Boolean)' \
+            '  .join(path.delimiter);' \
+            'Module._initPaths();' \
+            '' \
+            'require(path.join(releasePath, "next-server.js"));' \
+            > "$APP_PATH/server.js"
 
           cp -a "$RELEASE_PATH/package.json" "$APP_PATH/package.json"
 
