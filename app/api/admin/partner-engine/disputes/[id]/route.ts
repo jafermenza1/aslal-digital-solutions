@@ -6,9 +6,10 @@ import type { RowDataPacket } from "mysql2/promise";
 const STATUS=new Set(["OPEN","UNDER_REVIEW","RESOLVED","REJECTED"]);
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
- const access=await authorizeWorkspacePermission("partners.manage"); const actor=access?.user;
+ const access=await authorizeWorkspacePermission("partners.manage");
  if(!access)return NextResponse.json({error:"Unauthorized"},{status:403});
  const {id}=await params;
+ const actor=access.user;
  try{
   const b=await request.json();
   const status=String(b.status??"").toUpperCase();
