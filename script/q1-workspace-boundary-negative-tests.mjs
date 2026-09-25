@@ -33,14 +33,21 @@ const leadPath="/api/admin/leads/"+ids.Q1_B_LEAD_ID+"?workspaceId="+encodeURICom
 await req("A reads B lead","GET",leadPath,[403,404]);
 /* The read above must not leak B. A direct baseline is intentionally unavailable on A scope. */
 await req("A updates B lead","PATCH",leadPath,[403,404],{workspaceId:A,name:"Q1 NEGATIVE TEST",reason:"Q1 cross-workspace rejection test"});
+if(ids.Q1_B_CUSTOMER_ID){
+ await req("A creates quote referencing B customer","POST","/api/quotes",[400,403,404],{workspaceId:A,customerId:ids.Q1_B_CUSTOMER_ID,currency:"ETB",items:[{description:"Q1 negative test",quantity:1,unitPrice:1}]});
+}
 if(ids.Q1_B_QUOTE_ID){
  const p="/api/quotes/"+ids.Q1_B_QUOTE_ID+"?workspaceId="+encodeURIComponent(A);
  await req("A reads B quote","GET",p,[403,404]);
  await req("A updates B quote","PATCH",p,[403,404],{workspaceId:A,action:"VIEWED"});
 }
+if(ids.Q1_B_QUOTE_ID)await req("A creates order from B quote","POST","/api/orders/from-quote",[400,403,404],{workspaceId:A,quoteId:ids.Q1_B_QUOTE_ID});
 if(ids.Q1_B_ORDER_ID)await req("A creates payment against B order","POST","/api/orders/"+ids.Q1_B_ORDER_ID+"/payments",[403,404],{workspaceId:A,idempotencyKey:"q1-negative-"+Date.now(),provider:"NEGATIVE_TEST",amount:1,currency:"ETB",status:"INITIATED"});
 if(ids.Q1_B_PAYMENT_ID)await req("A updates B payment","PATCH","/api/payments/"+ids.Q1_B_PAYMENT_ID,[401,403,404],{status:"FAILED",failureReason:"Q1 negative test"});
-if(ids.Q1_B_COMMISSION_ID)await req("A updates B commission","PATCH","/api/admin/commissions/"+ids.Q1_B_COMMISSION_ID,[401,403,404],{status:"VOID"});
+if(ids.Q1_B_COMMISSION_ID){
+ await req("A updates B commission","PATCH","/api/admin/commissions/"+ids.Q1_B_COMMISSION_ID,[401,403,404],{status:"VOID"});
+ await req("A attaches B commission to payout","POST","/api/admin/partner-engine/payouts",[400,401,403,404],{workspaceId:A,partnerId:"00000000-0000-0000-0000-000000000000",amount:1,currency:"ETB",commissionIds:[ids.Q1_B_COMMISSION_ID]});
+}
 if(ids.Q1_B_INVOICE_ID&&ids.Q1_B_PAYMENT_ID)await req("A allocates B payment to B invoice","POST","/api/admin/invoices/"+ids.Q1_B_INVOICE_ID+"/payments",[401,403,404],{workspaceId:A,paymentId:ids.Q1_B_PAYMENT_ID,amount:1});
 if(ids.Q1_B_CUSTOMER_ID)await req("A reads B customer","GET","/api/customers/"+ids.Q1_B_CUSTOMER_ID+"?workspaceId="+encodeURIComponent(A),[401,403,404]);
 if(ids.Q1_B_REVENUE_ID)await req("A reads B revenue","GET","/api/admin/revenue/"+ids.Q1_B_REVENUE_ID+"?workspaceId="+encodeURIComponent(A),[401,403,404]);
