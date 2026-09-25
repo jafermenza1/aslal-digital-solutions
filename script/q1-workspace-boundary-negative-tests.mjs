@@ -5,7 +5,7 @@
  *
  * Required: Q1_BASE_URL Q1_WORKSPACE_A Q1_WORKSPACE_B Q1_SESSION_A Q1_SESSION_B Q1_B_LEAD_ID
  * Optional: Q1_B_QUOTE_ID Q1_B_ORDER_ID Q1_B_PAYMENT_ID Q1_B_COMMISSION_ID
- *           Q1_B_CUSTOMER_ID Q1_B_REVENUE_ID Q1_B_INVOICE_ID Q1_B_PAYOUT_ID
+ *           Q1_B_CUSTOMER_ID Q1_B_REVENUE_ID Q1_B_INVOICE_ID Q1_B_PAYOUT_ID Q1_B_PARTNER_ID
  */
 const required=["Q1_BASE_URL","Q1_WORKSPACE_A","Q1_WORKSPACE_B","Q1_SESSION_A","Q1_SESSION_B","Q1_B_LEAD_ID"];
 for(const name of required) if(!process.env[name]){console.error("Missing "+name);process.exit(2);}
@@ -44,9 +44,9 @@ if(ids.Q1_B_QUOTE_ID){
 if(ids.Q1_B_QUOTE_ID)await req("A creates order from B quote","POST","/api/orders/from-quote",[400,403,404],{workspaceId:A,quoteId:ids.Q1_B_QUOTE_ID});
 if(ids.Q1_B_ORDER_ID)await req("A creates payment against B order","POST","/api/orders/"+ids.Q1_B_ORDER_ID+"/payments",[403,404],{workspaceId:A,idempotencyKey:"q1-negative-"+Date.now(),provider:"NEGATIVE_TEST",amount:1,currency:"ETB",status:"INITIATED"});
 if(ids.Q1_B_PAYMENT_ID)await req("A updates B payment","PATCH","/api/payments/"+ids.Q1_B_PAYMENT_ID,[401,403,404],{status:"FAILED",failureReason:"Q1 negative test"});
-if(ids.Q1_B_COMMISSION_ID){
+if(ids.Q1_B_COMMISSION_ID&&ids.Q1_B_PARTNER_ID){
  await req("A updates B commission","PATCH","/api/admin/commissions/"+ids.Q1_B_COMMISSION_ID,[401,403,404],{status:"VOID"});
- await req("A attaches B commission to payout","POST","/api/admin/partner-engine/payouts",[400,401,403,404],{workspaceId:A,partnerId:"00000000-0000-0000-0000-000000000000",amount:1,currency:"ETB",commissionIds:[ids.Q1_B_COMMISSION_ID]});
+ await req("A attaches B commission to payout","POST","/api/admin/partner-engine/payouts",[400,401,403,404],{workspaceId:A,partnerId:ids.Q1_B_PARTNER_ID,amount:1,currency:"ETB",commissionIds:[ids.Q1_B_COMMISSION_ID]});
 }
 if(ids.Q1_B_INVOICE_ID&&ids.Q1_B_PAYMENT_ID)await req("A allocates B payment to B invoice","POST","/api/admin/invoices/"+ids.Q1_B_INVOICE_ID+"/payments",[401,403,404],{workspaceId:A,paymentId:ids.Q1_B_PAYMENT_ID,amount:1});
 if(ids.Q1_B_CUSTOMER_ID)await req("A reads B customer","GET","/api/customers/"+ids.Q1_B_CUSTOMER_ID+"?workspaceId="+encodeURIComponent(A),[401,403,404]);
