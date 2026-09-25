@@ -12,3 +12,11 @@ UPDATE commissions c LEFT JOIN revenues r ON r.id=c.revenue_id LEFT JOIN orders 
 UPDATE partner_payouts pp JOIN partners p ON p.id=pp.partner_id SET pp.workspace_id=p.workspace_id WHERE pp.workspace_id IS NULL;
 UPDATE partner_disputes d LEFT JOIN leads l ON l.id=d.lead_id LEFT JOIN partner_campaigns c ON c.id=d.campaign_id LEFT JOIN commissions cm ON cm.id=d.commission_id LEFT JOIN partners p ON p.id=d.partner_id SET d.workspace_id=COALESCE(l.workspace_id,c.workspace_id,cm.workspace_id,p.workspace_id,'00000000-0000-0000-0000-000000000001') WHERE d.workspace_id IS NULL;
 UPDATE campaign_assets a JOIN partner_campaigns c ON c.id=a.campaign_id SET a.workspace_id=c.workspace_id WHERE a.workspace_id IS NULL;
+-- All existing records have been backfilled above; make tenant ownership explicit.
+ALTER TABLE partners MODIFY workspace_id CHAR(36) NOT NULL;
+ALTER TABLE referral_links MODIFY workspace_id CHAR(36) NOT NULL;
+ALTER TABLE revenues MODIFY workspace_id CHAR(36) NOT NULL;
+ALTER TABLE commissions MODIFY workspace_id CHAR(36) NOT NULL;
+ALTER TABLE partner_payouts MODIFY workspace_id CHAR(36) NOT NULL;
+ALTER TABLE partner_disputes MODIFY workspace_id CHAR(36) NOT NULL;
+ALTER TABLE campaign_assets MODIFY workspace_id CHAR(36) NOT NULL;
