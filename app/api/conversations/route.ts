@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
+import { cookies } from "next/headers";
 import { prisma, CommunicationChannel } from "@/lib/prisma";
 import { verifySession } from "@/lib/security";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export async function POST(request: NextRequest) {
-  const session = verifySession((await (await import("next/headers")).cookies()).get("aslal_session")?.value);
+  const session = verifySession((await cookies()).get("aslal_session")?.value);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));
