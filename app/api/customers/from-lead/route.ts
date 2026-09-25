@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/security";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { requireSameWorkspace } from "@/lib/workspace-boundary";
 
 export async function POST(request: NextRequest) {
   const session = verifySession((await cookies()).get("aslal_session")?.value);
@@ -20,12 +21,37 @@ export async function POST(request: NextRequest) {
   if (!lead.dealValue || Number(lead.dealValue) <= 0) return NextResponse.json({ error: "A positive deal value is required." }, { status: 409 });
 
   const result = await prisma.$transaction(async (tx) => {
-    const person = lead.personId
-      ? await tx.person.update({ where: { id: lead.personId }, data: { name: lead.name, email: lead.email, phone: lead.phone } })
-      : await tx.person.create({ data: { id: randomUUID(), name: lead.name, email: lead.email, phone: lead.phone } });
+    let person = lead.personId ? await tx.person.findUnique({ where: { id: lead.personId } }) : null;
+
+    // Person is a shared identity record. It may be linked to multiple workspaces,
+    // but this workflow must never mutate an identity already owned by another
+    // workspace's lead/customer.
+    if (person) {
+      const [foreignLead, foreignCustomer] = await Promise.all([
+        tx.lead.findFirst({ where: { personId: person.id, workspaceId: { not: access.workspace.id } }, select: { id: true, workspaceId: true } }),
+        tx.customer.findFirst({ where: { personId: person.id, workspaceId: { not: access.workspace.id } }, select: { id: true, workspaceId: true } }),
+      ]);
+      if (foreignLead?.workspaceId || foreignCustomer?.workspaceId) {
+        return { conflict: true as const };
+      }
+      person = await tx.person.update({
+        where: { id: person.id },
+        data: { name: lead.name, email: lead.email, phone: lead.phone },
+      });
+    } else {
+      person = await tx.person.create({ data: { id: randomUUID(), name: lead.name, email: lead.email, phone: lead.phone } });
+    }
+
+    requireSameWorkspace(access.workspace.id, lead.workspaceId);
+
     if (!lead.personId) await tx.lead.update({ where: { id: lead.id }, data: { personId: person.id } });
 
-    let opportunity = await tx.opportunity.findFirst({ where: { leadId: lead.id, workspaceId: access.workspace.id, stage: "WON" }, orderBy: { createdAt: "desc" } });
+    let opportunity = await tx.opportunity.findFirst({
+      where: { leadId: lead.id, workspaceId: access.workspace.id, stage: "WON" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (opportunity) requireSameWorkspace(access.workspace.id, opportunity.workspaceId);
+
     if (!opportunity) {
       opportunity = await tx.opportunity.create({
         data: {
@@ -35,18 +61,25 @@ export async function POST(request: NextRequest) {
         },
       });
     }
-    const existing = await tx.customer.findUnique({ where: { opportunityId: opportunity.id } });
+
+    const existing = await tx.customer.findFirst({ where: { opportunityId: opportunity.id, workspaceId: access.workspace.id } });
     if (existing) return { customer: existing, created: false };
+
     const customer = await tx.customer.create({
       data: { id: randomUUID(), workspaceId: access.workspace.id, personId: person.id, opportunityId: opportunity.id, name: lead.name, email: lead.email, phone: lead.phone, status: "ACTIVE" },
     });
     await tx.activity.create({
       data: {
         type: "CUSTOMER_CREATED", subject: "Customer created from verified won opportunity",
-        details: { leadId: lead.id, actor: access.user.email }, personId: person.id, customerId: customer.id, opportunityId: opportunity.id,
+        details: { leadId: lead.id, actor: access.user.email, workspaceId: access.workspace.id },
+        personId: person.id, customerId: customer.id, opportunityId: opportunity.id,
       },
     });
     return { customer, created: true };
   });
+
+  if ("conflict" in result && result.conflict) {
+    return NextResponse.json({ error: "The linked person identity is already owned by another workspace and cannot be mutated here." }, { status: 409 });
+  }
   return NextResponse.json({ ok: true, customerId: result.customer.id, created: result.created });
 }
