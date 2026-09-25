@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 const allowed: Record<string, string[]> = {
   INITIATED: ["PENDING", "CONFIRMED", "FAILED"],
@@ -15,14 +15,15 @@ const allowed: Record<string, string[]> = {
 const reconciliationStates = ["UNMATCHED", "MATCHED", "RECONCILED", "EXCEPTION"];
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await authorizePermission("commerce.manage");
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await authorizeWorkspacePermission("commerce.manage");
+  if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, workspace } = access;
 
   try {
     const { id } = await params;
     const body = await request.json();
     const payment = await prisma.payment.findUnique({
-      where: { id },
+      where: { id, workspaceId: workspace.id },
       include: { order: true },
     });
     if (!payment) return NextResponse.json({ error: "Payment not found" }, { status: 404 });
@@ -70,12 +71,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         }
       }
 
-      const result = await tx.payment.update({ where: { id }, data });
+      const result = await tx.payment.update({ where: { id, workspaceId: workspace.id }, data });
 
       if (nextStatus === "CONFIRMED") {
-        await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "CONFIRMED" } });
+        await tx.order.update({ where: { id: payment.orderId, workspaceId: workspace.id }, data: { paymentState: "CONFIRMED" } });
       } else if (nextStatus === "FAILED") {
-        await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "FAILED" } });
+        await tx.order.update({ where: { id: payment.orderId, workspaceId: workspace.id }, data: { paymentState: "FAILED" } });
       } else if (nextStatus === "REVERSED") {
         await tx.order.update({ where: { id: payment.orderId }, data: { paymentState: "REVERSED" } });
       } else if (nextStatus === "REFUNDED") {
@@ -84,9 +85,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
       if (nextReconciliation === "RECONCILED") {
         const revenue = await tx.revenue.upsert({
-          where: { paymentId: payment.id },
+          where: { paymentId: payment.id, workspaceId: workspace.id },
           create: {
             id: randomUUID(),
+            workspaceId: workspace.id,
             orderId: payment.orderId,
             paymentId: payment.id,
             customerId: payment.customerId || payment.order.customerId || undefined,
@@ -133,6 +135,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                 where: { revenueId: revenue.id },
                 create: {
                   id: randomUUID(),
+                  workspaceId: workspace.id,
                   partnerId: payment.order.partnerId,
                   referralLinkId: payment.order.referralLinkId || undefined,
                   orderId: payment.orderId,
@@ -159,7 +162,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         const revenue = await tx.revenue.findUnique({ where: { paymentId: payment.id } });
         if (revenue) {
           await tx.revenue.update({ where: { id: revenue.id }, data: { status: "REVERSED", recognizedAmount: 0, commissionableAmount: 0 } });
-          await tx.commission.updateMany({ where: { revenueId: revenue.id }, data: { status: "VOID", amount: 0 } });
+          await tx.commission.updateMany({ where: { revenueId: revenue.id, workspaceId: workspace.id }, data: { status: "VOID", amount: 0 } });
         }
       }
 
