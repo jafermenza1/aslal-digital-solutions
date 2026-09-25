@@ -168,3 +168,16 @@ Record failures rather than filling missing values artificially.
 **Q1 is executable with the current foundation, but not yet fully supported by the system as a controlled production operating model.**
 
 The highest-risk gaps are **manual payment evidence/reconciliation, client isolation, commission-to-payout control, attribution disputes, and invoice/billing**. These should be closed before treating the Q1 plan as fully system-enabled.
+
+## Telegram partner agent workbench — Q1 completion
+
+The dedicated partner workbench now has a Telegram webhook and secure partner-account linking flow.
+
+- Partner portal generates a one-time Telegram deep-link token only for ACTIVE + VERIFIED partners.
+- Telegram /start <token> binds the private Telegram chat to that partner and consumes the token.
+- Workspace-scoped commands are available: /campaigns, /campaign <id>, /apply <id>, /links, /earnings, /me, /help.
+- Campaign details expose only published assets from the partner's workspace.
+- Campaign applications enforce partner status, verification, campaign status, partner-type eligibility and workspace matching.
+- Referral links, commissions and payouts are read using the partner's workspace boundary.
+- Webhook requests require TELEGRAM_WEBHOOK_SECRET and TELEGRAM_BOT_TOKEN.
+- Live Telegram delivery, webhook registration and pilot acceptance remain IMPLEMENTED / UNVERIFIED until credentials are configured and a controlled partner test is completed.
