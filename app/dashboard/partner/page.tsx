@@ -27,7 +27,7 @@ export default async function PartnerPortalPage() {
 
   const codes = partner.referralLinks.map((link) => link.code);
   const [leadCount, wonCount, revenue] = await Promise.all([
-    codes.length ? prisma.lead.count({ where: { workspaceId: access.workspace.id, referralCode: { in: codes } } }) : 0,
+    codes.length ? prisma.lead.count({ where: { workspaceId: workspace.id, referralCode: { in: codes } } }) : 0,
     codes.length ? prisma.lead.count({ where: { workspaceId: access.workspace.id, referralCode: { in: codes }, status: "WON" } }) : 0,
     codes.length ? prisma.lead.aggregate({ where: { workspaceId: access.workspace.id, referralCode: { in: codes }, status: "WON" }, _sum: { dealValue: true } }) : { _sum: { dealValue: null } },
   ]);
