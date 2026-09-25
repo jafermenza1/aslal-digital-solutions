@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { ResultSetHeader } from "mysql2";
-import { db from "@/lib/db";
+import { db } from "@/lib/db";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 const TYPES=new Set(["CREATIVE","COPY","PRICE_SHEET","QR","POSTER","LINK"]);
