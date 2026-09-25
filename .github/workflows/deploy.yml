@@ -162,19 +162,31 @@ jobs:
           # Prisma reads the dotenv file directly from the release directory.
           cd "$RELEASE_PATH"
 
-          # The previous Q1 invoice migration attempt is recorded by Prisma as
-          # failed. Recover that failed migration explicitly before retrying.
-          # This is conditional and targeted; successful migration history is
-          # never marked rolled back.
-          MIGRATION_STATUS="$(npx --yes prisma@6.19.0 migrate status --schema "$RELEASE_PATH/prisma/schema.prisma" 2>&1 || true)"
-          printf '%s\n' "$MIGRATION_STATUS"
-          if printf '%s\n' "$MIGRATION_STATUS" | grep -q "20260925140000_invoice_billing_foundation"; then
-            echo "Recovering failed migration 20260925140000_invoice_billing_foundation..."
-            npx --yes prisma@6.19.0 migrate resolve               --rolled-back "20260925140000_invoice_billing_foundation"               --schema "$RELEASE_PATH/prisma/schema.prisma"
-          fi
+          # First try the normal production deployment. If Prisma blocks it with P3009
+          # because the known Q1 invoice migration is recorded as failed, recover only
+          # that exact failed migration and retry. This avoids using migrate status as a
+          # discriminator because status also exits non-zero when migrations are merely pending.
+          set +e
+          MIGRATE_OUTPUT="$(npx --yes prisma@6.19.0 migrate deploy --schema "$RELEASE_PATH/prisma/schema.prisma" 2>&1)"
+          MIGRATE_EXIT=$?
+          set -e
+          printf '%s\n' "$MIGRATE_OUTPUT"
 
-          npx --yes prisma@6.19.0 migrate deploy --schema "$RELEASE_PATH/prisma/schema.prisma"
-          echo "Prisma migrations applied successfully."
+          if [ "$MIGRATE_EXIT" -eq 0 ]; then
+            echo "Prisma migrations applied successfully."
+          elif printf '%s\n' "$MIGRATE_OUTPUT" | grep -q "Error: P3009" && \\
+               printf '%s\n' "$MIGRATE_OUTPUT" | grep -q "20260925140000_invoice_billing_foundation"; then
+            echo "Recovering failed migration 20260925140000_invoice_billing_foundation..."
+            npx --yes prisma@6.19.0 migrate resolve \\
+              --rolled-back "20260925140000_invoice_billing_foundation" \\
+              --schema "$RELEASE_PATH/prisma/schema.prisma"
+            npx --yes prisma@6.19.0 migrate deploy \\
+              --schema "$RELEASE_PATH/prisma/schema.prisma"
+            echo "Prisma migrations recovered and applied successfully."
+          else
+            echo "Prisma migration deployment failed for an unexpected reason; refusing to alter migration history." >&2
+            exit "$MIGRATE_EXIT"
+          fi
 
           rm -rf "$BACKUP_PATH"
           mkdir -p "$BACKUP_PATH"
