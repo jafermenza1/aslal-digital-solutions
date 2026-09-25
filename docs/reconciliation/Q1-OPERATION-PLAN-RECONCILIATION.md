@@ -34,6 +34,9 @@ The following Q1 controls have now been hardened in code without replacing the e
 - payment mutation now requires the explicit `commerce.manage` permission;
 - commission approval/payable/paid transitions require reconciled payment and recognized revenue;
 - payout batches can be built from PAYABLE commissions only, create payout-item links, and prevent double settlement;
+- attribution disputes now record competing partner, evidence, decision notes, awarded attribution and resolving actor;
+- merchant invoice records can be issued from confirmed orders and reconciled payments can be allocated without exceeding either payment or invoice balance;
+- campaign assets now have a first-class lifecycle for creatives, copy, price sheets, QR/poster and tracked links;
 - partner payout workspace now exposes eligible payable commissions for batch selection;
 - the Q1 reconciliation document is linked from the repository README.
 
@@ -50,7 +53,7 @@ These changes still require CI, migration deployment and controlled production a
 | First 100 agent onboarding | Partner records, verification, tiers and partner IDs exist | IMPLEMENTED / PARTIAL | Bulk onboarding workflow and exact Q1 ID format need reconciliation |
 | Q1 Partner ID format ASL-P-0001… | Existing partnerNumber is ASL-<sequence>-<year> | GAP | Decide whether Q1 uses a new display alias or update the operating plan; do not silently rewrite existing IDs |
 | Referral links / QR identity | Referral links and partner-card/QR work exist | IMPLEMENTED-UNVERIFIED | Controlled issuance test for 100-agent cohort |
-| Partner Workbench | Partner self-service/campaign workspace exists | IMPLEMENTED / PARTIAL | Campaign materials/assets, price sheets and downloadable content are not first-class |
+| Partner Workbench | Partner self-service/campaign workspace plus first-class campaign assets | IMPLEMENTED / PARTIAL | Controlled publishing/distribution acceptance and partner-facing asset UX remain |
 | Telegram bot workbench | No Telegram Bot API implementation found | MISSING | Provider integration, authentication/linking, campaign commands and message audit |
 | Client CRM dashboard | Internal dashboard exists | PARTIAL / BLOCKED FOR 3 INDEPENDENT CLIENTS | Client-scoped workspace/tenant boundary and role enforcement are required before exposing multiple anchor clients |
 | Campaign launch attribution | Campaign/referral attribution exists | PARTIAL | First-class campaign asset/placement lineage is still incomplete |
@@ -58,8 +61,8 @@ These changes still require CI, migration deployment and controlled production a
 | Manual bulk agent payouts | Partner payout ledger exists | PARTIAL | Batch payout generation from payable commissions and payout-item linkage |
 | Commission based on collected payment | Reconciled payment creates revenue and commission | IMPLEMENTED IN CODE / UNVERIFIED | Controlled evidence; commission must not become payable before reconciliation |
 | Cancelled/refunded order handling | Payment reversal/refund reverses revenue and voids commission | IMPLEMENTED / PARTIAL | Audit evidence and controlled acceptance for cancellation/refund scenarios |
-| Disputed lead attribution | Generic partner disputes exist | PARTIAL | A first-class competing-agent attribution case needs claim evidence, decision, actor and resulting attribution |
-| Merchant invoice billing/payment collection | No invoice/billing domain found | MISSING | Invoice, invoice items, status, due date, payment allocation and collection evidence |
+| Disputed lead attribution | Attribution dispute case now stores competing partner, lead, evidence, decision notes, awarded partner and resolving actor | IMPLEMENTED / UNVERIFIED | Controlled dispute creation and resolution acceptance remains |
+| Merchant invoice billing/payment collection | Invoice, invoice-item and reconciled-payment allocation domains now exist | IMPLEMENTED / UNVERIFIED | Production migration and controlled invoice/payment allocation acceptance remain |
 | Anchor-client pilot operations | Single-workspace foundation exists | BLOCKED for safe 3-client isolation | Tenant/workspace model or an explicitly segregated pilot deployment |
 | Full Q1 end-to-end proof | No accepted controlled journey yet | MISSING / UNVERIFIED | One repeatable acceptance script with evidence at every transition |
 
