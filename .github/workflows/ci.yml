@@ -45,18 +45,18 @@ jobs:
           # its local node_modules resolve first; server.js becomes a tiny
           # launcher that can be copied to the application root safely.
           mv emerald-deploy/server.js emerald-deploy/next-server.js
-          cat > emerald-deploy/server.js <<'EOF'
-          const path = require("node:path");
-          const Module = require("node:module");
-
-          const runtimeNodeModules = path.join(__dirname, "node_modules");
-          process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]
-            .filter(Boolean)
-            .join(path.delimiter);
-          Module._initPaths();
-
-          require(path.join(__dirname, "next-server.js"));
-          EOF
+          printf '%s\\n' \
+            'const path = require("node:path");' \
+            'const Module = require("node:module");' \
+            '' \
+            'const runtimeNodeModules = path.join(__dirname, "node_modules");' \
+            'process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]' \
+            '  .filter(Boolean)' \
+            '  .join(path.delimiter);' \
+            'Module._initPaths();' \
+            '' \
+            'require(path.join(__dirname, "next-server.js"));' \
+            > emerald-deploy/server.js
 
           # Ship migrations and a complete, isolated Prisma CLI installation.
           # The standalone dependency tracer is for the web runtime and can
