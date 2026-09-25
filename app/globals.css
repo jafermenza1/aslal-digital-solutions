@@ -201,3 +201,95 @@ html[data-theme="dark"] .dashboard-content [class*="text-white/"]{color:var(--ap
 html[data-theme="light"] .dashboard-content [class*="bg-white/"]{background:var(--app-surface-2)!important}
 html[data-theme="dark"] .dashboard-content [class*="bg-white/"]{background:var(--app-surface-2)!important}
 .dashboard-content .text-muted,.dashboard-content .muted{color:var(--app-muted)!important}
+
+
+/* Global theme authority — hard-coded Tailwind utility classes must not escape the active app theme.
+   These selectors intentionally use !important because existing dashboard tabs contain literal utilities. */
+.dashboard-content .text-white,
+.dashboard-content .text-white\/50,
+.dashboard-content .text-white\/60,
+.dashboard-content .text-white\/70,
+.dashboard-content .text-white\/80,
+.dashboard-content .text-white\/90,
+.dashboard-content [class*="text-white/"],
+.dashboard-content .text-slate-300,
+.dashboard-content .text-slate-400,
+.dashboard-content .text-slate-500,
+.dashboard-content .text-slate-600,
+.dashboard-content .text-slate-700,
+.dashboard-content .text-slate-800,
+.dashboard-content .text-slate-900{
+  color:var(--app-text)!important;
+}
+.dashboard-content .bg-white,
+.dashboard-content .bg-white\/5,
+.dashboard-content .bg-white\/10,
+.dashboard-content .bg-white\/15,
+.dashboard-content .bg-white\/20,
+.dashboard-content [class*="bg-white/"],
+.dashboard-content .bg-slate-50,
+.dashboard-content .bg-slate-100,
+.dashboard-content .bg-slate-200,
+.dashboard-content .bg-slate-800,
+.dashboard-content .bg-slate-900{
+  background-color:var(--app-surface)!important;
+  color:var(--app-text)!important;
+}
+.dashboard-content .border-white,
+.dashboard-content .border-white\/10,
+.dashboard-content .border-white\/15,
+.dashboard-content .border-white\/20,
+.dashboard-content [class*="border-white/"],
+.dashboard-content .border-slate-100,
+.dashboard-content .border-slate-200,
+.dashboard-content .border-slate-300,
+.dashboard-content .border-slate-700,
+.dashboard-content .border-slate-800{
+  border-color:var(--app-border)!important;
+}
+.dashboard-content .divide-slate-100 > :not(:last-child),
+.dashboard-content .divide-slate-200 > :not(:last-child),
+.dashboard-content .divide-slate-700 > :not(:last-child),
+.dashboard-content .divide-slate-800 > :not(:last-child){
+  border-color:var(--app-border)!important;
+}
+.dashboard-content .hover\:bg-white:hover,
+.dashboard-content .hover\:bg-white\/5:hover,
+.dashboard-content .hover\:bg-white\/10:hover,
+.dashboard-content .hover\:bg-slate-50:hover,
+.dashboard-content .hover\:bg-slate-100:hover,
+.dashboard-content .hover\:bg-slate-200:hover,
+.dashboard-content .hover\:bg-slate-800:hover,
+.dashboard-content .hover\:bg-slate-900:hover{
+  background-color:var(--app-hover)!important;
+  color:var(--app-hover-text)!important;
+}
+.dashboard-content .hover\:text-white:hover,
+.dashboard-content .hover\:text-slate-900:hover,
+.dashboard-content .hover\:text-slate-800:hover,
+.dashboard-content .hover\:text-slate-700:hover,
+.dashboard-content .hover\:text-slate-600:hover{
+  color:var(--app-hover-text)!important;
+}
+.dashboard-content .placeholder\:text-slate-400::placeholder,
+.dashboard-content .placeholder\:text-slate-500::placeholder{
+  color:var(--app-muted)!important;
+}
+.dashboard-content .ring-white,
+.dashboard-content .ring-slate-200,
+.dashboard-content .ring-slate-700{
+  --tw-ring-color:var(--app-brand)!important;
+}
+.dashboard-content [class*="text-slate-"] svg,
+.dashboard-content [class*="text-white"] svg,
+.dashboard-content svg.text-slate-300,
+.dashboard-content svg.text-slate-400,
+.dashboard-content svg.text-slate-500,
+.dashboard-content svg.text-white{
+  color:currentColor!important;
+  stroke:currentColor!important;
+}
+html[data-theme="light"] .dashboard-content,
+html[data-theme="dark"] .dashboard-content{
+  color:var(--app-text);
+}
