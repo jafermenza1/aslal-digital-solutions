@@ -3,14 +3,19 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export const dynamic = "force-dynamic";
 
-export default async function CustomersDashboard({ searchParams }: { searchParams: Promise<{ customer?: string }> }) {
-  await requirePermission("customers.view");
-  const { customer: selectedId } = await searchParams;
+export default async function CustomersDashboard({ searchParams }: { searchParams: Promise<{ customer?: string; workspaceId?: string }> }) {
+  const params = await searchParams;
+  const access = await authorizeWorkspacePermission("customers.view", params.workspaceId);
+  if (!access) redirect("/dashboard");
+  const { customer: selectedId } = params;
+  const workspaceId = access.workspace.id;
 
   const customers = await prisma.customer.findMany({
+    where: { workspaceId },
     orderBy: { createdAt: "desc" },
     include: {
       person: true,
