@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   if (!customerId) return NextResponse.json({ error: "customerId is required" }, { status: 400 });
 
   const customer = await prisma.customer.findUnique({
-    where: { id: customerId },
+    where: { id: customerId, workspaceId: access.workspace.id },
     include: {
       person: true,
       opportunity: { include: { lead: { include: {
