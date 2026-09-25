@@ -103,8 +103,8 @@ async function createPrivateLead(workspaceId:string,d: {id:string;lead_id:string
   const name=[from.first_name,from.last_name].filter(Boolean).join(" ")||from.username||"Telegram contact";
   const personId=crypto.randomUUID();
   const leadId=crypto.randomUUID();
-  const ownerRows=await db.query<(RowDataPacket&{email:string})[]>("SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN'),u.last_login_at DESC LIMIT 1",[workspaceId]);
-  const owner=ownerRows[0][0]?.email||null;
+  const [ownerRows]=await db.query<(RowDataPacket&{email:string})[]>("SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN'),u.last_login_at DESC LIMIT 1",[workspaceId]);
+  const owner=ownerRows[0]?.email||null;
   await db.query("INSERT INTO persons (id,name) VALUES (?,?)",[personId,name.slice(0,160)]);
   await db.query("INSERT INTO communication_preferences (id,person_id,telegram_allowed) VALUES (?,?,1)",[crypto.randomUUID(),personId]);
   await db.query("INSERT INTO leads (workspace_id,id,person_id,name,status,source,medium,campaign,referral_code,owner_email,lead_category,capture_mode) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),"NEW",d.source||"telegram",d.medium||"telegram",d.campaign_id?d.campaign_id:null,d.referral_code||null,owner,"TELEGRAM_INBOUND","MANUAL"]);
@@ -135,9 +135,9 @@ async function handleClientInbound(workspaceId:string,d:any,m:TelegramMessage,ch
 
 async function handle(update:TelegramUpdate){
   const m=update.message;
-  const chatId=m?.chat?.id==null?"":String(m.chat.id);
-  const chatType=m?.chat?.type||"";
-  if(!chatId)return;
+  if(!m?.chat?.id)return;
+  const chatId=String(m.chat.id);
+  const chatType=m.chat.type||"";
   const input=clean(m?.text);
   if(input.startsWith("/start")){
     const token=input.split(/\s+/,2)[1]||"";
