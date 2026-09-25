@@ -15,12 +15,12 @@ const stages=["NEW","CONTACTED","QUALIFIED","DEMO","PROPOSAL","NEGOTIATION","WON
 type Data={visitors:number;leads:number;opportunities:number;customers:number;pipelineValue:number;wonRevenue:number;wonDeals:number;overdue:number;missingExecution:number;growth:number;recent:Array<{id:string;name:string;company:string|null;status:string;score:number;updatedAt:Date}>;stageCounts:Array<readonly [typeof stages[number],number]>};
 
 async function loadData(workspaceId?:string):Promise<Data|null>{try{const access=await authorizeWorkspacePermission("dashboard.view",workspaceId);if(!access)return null;const wid=access.workspace.id;const [visitors,leads,opportunities,customers,pipeline,won,overdue,missingExecution,growth,recent,stageCounts]=await Promise.all([
-prisma.visitor.count(),prisma.lead.count({where:{workspaceId:wid}}),prisma.opportunity.count({where:{workspaceId:wid,stage:{notIn:["WON","LOST"]}}}),prisma.customer.count({where:{workspaceId:wid}}),
+prisma.visitor.count({where:{leads:{some:{workspaceId:wid}}}),prisma.lead.count({where:{workspaceId:wid}}),prisma.opportunity.count({where:{workspaceId:wid,stage:{notIn:["WON","LOST"]}}}),prisma.customer.count({where:{workspaceId:wid}}),
 prisma.opportunity.aggregate({where:{workspaceId:wid,stage:{notIn:["WON","LOST"]}},_sum:{expectedValue:true}}),
 prisma.opportunity.aggregate({where:{workspaceId:wid,stage:"WON"},_count:{_all:true},_sum:{expectedValue:true}}),
 prisma.$queryRaw<Array<{count:bigint}>>`SELECT COUNT(*) AS count FROM leads WHERE workspace_id=${wid} AND status NOT IN ('WON','LOST') AND next_action_due_at IS NOT NULL AND next_action_due_at < NOW()`,
 prisma.lead.count({where:{workspaceId:wid,status:{notIn:["WON","LOST"]},OR:[{ownerEmail:null},{nextAction:null},{nextActionDueAt:null}]}}),
-prisma.growthOpportunity.count({where:{status:"OPEN",workspaceId:wid}}),
+prisma.growthOpportunity.count({where:{status:"OPEN",visitor:{leads:{some:{workspaceId:wid}}}}}),
 prisma.lead.findMany({where:{workspaceId:wid},orderBy:{updatedAt:"desc"},take:6,select:{id:true,name:true,company:true,status:true,score:true,updatedAt:true}}),
 Promise.all(stages.map(async stage=>[stage,await prisma.opportunity.count({where:{workspaceId:wid,stage}})] as const))
 ]);return{visitors,leads,opportunities,customers,pipelineValue:Number(pipeline._sum.expectedValue??0),wonRevenue:Number(won._sum.expectedValue??0),wonDeals:won._count._all,overdue:Number(overdue[0]?.count??0),missingExecution,growth,recent,stageCounts};}catch(error){console.error("Growth OS dashboard data load failed:",error);return null;}}
