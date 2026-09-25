@@ -1,3 +1,9 @@
+-- Production compatibility: the Aslal database predates the Q1 invoice foundation in some environments.
+-- Ensure the existing parent tables use InnoDB before adding foreign keys. This preserves
+-- existing rows and keeps the Q1 customer/order -> invoice integrity constraints enforceable.
+ALTER TABLE customers ENGINE=InnoDB;
+ALTER TABLE orders ENGINE=InnoDB;
+
 CREATE TABLE invoices (
   id CHAR(36) NOT NULL,
   invoice_number VARCHAR(60) NOT NULL,
