@@ -274,6 +274,12 @@ enum MessageStatus {
   FAILED
 }
 
+enum TelegramDestinationType {
+  PRIVATE
+  GROUP
+  CHANNEL
+}
+
 model Visitor {
   id                  String   @id @db.Char(36)
   anonymousId         String   @unique @map("anonymous_id") @db.Char(36)
@@ -1042,6 +1048,7 @@ model CommunicationPreference {
 }
 
 model Conversation {
+  workspaceId       String               @map("workspace_id") @db.Char(36)
   id               String               @id @db.Char(36)
   personId         String?              @map("person_id") @db.Char(36)
   leadId           String?              @map("lead_id") @db.Char(36)
@@ -1060,6 +1067,8 @@ model Conversation {
   customer         Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
   opportunity      Opportunity?         @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   messages         Message[]
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  @@index([workspaceId, status, lastMessageAt], map: "idx_conversation_workspace_status")
   @@index([personId, channel, status], map: "idx_conversation_person_channel")
   @@index([externalThreadId, channel], map: "idx_conversation_external_thread")
   @@index([status, lastMessageAt], map: "idx_conversation_status_last")
@@ -1082,6 +1091,42 @@ model Message {
   @@index([conversationId, createdAt], map: "idx_message_conversation_created")
   @@index([externalMessageId], map: "idx_message_external")
   @@map("conversation_messages")
+}
+
+model TelegramDestination {
+  id                    String   @id @db.Char(36)
+  workspaceId            String   @map("workspace_id") @db.Char(36)
+  chatId                 String   @unique @map("chat_id") @db.VarChar(190)
+  type                   TelegramDestinationType
+  label                  String   @db.VarChar(190)
+  active                 Boolean  @default(true)
+  optIn                  Boolean  @default(false) @map("opt_in")
+  linkToken              String?  @unique @map("link_token") @db.VarChar(100)
+  leadId                String?  @map("lead_id") @db.Char(36)
+  personId              String?  @map("person_id") @db.Char(36)
+  productId             String?  @map("product_id") @db.Char(36)
+  campaignId            String?  @map("campaign_id") @db.Char(36)
+  partnerId             String?  @map("partner_id") @db.Char(36)
+  referralCode          String?  @map("referral_code") @db.VarChar(100)
+  source                String?  @db.VarChar(100)
+  medium                String?  @db.VarChar(100)
+  followUpEnabled       Boolean  @default(false) @map("follow_up_enabled")
+  followUpMessage       String?  @map("follow_up_message") @db.Text
+  followUpIntervalMinutes Int    @default(1440) @map("follow_up_interval_minutes")
+  followUpMaxAttempts   Int      @default(3) @map("follow_up_max_attempts")
+  followUpAttempts      Int      @default(0) @map("follow_up_attempts")
+  nextFollowUpAt        DateTime? @map("next_follow_up_at") @db.DateTime(0)
+  lastInboundAt         DateTime? @map("last_inbound_at") @db.DateTime(0)
+  handedOffAt           DateTime? @map("handed_off_at") @db.DateTime(0)
+  createdBy             String?  @map("created_by") @db.VarChar(190)
+  createdAt             DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace             Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId, active, type], map: "idx_telegram_dest_workspace_active")
+  @@index([workspaceId, followUpEnabled, nextFollowUpAt], map: "idx_telegram_followup_due")
+  @@index([leadId], map: "idx_telegram_dest_lead")
+  @@map("telegram_destinations")
 }
 
 model ChannelAccount {
@@ -1120,6 +1165,8 @@ model Workspace {
   payouts     PartnerPayout[]
   disputes    PartnerDispute[]
   campaignAssets CampaignAsset[]
+  conversations Conversation[]
+  telegramDestinations TelegramDestination[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
   @@map("workspaces")
@@ -1151,6 +1198,9 @@ model User {
   createdAt       DateTime @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt       DateTime @updatedAt @map("updated_at") @db.DateTime(0)
   partnerId       String?  @unique @map("partner_id") @db.Char(36)
+  telegramChatId  String?  @unique @map("telegram_chat_id") @db.VarChar(80)
+  telegramLinkToken String? @unique @map("telegram_link_token") @db.VarChar(100)
+  telegramLinkedAt DateTime? @map("telegram_linked_at") @db.DateTime(0)
   partner         Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   workspaceUsers   WorkspaceUser[]
   audits          UserAudit[]
