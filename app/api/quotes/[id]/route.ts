@@ -49,10 +49,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       const total=Math.max(0,subtotal-normalized.reduce((s:number,i:{discount:number})=>s+i.discount,0)-quoteDiscount);
       const revised=await prisma.$transaction(async tx=>{
         const next=await tx.quote.create({
-          data:{ id:randomUUID(), quoteNumber:quoteNumber(), customerId:current.customerId||undefined, opportunityId:current.opportunityId||undefined, parentQuoteId:current.id, version:current.version+1, status:"DRAFT", currency:current.currency, subtotal, discount:quoteDiscount, total, terms:body.terms!==undefined?String(body.terms):current.terms, expiresAt:body.expiresAt?new Date(body.expiresAt):current.expiresAt, createdBy:access.user.email, items:{create:normalized.map(i=>({id:randomUUID(),...i}))} },
+          data:{ id:randomUUID(), workspaceId:access.workspace.id, quoteNumber:quoteNumber(), customerId:current.customerId||undefined, opportunityId:current.opportunityId||undefined, parentQuoteId:current.id, version:current.version+1, status:"DRAFT", currency:current.currency, subtotal, discount:quoteDiscount, total, terms:body.terms!==undefined?String(body.terms):current.terms, expiresAt:body.expiresAt?new Date(body.expiresAt):current.expiresAt, createdBy:access.user.email, items:{create:normalized.map(i=>({id:randomUUID(),...i}))} },
           include:{items:true},
         });
-        await tx.quote.update({where:{id:current.id},data:{status:"SUPERSEDED",supersededAt:new Date()}});
+        await tx.quote.update({where:{id:current.id,workspaceId:access.workspace.id},data:{status:"SUPERSEDED",supersededAt:new Date()}});
         await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:current.id,type:"SUPERSEDED",actor:access.user.email,snapshot:{replacedBy:next.id,version:next.version}}});
         await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:next.id,type:"REVISED",actor:access.user.email,note:body.note?String(body.note):undefined,snapshot:{previousQuoteId:current.id,previousVersion:current.version}}});
         return next;
@@ -63,7 +63,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!(action in transitions)) return NextResponse.json({ error: "Unsupported quote action" }, { status: 400 });
     if (!transitions[action].includes(current.status)) return NextResponse.json({ error: `Cannot move ${current.status} to ${action}` }, { status: 409 });
     if (current.expiresAt && current.expiresAt.getTime() < Date.now() && !["CANCELLED"].includes(action)) {
-      await prisma.quote.update({ where:{id}, data:{status:"EXPIRED"} });
+      await prisma.quote.update({ where:{id,workspaceId:access.workspace.id}, data:{status:"EXPIRED"} });
       await prisma.negotiationEvent.create({data:{id:randomUUID(),quoteId:id,type:"EXPIRED",actor:"system"}});
       return NextResponse.json({ error:"Quote has expired" }, { status:409 });
     }
@@ -76,7 +76,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (action==="CANCELLED") data.cancelledAt=now;
     const quote=await prisma.$transaction(async tx=>{
       const updated=await tx.quote.update({where:{id,workspaceId:access.workspace.id},data});
-      await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:id,type:action as any,actor:user.email,note:body.note?String(body.note):undefined,snapshot:{statusFrom:current.status,statusTo:action}}});
+      await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:id,type:action as any,actor:access.user.email,note:body.note?String(body.note):undefined,snapshot:{statusFrom:current.status,statusTo:action}}});
       return updated;
     });
     return NextResponse.json({quote});
