@@ -14,8 +14,7 @@ export async function GET(request:Request){
  const [rows]=await db.query(
   `SELECT a.id,a.campaign_id,a.name,a.type,a.status,a.description,a.content,a.asset_url,a.placement,a.tracking_code,a.created_by,a.created_at,a.updated_at
      FROM campaign_assets a
-    ${campaignId?"WHERE a.campaign_id=? ":""}
-    AND a.workspace_id=? ORDER BY a.created_at DESC`,campaignId?[campaignId,access?.workspace.id]:[access?.workspace.id]
+    WHERE a.workspace_id=? ${campaignId?"AND a.campaign_id=? ":""} ORDER BY a.created_at DESC`,campaignId?[access.workspace.id,campaignId]:[access.workspace.id]
  );
  return NextResponse.json({assets:rows});
 }
