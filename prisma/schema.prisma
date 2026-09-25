@@ -418,6 +418,7 @@ model ReferralLink {
   commissions     Commission[]
   orders          Order[]
   revenues        Revenue[]
+  workspace       Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 
   @@index([partnerId], map: "idx_referral_partner")
   @@index([campaignId], map: "idx_referral_campaign")
