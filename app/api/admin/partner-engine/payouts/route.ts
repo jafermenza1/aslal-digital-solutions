@@ -16,7 +16,7 @@ export async function POST(request:Request){
   const fail=(message:string,status:number)=>{const error=new Error(message) as Error & {status?:number};error.status=status;throw error;};
   const b=await request.json(),partnerId=String(b.partnerId??"").trim(),status=String(b.status??"PENDING").toUpperCase(),amount=Number(b.amount??0),currency=String(b.currency??"ETB").toUpperCase(),reference=String(b.reference??"").trim()||null,notes=String(b.notes??"").trim()||null;
   const commissionIds=Array.isArray(b.commissionIds)?[...new Set(b.commissionIds.map((x:unknown)=>String(x).trim()).filter(Boolean))]:[];
-  if(!partnerId||!STATUS.has(status)||!Number.isFinite(amount)||amount<=0||amount>999999999999.99)return NextResponse.json({error:"Partner, valid status and positive amount are required."},{status:400});
+  if(!partnerId||!STATUS.has(status)||!Number.isFinite(amount)||amount<0||amount>999999999999.99||(!commissionIds.length&&amount<=0))return NextResponse.json({error:"Partner, valid status and a positive amount (or selected commissions) are required."},{status:400});
   if(!/^[A-Z]{3}$/.test(currency))return NextResponse.json({error:"Currency must be a 3-letter code."},{status:400});
   const [p]=await db.query<RowDataPacket[]>(`SELECT id FROM partners WHERE id=? LIMIT 1`,[partnerId]);if(!p[0])return NextResponse.json({error:"Partner not found."},{status:404});
   if(status==="PAID" && !commissionIds.length)return NextResponse.json({error:"A PAID partner payout must identify the payable commission records it settles."},{status:400});
