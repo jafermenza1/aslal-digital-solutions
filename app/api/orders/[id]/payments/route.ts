@@ -1,17 +1,18 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 const statuses = ["INITIATED", "PENDING", "CONFIRMED", "FAILED", "REVERSED", "REFUNDED"] as const;
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await authorizePermission("leads.edit");
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await request.json();
+  const access = await authorizeWorkspacePermission("leads.edit", typeof body.workspaceId === "string" ? body.workspaceId : undefined);
+  if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
 
   try {
     const { id: orderId } = await params;
-    const body = await request.json();
+
     const idempotencyKey = String(body.idempotencyKey || "").trim();
     const provider = String(body.provider || "").trim();
     const amount = Number(body.amount);
@@ -32,7 +33,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ payment: existing, alreadyExists: true });
     }
 
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    const order = await prisma.order.findFirst({ where: { id: orderId, workspaceId: access.workspace.id } });
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
     if (order.status === "CANCELLED") return NextResponse.json({ error: "Cancelled orders cannot receive payments." }, { status: 409 });
 
