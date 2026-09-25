@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 const TYPES=new Set(["CREATIVE","COPY","PRICE_SHEET","QR","POSTER","LINK"]);
 const STATUSES=new Set(["DRAFT","PUBLISHED","ARCHIVED"]);
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
- const actor=await authorizePermission("partners.manage");
- if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
+ const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId")); const actor=access?.user;
+ if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
  const {id}=await params;
  try{
   const b=await request.json();
@@ -24,8 +24,8 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const name=String(fields[0].value),type=String(fields[1].value),status=String(fields[2].value);
   if(!name||!TYPES.has(type)||!STATUSES.has(status))return NextResponse.json({error:"Name, valid asset type and status are required."},{status:400});
   const [r]=await db.query<any[]>(
-   `UPDATE campaign_assets SET name=?,type=?,status=?,description=?,content=?,asset_url=?,placement=?,tracking_code=?,updated_at=NOW() WHERE id=?`,
-   [...fields.slice(0,8).map(x=>x.value),id]
+   `UPDATE campaign_assets SET name=?,type=?,status=?,description=?,content=?,asset_url=?,placement=?,tracking_code=?,updated_at=NOW() WHERE id=? AND workspace_id=?`,
+   [...fields.slice(0,8).map(x=>x.value),id,access.workspace.id]
   );
   if(!r.affectedRows)return NextResponse.json({error:"Campaign asset not found."},{status:404});
   await db.query(
