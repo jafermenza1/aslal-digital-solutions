@@ -28,6 +28,12 @@ export async function GET() {
     LEFT JOIN payments pm ON pm.id=c.payment_id AND pm.workspace_id=c.workspace_id
     WHERE c.workspace_id=? AND c.status="PAYABLE" AND pi.id IS NULL
       AND r.status="RECOGNIZED" AND pm.status="CONFIRMED" AND pm.reconciliation_status="RECONCILED"
+      AND NOT EXISTS (
+        SELECT 1 FROM partner_disputes d
+        WHERE d.workspace_id=c.workspace_id
+          AND d.commission_id=c.id
+          AND d.status IN ("OPEN","UNDER_REVIEW")
+      )
     ORDER BY p.name ASC,c.created_at ASC LIMIT 500
   `, [access.workspace.id]);
 
