@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 function quoteNumber() { return `QT-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${randomUUID().slice(0,8).toUpperCase()}`; }
 
@@ -15,11 +15,11 @@ const transitions: Record<string, string[]> = {
 };
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await authorizePermission("leads.view");
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
+  const access = await authorizeWorkspacePermission("leads.view", new URL(_.url).searchParams.get("workspaceId"));
+  if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
   const quote = await prisma.quote.findUnique({
-    where: { id },
+    where: { id, workspaceId: access.workspace.id },
     include: { items: { orderBy: { sortOrder: "asc" } }, events: { orderBy: { createdAt: "asc" } }, revisions: { orderBy: { version: "asc" } } },
   });
   if (!quote) return NextResponse.json({ error: "Quote not found" }, { status: 404 });
@@ -27,12 +27,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await authorizePermission("leads.edit");
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
   const body = await request.json();
+  const access = await authorizeWorkspacePermission("leads.edit", typeof body.workspaceId === "string" ? body.workspaceId : undefined);
+  if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
   const action = String(body.action || "").toUpperCase();
-  const current = await prisma.quote.findUnique({ where: { id }, include: { items: true } });
+  const current = await prisma.quote.findUnique({ where: { id, workspaceId: access.workspace.id }, include: { items: true } });
   if (!current) return NextResponse.json({ error: "Quote not found" }, { status: 404 });
 
   try {
@@ -49,11 +49,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       const total=Math.max(0,subtotal-normalized.reduce((s:number,i:{discount:number})=>s+i.discount,0)-quoteDiscount);
       const revised=await prisma.$transaction(async tx=>{
         const next=await tx.quote.create({
-          data:{ id:randomUUID(), quoteNumber:quoteNumber(), customerId:current.customerId||undefined, opportunityId:current.opportunityId||undefined, parentQuoteId:current.id, version:current.version+1, status:"DRAFT", currency:current.currency, subtotal, discount:quoteDiscount, total, terms:body.terms!==undefined?String(body.terms):current.terms, expiresAt:body.expiresAt?new Date(body.expiresAt):current.expiresAt, createdBy:user.email, items:{create:normalized.map(i=>({id:randomUUID(),...i}))} },
+          data:{ id:randomUUID(), quoteNumber:quoteNumber(), customerId:current.customerId||undefined, opportunityId:current.opportunityId||undefined, parentQuoteId:current.id, version:current.version+1, status:"DRAFT", currency:current.currency, subtotal, discount:quoteDiscount, total, terms:body.terms!==undefined?String(body.terms):current.terms, expiresAt:body.expiresAt?new Date(body.expiresAt):current.expiresAt, createdBy:access.user.email, items:{create:normalized.map(i=>({id:randomUUID(),...i}))} },
           include:{items:true},
         });
         await tx.quote.update({where:{id:current.id},data:{status:"SUPERSEDED",supersededAt:new Date()}});
-        await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:current.id,type:"SUPERSEDED",actor:user.email,snapshot:{replacedBy:next.id,version:next.version}}});
+        await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:current.id,type:"SUPERSEDED",actor:access.user.email,snapshot:{replacedBy:next.id,version:next.version}}});
         await tx.negotiationEvent.create({data:{id:randomUUID(),quoteId:next.id,type:"REVISED",actor:user.email,note:body.note?String(body.note):undefined,snapshot:{previousQuoteId:current.id,previousVersion:current.version}}});
         return next;
       });
