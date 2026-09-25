@@ -15,7 +15,7 @@ const allowed: Record<string, string[]> = {
 const reconciliationStates = ["UNMATCHED", "MATCHED", "RECONCILED", "EXCEPTION"];
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await authorizePermission("leads.edit");
+  const user = await authorizePermission("commerce.manage");
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
