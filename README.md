@@ -40,6 +40,8 @@ This document describes **what the system is intended to become**, not what the 
 
 **[Reconciliation Guideline](docs/reconciliation/README.md)**
 
+**[Q1 Operation Plan Reconciliation](docs/reconciliation/Q1-OPERATION-PLAN-RECONCILIATION.md)**
+
 This is the authoritative engineering control for reconciling the target product with the actual repository and production environment.
 
 It answers:
@@ -303,6 +305,7 @@ The canonical system documents remain connected through:
 
 - [Target-state Growth OS master plan](docs/Aslal%20Growth%20OS%20master%20plan.md)
 - [Reconciliation Guideline](docs/reconciliation/README.md)
+- [Q1 Operation Plan Reconciliation](docs/reconciliation/Q1-OPERATION-PLAN-RECONCILIATION.md)
 - [Execution State](docs/reconciliation/EXECUTION-STATE.md)
 - [Canonical Next Development Plan](docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md)
 - [Traceability](docs/reconciliation/TRACEABILITY.md)
