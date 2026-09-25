@@ -7,13 +7,16 @@ import { runLeadCreatedAutomation } from "@/lib/automation";
 import { LeadCaptureMode } from "@prisma/client";
 import { siteConfig } from "@/lib/config";
 import { randomUUID } from "node:crypto";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 const OFFLINE_CHANNELS = ["Radio","Television","Outdoor / Billboard","Flyer / Brochure","Event / Exhibition","Field Agent","Direct Sales","Word of Mouth","Other Offline"];
 const clean = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
 
 export async function POST(request: Request) {
-  const actor = await authorizePermission("leads.create");
-  if (!actor) return NextResponse.json({ error: "You do not have permission to create leads." }, { status: 403 });
+  
+  const workspace = await authorizeWorkspacePermission("leads.create", typeof body.workspaceId === "string" ? body.workspaceId : undefined);
+  if (!workspace) return NextResponse.json({ error: "You do not have access to this workspace." }, { status: 403 });
+  const actor = workspace.user;
 
   const body = await request.json().catch(() => ({}));
   const name = clean(body.name,160);
@@ -48,6 +51,7 @@ export async function POST(request: Request) {
     const created = await tx.lead.create({
       data:{
         id:randomUUID(),
+        workspaceId:workspace.workspace.id,
         personId,
         name,
         email:email||null,
