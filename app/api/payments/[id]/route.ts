@@ -86,31 +86,43 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
 
       if (nextReconciliation === "RECONCILED") {
-        const revenue = await tx.revenue.upsert({
+        const existingRevenue = await tx.revenue.findFirst({
           where: { paymentId: payment.id, workspaceId: workspace.id },
-          create: {
-            id: randomUUID(),
-            workspaceId: workspace.id,
-            orderId: payment.orderId,
-            paymentId: payment.id,
-            customerId: payment.customerId || payment.order.customerId || undefined,
-            partnerId: payment.order.partnerId || undefined,
-            referralLinkId: payment.order.referralLinkId || undefined,
-            collectedAmount: payment.amount,
-            recognizedAmount: payment.amount,
-            commissionableAmount: payment.amount,
-            currency: payment.currency,
-            status: "RECOGNIZED",
-            recognizedAt: new Date(),
-          },
-          update: {
-            collectedAmount: payment.amount,
-            recognizedAmount: payment.amount,
-            commissionableAmount: payment.amount,
-            status: "RECOGNIZED",
-            recognizedAt: new Date(),
-          },
         });
+        const revenue = existingRevenue
+          ? await tx.revenue.update({
+              where: { id: existingRevenue.id },
+              data: {
+                workspaceId: workspace.id,
+                orderId: payment.orderId,
+                customerId: payment.customerId || payment.order.customerId || undefined,
+                partnerId: payment.order.partnerId || undefined,
+                referralLinkId: payment.order.referralLinkId || undefined,
+                collectedAmount: payment.amount,
+                recognizedAmount: payment.amount,
+                commissionableAmount: payment.amount,
+                currency: payment.currency,
+                status: "RECOGNIZED",
+                recognizedAt: new Date(),
+              },
+            })
+          : await tx.revenue.create({
+              data: {
+                id: randomUUID(),
+                workspaceId: workspace.id,
+                orderId: payment.orderId,
+                paymentId: payment.id,
+                customerId: payment.customerId || payment.order.customerId || undefined,
+                partnerId: payment.order.partnerId || undefined,
+                referralLinkId: payment.order.referralLinkId || undefined,
+                collectedAmount: payment.amount,
+                recognizedAmount: payment.amount,
+                commissionableAmount: payment.amount,
+                currency: payment.currency,
+                status: "RECOGNIZED",
+                recognizedAt: new Date(),
+              },
+            });
 
         if (payment.order.partnerId) {
           const referralLink = payment.order.referralLinkId
