@@ -2,7 +2,6 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authorization";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export const dynamic = "force-dynamic";
