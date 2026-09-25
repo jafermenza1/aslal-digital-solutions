@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import type { RowDataPacket } from "mysql2/promise";
 
 const transitions: Record<string, string[]> = {
@@ -16,8 +16,9 @@ type CommissionStatusRow = RowDataPacket & { status: string; revenue_id: string 
 
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-  const actor = await authorizePermission("partners.manage");
-  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await authorizeWorkspacePermission("partners.manage");
+  if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { workspace } = access;
 
   const { id } = await context.params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error: "Invalid commission ID." }, { status: 400 });
@@ -29,7 +30,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return NextResponse.json({ error: "Invalid commission status." }, { status: 400 });
     }
 
-    const [rows] = await db.query<CommissionStatusRow[]>(`SELECT c.status,c.revenue_id,r.status revenue_status,p.reconciliation_status FROM commissions c LEFT JOIN revenues r ON r.id=c.revenue_id LEFT JOIN payments p ON p.id=c.payment_id WHERE c.id=? LIMIT 1`, [id]);
+    const [rows] = await db.query<CommissionStatusRow[]>(`SELECT c.status,c.revenue_id,r.status revenue_status,p.reconciliation_status FROM commissions c LEFT JOIN revenues r ON r.id=c.revenue_id LEFT JOIN payments p ON p.id=c.payment_id WHERE c.id=? AND c.workspace_id=? LIMIT 1`, [id, workspace.id]);
     const current = rows[0]?.status;
     if (!current) return NextResponse.json({ error: "Commission not found." }, { status: 404 });
     if (!transitions[current]?.includes(nextStatus)) {
@@ -39,7 +40,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return NextResponse.json({ error: "Commission can only advance after the linked payment is reconciled and revenue is recognized." }, { status: 409 });
     }
 
-    await db.query(`UPDATE commissions SET status=? WHERE id=?`, [nextStatus, id]);
+    await db.query(`UPDATE commissions SET status=? WHERE id=? AND workspace_id=?`, [nextStatus, id, workspace.id]);
     return NextResponse.json({ ok: true, status: nextStatus });
   } catch (error) {
     console.error("COMMISSION_UPDATE_ERROR", error);
