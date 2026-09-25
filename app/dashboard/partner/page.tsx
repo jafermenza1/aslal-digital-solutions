@@ -29,7 +29,7 @@ export default async function PartnerPortalPage() {
   const [leadCount, wonCount, revenue] = await Promise.all([
     codes.length ? prisma.lead.count({ where: { workspaceId: workspace.id, referralCode: { in: codes } } }) : 0,
     codes.length ? prisma.lead.count({ where: { workspaceId: workspace.id, referralCode: { in: codes }, status: "WON" } }) : 0,
-    codes.length ? prisma.lead.aggregate({ where: { workspaceId: access.workspace.id, referralCode: { in: codes }, status: "WON" }, _sum: { dealValue: true } }) : { _sum: { dealValue: null } },
+    codes.length ? prisma.lead.aggregate({ where: { workspaceId: workspace.id, referralCode: { in: codes }, status: "WON" }, _sum: { dealValue: true } }) : { _sum: { dealValue: null } },
   ]);
 
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
@@ -50,7 +50,7 @@ export default async function PartnerPortalPage() {
         <div className="mt-5 space-y-3">{partner.referralLinks.map((link) => <div key={link.id} className="rounded-2xl border border-slate-100 p-4"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-mono text-sm font-black text-[#0F3E8A]">{link.code}</div><div className="mt-1 break-all text-xs text-slate-400">{baseUrl}/go/{link.code}</div></div><div className="text-xs font-bold text-slate-500">{link._count.clicks} clicks</div></div></div>)}</div>
       </section>
       <PartnerOpportunityCenter />
-            <p className="mt-5 text-xs leading-5 text-slate-400">This portal exposes only partner-attributed performance. Confidential customer information is not shown here.</p>
+      <p className="mt-5 text-xs leading-5 text-slate-400">This portal exposes only partner-attributed performance. Confidential customer information is not shown here.</p>
     </div>
   </main>;
 }
