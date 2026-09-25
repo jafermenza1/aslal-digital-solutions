@@ -1,6 +1,20 @@
 import { prisma } from "@/lib/prisma";
 import { sendThroughAdapter } from "@/lib/messaging";
 import { randomUUID } from "node:crypto";
+import { db } from "@/lib/db";
+
+async function remindWorkspace(workspaceId:string,ownerEmail:string|null,body:string){
+  let chatId:string|null=null;
+  if(ownerEmail){
+    const [ownerRows]=await db.query<any[]>("SELECT u.telegram_chat_id FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE u.email=? AND u.active=1 AND wu.workspace_id=? LIMIT 1",[ownerEmail,workspaceId]);
+    chatId=ownerRows[0]?.telegram_chat_id||null;
+  }
+  if(!chatId){
+    const [rows]=await db.query<any[]>("SELECT u.telegram_chat_id FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_MANAGER','ADMIN','SUPER_ADMIN','BUSINESS_OWNER') AND u.telegram_chat_id IS NOT NULL ORDER BY FIELD(u.role,'SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1",[workspaceId]);
+    chatId=rows[0]?.telegram_chat_id||null;
+  }
+  if(chatId) await sendThroughAdapter({channel:"TELEGRAM",recipient:chatId,externalThreadId:chatId,body});
+}
 
 export async function runTelegramFollowUps(limit=100) {
   const now = new Date();
@@ -37,6 +51,10 @@ export async function runTelegramFollowUps(limit=100) {
         prisma.conversation.update({where:{id:conversation.id},data:{lastMessageAt:now}}),
         prisma.telegramDestination.update({where:{id:d.id},data:{followUpAttempts:attempts,followUpEnabled:!done,nextFollowUpAt:done?null:new Date(now.getTime()+d.followUpIntervalMinutes*60000)}}),
       ]);
+      if(done){
+        const lead=await prisma.lead.findUnique({where:{id:d.leadId!},select:{name:true,ownerEmail:true}});
+        await remindWorkspace(d.workspaceId,lead?.ownerEmail||conversation.assignedTo||null,["🚨 Telegram follow-up escalation","Lead: "+(lead?.name||d.leadId||"unknown"),"Automated follow-up reached the configured maximum without a reply.","Action: admin/manager review and manual follow-up required."].join("\\n")).catch(()=>undefined);
+      }
       sent++;
     } catch(error) {
       await prisma.message.update({where:{id:message.id},data:{status:"FAILED",metadata:{actor:"automation:telegram-follow-up",error:error instanceof Error?error.message:"Telegram provider failed"}}});
