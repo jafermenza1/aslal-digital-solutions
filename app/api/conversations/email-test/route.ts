@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const conversationId = randomUUID();
   const messageId = randomUUID();
 
-  await prisma.conversation.create({ data: { id: conversationId, channel: "EMAIL", status: "OPEN" } });
+  await prisma.conversation.create({ data: { id: conversationId, workspaceId: "00000000-0000-0000-0000-000000000001", channel: "EMAIL", status: "OPEN" } });
   await prisma.message.create({
     data: { id: messageId, conversationId, direction: "OUTBOUND", status: "QUEUED", recipientAddress: recipient, body: text, metadata: { actor: session.email, source: "conversation-email-test", subject: subject || null } },
   });
