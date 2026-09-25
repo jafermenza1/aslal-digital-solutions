@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { LeadStatus, prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { requirePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { verifySession } from "@/lib/security";
 import { handleLeadStatusChange } from "@/lib/automation";
 import { OfflineLeadForm } from "@/components/OfflineLeadForm";
@@ -40,8 +41,8 @@ async function changeStatus(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
-function buildQuery(search: string, status?: LeadStatus, source?: string, referral?: string, product?: string, minScore?: number): Prisma.LeadWhereInput {
-  const where: Prisma.LeadWhereInput = {};
+function buildQuery(search: string, status?: LeadStatus, source?: string, referral?: string, product?: string, minScore?: number, workspaceId?: string): Prisma.LeadWhereInput {
+  const where: Prisma.LeadWhereInput = workspaceId ? { workspaceId } : {};
   if (status) where.status = status;
   if (source) where.source = { equals: source };
   if (referral) where.referralCode = { contains: referral };
@@ -65,6 +66,9 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
   const params = await searchParams;
   const value = (key: string) => typeof params[key] === "string" ? params[key] as string : "";
   const requestedStatus = value("status");
+  const access = await authorizeWorkspacePermission("leads.view", value("workspaceId"));
+  if (!access) redirect("/dashboard");
+  const workspaceId = access.workspace.id;
   const requestedTab = value("tab");
   const tab = ["inbox","add","filters"].includes(requestedTab) ? requestedTab : "inbox";
   const status = requestedStatus && stages.includes(requestedStatus as LeadStatus) ? requestedStatus as LeadStatus : undefined;
@@ -77,18 +81,19 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
   const requestedSort = value("sort") as SortKey;
   const sort: SortKey = ["priority", "newest", "deal"].includes(requestedSort) ? requestedSort : "priority";
   const page = Math.max(1, Number(value("page")) || 1);
-  const where = buildQuery(search, status, source, referral, product, minScore);
+  const where = buildQuery(search, status, source, referral, product, minScore, workspaceId);
   const orderBy = sort === "newest" ? [{ createdAt: "desc" as const }] : sort === "deal" ? [{ dealValue: "desc" as const }, { score: "desc" as const }] : [{ score: "desc" as const }, { updatedAt: "desc" as const }];
 
   const [leads, total, stageCounts, stageValues, sources, products, executionGaps, databaseClock] = await Promise.all([
     prisma.lead.findMany({ where, orderBy, skip: (page - 1) * pageSize, take: pageSize, include: { productInterests: { include: { product: true }, orderBy: { interestScore: "desc" }, take: 3 }, tasks: { where: { status: { in: ["OPEN", "IN_PROGRESS"] } }, orderBy: { dueAt: "asc" }, take: 1 } } }),
     prisma.lead.count({ where }),
-    prisma.lead.groupBy({ by: ["status"], _count: { _all: true } }),
-    prisma.lead.groupBy({ by: ["status"], _sum: { dealValue: true } }),
-    prisma.lead.findMany({ distinct: ["source"], where: { source: { not: null } }, select: { source: true }, orderBy: { source: "asc" } }),
+    prisma.lead.groupBy({ by: ["status"], where: { workspaceId }, _count: { _all: true } }),
+    prisma.lead.groupBy({ by: ["status"], where: { workspaceId }, _sum: { dealValue: true } }),
+    prisma.lead.findMany({ distinct: ["source"], where: { workspaceId, source: { not: null } }, select: { source: true }, orderBy: { source: "asc" } }),
     prisma.product.findMany({ where: { active: true }, select: { id:true, slug: true, name: true }, orderBy: { name: "asc" } }),
     prisma.lead.count({
       where: {
+        workspaceId,
         status: { notIn: [LeadStatus.WON, LeadStatus.LOST] },
         OR: [{ ownerEmail: null }, { nextAction: null }, { nextActionDueAt: null }],
       },
@@ -105,6 +110,7 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
   if (referral) query.set("referral", referral);
   if (product) query.set("product", product);
   if (minScore) query.set("minScore", String(minScore));
+  query.set("workspaceId", workspaceId);
   if (sort !== "priority") query.set("sort", sort);
   const pageHref = (nextPage: number) => { const next = new URLSearchParams(query); if (status) next.set("status", status); if (nextPage > 1) next.set("page", String(nextPage)); return `/dashboard/leads?${next.toString()}`; };
 
