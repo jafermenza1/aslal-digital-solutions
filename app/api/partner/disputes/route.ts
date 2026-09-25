@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authorizePermission } from "@/lib/authorization";
-import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import type { RowDataPacket } from "mysql2/promise";
 
 export async function GET(){
   const user=await authorizePermission("partner.portal.view"); if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
