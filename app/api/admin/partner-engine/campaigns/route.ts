@@ -43,7 +43,7 @@ export async function POST(request:Request) {
     if(rewardRate!==null && (!Number.isFinite(rewardRate)||rewardRate<0||rewardRate>100)) return NextResponse.json({error:"Reward rate must be between 0 and 100."},{status:400});
     if(!/^[A-Z]{3}$/.test(currency)) return NextResponse.json({error:"Currency must be a 3-letter code."},{status:400});
     const id=crypto.randomUUID();
-    if(!actor)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
+    
     const starts=b.startsAt?new Date(String(b.startsAt)):null;
     const ends=b.endsAt?new Date(String(b.endsAt)):null;
     if(starts && Number.isNaN(starts.getTime()) || ends && Number.isNaN(ends.getTime())) return NextResponse.json({error:"Invalid campaign dates."},{status:400});
@@ -53,7 +53,7 @@ export async function POST(request:Request) {
     await db.query(`INSERT INTO partner_campaigns
       (id,workspace_id,name,description,status,target_description,location,budget,partner_budget,currency,reward_type,reward_amount,reward_rate,required_partner_types,product_id,starts_at,ends_at,created_by)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [id,actor.workspace.id,name,String(b.description??"").trim()||null,status,String(b.targetDescription??"").trim()||null,String(b.location??"").trim()||null,budget.toFixed(2),partnerBudget.toFixed(2),currency,rewardType,rewardAmount===null?null:rewardAmount.toFixed(2),rewardRate===null?null:rewardRate.toFixed(4),types.join(","),productId,starts,ends,actor.email]);
+      [id,actor.workspace.id,name,String(b.description??"").trim()||null,status,String(b.targetDescription??"").trim()||null,String(b.location??"").trim()||null,budget.toFixed(2),partnerBudget.toFixed(2),currency,rewardType,rewardAmount===null?null:rewardAmount.toFixed(2),rewardRate===null?null:rewardRate.toFixed(4),types.join(","),productId,starts,ends,actor.user.email]);
     return NextResponse.json({ok:true,id},{status:201});
   } catch(error){console.error("PARTNER_CAMPAIGN_CREATE_ERROR",error);return NextResponse.json({error:"Could not create partner campaign."},{status:500});}
 }
