@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/security";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export async function GET(request: Request) {
-  const session = verifySession((await cookies()).get("aslal_session")?.value);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const customerId = new URL(request.url).searchParams.get("customerId");
+  const params = new URL(request.url).searchParams;
+  const access = await authorizeWorkspacePermission("customers.view", params.get("workspaceId"));
+  if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
+  const session = access.user;
+  const customerId = params.get("customerId");
   if (!customerId) return NextResponse.json({ error: "customerId is required" }, { status: 400 });
 
   const customer = await prisma.customer.findUnique({
