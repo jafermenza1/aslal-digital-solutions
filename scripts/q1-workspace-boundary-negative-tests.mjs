@@ -41,7 +41,7 @@ for (const key of required) {
 if (env.Q1_WORKSPACE_A === env.Q1_WORKSPACE_B) throw new Error("Workspace A and B must differ.");
 
 const cookie = (value) => ({ Cookie: value, "Content-Type": "application/json" });
-const get = async (path, session, workspace) => fetch(`${base}${path}`, { headers: { Cookie: session }, redirect: "manual" });
+const get = async (path, session) => fetch(`${base}${path}`, { headers: { Cookie: session }, redirect: "manual" });
 const json = async (response) => {
   const text = await response.text();
   try { return JSON.parse(text); } catch { return { raw: text }; }
