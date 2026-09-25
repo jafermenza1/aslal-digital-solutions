@@ -13,6 +13,7 @@ export async function GET(){
 export async function POST(request:Request){
  const actor=await authorizePermission("partners.manage");if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
  try{
+  const fail=(message:string,status:number)=>{const error=new Error(message) as Error & {status?:number};error.status=status;throw error;};
   const b=await request.json(),partnerId=String(b.partnerId??"").trim(),status=String(b.status??"PENDING").toUpperCase(),amount=Number(b.amount??0),currency=String(b.currency??"ETB").toUpperCase(),reference=String(b.reference??"").trim()||null,notes=String(b.notes??"").trim()||null;
   const commissionIds=Array.isArray(b.commissionIds)?[...new Set(b.commissionIds.map((x:unknown)=>String(x).trim()).filter(Boolean))]:[];
   if(!partnerId||!STATUS.has(status)||!Number.isFinite(amount)||amount<=0||amount>999999999999.99)return NextResponse.json({error:"Partner, valid status and positive amount are required."},{status:400});
@@ -26,13 +27,13 @@ export async function POST(request:Request){
    if(commissionIds.length){
     const placeholders=commissionIds.map(()=>"?").join(",");
     const [rows]=await conn.query<RowDataPacket[]>(`SELECT c.id,c.amount,c.partner_id,c.currency,c.status,pi.id payout_item_id FROM commissions c LEFT JOIN partner_payout_items pi ON pi.commission_id=c.id WHERE c.id IN (${placeholders}) FOR UPDATE`,commissionIds);
-    if(rows.length!==commissionIds.length)return NextResponse.json({error:"One or more commission records were not found."},{status:404});
-    if(rows.some(x=>String(x.partner_id)!==partnerId))return NextResponse.json({error:"All selected commissions must belong to the selected partner."},{status:409});
-    if(rows.some(x=>x.status!=="PAYABLE"))return NextResponse.json({error:"Only PAYABLE commissions can be included in a payout."},{status:409});
-    if(rows.some(x=>x.payout_item_id))return NextResponse.json({error:"One or more selected commissions are already attached to a payout."},{status:409});
+    if(rows.length!==commissionIds.length)fail("One or more commission records were not found.",404);
+    if(rows.some(x=>String(x.partner_id)!==partnerId))fail("All selected commissions must belong to the selected partner.",409);
+    if(rows.some(x=>x.status!=="PAYABLE"))fail("Only PAYABLE commissions can be included in a payout.",409);
+    if(rows.some(x=>x.payout_item_id))fail("One or more selected commissions are already attached to a payout.",409);
     payoutAmount=rows.reduce((sum,x)=>sum+Number(x.amount),0);
    }
-   if(!Number.isFinite(payoutAmount)||payoutAmount<=0)return NextResponse.json({error:"Payout amount must be positive."},{status:400});
+   if(!Number.isFinite(payoutAmount)||payoutAmount<=0)fail("Payout amount must be positive.",400);
    const id=crypto.randomUUID();
    await conn.query(`INSERT INTO partner_payouts (id,partner_id,amount,currency,status,reference,notes,paid_at) VALUES (?,?,?,?,?,?,?,?)`,[id,partnerId,payoutAmount.toFixed(2),currency,status,reference,notes,status==="PAID"?new Date():null]);
    for(const commissionId of commissionIds){
@@ -43,5 +44,5 @@ export async function POST(request:Request){
    await conn.commit();
    return NextResponse.json({ok:true,id,amount:payoutAmount,commissionCount:commissionIds.length,createdBy:actor.email},{status:201});
   }catch(error){await conn.rollback();throw error;}finally{conn.release();}
- }catch(error){console.error("PARTNER_PAYOUT_CREATE_ERROR",error);return NextResponse.json({error:"Could not create payout record."},{status:500});}
+ }catch(error){console.error("PARTNER_PAYOUT_CREATE_ERROR",error);const status=error instanceof Error && "status" in error ? Number((error as Error & {status?:number}).status)||500 : 500;const message=error instanceof Error?error.message:"Could not create payout record.";return NextResponse.json({error:message},{status});}
 }
