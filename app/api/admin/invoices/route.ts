@@ -13,16 +13,14 @@ export async function GET(request:Request){
           i.issued_at,i.due_at,i.paid_at,i.created_at
      FROM invoices i
      LEFT JOIN customers c ON c.id=i.customer_id
-    WHERE i.workspace_id=?
      LEFT JOIN orders o ON o.id=i.order_id
+    WHERE i.workspace_id=?
     ORDER BY i.created_at DESC LIMIT 250`,[access.workspace.id]
  );
  return NextResponse.json({invoices:rows});
 }
 
 export async function POST(request:Request){
- const access=await authorizeWorkspacePermission("commerce.manage", typeof b.workspaceId==="string" ? b.workspaceId : undefined);
- if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
  try{
   const b=await request.json();
   const access=await authorizeWorkspacePermission("commerce.manage", typeof b.workspaceId==="string" ? b.workspaceId : undefined);
