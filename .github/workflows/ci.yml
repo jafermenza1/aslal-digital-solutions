@@ -40,6 +40,23 @@ jobs:
           rm -rf emerald-deploy
           mkdir -p emerald-deploy
           cp -R .next/standalone/. emerald-deploy/
+          # CloudLinux Passenger may inject its virtualenv into Node's global
+          # module lookup. Keep the generated Next server inside the release so
+          # its local node_modules resolve first; server.js becomes a tiny
+          # launcher that can be copied to the application root safely.
+          mv emerald-deploy/server.js emerald-deploy/next-server.js
+          cat > emerald-deploy/server.js <<'EOF'
+          const path = require("node:path");
+          const Module = require("node:module");
+
+          const runtimeNodeModules = path.join(__dirname, "node_modules");
+          process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]
+            .filter(Boolean)
+            .join(path.delimiter);
+          Module._initPaths();
+
+          require(path.join(__dirname, "next-server.js"));
+          EOF
 
           # Ship migrations and a complete, isolated Prisma CLI installation.
           # The standalone dependency tracer is for the web runtime and can
@@ -58,7 +75,6 @@ jobs:
           tar -czf aslal-emerald-${GITHUB_SHA}.tar.gz -C emerald-deploy .
 
       - name: Upload Emerald deployment artifact
-        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: aslal-emerald-${{ github.sha }}
