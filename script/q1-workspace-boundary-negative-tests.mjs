@@ -13,7 +13,7 @@ if(!/^https?:\/\/localhost(?::\d+)?$/i.test(process.env.Q1_BASE_URL) && process.
   console.error("Refusing non-local target. Set Q1_ALLOW_NONLOCAL=true only for an isolated staging/test environment.");process.exit(2);
 }
 const base=process.env.Q1_BASE_URL.replace(/\/$/,""),A=process.env.Q1_WORKSPACE_A;
-const sessionA=process.env.Q1_SESSION_A, ids=Object.fromEntries(Object.entries(process.env).filter(([k,v])=>k.startsWith("Q1_B_")&&k.endsWith("_ID")&&v));
+const sessionA=process.env.Q1_SESSION_A, sessionB=process.env.Q1_SESSION_B, ids=Object.fromEntries(Object.entries(process.env).filter(([k,v])=>k.startsWith("Q1_B_")&&k.endsWith("_ID")&&v));
 const results=[];
 async function req(label,method,path,expected,body){
   const response=await fetch(base+path,{method,headers:{cookie:"aslal_session="+sessionA,"content-type":"application/json","x-q1-negative-test":"true"},body:body===undefined?undefined:JSON.stringify(body),redirect:"manual"});
@@ -22,30 +22,35 @@ async function req(label,method,path,expected,body){
   if(!ok)throw new Error(label+": expected "+expected.join("/")+" got "+response.status);
   return json;
 }
-async function snapshot(label,path){return JSON.stringify(await req(label,"GET",path,[200]));}
+async function snapshotWithOwnerSession(label,path){
+  const response=await fetch(base+path,{headers:{cookie:"aslal_session="+sessionB},redirect:"manual"});
+  const raw=await response.text();
+  if(response.status!==200)throw new Error(label+": owner-session baseline read returned HTTP "+response.status);
+  return raw;
+}
 async function rejectedUnchanged(label,path,method,body){
-  const before=await snapshot(label+" baseline",path);
+  const before=await snapshotWithOwnerSession(label+" baseline",path);
   await req(label+" rejected",method,path,[403,404],body);
-  const after=await snapshot(label+" after",path);
+  const after=await snapshotWithOwnerSession(label+" after",path);
   if(before!==after)throw new Error(label+": target changed after rejected request");
 }
 const leadPath="/api/admin/leads/"+ids.Q1_B_LEAD_ID+"?workspaceId="+encodeURIComponent(A);
 await req("A reads B lead","GET",leadPath,[403,404]);
 /* The read above must not leak B. A direct baseline is intentionally unavailable on A scope. */
-await req("A updates B lead","PATCH",leadPath,[403,404],{workspaceId:A,name:"Q1 NEGATIVE TEST",reason:"Q1 cross-workspace rejection test"});
+await rejectedUnchanged("A updates B lead",leadPath,"PATCH",{workspaceId:A,name:"Q1 NEGATIVE TEST",reason:"Q1 cross-workspace rejection test"});
 if(ids.Q1_B_CUSTOMER_ID){
  await req("A creates quote referencing B customer","POST","/api/quotes",[400,403,404],{workspaceId:A,customerId:ids.Q1_B_CUSTOMER_ID,currency:"ETB",items:[{description:"Q1 negative test",quantity:1,unitPrice:1}]});
 }
 if(ids.Q1_B_QUOTE_ID){
  const p="/api/quotes/"+ids.Q1_B_QUOTE_ID+"?workspaceId="+encodeURIComponent(A);
  await req("A reads B quote","GET",p,[403,404]);
- await req("A updates B quote","PATCH",p,[403,404],{workspaceId:A,action:"VIEWED"});
+ await rejectedUnchanged("A updates B quote",p,"PATCH",{workspaceId:A,action:"VIEWED"});
 }
 if(ids.Q1_B_QUOTE_ID)await req("A creates order from B quote","POST","/api/orders/from-quote",[400,403,404],{workspaceId:A,quoteId:ids.Q1_B_QUOTE_ID});
 if(ids.Q1_B_ORDER_ID)await req("A creates payment against B order","POST","/api/orders/"+ids.Q1_B_ORDER_ID+"/payments",[403,404],{workspaceId:A,idempotencyKey:"q1-negative-"+Date.now(),provider:"NEGATIVE_TEST",amount:1,currency:"ETB",status:"INITIATED"});
-if(ids.Q1_B_PAYMENT_ID)await req("A updates B payment","PATCH","/api/payments/"+ids.Q1_B_PAYMENT_ID,[401,403,404],{status:"FAILED",failureReason:"Q1 negative test"});
+if(ids.Q1_B_PAYMENT_ID)await rejectedUnchanged("A updates B payment","/api/payments/"+ids.Q1_B_PAYMENT_ID,"PATCH",{status:"FAILED",failureReason:"Q1 negative test"});
 if(ids.Q1_B_COMMISSION_ID&&ids.Q1_B_PARTNER_ID){
- await req("A updates B commission","PATCH","/api/admin/commissions/"+ids.Q1_B_COMMISSION_ID,[401,403,404],{status:"VOID"});
+ await rejectedUnchanged("A updates B commission","/api/admin/commissions/"+ids.Q1_B_COMMISSION_ID,"PATCH",{status:"VOID"});
  await req("A attaches B commission to payout","POST","/api/admin/partner-engine/payouts",[400,401,403,404],{workspaceId:A,partnerId:ids.Q1_B_PARTNER_ID,amount:1,currency:"ETB",commissionIds:[ids.Q1_B_COMMISSION_ID]});
 }
 if(ids.Q1_B_INVOICE_ID&&ids.Q1_B_PAYMENT_ID)await req("A allocates B payment to B invoice","POST","/api/admin/invoices/"+ids.Q1_B_INVOICE_ID+"/payments",[401,403,404],{workspaceId:A,paymentId:ids.Q1_B_PAYMENT_ID,amount:1});
