@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export async function GET(request: Request) {
-  const user = await authorizePermission("leads.view");
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { searchParams } = new URL(request.url);
+  const access = await authorizeWorkspacePermission("leads.view", searchParams.get("workspaceId"));
+  if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
   const status = searchParams.get("status") || undefined;
   const orders = await prisma.order.findMany({
-    where: status ? { status: status as never } : undefined,
+    where: { workspaceId: access.workspace.id, ...(status ? { status: status as never } : {}) },
     include: {
       customer: { select: { id: true, name: true, email: true, phone: true } },
       opportunity: { select: { id: true, name: true, ownerEmail: true, referralCode: true } },
