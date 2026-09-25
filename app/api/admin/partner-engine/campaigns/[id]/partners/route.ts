@@ -37,6 +37,6 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
     await db.query(`INSERT INTO referral_links (id,workspace_id,partner_id,code,campaign,product_slug,destination_path,campaign_id) VALUES (?,?,?,?,?,?,?,?)`,[crypto.randomUUID(),actor.workspace.id,partnerId,code,campaignRows[0].name,null,destination,id]);
    }
   }
-  return NextResponse.json({ok:true,status,actor:actor.email});
+  return NextResponse.json({ok:true,status,actor:actor.user.email});
  }catch(error){console.error("CAMPAIGN_PARTNER_UPDATE_ERROR",error);return NextResponse.json({error:"Could not update campaign partner."},{status:500});}
 }
