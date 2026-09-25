@@ -4,10 +4,6 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-async function admin() {
-  const session = verifySession((await cookies()).get("aslal_session")?.value);
-  return session && isAdminEmail(session.email) ? session : null;
-}
 function reasonOf(value: unknown) { return String(value || "").trim().slice(0, 2000); }
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const access = await authorizeWorkspacePermission("leads.edit",new URL(request.url).searchParams.get("workspaceId")); if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied" }, { status: 403 });
