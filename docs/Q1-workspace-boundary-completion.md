@@ -103,3 +103,41 @@ Added `scripts/q1-workspace-boundary-negative-tests.mjs`, an authenticated two-w
 ### Step 6 verification status
 
 The negative-test harness is committed, but execution requires an authenticated two-workspace test environment. CI remains typecheck/lint only and does not receive production build/deployment work.
+
+
+## Increment 5 — cross-record reference acceptance and commission fraud boundary
+
+Step 5 now explicitly enforces the cross-record ownership matrix at the commercial boundaries rather than relying only on root-record filtering.
+
+### Cross-record rules implemented
+
+- **Lead → Opportunity → Customer:** conversion is restricted to the active workspace. A linked Person is treated as a shared identity record, but the conversion refuses to mutate a Person already linked to a Lead or Customer owned by another workspace.
+- **Quote → Customer/Opportunity:** quote creation only accepts workspace-owned customer/opportunity references.
+- **Order → Quote/Customer/Opportunity/Partner/ReferralLink:** accepted quotes and their customer/opportunity/lead chain are checked against the active workspace. Referral links and their partner are required to share that workspace before order attribution is created.
+- **Payment → Order/Customer:** payment creation derives the customer from the workspace-owned order; payment transitions require the payment and order to share the active workspace.
+- **InvoicePayment → Invoice/Payment:** invoice allocation now requires invoice, invoice order/customer and payment to be in the same workspace, and rejects customer mismatches. Only CONFIRMED + RECONCILED payments may be allocated.
+- **Revenue → Order/Payment/Customer/Partner/ReferralLink:** revenue recognition is created/updated only from the workspace-scoped payment/order chain. Referral and campaign attribution is revalidated in the same workspace before commission creation.
+- **Commission → Revenue/Order/Payment/Partner/ReferralLink:** commission reads and mutations are workspace-scoped; related revenue/payment joins are workspace-scoped.
+- **Payout → Commission/Partner:** selected commissions must belong to the active workspace and selected partner, must be PAYABLE, must not already be attached to a payout, and must have recognized revenue plus CONFIRMED/RECONCILED payment.
+- **Dispute → Partner/Lead/Campaign/Commission:** every referenced record is checked against the active workspace; dispute reads also constrain joined partner/campaign records to that workspace.
+- **CampaignAsset → Campaign:** asset creation and reads require the campaign and asset to share the active workspace.
+
+### Agent-fraud / fake-lead financial control
+
+The commercial state machine is now explicit:
+
+**Payment CONFIRMED → Reconciliation RECONCILED → Revenue RECOGNIZED → Commission QUALIFIED → APPROVED → PAYABLE → Payout → PAID**
+
+Additional controls:
+- Manually created commissions always begin PENDING; they cannot be created directly as QUALIFIED/APPROVED/PAYABLE/PAID.
+- A commission cannot advance to QUALIFIED, APPROVED, or PAYABLE unless its linked payment is CONFIRMED, its reconciliation is RECONCILED, and its revenue is RECOGNIZED.
+- Direct commission mutation to PAID is rejected; settlement is performed by the workspace-scoped payout path.
+- A PAID payout must identify the PAYABLE commission records it settles.
+- Payout creation locks and rechecks selected commissions, partner ownership, currency, revenue status, payment status/reconciliation, and existing payout attachment.
+- Reversal/refund continues to reverse recognized revenue and VOID the linked commission.
+
+This means a captured lead or claimed attribution does not create a payable financial entitlement by itself. IP/phone deduplication and dispute alerts remain a separate acquisition-quality control layer and should be extended to lead capture/dispute workflows; they are not treated as proof of payment.
+
+### Step 5 verification status
+
+The cross-record implementation is committed on q1-workspace-boundary-completion. Typecheck/lint still require the latest CI run to complete. Production build/deployment remains intentionally deferred until the quota/billing adjustment requested for this phase.
