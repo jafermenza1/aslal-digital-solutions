@@ -7,9 +7,10 @@ const TYPES=new Set(["CREATIVE","COPY","PRICE_SHEET","QR","POSTER","LINK"]);
 const STATUSES=new Set(["DRAFT","PUBLISHED","ARCHIVED"]);
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
- const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId")); const actor=access?.user;
+ const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId"));
  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
  const {id}=await params;
+ const actor=access.user;
  try{
   const b=await request.json();
   const fields:{key:string;value:unknown}[]=[
