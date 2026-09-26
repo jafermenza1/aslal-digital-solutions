@@ -1,7 +1,7 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd`
+**Current mainline:** `main` @ `e61c145d76e903731815ab1784dd74a4c00f8030`
 **Latest verified CI:** workflow run `36011102581` for `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd` — SUCCESS (typecheck, lint, production build, Emerald packaging)
 **Latest verified deployment:** Emerald workflow run `36011395603` for `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd` — SUCCESS
 
@@ -124,7 +124,7 @@ Immediate sequence:
 
 ## Gate 1 continuation — workspace administration and access contract
 
-**Branch:** gate-1-workspace-admin-contract  
+**Mainline:** `main`  
 **Status:** IMPLEMENTED — VERIFICATION PENDING
 
 Gate 1 was resumed from the Q1 API-gap audit without resetting or replacing the existing workspace/commercial implementation.
@@ -150,7 +150,7 @@ Remaining evidence:
 ## Workflow suspension — cost-control state
 
 **Date:** 2026-09-26  
-**Branch:** `gate-1-workspace-admin-contract`
+**Branch:** `main`
 
 All GitHub Actions workflows have been intentionally removed for the current development/gate cycle:
 
