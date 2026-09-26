@@ -38,7 +38,16 @@ export async function POST(request: Request) {
 
   const existingPerson = await prisma.person.findFirst({ where: email ? { email } : { phone }, select:{id:true} });
   const personId = existingPerson?.id || randomUUID();
-  const ownerEmail = siteConfig.defaultLeadOwnerEmail;
+  const salesOwner = await prisma.user.findFirst({
+    where:{
+      active:true,
+      role:{in:["SALES_MANAGER","SALES_OPERATOR","BUSINESS_OWNER","ADMIN","SUPER_ADMIN"]},
+      workspaceUsers:{some:{workspaceId:workspace.workspace.id}},
+    },
+    orderBy:[{lastLoginAt:"desc"},{createdAt:"asc"}],
+    select:{email:true},
+  });
+  const ownerEmail = salesOwner?.email || null;
   const due = new Date(Date.now() + 30*60*1000);
   const enriched = [message, location ? "Offline location: " + location : "", reference ? "Offline reference: " + reference : ""].filter(Boolean).join("\n\n");
 
