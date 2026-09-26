@@ -598,6 +598,7 @@ model ResourceRequest {
 
 model Product {
   id               String              @id @db.Char(36)
+  workspaceId      String?             @map("workspace_id") @db.Char(36)
   slug             String              @unique @db.VarChar(160)
   name             String              @db.VarChar(190)
   kind             ProductKind         @default(PRODUCT)
@@ -623,10 +624,12 @@ model Product {
   interests        LeadProductInterest[]
   campaigns        PartnerCampaign[]
   attributions     LeadAttribution[]
+  workspace        Workspace? @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
 
   @@index([kind, active, sortOrder], map: "idx_products_kind_active_sort")
   @@index([featured], map: "idx_products_featured")
   @@index([active], map: "idx_products_active")
+  @@index([workspaceId], map: "idx_products_workspace")
   @@map("products")
 }
 
