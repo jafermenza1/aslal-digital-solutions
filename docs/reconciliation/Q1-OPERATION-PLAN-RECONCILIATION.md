@@ -307,3 +307,23 @@ The operation runs in one database transaction. Existing matching fixture record
 This is a provisioning mechanism, not proof that 100 real vetted agents have been recruited. Real-agent onboarding, verification and acceptance evidence remain operational tasks.
 
 **Acceptance evidence still required:** execute the fixture in the intended anchor workspace(s), verify counts/uniqueness/workspace ownership, repeat for idempotency, test unauthorized workspace rejection, and retain database/request-response evidence.
+
+
+## Step 5 implementation progress — 2026-09-26
+
+**Attribution policy and retention — IMPLEMENTED FOUNDATION / ACCEPTANCE PENDING**
+
+The attribution policy is now explicit in mainline:
+
+- visitor first-touch source/medium/campaign/referral values are immutable first-touch context;
+- the latest valid referral click for the active workspace is the last-touch partner candidate at lead capture;
+- referral attribution is accepted only when the referral click and lead capture resolve to the same workspace;
+- the referral cookie lifetime is 30 days;
+- the lead stores the qualifying referral expiry timestamp;
+- expired referral clicks are not selected for new lead attribution;
+- captured partner attribution remains locked under the existing audited override controls;
+- competing-agent disputes remain the authorized mechanism for contested attribution and commercial reassignment.
+
+**Acceptance remains pending:** execute first-touch/last-touch, 30-day expiry, workspace mismatch, lock/override, competing-agent dispute and transaction-failure atomicity tests with retained evidence.
+
+Q1 remains **NOT ACCEPTED**.
