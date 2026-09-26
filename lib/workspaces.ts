@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { cookies } from "next/headers";
 import { authorizePermission, type CurrentUser } from "@/lib/authorization";
 
 export const INTERNAL_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
@@ -11,7 +12,8 @@ export type WorkspaceContext = {
 };
 
 export async function getWorkspaceForUser(user: CurrentUser, workspaceId?: string | null): Promise<WorkspaceContext | null> {
-  const requested = String(workspaceId || "").trim() || INTERNAL_WORKSPACE_ID;
+  const stored = workspaceId ? "" : (await cookies()).get("aslal_workspace_id")?.value || "";
+  const requested = String(workspaceId || stored).trim() || INTERNAL_WORKSPACE_ID;
   const [rows] = await db.query<any[]>(
     `SELECT w.id,w.name,w.slug,w.client_type
        FROM workspaces w
