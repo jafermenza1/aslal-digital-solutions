@@ -348,6 +348,7 @@ model Lead {
   createdAt         DateTime           @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt         DateTime           @updatedAt @map("updated_at") @db.DateTime(0)
   visitor           Visitor?           @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+  telegramPublicSessions TelegramPublicSession[]
   notes             LeadNote[]
   tasks             LeadTask[]
   stageHistory      LeadStageHistory[]
@@ -854,6 +855,7 @@ model Person {
   activities  Activity[]
   communicationPreference CommunicationPreference?
   conversations Conversation[]
+  telegramPublicSessions TelegramPublicSession[]
 
   @@index([email], map: "idx_person_email")
   @@index([phone], map: "idx_person_phone")
