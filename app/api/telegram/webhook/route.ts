@@ -16,6 +16,9 @@ type TelegramMessage = {
 type TelegramCallbackQuery = { id:string; data?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string}; message?:TelegramMessage };
 type TelegramInlineQuery = { id:string; query?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string} };
 type TelegramUpdate = { message?:TelegramMessage; callback_query?:TelegramCallbackQuery; inline_query?:TelegramInlineQuery };
+type QualificationOption = { label:string; value:string; next?:string };
+type QualificationStep = { id:string; question?:string; inputType?:string; next?:string; options?:QualificationOption[] };
+type KeywordRule = { pattern?:string; mode?:string; response?:string; priority?:number };
 
 type Partner = RowDataPacket & { id:string; name:string; partner_number:string; workspace_id:string; status:string; verification_status:string; type:string };
 type Campaign = RowDataPacket & { id:string; name:string; description:string|null; status:string; target_description:string|null; location:string|null; product_name:string|null; partner_budget:number|string; currency:string; reward_type:string; reward_amount:number|string|null; reward_rate:number|string|null; application_status:string|null; referral_code:string|null; required_partner_types:string|null };
@@ -50,11 +53,10 @@ async function savePublicState(workspaceId:string,userId:string,state:string,sta
   await db.query("UPDATE telegram_public_sessions SET state=?,state_data=?,last_inbound_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[state,JSON.stringify(stateData||{}),workspaceId,userId]);
 }
 async function qualification(chatId:string,workspaceId:string,user:any,stepId?:string){
-  const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow:[];
+  const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow as unknown as QualificationStep[]:[];
   if(!cfg?.qualificationEnabled||!flow.length)return reply(chatId,"Qualification is not configured yet. Use Catalog or Talk to Agent.");
   const session=await publicSession(workspaceId,user,chatId); const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{}); const current=stepId||String(stateData.currentStep||flow[0]?.id||"");
-  const step=flow.find((x:any)=>x?.id===current); if(!step)return reply(chatId,"Qualification is complete. A sales agent can continue with you.");
-  const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+  const step=flow.find((x)=>x?.id===current); if(!step)return reply(chatId,"Qualification is complete. A sales agent can continue with you.");
   await savePublicState(workspaceId,String(user?.id||chatId),"QUALIFYING",{...stateData,currentStep:step.id});
   if(step.inputType==="PHONE"||step.inputType==="TEXT") return reply(chatId,String(step.question||"Please enter your answer:"));
   return tg("sendMessage",{chat_id:chatId,text:String(step.question||"Please choose:"),reply_markup:{inline_keyboard:(Array.isArray(step.options)?step.options:[]).map((o:any)=>[{text:String(o.label),callback_data:"public:answer:"+workspaceId+":"+step.id+":"+String(o.value)}])}});
@@ -106,7 +108,7 @@ async function pricingResponse(chatId:string,workspaceId:string){
 
 async function keywordResponse(chatId:string,workspaceId:string,textValue:string){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.knowledgeBaseEnabled||!Array.isArray(cfg.keywordRules))return false;
-  for(const rule of cfg.keywordRules){try{const matched=String(rule.mode||"EXACT").toUpperCase()==="REGEX"?new RegExp(String(rule.pattern||""),"i").test(textValue):textValue.toLowerCase()===String(rule.pattern||"").toLowerCase();if(matched){await reply(chatId,String(rule.response||""));return true;}}catch{}}
+  for(const rule of cfg.keywordRules as unknown as KeywordRule[]){try{const matched=String(rule.mode||"EXACT").toUpperCase()==="REGEX"?new RegExp(String(rule.pattern||""),"i").test(textValue):textValue.toLowerCase()===String(rule.pattern||"").toLowerCase();if(matched){await reply(chatId,String(rule.response||""));return true;}}catch{}}
   return false;
 }
 async function inlineCatalog(update:TelegramInlineQuery){
@@ -235,7 +237,7 @@ async function handle(update:TelegramUpdate){
     if(parts[0]==="public"&&parts[1]==="qualify")return qualification(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="answer"){
       const stepId=parts[3],value=parts.slice(4).join(":"); const session=await publicSession(workspaceId,user,chatId); const prior=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{}); const stateData={...prior,[stepId]:value};
-      const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow:[]; const step=flow.find((x:any)=>x?.id===stepId); const option=step?.options?.find((x:any)=>String(x.value)===value); const next=option?.next;
+      const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow as unknown as QualificationStep[]:[]; const step=flow.find((x)=>x?.id===stepId); const option=step?.options?.find((x:any)=>String(x.value)===value); const next=option?.next;
       await savePublicState(workspaceId,String(user?.id||chatId),next?"QUALIFYING":"QUALIFIED",{...stateData,currentStep:next||null});
       if(next)return qualification(chatId,workspaceId,user,String(next));
       await ensurePublicLead(workspaceId,user,chatId,stateData);
@@ -282,7 +284,7 @@ async function handle(update:TelegramUpdate){
       const session=await publicSession(publicWorkspaceId,m.from||{},chatId);
       const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
       if(session.state==="QUALIFYING" && input && !input.startsWith("/")){
-        const flow=Array.isArray(cfg.qualificationFlow)?cfg.qualificationFlow:[]; const step=flow.find((x:any)=>x?.id===stateData.currentStep);
+        const flow=Array.isArray(cfg.qualificationFlow)?cfg.qualificationFlow as unknown as QualificationStep[]:[]; const step=flow.find((x)=>x?.id===stateData.currentStep);
         if(step?.inputType==="PHONE" && !/^\\+?[0-9 ()-]{7,20}$/.test(input))return reply(chatId,"Please enter a valid phone number.");
         const nextData={...stateData,[String(step?.id||"answer")]:input};
         const next=step?.next;
