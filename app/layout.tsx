@@ -16,7 +16,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = normalizeLocale(cookieStore.get(localeCookie)?.value);
 
   return (
-    <html lang={locale} dir="ltr" suppressHydrationWarning>
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} suppressHydrationWarning>
       <body>
         <AppChrome>{children}</AppChrome>
         <AnalyticsTracker />
