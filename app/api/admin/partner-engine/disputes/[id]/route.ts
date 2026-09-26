@@ -47,6 +47,37 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
     ["RESOLVED","REJECTED"].includes(status)?new Date():null,id,access.workspace.id]
   );
   if(!r[0]?.affectedRows)return NextResponse.json({error:"Dispute was not updated."},{status:409});
+  let attributionChanged=false;
+  let previousPartnerId:string|null=null;
+  if(status==="RESOLVED" && awardedPartnerId && dispute.commission_id){
+   const [commissionRows]=await db.query<RowDataPacket[]>(
+    `SELECT id,partner_id,revenue_id FROM commissions WHERE id=? AND workspace_id=? LIMIT 1`,
+    [dispute.commission_id,access.workspace.id]
+   );
+   const commission=commissionRows[0] as {id:string;partner_id:string;revenue_id:string|null}|undefined;
+   if(commission && commission.partner_id!==awardedPartnerId){
+    previousPartnerId=commission.partner_id;
+    let awardedReferralLinkId:string|null=null;
+    if(dispute.campaign_id){
+     const [links]=await db.query<RowDataPacket[]>(
+      `SELECT id FROM referral_links WHERE partner_id=? AND campaign_id=? AND workspace_id=? ORDER BY created_at ASC LIMIT 1`,
+      [awardedPartnerId,dispute.campaign_id,access.workspace.id]
+     );
+     awardedReferralLinkId=(links[0] as {id:string}|undefined)?.id || null;
+    }
+    await db.query(
+     `UPDATE commissions SET partner_id=?, referral_link_id=? WHERE id=? AND workspace_id=?`,
+     [awardedPartnerId,awardedReferralLinkId,commission.id,access.workspace.id]
+    );
+    if(commission.revenue_id){
+     await db.query(
+      `UPDATE revenues SET partner_id=?, referral_link_id=? WHERE id=? AND workspace_id=?`,
+      [awardedPartnerId,awardedReferralLinkId,commission.revenue_id,access.workspace.id]
+     );
+    }
+    attributionChanged=true;
+   }
+  }
 
   if(["RESOLVED","REJECTED"].includes(status)){
    await db.query(
@@ -54,7 +85,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
      VALUES (UUID(),NULL,?,?,?,?,?,NOW())`,
     [actor.email,"PARTNER_ATTRIBUTION_DISPUTE_RESOLVED",
      resolution||"Partner attribution dispute resolved.",
-     JSON.stringify({disputeId:id,status,awardedPartnerId,evidenceRef,leadId:dispute.lead_id,previousStatus:dispute.status})]
+     JSON.stringify({disputeId:id,status,awardedPartnerId,evidenceRef,leadId:dispute.lead_id,previousStatus:dispute.status,attributionChanged,previousPartnerId})]
    );
   }
 
