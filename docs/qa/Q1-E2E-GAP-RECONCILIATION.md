@@ -133,3 +133,32 @@ The Q1 acceptance state remains **NOT ACCEPTED**. This correction changes implem
 Step 1 implementation closed the previously identified UI/API mismatch. The Orders UI no longer attempts direct payment confirmation. Finance now has a dedicated reconciliation workbench backed by a workspace-scoped queue. The remaining Step 1 work is validation: typecheck, lint, and controlled payment lifecycle evidence.
 
 Q1 remains NOT ACCEPTED.
+
+
+## Step 2 implementation progress — 2026-09-26
+
+**Step:** Sales SLA scheduler and notification safety.
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+Current mainline now has two distinct protected scheduler surfaces:
+
+- `/api/cron/sales-automation` — internal lead SLA/workflow execution only;
+- `/api/cron/telegram-followups` — customer-facing Telegram follow-up processing, separately authorized.
+
+This separation is required for the Q1 acceptance contract because the Gate 2 SLA scheduler must not unexpectedly send promotional/customer follow-up messages. The workflow engine now atomically claims PENDING executions and due PENDING actions, reducing duplicate work under concurrent scheduler calls. Existing unique idempotency keys, overdue-deadline keys, bounded retries, stale-running recovery and stop-condition hooks remain in place.
+
+### Remaining Step 2 evidence
+
+1. Invoke the protected SLA scheduler with valid authorization.
+2. Prove one high-intent execution and internal task/activity creation.
+3. Repeat the same trigger key and prove no second execution.
+4. Run the scheduler repeatedly against the same overdue deadline and prove one reminder execution/task.
+5. Prove bounded retry and stale-running recovery.
+6. Prove inbound reply cancellation.
+7. Prove WON and LOST cancellation.
+8. Prove Workspace A ownership never selects a Workspace B sales user.
+9. Verify the operator automation view exposes recent/pending/failed executions by workspace.
+10. Verify the SLA scheduler produces no customer promotional message; Telegram follow-up execution is tested separately under its own protected endpoint if the pilot requires it.
+11. Run `npm run typecheck` and `npm run lint` and retain the results.
+
+Q1 acceptance remains **NOT ACCEPTED** until these behavioral records are retained.
