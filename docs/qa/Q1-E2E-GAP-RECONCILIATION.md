@@ -211,3 +211,23 @@ The implementation is transactional, workspace-scoped and rerunnable. Matching f
 - Keep the distinction between a test/pilot fixture and actual recruitment/vetting.
 
 Q1 remains **NOT ACCEPTED**.
+
+
+## Step 5 — Attribution policy and retention
+
+**Status: IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING**
+
+The Q1 attribution gap is now narrowed from an undefined policy to an explicit controlled model:
+
+| Control | Mainline behavior |
+|---|---|
+| First touch | Visitor first source/medium/campaign/referral is retained with COALESCE semantics. |
+| Last touch | Latest valid referral click for the resolved workspace is selected at lead capture. |
+| Workspace boundary | Referral click must belong to the same workspace as the public lead capture. |
+| 30-day window | Referral cookie is 30 days; lead attribution expiry is derived from the qualifying click timestamp. |
+| Lock | Partner-attributed lead is locked at capture. |
+| Override | Locked attribution requires partner-management authorization and an explicit reason. |
+| Dispute | Competing attribution is resolved through the existing workspace-scoped dispute workflow. |
+| Financial reassignment | Resolved disputes update linked commission/revenue attribution through the controlled transaction path. |
+
+Remaining evidence gap: execute the controlled tests, including a forced transaction failure, and retain database/audit evidence. Code presence is not acceptance evidence.
