@@ -17,9 +17,10 @@ export default function WorkspaceManagement({initial,canManage}:{initial:Workspa
  const [notice,setNotice]=useState("");
  const [form,setForm]=useState({name:"",slug:"",clientType:""});
  const [member,setMember]=useState({userId:"",role:"MEMBER"});
- const [edit,setEdit]=useState({name:"",slug:"",clientType:"",active:true});
+ const initialSelected=initial[0]||null;
+ const [edit,setEdit]=useState({name:initialSelected?.name||"",slug:initialSelected?.slug||"",clientType:initialSelected?.client_type||"",active:initialSelected?.active??true});
 
- useEffect(()=>{if(!selected)return;setEdit({name:selected.name,slug:selected.slug,clientType:selected.client_type||"",active:selected.active});loadMembers(selected.id);},[selected?.id]);
+ useEffect(()=>{if(selected)void loadMembers(selected.id);},[selected?.id]);
  useEffect(()=>{fetch("/api/admin/users").then(r=>r.ok?r.json():null).then(d=>d?.users&&setUsers(d.users)).catch(()=>{});},[]);
 
  async function loadMembers(id:string){
@@ -48,7 +49,7 @@ export default function WorkspaceManagement({initial,canManage}:{initial:Workspa
   <section className="rounded-[2rem] border border-white/10 bg-white/[.04] p-5 sm:p-6">
    <div className="text-[10px] font-black uppercase tracking-[.18em] text-[#E2B02A]">Workspace registry</div>
    <h2 className="mt-2 text-xl font-black">Select the business context</h2>
-   <div className="mt-5 space-y-2">{workspaces.map(w=><button key={w.id} type="button" onClick={()=>setSelected(w)} className={"w-full rounded-2xl border p-4 text-left "+(selected?.id===w.id?"border-[#E2B02A]/60 bg-[#E2B02A]/10":"border-white/10 bg-white/[.02]")}><div className="flex items-center justify-between gap-3"><span className="font-black">{w.name}</span><span className={"rounded-full px-2 py-1 text-[10px] font-black "+(w.active?"bg-emerald-400/10 text-emerald-300":"bg-white/10 text-white/40")}>{w.active?"ACTIVE":"OFF"}</span></div><div className="mt-1 text-xs text-white/40">{w.slug} · {w.client_type||"Internal"}{w.member_count===undefined?"":" · "+w.member_count+" members"}</div></button>)}</div>
+   <div className="mt-5 space-y-2">{workspaces.map(w=><button key={w.id} type="button" onClick={()=>{setSelected(w);setEdit({name:w.name,slug:w.slug,clientType:w.client_type||"",active:w.active});}} className={"w-full rounded-2xl border p-4 text-left "+(selected?.id===w.id?"border-[#E2B02A]/60 bg-[#E2B02A]/10":"border-white/10 bg-white/[.02]")}><div className="flex items-center justify-between gap-3"><span className="font-black">{w.name}</span><span className={"rounded-full px-2 py-1 text-[10px] font-black "+(w.active?"bg-emerald-400/10 text-emerald-300":"bg-white/10 text-white/40")}>{w.active?"ACTIVE":"OFF"}</span></div><div className="mt-1 text-xs text-white/40">{w.slug} · {w.client_type||"Internal"}{w.member_count===undefined?"":" · "+w.member_count+" members"}</div></button>)}</div>
    {canManage&&<form onSubmit={createWorkspace} className="mt-6 border-t border-white/10 pt-6"><div className="text-sm font-black">Create workspace</div><div className="mt-3 grid gap-3"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Workspace name" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30"/><input required value={form.slug} onChange={e=>setForm({...form,slug:e.target.value})} placeholder="workspace-slug" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30"/><input value={form.clientType} onChange={e=>setForm({...form,clientType:e.target.value})} placeholder="Client type (optional)" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30"/><button disabled={busy==="create"} className="rounded-full bg-[#E2B02A] px-5 py-3 text-sm font-black text-[#1E293B]">{busy==="create"?"Creating…":"Create workspace"}</button></div></form>}
   </section>
   <section className="rounded-[2rem] border border-white/10 bg-white/[.04] p-5 sm:p-6">
