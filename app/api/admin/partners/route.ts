@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authorizePermission } from "@/lib/authorization";
+import { getWorkspaceForUser } from "@/lib/workspaces";
 
 const PARTNER_TYPES = new Set(["AGENT", "INFLUENCER", "AFFILIATE", "RESELLER"]);
 const PARTNER_STATUSES = new Set(["ACTIVE", "PAUSED", "PENDING"]);
@@ -14,7 +15,11 @@ export async function POST(request: Request) {
   if (!(await isAuthorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const actor = await authorizePermission("partners.manage");
+    if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const body = await request.json();
+    const workspace = await getWorkspaceForUser(actor, String(body.workspaceId || "").trim() || undefined);
+    if (!workspace) return NextResponse.json({ error: "Select a workspace you are authorized to manage." }, { status: 403 });
     const name = String(body.name ?? "").trim();
     const email = String(body.email ?? "").trim().toLowerCase() || null;
     const type = String(body.type ?? "AGENT").toUpperCase();
@@ -55,14 +60,14 @@ export async function POST(request: Request) {
     );
     const nextNumber = Number(seqRows[0]?.next || 101);
     const partnerNumber = `ASL-${nextNumber}-${year}`;
-    await db.query("INSERT INTO partners (id, partner_number, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-      partnerId, partnerNumber, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
+    await db.query("INSERT INTO partners (id, workspace_id, partner_number, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+      partnerId, workspace.id, partnerNumber, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
     ]);
 
     try {
       await db.query(
-        "INSERT INTO referral_links (id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?)",
-        [crypto.randomUUID(), partnerId, finalCode, campaign, productSlug, destinationPath],
+        "INSERT INTO referral_links (id, workspace_id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [crypto.randomUUID(), workspace.id, partnerId, finalCode, campaign, productSlug, destinationPath],
       );
     } catch (error) {
       await db.query("DELETE FROM partners WHERE id = ?", [partnerId]);
@@ -86,6 +91,7 @@ export async function POST(request: Request) {
       emailRecipient: email || null,
       emailFallbackUsed: false,
       emailError: null,
+      workspace: { id: workspace.id, name: workspace.name },
       nextActions: {
         credentials: `/api/admin/partners/${partnerId}/credentials`,
         card: `/api/admin/partners/${partnerId}/card`,
