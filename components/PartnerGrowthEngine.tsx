@@ -23,11 +23,11 @@ export default function PartnerGrowthEngine(){
    setPartners(a.partners||[]);setCampaigns(b.campaigns||[]);setProducts(b.products||[]);setResources(b.resources||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
   }catch(e){setMessage(e instanceof Error?e.message:"Could not load partner engine.");}
  }
- // The initial data load is intentionally performed from the async loader after mount; the loader updates state only after network completion.\n // eslint-disable-next-line react-hooks/set-state-in-effect\n useEffect(()=>{void load()},[]);
+ // Load partner-engine data after mount.\n useEffect(()=>{void load()},[]);
 
  async function createCampaign(e:React.FormEvent){
   e.preventDefault();setBusy("campaign");setMessage("");
-  try{const r=await fetch("/api/admin/partner-engine/campaigns",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...form,status:"DRAFT",currency:"ETB"})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign creation failed.");setMessage("Campaign draft created. Open it when ready for partner applications.");setForm({name:"",targetDescription:"",location:"",budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:"AGENT,INFLUENCER",productId:"",description:""});await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign creation failed.")}finally{setBusy("")}
+  try{const r=await fetch("/api/admin/partner-engine/campaigns",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...form,status:"DRAFT",currency:"ETB"})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign creation failed.");setMessage("Campaign draft created. Open it when ready for partner applications.");setForm({name:"",targetDescription:"",location:"",budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:"AGENT,INFLUENCER",productId:"",resourceId:"",description:""});await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign creation failed.")}finally{setBusy("")}
  }
  async function updateCampaign(id:string,value:string){setBusy("campaign:"+id);try{const r=await fetch("/api/admin/partner-engine/campaigns/"+encodeURIComponent(id),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:value})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign update failed.");await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign update failed.")}finally{setBusy("")}}
  async function updatePartner(id:string,field:string,value:string){
