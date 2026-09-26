@@ -31,7 +31,8 @@ function BottleneckAssessor() {
   return <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-lg"><div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Question {step+1} of {questions.length}</div><h3 className="mt-3 text-2xl font-black">{current.q}</h3><div className="mt-6 grid gap-3">{current.a.map(([answer,category])=><button key={answer} onClick={()=>{setAnswers([...answers,category]);setStep(step+1)}} className="rounded-2xl border border-slate-200 p-4 text-left font-bold transition hover:border-[#0F3E8A] hover:bg-slate-50">{answer}</button>)}</div></div>;
 }
 
-function RoiCalculator() {\n  useEffect(()=>{fetch("/api/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({eventName:"RESOURCE_TOOL_USE",pagePath:window.location.pathname,productSlug:"ecommerce-conversion-payment-roi-calculator"})}).catch(()=>undefined)},[]);
+function RoiCalculator() {
+  useEffect(()=>{fetch("/api/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({eventName:"RESOURCE_TOOL_USE",pagePath:window.location.pathname,productSlug:"ecommerce-conversion-payment-roi-calculator"})}).catch(()=>undefined)},[]);
   const [traffic,setTraffic]=useState(10000);
   const [conversion,setConversion]=useState(1.5);
   const [value,setValue]=useState(5000);
