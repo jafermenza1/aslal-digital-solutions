@@ -181,3 +181,47 @@ The dedicated partner workbench now has a Telegram webhook and secure partner-ac
 - Referral links, commissions and payouts are read using the partner's workspace boundary.
 - Webhook requests require TELEGRAM_WEBHOOK_SECRET and TELEGRAM_BOT_TOKEN.
 - Live Telegram delivery, webhook registration and pilot acceptance remain IMPLEMENTED / UNVERIFIED until credentials are configured and a controlled partner test is completed.
+
+
+## Current verification against the operational plan — 2026-09-26
+
+**Result: Q1 operational plan is NOT YET FULLY SYSTEM-SUPPORTED.**
+
+The commercial core is substantially connected, but the Month 1–3 pilot cannot yet be treated as a fully executable controlled operating model.
+
+| Plan item | Current status | Verification |
+|---|---|---|
+| Strict lead → sale → payment state machine | PARTIAL / UNVERIFIED | Lead, quote, order, payment, reconciliation, revenue and commission states exist; controlled transition tests remain required. |
+| Manual payment reconciliation portal | BLOCKED / MISSING UI | Payment stores provider, transaction reference, evidence reference, notes, verifier and timestamps, but the Finance page does not currently provide the required receipt-verification/reconciliation workbench. |
+| Telebirr/CBE/M-Pesa receipt handling | PARTIAL | Provider-neutral manual fields exist. No provider-specific verification integration is claimed. |
+| Lead SLA timers | PARTIAL / BLOCKED | 15-minute high-intent and overdue workflow definitions exist, but no scheduler invocation of processWorkflowExecution was found; automation creates tasks/activities rather than SMS/Telegram SLA alerts. |
+| 3 anchor client onboarding | FOUNDATION ONLY | Workspace isolation and trusted host mapping exist, but three configured anchor workspaces plus client-access evidence are not established. |
+| 100 agent onboarding | PARTIAL | Partner creation, verification, referral links and ID cards exist. No bulk 100-agent provisioning workflow was found. |
+| Partner ID ASL-P-0001…0100 | GAP | Current generator uses ASL-<sequence>-<year>, not the specified Q1 display format. |
+| QR identity badges | IMPLEMENTED / UNVERIFIED | Partner card/QR generation exists; 100-agent issuance has not been proven. |
+| Partner Workbench V1 | PARTIAL / UNVERIFIED | Partner portal and Telegram partner workbench exist; live Telegram delivery and controlled asset publishing remain unverified. |
+| Campaign materials | IMPLEMENTED / UNVERIFIED | Campaign assets support CREATIVE, COPY, PRICE_SHEET, QR, POSTER and LINK with lifecycle states. |
+| Client CRM dashboard | BLOCKED | No dedicated client-facing CRM dashboard was found exposing only that client's pipeline, assigned leads and rep task list. |
+| Facebook/TikTok/direct agent campaign execution | EXTERNAL | The system carries campaign/referral attribution; external ad-account execution is not an in-product capability. |
+| Weekly client pipeline audit | PARTIAL | Lead/stage/task dashboards exist, but no dedicated repeatable client audit pack was found. |
+| Manual bulk mobile-money payouts | PARTIAL / UNVERIFIED | Payout batches select reconciled PAYABLE commissions and prevent duplicate settlement. Actual Telebirr/CBE money movement remains external. |
+| Attribution dispute SOP | PARTIAL | Dispute workflow and reassignment logic exist; formal operator SOP/evidence run remains required. |
+| Cancelled/refunded order handling | IMPLEMENTED / UNVERIFIED | Payment reversal/refund propagates to revenue and commission; controlled evidence remains required. |
+| Merchant invoice billing/payment collection | IMPLEMENTED / UNVERIFIED | Invoice and payment-allocation domains exist; operational billing SOP and acceptance evidence remain. |
+| Attribution lock | IMPLEMENTED / UNVERIFIED | Lock metadata and audited override controls exist. First-touch/last-touch policy and 30-day retention are not explicit. |
+| 30-day cookie/link retention | GAP | Referral click/visitor records exist, but no explicit 30-day attribution retention/expiry policy was found. |
+| Commission from collected payment | IMPLEMENTED / UNVERIFIED | Reconciled confirmed payment → recognized revenue → commission/payout controls exist; behavioral proof remains. |
+
+### Required remaining work
+
+1. Finance manual reconciliation workbench with receipt/evidence capture, provider, transaction reference, decision, verifier and exception reason.
+2. Protected scheduler/worker that invokes overdue/high-intent execution; add idempotent SMS/Telegram notification action where required.
+3. Complete three-anchor isolation: A/B/C workspaces, client role access and client-scoped CRM/report surfaces.
+4. Bulk 100-agent provisioning and reconciliation of the requested ASL-P-0001…ASL-P-0100 display convention.
+5. Campaign asset publishing/distribution acceptance.
+6. Repeatable weekly client pipeline audit view/report.
+7. Formal dispute/refund/invoice/payout SOPs and retained evidence.
+8. Explicit first-touch/last-touch policy plus 30-day retention/override rules.
+9. Run typecheck/lint, then controlled Month 1–3 acceptance.
+
+This verification preserves the existing Order → Payment → Reconciliation → Revenue → Commission → Payout chain and identifies the operational controls still required for the stated pilot.
