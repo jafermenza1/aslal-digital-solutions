@@ -1,26 +1,22 @@
-name: CI
+name: Build and Push to Deploy Branch
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
-  contents: read
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  contents: write
 
 jobs:
-  verify:
-    name: Build and package
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,7 +24,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install
 
       - name: Generate Prisma client
         run: npx prisma generate
@@ -39,90 +35,26 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Production build
+      - name: Build Next.js application
         run: npm run build
-
-      - name: Package Emerald standalone bundle
         env:
-          RELEASE_SHA: ${{ github.sha }}
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Publish production build to deploy branch
         run: |
           set -euo pipefail
 
-          rm -rf emerald-deploy
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Fail here if Next did not produce the standalone runtime.
-          test -d .next/standalone
-          test -f .next/standalone/server.js
-          test -d .next/standalone/.next
-          test -d .next/standalone/.next/static
+          # Keep source files on main untouched; only the generated .next output
+          # is force-added to the deployment branch.
+          git add -f .next
 
-          mkdir -p emerald-deploy
-          cp -R .next/standalone/. emerald-deploy/
+          if git diff --cached --quiet; then
+            echo "No .next changes to publish."
+            exit 0
+          fi
 
-          # Passenger starts server.js; keep Next's generated server separately.
-          mv emerald-deploy/server.js emerald-deploy/next-server.js
-          cat > emerald-deploy/server.js <<'NODE'
-          const path = require("node:path");
-          const Module = require("node:module");
-
-          const runtimeNodeModules = path.join(__dirname, "node_modules");
-          process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]
-            .filter(Boolean)
-            .join(path.delimiter);
-          Module._initPaths();
-
-          require(path.join(__dirname, "next-server.js"));
-          NODE
-
-          mkdir -p emerald-deploy/prisma emerald-deploy/.prisma-cli
-          cp -R prisma/. emerald-deploy/prisma/
-          printf '%s\n' '{"name":"aslal-prisma-migration-runtime","private":true}' > emerald-deploy/.prisma-cli/package.json
-          npm install --prefix emerald-deploy/.prisma-cli --no-audit --no-fund --no-package-lock prisma@6.19.0
-
-          test -f emerald-deploy/server.js
-          test -f emerald-deploy/next-server.js
-          test -d emerald-deploy/.next
-          test -d emerald-deploy/.next/static
-          test -d emerald-deploy/public
-          test -x emerald-deploy/.prisma-cli/node_modules/.bin/prisma
-          test -d emerald-deploy/prisma/migrations
-          node --check emerald-deploy/server.js
-          node --check emerald-deploy/next-server.js
-
-          tar -czf aslal-emerald-${RELEASE_SHA}.tar.gz -C emerald-deploy .
-
-          echo "=== Emerald artifact manifest ==="
-          # Write the complete manifest first. Do not pipe tar directly into grep:
-          # a downstream process can close stdout early and make tar exit with EPIPE
-          # (exit 2), falsely failing an otherwise valid deployment artifact.
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz > emerald-artifact-manifest.txt
-          grep -E '(^|/)(server\.js|next-server\.js|\.next/|public/)' emerald-artifact-manifest.txt
-          grep -Eq '(^|/)server\.js
-
-      - name: Upload Emerald deployment artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aslal-emerald-${{ github.sha }}
-          path: aslal-emerald-${{ github.sha }}.tar.gz
-          if-no-files-found: error
-          retention-days: 3
- emerald-artifact-manifest.txt
-          grep -Eq '(^|/)next-server\.js
-
-      - name: Upload Emerald deployment artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aslal-emerald-${{ github.sha }}
-          path: aslal-emerald-${{ github.sha }}.tar.gz
-          if-no-files-found: error
-          retention-days: 3
- emerald-artifact-manifest.txt
-          grep -Eq '(^|/)\.next/static/' emerald-artifact-manifest.txt
-
-      - name: Upload Emerald deployment artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aslal-emerald-${{ github.sha }}
-          path: aslal-emerald-${{ github.sha }}.tar.gz
-          if-no-files-found: error
-          retention-days: 3
+          git commit -m "build: attach production build output"
+          git push origin HEAD:deploy --force
