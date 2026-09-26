@@ -76,6 +76,13 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
   if(cfg.handoffChatId)await reply(String(cfg.handoffChatId),"🔔 New public Telegram support request\nLead: "+leadId+"\nUser: "+([user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user")+"\nPhone: "+(data.phone||"not provided")+"\nAnswers: "+JSON.stringify(data));
   return reply(chatId,"A support request has been created. A member of our team will continue with you here.");
 }
+async function pricingResponse(chatId:string,workspaceId:string){
+  if(await keywordResponse(chatId,workspaceId,"price"))return;
+  const [rows]=await db.query<(RowDataPacket&{name:string;starting_price:string|null;cta_label:string|null})[]>(`SELECT name,starting_price,cta_label FROM products WHERE workspace_id=? AND active=1 ORDER BY featured DESC,sort_order ASC,name ASC LIMIT 12`,[workspaceId]);
+  if(!rows.length)return reply(chatId,"Pricing is available through our catalog. Choose Catalog to see current offers.");
+  return reply(chatId,rows.map(r=>r.name+" — "+(r.starting_price?money(r.starting_price)+" ETB":"Request pricing")).join("\n")+"\n\nUse Catalog for full specifications and ordering.");
+}
+
 async function keywordResponse(chatId:string,workspaceId:string,textValue:string){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.knowledgeBaseEnabled||!Array.isArray(cfg.keywordRules))return false;
   for(const rule of cfg.keywordRules){try{const matched=String(rule.mode||"EXACT").toUpperCase()==="REGEX"?new RegExp(String(rule.pattern||""),"i").test(textValue):textValue.toLowerCase()===String(rule.pattern||"").toLowerCase();if(matched){await reply(chatId,String(rule.response||""));return true;}}catch{}}
@@ -203,7 +210,7 @@ async function handle(update:TelegramUpdate){
     await tg("answerCallbackQuery",{callback_query_id:q.id});
     const parts=data.split(":"); const workspaceId=parts[2]||String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||""); const user=q.from||{};
     if(parts[0]==="public"&&parts[1]==="catalog")return catalog(chatId,workspaceId);
-    if(parts[0]==="public"&&parts[1]==="pricing")return keywordResponse(chatId,workspaceId,"price");
+    if(parts[0]==="public"&&parts[1]==="pricing")return pricingResponse(chatId,workspaceId);
     if(parts[0]==="public"&&parts[1]==="agent")return handoffPublic(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="qualify")return qualification(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="answer"){
@@ -279,7 +286,7 @@ async function handle(update:TelegramUpdate){
         return tg("sendMessage",{chat_id:chatId,text:"Thanks. Your answers have been saved.",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+publicWorkspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+publicWorkspaceId}]]}});
       }
       if(input==="/help")return publicMenu(chatId,publicWorkspaceId);
-      if(input==="/pricing")return keywordResponse(chatId,publicWorkspaceId,"price");
+      if(input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
       if(input==="/catalog")return catalog(chatId,publicWorkspaceId);
     }
   }
