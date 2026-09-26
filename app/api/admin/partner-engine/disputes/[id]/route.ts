@@ -26,7 +26,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const [existing]=await db.query<RowDataPacket[]>(
    `SELECT id,partner_id,competing_partner_id,lead_id,status,commission_id,campaign_id FROM partner_disputes WHERE id=? AND workspace_id=? LIMIT 1`,[id,access.workspace.id]
   );
-  const dispute=existing[0] as {id:string;partner_id:string;competing_partner_id:string|null;lead_id:string|null;status:string}|undefined;
+  const dispute=existing[0] as {id:string;partner_id:string;competing_partner_id:string|null;lead_id:string|null;status:string;commission_id:string|null;campaign_id:string|null}|undefined;
   if(!dispute)return NextResponse.json({error:"Dispute not found."},{status:404});
 
   if(awardedPartnerId){
