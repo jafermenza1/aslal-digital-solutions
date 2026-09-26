@@ -225,3 +225,39 @@ The commercial core is substantially connected, but the Month 1–3 pilot cannot
 9. Run typecheck/lint, then controlled Month 1–3 acceptance.
 
 This verification preserves the existing Order → Payment → Reconciliation → Revenue → Commission → Payout chain and identifies the operational controls still required for the stated pilot.
+
+
+---
+
+## Operational blocker closure progress — 2026-09-26
+
+The closure program is now controlled by the canonical NEXT-DEVELOPMENT-PLAN.md. The current evidence was rechecked before planning the implementation sequence.
+
+### Step 1 correction to prior reconciliation
+
+The earlier statement that manual reconciliation UI was completely missing is too broad for the current mainline. app/dashboard/orders/OrdersWorkspace.tsx already contains payment recording and reconciliation controls, and app/api/payments/[id]/route.ts enforces evidence for RECONCILED and records the verifier/activity.
+
+The actual Step 1 blocker is **UI/API workflow mismatch and Finance-surface placement**:
+- the Orders UI currently submits status: "CONFIRMED" when recording a manual payment;
+- the payment API correctly rejects direct CONFIRMED creation and requires PENDING first;
+- the Finance page currently exposes commission/payout operations but not a dedicated payment review queue;
+- therefore the intended Month 1 operator workflow is not yet executable end-to-end through the Finance role.
+
+### Updated closure status
+
+| Blocker | Current truth | Next action |
+|---|---|---|
+| Manual payment reconciliation | **PARTIAL — UI/API mismatch** | Close Step 1 by making capture PENDING-only and adding Finance review/reconciliation surface. |
+| SLA scheduler | **FOUNDATION PRESENT — ACCEPTANCE PENDING** | Execute protected scheduler/idempotency/stop-condition proof; no GitHub Actions restoration. |
+| Three-anchor isolation | **FOUNDATION — ACCEPTANCE BLOCKED** | Build client-scoped CRM/report surfaces and prove A/B/C isolation. |
+| 100-agent onboarding | **PARTIAL** | Add deterministic bulk fixture/provisioning and ID display convention. |
+| Attribution retention | **PARTIAL** | Define first/last-touch and 30-day retention/expiry semantics and implement missing controls. |
+| Weekly audit/distribution | **PARTIAL** | Add repeatable audit pack and finish campaign-asset publishing evidence. |
+| SOP/evidence pack | **OPEN** | Document dispute/refund/invoice/receipt/payout procedures and evidence requirements. |
+| Q1 acceptance | **NOT ACCEPTED** | Execute only after blocker steps exit. |
+
+### Current Step
+
+**STEP 1 — Manual payment reconciliation workbench**
+
+No Q1 acceptance claim is changed by this documentation update. The next code change should address only Step 1 and preserve the existing Order → Payment → Reconciliation → Revenue → Commission → Payout chain.
