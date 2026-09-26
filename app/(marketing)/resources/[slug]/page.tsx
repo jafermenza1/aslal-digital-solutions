@@ -60,7 +60,7 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
           <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Next action</div>
           <h2 className="mt-3 text-2xl font-black">{resource.cta}</h2>
           <p className="mt-4 leading-7 text-slate-600">Keep the resource useful without forcing a long form. If you already know the problem, send the topic directly to Aslal and the request can enter the existing lead workflow.</p>
-          {isTemplate && resource.download_url && <a href={resource.download_url} download className="mt-6 block rounded-2xl border border-[#0F3E8A]/20 bg-white px-5 py-4 text-center font-black text-[#0F3E8A]">Direct download</a>}
+          
           <Link href={`/contact?goal=${encodeURIComponent(resource.intent)}`} className="mt-3 block rounded-2xl bg-[#0F3E8A] px-5 py-4 text-center font-black text-white">Request implementation help</Link>
           <p className="mt-5 text-xs leading-5 text-slate-500">No purchase is implied by using a resource or calculator. Estimates are illustrative.</p>
         </aside>
