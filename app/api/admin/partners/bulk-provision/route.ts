@@ -5,7 +5,20 @@ import { db } from "@/lib/db";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 
-type PartnerProvisionRow = RowDataPacket & {\n  id: string;\n  partner_number: string;\n  workspace_id: string;\n  name: string;\n};\n\ntype ReferralProvisionRow = RowDataPacket & {\n  code: string;\n  partner_id: string;\n  workspace_id: string;\n};\n\nconst TOTAL = 100;
+type PartnerProvisionRow = RowDataPacket & {
+  id: string;
+  partner_number: string;
+  workspace_id: string;
+  name: string;
+};
+
+type ReferralProvisionRow = RowDataPacket & {
+  code: string;
+  partner_id: string;
+  workspace_id: string;
+};
+
+const TOTAL = 100;
 const PREFIX = "ASL-P-";
 
 function partnerNumber(index: number) {
