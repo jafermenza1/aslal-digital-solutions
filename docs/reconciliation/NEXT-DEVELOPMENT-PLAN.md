@@ -1532,3 +1532,24 @@ Step 2 hardening is now on `main` without restoring GitHub Actions:
 **Required exit evidence:** protected scheduler invocation, high-intent execution, repeated-trigger idempotency, overdue deduplication, retry/stale recovery, reply cancellation, WON/LOST cancellation, workspace-scoped ownership, operator visibility, no customer promotional message, and local typecheck/lint evidence.
 
 Q1 remains **NOT ACCEPTED** until this behavioral evidence is retained.
+
+
+## Step 3 implementation progress — 2026-09-26
+
+**Current step:** Step 3 — Three-anchor workspace/client boundary.
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+Implemented on `main`:
+
+- added a dedicated `/dashboard/client` CRM surface for the CLIENT role;
+- the client surface resolves the active workspace through `authorizeWorkspacePermission("dashboard.view", workspaceId)` before every client-visible query;
+- client-visible leads, customers, orders, sales tasks and commission totals are filtered by the authorized workspace ID;
+- the client surface exposes active pipeline, assigned lead owner/next action, rep task list, recent orders/payment state and workspace commission totals without requiring broad operational mutation permissions;
+- CLIENT no longer receives generic `commerce.view`, preventing the general Orders workspace from becoming an unintended client-facing surface;
+- the generic dashboard redirects CLIENT users to the dedicated client CRM surface;
+- existing workspace membership authorization remains the boundary for requested workspace IDs, including denial when the user is not a member;
+- existing negative workspace tests remain available for direct lead/order/payment/customer/revenue/commission/payout access.
+
+**Required exit evidence:** three isolated anchor workspaces, Finance/Sales/Auditor/Client users per intended workspace, client CRM queries confirmed workspace-scoped, direct cross-workspace route/API denial, and retained A/B/C behavioral evidence.
+
+Q1 remains **NOT ACCEPTED** until the three-anchor fixture and negative tests are executed and retained.
