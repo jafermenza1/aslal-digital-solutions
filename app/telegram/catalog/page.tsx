@@ -17,7 +17,7 @@ export default function TelegramCatalogPage(){
  useEffect(()=>{
    const w=workspaceId;
    const c=campaignId;
-   if(!w){setError("This catalog link is missing its workspace context.");setLoading(false);return;}
+   if(!w)return;
    fetch("/api/telegram/catalog?workspaceId="+encodeURIComponent(w)+(c?"&campaignId="+encodeURIComponent(c):""))
      .then(r=>r.ok?r.json():Promise.reject(new Error("Catalog unavailable")))
      .then(d=>setItems({products:d.products||[],resources:d.resources||[]}))
@@ -40,6 +40,7 @@ export default function TelegramCatalogPage(){
    router.push("/telegram/catalog/order?"+q.toString());
  };
 
+ if(!workspaceId)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">This catalog link is missing its workspace context.</main>;
  if(loading)return <main className="min-h-screen bg-[#f7faf8] p-5 text-slate-700">Loading Aslal catalog…</main>;
  if(error)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">{error}</main>;
 
