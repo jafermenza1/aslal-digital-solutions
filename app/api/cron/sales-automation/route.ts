@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { runScheduledAutomation } from "@/lib/automation";
-import { runTelegramFollowUps } from "@/lib/telegram-sales";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +11,7 @@ export async function GET(request: Request) {
   if (provided !== secret) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   try {
     return NextResponse.json(
-      { ok: true, ...(await runScheduledAutomation()), telegram: await runTelegramFollowUps() },
+      { ok: true, ...(await runScheduledAutomation()) },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
