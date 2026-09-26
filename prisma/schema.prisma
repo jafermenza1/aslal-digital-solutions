@@ -153,6 +153,9 @@ enum UserRole {
   MARKETING_OPERATOR
   PARTNER_MANAGER
   PARTNER
+  FINANCE
+  AUDITOR
+  CLIENT
 }
 
 enum WorkflowTriggerType {
