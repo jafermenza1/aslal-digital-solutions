@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const visitor = visitorRows[0];
     const [referralRows] = requestedReferralCode
       ? await db.execute<ReferralAttributionRow[]>(
-          "SELECT rl.code, rc.created_at FROM referral_clicks rc INNER JOIN referral_links rl ON rl.id = rc.referral_link_id WHERE rc.visitor_id = ? AND rl.code = ? AND rl.workspace_id = ? ORDER BY rc.created_at DESC LIMIT 1",
+          "SELECT rl.code, rl.campaign, rc.created_at FROM referral_clicks rc INNER JOIN referral_links rl ON rl.id = rc.referral_link_id WHERE rc.visitor_id = ? AND rl.code = ? AND rl.workspace_id = ? ORDER BY rc.created_at DESC LIMIT 1",
           [visitorId, requestedReferralCode, workspaceId]
         )
       : [[] as ReferralAttributionRow[]];
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     const referralCode = referralTouch && referralExpiry && referralExpiry > new Date() ? referralTouch.code : null;
     const source = referralCode ? "partner" : visitor?.first_source || requestedSource || "website";
     const medium = referralCode ? "referral" : visitor?.first_medium || requestedMedium || null;
-    const campaign = referralCode ? (visitor?.first_campaign || requestedCampaign || null) : visitor?.first_campaign || requestedCampaign || null;
+    const campaign = referralCode ? (referralTouch?.campaign || visitor?.first_campaign || requestedCampaign || null) : visitor?.first_campaign || requestedCampaign || null;
     const leadId = randomUUID();
     const nextActionDueAt = new Date(Date.now() + 30 * 60 * 1000);
     let personId = "";
