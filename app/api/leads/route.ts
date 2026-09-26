@@ -9,6 +9,7 @@ import { sendContactAutoReply } from "@/lib/contact-autoreply";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 import { resolvePublicWorkspaceId } from "@/lib/workspaces";
+import { recordLeadAttribution, type AttributionInput } from "@/lib/attribution";
 
 type VisitorRow = RowDataPacket & {
   first_source: string | null;
@@ -75,6 +76,11 @@ export async function POST(request: NextRequest) {
     const emailConsent = body.emailConsent === true || body.emailConsent === "true" || body.emailConsent === "on";
     const growthGoal = clean(body.growthGoal, 200);
     const growthChannels = clean(body.growthChannels, 500);
+    let attribution: AttributionInput = {};
+    if (typeof body.attribution === "string") { try { attribution = JSON.parse(body.attribution) as AttributionInput; } catch {} }
+    const requestedSource = clean(attribution.source, 100) || null;
+    const requestedMedium = clean(attribution.medium, 100) || null;
+    const requestedCampaign = clean(attribution.campaign, 150) || null;
     const enrichedMessage = [
       message,
       growthGoal ? `Growth Builder goal: ${growthGoal}` : "",
@@ -107,7 +113,9 @@ export async function POST(request: NextRequest) {
       ? new Date(referralTouch.created_at.getTime() + 30 * 24 * 60 * 60 * 1000)
       : null;
     const referralCode = referralTouch && referralExpiry && referralExpiry > new Date() ? referralTouch.code : null;
-    const source = referralCode ? "partner" : visitor?.first_source || "website";
+    const source = referralCode ? "partner" : requestedSource || visitor?.first_source || "website";
+    const medium = referralCode ? "referral" : requestedMedium || visitor?.first_medium || null;
+    const campaign = referralCode ? (visitor?.first_campaign || null) : requestedCampaign || visitor?.first_campaign || null;
     const leadId = randomUUID();
     const nextActionDueAt = new Date(Date.now() + 30 * 60 * 1000);
     let personId = "";
@@ -161,8 +169,8 @@ export async function POST(request: NextRequest) {
           businessType || null,
           enrichedMessage,
           source,
-          visitor?.first_medium || null,
-          visitor?.first_campaign || null,
+          medium,
+          campaign,
           siteConfig.defaultLeadOwnerEmail,
           DEFAULT_NEXT_ACTION,
           nextActionDueAt,
