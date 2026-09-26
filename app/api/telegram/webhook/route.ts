@@ -53,7 +53,9 @@ async function qualification(chatId:string,workspaceId:string,user:any,stepId?:s
   if(!cfg?.qualificationEnabled||!flow.length)return reply(chatId,"Qualification is not configured yet. Use Catalog or Talk to Agent.");
   const session=await publicSession(workspaceId,user,chatId); const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{}); const current=stepId||String(stateData.currentStep||flow[0]?.id||"");
   const step=flow.find((x:any)=>x?.id===current); if(!step)return reply(chatId,"Qualification is complete. A sales agent can continue with you.");
-  await savePublicState(workspaceId,String(user?.id||chatId),"QUALIFYING",{...(session.stateData||{}),currentStep:step.id});
+  const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+  await savePublicState(workspaceId,String(user?.id||chatId),"QUALIFYING",{...stateData,currentStep:step.id});
+  if(step.inputType==="PHONE"||step.inputType==="TEXT") return reply(chatId,String(step.question||"Please enter your answer:"));
   return tg("sendMessage",{chat_id:chatId,text:String(step.question||"Please choose:"),reply_markup:{inline_keyboard:(Array.isArray(step.options)?step.options:[]).map((o:any)=>[{text:String(o.label),callback_data:"public:answer:"+workspaceId+":"+step.id+":"+String(o.value)}])}});
 }
 async function ensurePublicLead(workspaceId:string,user:any,chatId:string,stateData:any){
@@ -257,6 +259,28 @@ async function handle(update:TelegramUpdate){
         if(session.state==="QUALIFYING")return qualification(chatId,workspaceId,m.from||{},String((typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):session.state_data||{}).currentStep||""));
         return publicMenu(chatId,workspaceId);
       }
+    }
+  }
+
+  const publicWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
+  if(chatType==="private" && publicWorkspaceId){
+    const cfg=await getTelegramChannelConfig(publicWorkspaceId);
+    if(cfg?.publicEnabled&&cfg.allowAnonymousUsers){
+      const session=await publicSession(publicWorkspaceId,m.from||{},chatId);
+      const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+      if(session.state==="QUALIFYING" && input && !input.startsWith("/")){
+        const flow=Array.isArray(cfg.qualificationFlow)?cfg.qualificationFlow:[]; const step=flow.find((x:any)=>x?.id===stateData.currentStep);
+        if(step?.inputType==="PHONE" && !/^\\+?[0-9 ()-]{7,20}$/.test(input))return reply(chatId,"Please enter a valid phone number.");
+        const nextData={...stateData,[String(step?.id||"answer")]:input};
+        const next=step?.next;
+        await savePublicState(publicWorkspaceId,String(m.from?.id||chatId),next?"QUALIFYING":"QUALIFIED",{...nextData,currentStep:next||null});
+        if(next)return qualification(chatId,publicWorkspaceId,m.from||{},String(next));
+        await ensurePublicLead(publicWorkspaceId,m.from||{},chatId,nextData);
+        return tg("sendMessage",{chat_id:chatId,text:"Thanks. Your answers have been saved.",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+publicWorkspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+publicWorkspaceId}]]}});
+      }
+      if(input==="/help")return publicMenu(chatId,publicWorkspaceId);
+      if(input==="/pricing")return keywordResponse(chatId,publicWorkspaceId,"price");
+      if(input==="/catalog")return catalog(chatId,publicWorkspaceId);
     }
   }
 
