@@ -5,6 +5,7 @@ import { allPermissions, type Permission, resolvePermissions } from "@/lib/permi
 import { hashPassword } from "@/lib/users";
 import { UserRole } from "@prisma/client";
 import { randomUUID } from "node:crypto";
+import { getWorkspaceForUser } from "@/lib/workspaces";
 
 function permissionOverrides(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return { grant: [], revoke: [] };
@@ -44,12 +45,18 @@ export async function POST(request: Request) {
   const role = String(body.role || "SALES_OPERATOR") as UserRole;
   const active = body.active !== false;
   const reason = String(body.reason || "").trim().slice(0, 2000);
+  const requestedWorkspaceId = String(body.workspaceId || "").trim() || undefined;
+  const workspaceRole = String(body.workspaceRole || role).trim().slice(0, 80) || role;
 
   if (!name || !email || !password || !reason) return NextResponse.json({ error: "Name, email, password and reason are required." }, { status: 400 });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
   if (!Object.values(UserRole).includes(role)) return NextResponse.json({ error: "Invalid role." }, { status: 400 });
   if (role === UserRole.SUPER_ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only a super administrator can create another super administrator." }, { status: 403 });
   if (password.length < 10) return NextResponse.json({ error: "Password must contain at least 10 characters." }, { status: 400 });
+  const workspace = await getWorkspaceForUser(actor, requestedWorkspaceId);
+  if (!workspace) return NextResponse.json({ error: "Select a workspace you are authorized to manage." }, { status: 403 });
+  const allowedWorkspaceRoles = new Set(["OWNER","ADMIN","MANAGER","SALES","FINANCE","AUDITOR","CLIENT","PARTNER","MEMBER"]);
+  if (!allowedWorkspaceRoles.has(workspaceRole)) return NextResponse.json({ error: "Invalid workspace role." }, { status: 400 });
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id:true } });
   if (existing) return NextResponse.json({ error: "A user with that email already exists." }, { status: 409 });
@@ -68,6 +75,9 @@ export async function POST(request: Request) {
           permissions,
         },
       });
+      await tx.workspaceUser.create({
+        data: { id: randomUUID(), workspaceId: workspace.id, userId: created.id, role: workspaceRole },
+      });
       await tx.userAudit.create({
         data: {
           id: randomUUID(),
@@ -75,12 +85,12 @@ export async function POST(request: Request) {
           actor: actor.email,
           action: "CREATE",
           reason,
-          details: { role, active },
+          details: { role, active, workspaceId: workspace.id, workspaceRole },
         },
       });
       return created;
     });
-    return NextResponse.json({ ok:true, user: present(user) });
+    return NextResponse.json({ ok:true, user: present(user), workspace: { id: workspace.id, name: workspace.name, role: workspaceRole } });
   } catch (error) {
     console.error("USER_CREATE_ERROR", error);
     const message = error instanceof Error && /unique|duplicate/i.test(error.message)
