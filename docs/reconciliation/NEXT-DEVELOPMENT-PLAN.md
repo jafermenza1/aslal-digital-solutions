@@ -1576,3 +1576,32 @@ Provisioning is transactional and workspace-bound. Re-running the same fixture i
 8. Retain request/response and database evidence.
 
 Q1 remains **NOT ACCEPTED**.
+
+
+## Step 5 implementation progress — 2026-09-26
+
+**Step:** Attribution policy and 30-day retention.  
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+Mainline now defines and enforces the Q1 attribution window:
+
+- **First touch:** the visitor's first recorded source/medium/campaign/referral is retained in the visitor record and is never replaced by later tracking events.
+- **Last touch:** the most recent valid partner referral click for the visitor in the active public workspace is the referral attribution considered at lead capture.
+- **Attribution selection:** a referral code is accepted only when the recorded referral click belongs to the same resolved workspace as the lead capture.
+- **Retention:** partner referral cookies now expire after 30 days. Lead attribution also records the expiry timestamp derived from the qualifying referral click.
+- **Expiry:** a referral attribution older than 30 days is not selected for a new lead, even if an obsolete cookie is still present.
+- **Lock:** once a partner attribution is captured on a lead, existing attribution-lock controls prevent ordinary edits. Authorized corrections require the existing partner-management permission and an explicit reason/audit path.
+- **Disputes:** the existing competing-partner dispute flow remains the controlled path for contested attribution and commercial reassignment.
+
+### Step 5 acceptance still required
+
+1. Capture a first-touch visitor and verify first source/medium/campaign/referral remain unchanged after later touches.
+2. Generate two partner referral clicks within 30 days and verify the latest valid click is the lead's last-touch attribution.
+3. Verify a referral from another workspace is rejected for attribution.
+4. Verify an attribution older than 30 days is not selected.
+5. Verify locked attribution rejects an ordinary edit and an authorized override requires a reason.
+6. Resolve a competing-agent dispute and retain before/after attribution plus commission/revenue evidence.
+7. Prove a failed dispute transaction leaves attribution, commission and revenue unchanged.
+8. Retain request, database and audit evidence for the controlled run.
+
+Q1 remains **NOT ACCEPTED** until these behavioral tests are executed and retained.
