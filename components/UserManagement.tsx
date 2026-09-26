@@ -168,6 +168,9 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
             <option value="MARKETING_OPERATOR">Marketing Operator</option>
             <option value="PARTNER_MANAGER">Partner Manager</option>
             <option value="PARTNER">Partner</option>
+            <option value="FINANCE">Finance</option>
+            <option value="AUDITOR">Auditor</option>
+            <option value="CLIENT">Client</option>
           </select>
           <label className="flex items-center gap-3 text-sm font-bold text-white/70">
             <input type="checkbox" checked={draft.active} onChange={event => setDraft({ ...draft, active: event.target.checked })} />
