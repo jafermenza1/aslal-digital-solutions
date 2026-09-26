@@ -470,6 +470,46 @@ model ReferralClick {
   @@map("referral_clicks")
 }
 
+model Resource {
+  id          String   @id @db.Char(36)
+  slug        String   @unique @db.VarChar(160)
+  category    String   @db.VarChar(80)
+  title       String   @db.VarChar(250)
+  description String   @db.Text
+  preview     String   @db.Text
+  cta         String   @db.VarChar(190)
+  intent      String   @db.VarChar(190)
+  downloadUrl String?  @map("download_url") @db.VarChar(500)
+  active      Boolean  @default(true)
+  publishedAt DateTime @default(now()) @map("published_at") @db.DateTime(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  requests    ResourceRequest[]
+
+  @@index([category, publishedAt], map: "idx_resources_category_published")
+  @@index([active, publishedAt], map: "idx_resources_active_published")
+  @@map("resources")
+}
+
+model ResourceRequest {
+  id             String   @id @db.Char(36)
+  resourceId     String   @map("resource_id") @db.Char(36)
+  leadId         String?  @map("lead_id") @db.Char(36)
+  visitorId      String?  @map("visitor_id") @db.Char(36)
+  channel        String   @default("WEB") @db.VarChar(30)
+  contactValue   String?  @map("contact_value") @db.VarChar(190)
+  status         String   @default("REQUESTED") @db.VarChar(30)
+  scorePoints    Int      @default(0) @map("score_points")
+  followUpDueAt  DateTime? @map("follow_up_due_at") @db.DateTime(0)
+  followUpSentAt DateTime? @map("follow_up_sent_at") @db.DateTime(0)
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  resource       Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([resourceId, createdAt], map: "idx_resource_requests_resource_created")
+  @@index([leadId, createdAt], map: "idx_resource_requests_lead_created")
+  @@index([followUpDueAt, followUpSentAt], map: "idx_resource_requests_followup")
+  @@map("resource_requests")
+}
+
 model Product {
   id               String              @id @db.Char(36)
   slug             String              @unique @db.VarChar(160)
