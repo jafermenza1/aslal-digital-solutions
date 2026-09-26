@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-type D={id:string;chat_id:string;type:string;label:string;active:number;opt_in:number;lead_id:string|null;follow_up_enabled:number;follow_up_attempts:number;follow_up_max_attempts:number;next_follow_up_at:string|null;handed_off_at:string|null};
+type D={id:string;chat_id:string;type:string;label:string;active:number;opt_in:number;lead_id:string|null;follow_up_enabled:number;follow_up_attempts:number;follow_up_max_attempts:number;next_follow_up_at:string|null;handed_off_at:string|null;sales_owner_email:string|null};
 type P={id:string;name:string};
 type C={id:string;name:string;status:string};
 type S={email:string;name:string;role:string};
