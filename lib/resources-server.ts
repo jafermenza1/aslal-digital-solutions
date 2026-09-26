@@ -13,7 +13,7 @@ export async function ensureResources() {
     await db.query(
       `INSERT INTO resources (id,slug,category,title,description,preview,cta,intent,download_url)
        VALUES (?,?,?,?,?,?,?,?,?)
-       ON DUPLICATE KEY UPDATE title=VALUES(title),description=VALUES(description),preview=VALUES(preview),cta=VALUES(cta),intent=VALUES(intent)`,
+       ON DUPLICATE KEY UPDATE title=VALUES(title),description=VALUES(description),preview=VALUES(preview),cta=VALUES(cta),intent=VALUES(intent),download_url=VALUES(download_url)`,
       [randomUUID(),resource.slug,resource.kind,resource.title,resource.description,resource.preview,resource.cta,resource.intent,resource.download||null]
     );
   }
