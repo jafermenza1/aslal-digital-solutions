@@ -1553,3 +1553,26 @@ Implemented on `main`:
 **Required exit evidence:** three isolated anchor workspaces, Finance/Sales/Auditor/Client users per intended workspace, client CRM queries confirmed workspace-scoped, direct cross-workspace route/API denial, and retained A/B/C behavioral evidence.
 
 Q1 remains **NOT ACCEPTED** until the three-anchor fixture and negative tests are executed and retained.
+
+
+## Step 4 implementation progress — 2026-09-26
+
+**Step:** 100-agent provisioning and identity.  
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+Mainline now provides a protected deterministic Q1 provisioning endpoint at `/api/admin/partners/bulk-provision` and an administrator-only provisioning control in the Partner workspace. The fixture creates up to 100 pending AGENT identities using the requested display convention `ASL-P-0001` through `ASL-P-0100`, with deterministic referral codes `q1-agent-001` through `q1-agent-100`.
+
+Provisioning is transactional and workspace-bound. Re-running the same fixture in the same workspace reuses matching fixture identities and referral links instead of creating duplicates. Existing identifiers belonging to another workspace or non-fixture records cause a conflict and are never reassigned or rewritten. No portal credentials, payment, commission or financial activity is created by the fixture.
+
+### Step 4 acceptance still required
+
+1. Select each intended anchor workspace and provision the 100-agent fixture only where the fixture is authorized.
+2. Verify exactly 100 unique partner identities and 100 unique referral links.
+3. Verify `Partner.workspace_id` and `ReferralLink.workspace_id` match the target workspace.
+4. Repeat the request and prove idempotent reuse with no duplicate partner/link rows.
+5. Attempt provisioning against an unauthorized workspace and prove rejection/no records.
+6. Verify ASL-P-0001…ASL-P-0100 are preserved as display identities and historical non-fixture partner numbers are not rewritten.
+7. Verify credentials remain unissued until the separate approval/credential workflow.
+8. Retain request/response and database evidence.
+
+Q1 remains **NOT ACCEPTED**.
