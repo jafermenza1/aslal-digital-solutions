@@ -16,6 +16,8 @@ type LeadSignalsRow = RowDataPacket & {
   referral_visits: number;
   event_count: number;
   high_value_interests: number;
+  resource_downloads: number;
+  resource_tool_uses: number;
 };
 
 function clampScore(value: number) {
@@ -37,6 +39,8 @@ export async function calculateLeadScore(leadId: string): Promise<LeadScoreBreak
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND LOWER(e.event_name) LIKE '%demo%') AS demo_interactions,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND (LOWER(e.event_name) LIKE '%referral%' OR LOWER(e.event_name) = 'referral_visit')) AS referral_visits,
        (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id) AS event_count,
+       (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND e.event_name = 'RESOURCE_DOWNLOAD') AS resource_downloads,
+       (SELECT COUNT(*) FROM events e WHERE e.visitor_id = l.visitor_id AND e.event_name = 'RESOURCE_TOOL_USE') AS resource_tool_uses,
        (SELECT COUNT(*) FROM lead_product_interest lpi
           INNER JOIN products p ON p.id = lpi.product_id
           WHERE lpi.lead_id = l.id
@@ -80,6 +84,17 @@ export async function calculateLeadScore(leadId: string): Promise<LeadScoreBreak
   if (signals.high_value_interests > 0) {
     score += 10;
     reasons.push("High-value product interest +10");
+  }
+  if (signals.resource_downloads > 0) {
+    score += 10;
+    reasons.push("Resource download +10");
+  }
+  if (signals.resource_tool_uses > 0 && signals.resource_downloads > 0) {
+    score += 30;
+    reasons.push("Interactive resource + download combination +30");
+  } else if (signals.resource_tool_uses > 0) {
+    score += 10;
+    reasons.push("Interactive resource use +10");
   }
 
   const finalScore = clampScore(score);
