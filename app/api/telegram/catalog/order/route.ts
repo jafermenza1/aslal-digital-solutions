@@ -10,6 +10,11 @@ export async function POST(request:Request){
  const body=await request.json().catch(()=>({}));
  const workspaceId=clean(body.workspaceId,36),slug=clean(body.slug,160),name=clean(body.name,160),phone=clean(body.phone,40),chatId=clean(body.chatId,80),campaignId=clean(body.campaignId,36);
  if(!workspaceId||!slug||!name||!phone)return NextResponse.json({error:"Workspace, item, name and phone are required."},{status:400});
+ const destination=chatId?await prisma.telegramDestination.findFirst({where:{workspaceId,chatId,active:true,optIn:true},select:{partnerId:true,referralCode:true,campaignId:true}}):null;
+ const requestedCampaign=campaignId||destination?.campaignId||null;
+ const campaign=requestedCampaign?await prisma.partnerCampaign.findFirst({where:{id:requestedCampaign,workspaceId,status:{in:["OPEN","ACTIVE"]}},select:{id:true}}):null;
+ const referral=destination?.referralCode?await prisma.referralLink.findFirst({where:{workspaceId,code:destination.referralCode},select:{id:true,partnerId:true,code:true,campaignId:true}}):null;
+ const effectiveCampaignId=campaign?.id||referral?.campaignId||null;
  const product=await prisma.product.findFirst({where:{workspaceId,slug,active:true}});
  const resource=product?null:await prisma.resource.findFirst({where:{workspaceId,slug,active:true}});
  if(!product&&!resource)return NextResponse.json({error:"Catalog item is unavailable."},{status:404});
@@ -20,8 +25,8 @@ export async function POST(request:Request){
  const orderId=randomUUID(),paymentId=randomUUID();
  const orderNumber="ASL-TG-"+Date.now().toString(36).toUpperCase();
  await prisma.$transaction(async tx=>{
-   await tx.order.create({data:{id:orderId,workspaceId,orderNumber,status:"DRAFT",currency:"ETB",subtotal:total,total,paymentState:"PENDING",source:"telegram",campaign:campaignId||null,items:{create:{id:randomUUID(),description:itemName,quantity:1,unitPrice:total,lineTotal:total}}}});
-   await tx.payment.create({data:{id:paymentId,workspaceId,orderId,provider:"TELEGRAM_PENDING",idempotencyKey:"telegram:"+chatId+":"+orderId,amount:total,currency:"ETB",method:"TELEGRAM",status:"PENDING",metadata:{telegramChatId:chatId,workspaceId,slug,campaignId:campaignId||null}}});
+   await tx.order.create({data:{id:orderId,workspaceId,orderNumber,status:"DRAFT",currency:"ETB",subtotal:total,total,paymentState:"PENDING",source:"telegram",campaign:effectiveCampaignId,referralCode:referral?.code||null,partnerId:referral?.partnerId||destination?.partnerId||null,referralLinkId:referral?.id||null,items:{create:{id:randomUUID(),description:itemName,quantity:1,unitPrice:total,lineTotal:total}}}});
+   await tx.payment.create({data:{id:paymentId,workspaceId,orderId,provider:"TELEGRAM_PENDING",idempotencyKey:"telegram:"+chatId+":"+orderId,amount:total,currency:"ETB",method:"TELEGRAM",status:"PENDING",metadata:{telegramChatId:chatId,workspaceId,slug,campaignId:effectiveCampaignId,partnerId:referral?.partnerId||destination?.partnerId||null,referralCode:referral?.code||null}}});
  });
  return NextResponse.json({ok:true,orderId,orderNumber,paymentId,paymentMessage:"Finance/payment verification remains the source of truth. No payment is marked confirmed by this Telegram flow."});
 }
