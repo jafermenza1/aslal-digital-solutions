@@ -264,3 +264,41 @@ Current main has completed the remaining schema/UI alignment work identified bef
 Current main: 6c56e52e22018f15506e75e5e21f7b7c524344ac
 
 These changes remove implementation/schema mismatches; they do not mark Gate 1 or the Q1 E2E plan accepted. Local npm run typecheck and npm run lint, followed by the isolated two-workspace behavioral acceptance matrix, remain required.
+
+
+## Q1 E2E gap reconciliation pass — 2026-09-26
+
+**Branch:** `main`  
+**Status:** **IMPLEMENTED — BEHAVIORAL ACCEPTANCE PENDING**  
+**Control record:** `docs/qa/Q1-E2E-GAP-RECONCILIATION.md`
+
+This pass reconciles the current mainline against the Q1 commercial journey before executing the acceptance fixture.
+
+### Completed in this pass
+
+- Added dedicated `commissions.manage` and `payouts.manage` permissions.
+- Finance now has payment/reconciliation, commission approval and payout operating permissions without requiring broad partner-management authority.
+- Payment submission defaults to `PENDING` and rejects direct `CONFIRMED`, `REVERSED` and `REFUNDED` creation; those states require controlled transition paths.
+- Added lead attribution lock metadata: lock timestamp, locking actor and override reason.
+- Public partner-attributed lead capture locks attribution at first capture.
+- Lead admin attribution edits now require partner-management authorization when locked and always retain an audit reason.
+- Added Arabic locale content and RTL root-layout behavior.
+- Added a Prisma migration for attribution-lock fields.
+
+### Remaining Q1 gaps before acceptance
+
+1. Dispute resolution must atomically reassign linked commercial attribution to the awarded partner and retain old/new audit evidence.
+2. Public lead capture must gain trusted workspace routing for the three-anchor fixture without trusting arbitrary browser-supplied workspace IDs.
+3. Duplicate-customer matching needs explicit behavioral rules and acceptance evidence.
+4. Financial, attribution and permission audit coverage must be checked across every critical transition.
+5. A deterministic 100-partner fixture must be executed and evidence retained.
+6. Mobile/low-bandwidth and Arabic/RTL critical-path tests still require actual device/browser evidence.
+7. Local `npm run typecheck` and `npm run lint` must be run; no GitHub Actions should be restored for this phase.
+
+### Acceptance checkpoint
+
+The next controlled fixture is:
+
+**Workspace A/B → Finance/Sales/Auditor/Client → Lead → Customer → Quote → Order → Payment PENDING → Finance CONFIRMED → Reconciliation → Revenue → Commission QUALIFIED → Finance APPROVED → PAYABLE → Payout Settlement → Refund/Dispute/Attribution → Audit → Reporting → Mobile/Localization**
+
+No Q1 or Gate 1 status is upgraded from code inspection alone.
