@@ -111,3 +111,18 @@ The next acceptance checkpoint is:
 
 **Workspace A/B → Finance/Sales/Auditor/Client → lead → customer → quote → order → payment PENDING → Finance CONFIRMED → reconciliation → revenue → commission QUALIFIED → Finance APPROVED → PAYABLE → payout settlement → refund/dispute/attribution checks → audit → reporting → mobile/localization checks.**
 
+
+
+## Operational blocker closure alignment — 2026-09-26
+
+The next implementation step is **Step 1 — Manual payment reconciliation workbench**.
+
+Current mainline evidence was rechecked:
+- payment capture UI exists in the Orders workspace;
+- the hardened payment POST endpoint rejects direct CONFIRMED/REVERSED/REFUNDED creation and requires PENDING first;
+- reconciliation PATCH requires evidence before RECONCILED and records verifier/activity;
+- the Finance page currently focuses on commission approval and payout batches.
+
+Therefore the remaining Step 1 gap is not absence of all payment UI; it is the mismatch between the existing capture UI and the hardened state contract, plus the absence of a Finance-controlled payment review queue.
+
+The Q1 acceptance state remains **NOT ACCEPTED**. This correction changes implementation planning only; it does not provide behavioral acceptance evidence.
