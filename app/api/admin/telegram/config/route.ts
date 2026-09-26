@@ -16,7 +16,7 @@ const booleanFields = [
   "paymentEnabled","requirePaymentBeforeOrder","allowPayLater","receiptEnabled",
   "captureStartParameter","preserveCampaignAttribution","preservePartnerAttribution",
   "preserveReferralAttribution","createCustomerOnCommerceAction","createLeadOnInquiry",
-  "showWorkspaceBranding",
+  "showWorkspaceBranding","publicEnabled","allowAnonymousUsers","inlineModeEnabled","inlineCatalogEnabled","qualificationEnabled","knowledgeBaseEnabled","humanHandoffEnabled","telegramPaymentsEnabled","localPaymentsEnabled",
 ] as const;
 
 const stringFields = [
@@ -45,9 +45,14 @@ export async function PATCH(request: Request) {
 
   for (const key of booleanFields) if (typeof body[key] === "boolean") data[key] = body[key];
   for (const key of stringFields) if (typeof body[key] === "string") data[key] = String(body[key]).trim().slice(0, key === "miniAppUrl" || key === "logoUrl" ? 1000 : 190);
+  for (const key of jsonFields) if (body[key] !== undefined) data[key] = body[key];
+
   for (const key of intFields) {
     if (Number.isInteger(body[key])) data[key] = Math.max(0, Math.min(100000, Number(body[key])));
   }
+
+  if (body.handoffChatId !== undefined) data.handoffChatId = typeof body.handoffChatId === "string" ? body.handoffChatId.trim().slice(0,80) || null : null;
+  if (body.handoffMode !== undefined && typeof body.handoffMode === "string") data.handoffMode = body.handoffMode.trim().slice(0,30);
 
   if (body.allowedPaymentMethods !== undefined) {
     if (!Array.isArray(body.allowedPaymentMethods) || body.allowedPaymentMethods.some((v: unknown) => typeof v !== "string")) {
