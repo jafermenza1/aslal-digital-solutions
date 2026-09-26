@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getTelegramChannelConfig } from "@/lib/telegram-channel-config";
 import type { RowDataPacket } from "mysql2/promise";
 
 export const runtime = "nodejs";
@@ -10,8 +11,14 @@ type TelegramMessage = {
   chat?: { id?: number | string; type?: string; title?: string; username?: string };
   from?: { id?: number; first_name?: string; last_name?: string; username?: string };
   text?: string;
+  reply_to_message?: TelegramMessage;
 };
-type TelegramUpdate = { message?: TelegramMessage };
+type TelegramCallbackQuery = { id:string; data?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string}; message?:TelegramMessage };
+type TelegramInlineQuery = { id:string; query?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string} };
+type TelegramUpdate = { message?:TelegramMessage; callback_query?:TelegramCallbackQuery; inline_query?:TelegramInlineQuery };
+type QualificationOption = { label:string; value:string; next?:string };
+type QualificationStep = { id:string; question?:string; inputType?:string; next?:string; options?:QualificationOption[] };
+type KeywordRule = { pattern?:string; mode?:string; response?:string; priority?:number };
 
 type Partner = RowDataPacket & { id:string; name:string; partner_number:string; workspace_id:string; status:string; verification_status:string; type:string };
 type Campaign = RowDataPacket & { id:string; name:string; description:string|null; status:string; target_description:string|null; location:string|null; product_name:string|null; partner_budget:number|string; currency:string; reward_type:string; reward_amount:number|string|null; reward_rate:number|string|null; application_status:string|null; referral_code:string|null; required_partner_types:string|null };
@@ -27,7 +34,91 @@ async function tg(method:string,body:Record<string,unknown>){
   return r.json();
 }
 const reply=(chatId:string,text:string)=>tg("sendMessage",{chat_id:chatId,text,disable_web_page_preview:true});
-const catalog=(chatId:string,workspaceId:string,campaignId?:string|null)=>{const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");const qs=new URLSearchParams({workspaceId});if(campaignId)qs.set("campaignId",campaignId);return tg("sendMessage",{chat_id:chatId,text:"Open the Aslal catalog to browse products, services and resources.",reply_markup:{inline_keyboard:[[{text:"Open Aslal Catalog",web_app:{url:site+"/telegram/catalog?"+qs.toString()}}]]}});};
+const catalog=async(chatId:string,workspaceId:string,campaignId?:string|null)=>{const config=await getTelegramChannelConfig(workspaceId);if(!config?.enabled||!config.miniAppEnabled)return reply(chatId,"The Telegram catalog is not enabled for this workspace yet.");const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");const base=(config.miniAppUrl||site+"/telegram/catalog").replace(/\/$/,"");const qs=new URLSearchParams();if(config.requireWorkspace)qs.set("workspaceId",workspaceId);if(config.captureStartParameter&&campaignId)qs.set("campaignId",campaignId);const url=base+(qs.toString()?(base.includes("?")?"&":"?")+qs.toString():"");return tg("sendMessage",{chat_id:chatId,text:"Open the Aslal catalog to browse products, services and resources.",reply_markup:{inline_keyboard:[[{text:config.menuButtonText||"Open Catalog",web_app:{url}}]]}});};
+
+async function publicSession(workspaceId:string,user:any,chatId:string){
+  const uid=String(user?.id||chatId);
+  const [rows]=await db.query<(RowDataPacket&{id:string;state:string;state_data:any;lead_id:string|null;person_id:string|null})[]>(`SELECT id,state,state_data,lead_id,person_id FROM telegram_public_sessions WHERE workspace_id=? AND telegram_user_id=? LIMIT 1`,[workspaceId,uid]);
+  if(rows[0])return rows[0];
+  const id=crypto.randomUUID();
+  await db.query(`INSERT INTO telegram_public_sessions (id,workspace_id,telegram_user_id,chat_id,username,first_name,last_name,state,last_inbound_at) VALUES (?,?,?,?,?,?,?,'WELCOME',NOW())`,[id,workspaceId,uid,chatId,user?.username||null,user?.first_name||null,user?.last_name||null]);
+  return {id,state:"WELCOME",state_data:null,lead_id:null,person_id:null};
+}
+async function publicMenu(chatId:string,workspaceId:string){
+  const cfg=await getTelegramChannelConfig(workspaceId);
+  if(!cfg?.publicEnabled||!cfg.allowAnonymousUsers)return reply(chatId,"Public Telegram access is currently unavailable.");
+  return tg("sendMessage",{chat_id:chatId,text:"Welcome to Aslal. No account or registration is required. Choose what you need:",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"🎯 Qualify me",callback_data:"public:qualify:"+workspaceId}],[{text:"💰 Pricing",callback_data:"public:pricing:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]]}});
+}
+async function savePublicState(workspaceId:string,userId:string,state:string,stateData:any){
+  await db.query("UPDATE telegram_public_sessions SET state=?,state_data=?,last_inbound_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[state,JSON.stringify(stateData||{}),workspaceId,userId]);
+}
+async function qualification(chatId:string,workspaceId:string,user:any,stepId?:string){
+  const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow as unknown as QualificationStep[]:[];
+  if(!cfg?.qualificationEnabled||!flow.length)return reply(chatId,"Qualification is not configured yet. Use Catalog or Talk to Agent.");
+  const session=await publicSession(workspaceId,user,chatId); const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{}); const current=stepId||String(stateData.currentStep||flow[0]?.id||"");
+  const step=flow.find((x)=>x?.id===current); if(!step)return reply(chatId,"Qualification is complete. A sales agent can continue with you.");
+  await savePublicState(workspaceId,String(user?.id||chatId),"QUALIFYING",{...stateData,currentStep:step.id});
+  if(step.inputType==="PHONE"||step.inputType==="TEXT") return reply(chatId,String(step.question||"Please enter your answer:"));
+  return tg("sendMessage",{chat_id:chatId,text:String(step.question||"Please choose:"),reply_markup:{inline_keyboard:(Array.isArray(step.options)?step.options:[]).map((o:any)=>[{text:String(o.label),callback_data:"public:answer:"+workspaceId+":"+step.id+":"+String(o.value)}])}});
+}
+async function ensurePublicLead(workspaceId:string,user:any,chatId:string,stateData:any){
+  const session=await publicSession(workspaceId,user,chatId); if(session.lead_id)return session.lead_id;
+  const personId=crypto.randomUUID(),leadId=crypto.randomUUID(),name=[user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram visitor";
+  const [destinationRows]=await db.query<(RowDataPacket & {sales_owner_email:string|null})[]>("SELECT sales_owner_email FROM telegram_destinations WHERE workspace_id=? AND chat_id=? AND active=1 LIMIT 1",[workspaceId,chatId]);
+  const assignedOwner=destinationRows[0]?.sales_owner_email||null;
+  const [owners]=await db.query<(RowDataPacket&{email:string})[]>(`SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1`,[workspaceId]);
+  await db.query("INSERT INTO persons (id,name) VALUES (?,?)",[personId,name.slice(0,160)]);
+  await db.query("INSERT INTO communication_preferences (id,person_id,telegram_allowed) VALUES (?,?,1)",[crypto.randomUUID(),personId]);
+  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,phone,status,source,medium,lead_category,capture_mode,message,owner_email) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),stateData.phone||null,"NEW","telegram","telegram","PUBLIC_TELEGRAM","MANUAL",JSON.stringify(stateData),assignedOwner||owners[0]?.email||null]);
+  await db.query("UPDATE telegram_public_sessions SET lead_id=?,person_id=? WHERE workspace_id=? AND telegram_user_id=?",[leadId,personId,workspaceId,String(user?.id||chatId)]);
+  return leadId;
+}
+async function routePublicMessageToHandoff(chatId:string,workspaceId:string,user:any,m:TelegramMessage){
+  const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled||!cfg.handoffChatId)return false;
+  const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+  const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
+  const forwarded=await tg("copyMessage",{chat_id:String(cfg.handoffChatId),from_chat_id:chatId,message_id:m.message_id});
+  const adminMessageId=forwarded?.result?.message_id;
+  await savePublicState(workspaceId,String(user?.id||chatId),"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:adminMessageId,publicChatId:chatId,leadId});
+  return true;
+}
+async function routeAdminReplyToPublic(m:TelegramMessage){
+  const [rows]=await db.query<(RowDataPacket&{workspace_id:string;state_data:any})[]>(`SELECT workspace_id,state_data FROM telegram_public_sessions WHERE state='SUPPORT_REQUESTED' ORDER BY updated_at DESC LIMIT 100`);
+  const replyId=String(m.reply_to_message?.message_id||"");
+  const row=rows.find(r=>{const d=typeof r.state_data==="string"?JSON.parse(r.state_data||"{}"):(r.state_data||{});return String(d.handoffAdminMessageId||"")===replyId;});
+  if(!row)return false;
+  const d=typeof row.state_data==="string"?JSON.parse(row.state_data||"{}"):(row.state_data||{}); if(!d.publicChatId)return false;
+  await reply(String(d.publicChatId),clean(m.text)); return true;
+}
+
+async function handoffPublic(chatId:string,workspaceId:string,user:any){
+  const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled)return reply(chatId,"Human support is currently unavailable.");
+  const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+  const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
+  await db.query("UPDATE telegram_public_sessions SET state='SUPPORT_REQUESTED',support_requested_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[workspaceId,String(user?.id||chatId)]);
+  if(cfg.handoffChatId){const sent=await tg("sendMessage",{chat_id:String(cfg.handoffChatId),text:"🔔 New public Telegram support request\nLead: "+leadId+"\nUser: "+([user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user")+"\nPhone: "+(data.phone||"not provided")+"\nAnswers: "+JSON.stringify(data)});const sentId=sent?.result?.message_id;await savePublicState(workspaceId,String(user?.id||chatId),"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:sentId,publicChatId:chatId,leadId});}
+  return reply(chatId,"A support request has been created. A member of our team will continue with you here.");
+}
+async function pricingResponse(chatId:string,workspaceId:string){
+  if(await keywordResponse(chatId,workspaceId,"price"))return;
+  const [rows]=await db.query<(RowDataPacket&{name:string;starting_price:string|null;cta_label:string|null})[]>(`SELECT name,starting_price,cta_label FROM products WHERE workspace_id=? AND active=1 ORDER BY featured DESC,sort_order ASC,name ASC LIMIT 12`,[workspaceId]);
+  if(!rows.length)return reply(chatId,"Pricing is available through our catalog. Choose Catalog to see current offers.");
+  return reply(chatId,rows.map(r=>r.name+" — "+(r.starting_price?money(r.starting_price)+" ETB":"Request pricing")).join("\n")+"\n\nUse Catalog for full specifications and ordering.");
+}
+
+async function keywordResponse(chatId:string,workspaceId:string,textValue:string){
+  const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.knowledgeBaseEnabled||!Array.isArray(cfg.keywordRules))return false;
+  for(const rule of cfg.keywordRules as unknown as KeywordRule[]){try{const matched=String(rule.mode||"EXACT").toUpperCase()==="REGEX"?new RegExp(String(rule.pattern||""),"i").test(textValue):textValue.toLowerCase()===String(rule.pattern||"").toLowerCase();if(matched){await reply(chatId,String(rule.response||""));return true;}}catch{}}
+  return false;
+}
+async function inlineCatalog(update:TelegramInlineQuery){
+  const q=clean(update.query),workspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
+  if(!workspaceId)return tg("answerInlineQuery",{inline_query_id:update.id,results:[],cache_time:5,is_personal:true});
+  const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.inlineModeEnabled||!cfg.inlineCatalogEnabled)return tg("answerInlineQuery",{inline_query_id:update.id,results:[],cache_time:5,is_personal:true});
+  const [rows]=await db.query<(RowDataPacket&{id:string;name:string;slug:string;tagline:string|null;short_description:string|null;starting_price:string|null;image_url:string|null})[]>(`SELECT id,name,slug,tagline,short_description,starting_price,image_url FROM products WHERE workspace_id=? AND active=1 AND (name LIKE ? OR slug LIKE ? OR tagline LIKE ?) ORDER BY featured DESC,sort_order ASC,name ASC LIMIT 20`,[workspaceId,"%"+q+"%","%"+q+"%","%"+q+"%"]);
+  const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
+  return tg("answerInlineQuery",{inline_query_id:update.id,results:rows.map(r=>({type:"article",id:r.id,title:r.name,description:r.short_description||r.tagline||"Aslal product or service",thumb_url:r.image_url||undefined,input_message_content:{message_text:r.name+" — "+(r.starting_price?money(r.starting_price)+" ETB":"Request details")},reply_markup:{inline_keyboard:[[{text:"Open catalog",web_app:{url:site+"/telegram/catalog?workspaceId="+encodeURIComponent(workspaceId)}}]]}})),cache_time:30,is_personal:true});
+}
 
 async function partnerForChat(chatId:string){
   const [rows]=await db.query<Partner[]>("SELECT id,name,partner_number,workspace_id,status,verification_status,type FROM partners WHERE telegram_chat_id=? LIMIT 1",[chatId]);
@@ -135,10 +226,28 @@ async function handleClientInbound(workspaceId:string,d:any,m:TelegramMessage,ch
 }
 
 async function handle(update:TelegramUpdate){
+  if(update.inline_query)return inlineCatalog(update.inline_query);
+  if(update.callback_query){
+    const q=update.callback_query; const data=clean(q.data); const chatId=String(q.message?.chat?.id||""); if(!chatId)return;
+    await tg("answerCallbackQuery",{callback_query_id:q.id});
+    const parts=data.split(":"); const workspaceId=parts[2]||String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||""); const user=q.from||{};
+    if(parts[0]==="public"&&parts[1]==="catalog")return catalog(chatId,workspaceId);
+    if(parts[0]==="public"&&parts[1]==="pricing")return pricingResponse(chatId,workspaceId);
+    if(parts[0]==="public"&&parts[1]==="agent")return handoffPublic(chatId,workspaceId,user);
+    if(parts[0]==="public"&&parts[1]==="qualify")return qualification(chatId,workspaceId,user);
+    if(parts[0]==="public"&&parts[1]==="answer"){
+      const stepId=parts[3],value=parts.slice(4).join(":"); const session=await publicSession(workspaceId,user,chatId); const prior=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{}); const stateData={...prior,[stepId]:value};
+      const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow as unknown as QualificationStep[]:[]; const step=flow.find((x)=>x?.id===stepId); const option=step?.options?.find((x:any)=>String(x.value)===value); const next=option?.next;
+      await savePublicState(workspaceId,String(user?.id||chatId),next?"QUALIFYING":"QUALIFIED",{...stateData,currentStep:next||null});
+      if(next)return qualification(chatId,workspaceId,user,String(next));
+      await ensurePublicLead(workspaceId,user,chatId,stateData);
+      return tg("sendMessage",{chat_id:chatId,text:"Thanks. Your answers have been saved.",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]]}});
+    }
+    return;
+  }
   const m=update.message;
   if(!m?.chat?.id)return;
-  const chatId=String(m.chat.id);
-  const chatType=m.chat.type||"";
+  const chatId=String(m.chat.id);  const chatType=m.chat.type||"";
   const input=clean(m?.text);
   if(input.startsWith("/start")){
     const token=input.split(/\s+/,2)[1]||"";
@@ -163,7 +272,36 @@ async function handle(update:TelegramUpdate){
     }
     const p=await partnerForChat(chatId);
     if(p)return catalog(chatId,p.workspace_id);
-    return catalog(chatId,"00000000-0000-0000-0000-000000000001");
+    const defaultWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"").trim();
+    if(defaultWorkspaceId){const cfg=await getTelegramChannelConfig(defaultWorkspaceId);if(cfg?.publicEnabled&&cfg.allowAnonymousUsers)return publicMenu(chatId,defaultWorkspaceId);return catalog(chatId,defaultWorkspaceId);}
+    return reply(chatId,"Welcome to Aslal. Use the workspace connection link provided by Aslal to open the correct catalog.");
+  }
+
+  const publicWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
+  if(chatType==="private" && publicWorkspaceId){
+    const cfg=await getTelegramChannelConfig(publicWorkspaceId);
+    if(cfg?.publicEnabled&&cfg.allowAnonymousUsers){
+      const session=await publicSession(publicWorkspaceId,m.from||{},chatId);
+      const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+      if(session.state==="QUALIFYING" && input && !input.startsWith("/")){
+        const flow=Array.isArray(cfg.qualificationFlow)?cfg.qualificationFlow as unknown as QualificationStep[]:[]; const step=flow.find((x)=>x?.id===stateData.currentStep);
+        if(step?.inputType==="PHONE" && !/^\\+?[0-9 ()-]{7,20}$/.test(input))return reply(chatId,"Please enter a valid phone number.");
+        const nextData={...stateData,[String(step?.id||"answer")]:input};
+        const next=step?.next;
+        await savePublicState(publicWorkspaceId,String(m.from?.id||chatId),next?"QUALIFYING":"QUALIFIED",{...nextData,currentStep:next||null});
+        if(next)return qualification(chatId,publicWorkspaceId,m.from||{},String(next));
+        await ensurePublicLead(publicWorkspaceId,m.from||{},chatId,nextData);
+        return tg("sendMessage",{chat_id:chatId,text:"Thanks. Your answers have been saved.",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+publicWorkspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+publicWorkspaceId}]]}});
+      }
+      if(input==="/help")return publicMenu(chatId,publicWorkspaceId);
+      if(input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
+      if(input==="/catalog")return catalog(chatId,publicWorkspaceId);
+      if(input==="/support")return handoffPublic(chatId,publicWorkspaceId,m.from||{});
+      if(await keywordResponse(chatId,publicWorkspaceId,input))return;
+      if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,m.from||{},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,m.from||{});}
+      if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,m.from||{},String(stateData.currentStep||""));
+      return publicMenu(chatId,publicWorkspaceId);
+    }
   }
 
   const staff=await staffForChat(chatId);
@@ -192,6 +330,11 @@ async function handle(update:TelegramUpdate){
     const d=destinations[0];
     if(!d||!d.active||!d.opt_in)return reply(chatId,"This Telegram chat is not connected to an Aslal client conversation yet. Use the client link provided by Aslal.");
     return handleClientInbound(d.workspace_id,d,m,chatId);
+  }
+
+  const publicHandoffChatId=String((await getTelegramChannelConfig(String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"")))?.handoffChatId||"");
+  if((chatType==="group"||chatType==="supergroup") && publicHandoffChatId===chatId && m.reply_to_message?.message_id){
+    if(await routeAdminReplyToPublic(m))return;
   }
 
   if(chatType==="group"||chatType==="supergroup"||chatType==="channel"){

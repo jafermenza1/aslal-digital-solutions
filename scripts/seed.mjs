@@ -39,7 +39,12 @@ const products = [
   ["addon-crm-setup", "CRM Setup", "Aslal Digital Solutions", "OWNED", "CRM setup aligned to lead capture, sales follow-up and reporting.", "Configure customer records, stages, ownership, next actions and reporting so demand can move through one commercial workflow.", "Request quote", 0]
 ];
 
-for (const [slug, name, provider, relationship, shortDescription, description, price, featured] of products) {\n  await pool.execute(\n    `INSERT INTO products (id, slug, name, provider_name, relationship_type, short_description, description, starting_price, featured)\n     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\n     ON DUPLICATE KEY UPDATE name=VALUES(name), short_description=VALUES(short_description), description=VALUES(description), provider_name=VALUES(provider_name), relationship_type=VALUES(relationship_type), starting_price=VALUES(starting_price), featured=VALUES(featured), active=1`,\n    [randomUUID(), slug, name, provider, relationship, shortDescription, description, price, featured]\n  );\n}
+for (const [slug, name, provider, relationship, shortDescription, description, price, featured] of products) {
+  await pool.execute(
+    `INSERT INTO products (id, slug, name, provider_name, relationship_type, short_description, description, starting_price, featured)\n     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\n     ON DUPLICATE KEY UPDATE name=VALUES(name), short_description=VALUES(short_description), description=VALUES(description), provider_name=VALUES(provider_name), relationship_type=VALUES(relationship_type), starting_price=VALUES(starting_price), featured=VALUES(featured), active=1`,
+    [randomUUID(), slug, name, provider, relationship, shortDescription, description, price, featured]
+  );
+}
 
 
 // Rich positioning for the recurring Aslal-owned packages. New and existing records

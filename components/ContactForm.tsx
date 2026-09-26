@@ -10,7 +10,8 @@ type ContactFormProps = {
   initialProduct?: string;
   initialProductId?: string;
   initialReferralCode?: string;
-  initialReferralName?: string;\n  initialTeam?: string;
+  initialReferralName?: string;
+  initialTeam?: string;
   products?: Array<{ id: string; slug: string; name: string }>;
 };
 

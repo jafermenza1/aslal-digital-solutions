@@ -5,6 +5,7 @@ const categories=["guide","tool","template"];
 export default function ResourceManager(){
  const [items,setItems]=useState<Item[]>([]),[category,setCategory]=useState(""),[days,setDays]=useState("3650"),[selected,setSelected]=useState(""),[notice,setNotice]=useState("");
  async function load(){const q=new URLSearchParams({days});if(category)q.set("category",category);const r=await fetch("/api/admin/resources?"+q);const d=await r.json();if(r.ok){setItems(d.items);setSelected(s=>s||d.items[0]?.id||"")}else setNotice(d.error||"Could not load resources.")}
+ // eslint-disable-next-line react-hooks/set-state-in-effect
  useEffect(()=>{load()},[category,days]);
  const current=useMemo(()=>items.find(x=>x.id===selected)||items[0],[items,selected]);
  function setField(key:keyof Item,value:string|number){if(!current)return;setItems(v=>v.map(x=>x.id===current.id?{...x,[key]:value}:x))}

@@ -10,17 +10,21 @@ export async function GET(request: Request) {
   const access = await authorizeWorkspacePermission("leads.view", workspaceId);
   if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied." }, { status: 403 });
   const [rows] = await db.query(
-    "SELECT id,chat_id,type,label,active,opt_in,lead_id,product_id,campaign_id,partner_id,referral_code,source,medium,follow_up_enabled,follow_up_interval_minutes,follow_up_max_attempts,follow_up_attempts,next_follow_up_at,last_inbound_at,handed_off_at,created_at,updated_at FROM telegram_destinations WHERE workspace_id=? ORDER BY created_at DESC LIMIT 200",
+    "SELECT id,chat_id,type,label,active,opt_in,lead_id,product_id,campaign_id,partner_id,referral_code,source,medium,follow_up_enabled,follow_up_interval_minutes,follow_up_max_attempts,follow_up_attempts,next_follow_up_at,last_inbound_at,handed_off_at,sales_owner_email,created_at,updated_at FROM telegram_destinations WHERE workspace_id=? ORDER BY created_at DESC LIMIT 200",
     [access.workspace.id],
   );
   const [products] = await db.query(
     "SELECT id,name,kind,short_description,starting_price,cta_label FROM products WHERE active=1 ORDER BY name ASC LIMIT 200",
   );
+  const [staff] = await db.query(
+    "SELECT DISTINCT u.email, COALESCE(NULLIF(u.name,''), u.email) AS name, u.role FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN'), name ASC LIMIT 200",
+    [access.workspace.id],
+  );
   const [campaigns] = await db.query(
     "SELECT id,name,status FROM partner_campaigns WHERE workspace_id=? AND status IN ('OPEN','ACTIVE','PUBLISHED') ORDER BY created_at DESC LIMIT 200",
     [access.workspace.id],
   );
-  return NextResponse.json({ destinations: rows, products, campaigns });
+  return NextResponse.json({ destinations: rows, products, campaigns, staff });
 }
 
 export async function POST(request: Request) {
@@ -78,4 +82,25 @@ export async function POST(request: Request) {
     deepLink: type === "PRIVATE" && username ? "https://t.me/" + username + "?start=client_" + token : null,
     requiresClientStart: type === "PRIVATE",
   }, { status: 201 });
+}
+
+
+export async function PATCH(request: Request) {
+  const body = await request.json().catch(() => ({}));
+  const workspaceId = typeof body.workspaceId === "string" ? body.workspaceId : null;
+  const access = await authorizeWorkspacePermission("leads.edit", workspaceId);
+  if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied." }, { status: 403 });
+  const destinationId = typeof body.destinationId === "string" ? body.destinationId : "";
+  if (!destinationId) return NextResponse.json({ error: "destinationId is required." }, { status: 400 });
+  const email = typeof body.salesOwnerEmail === "string" && body.salesOwnerEmail.trim() ? body.salesOwnerEmail.trim().toLowerCase().slice(0,190) : null;
+  if (email) {
+    const [staff] = await db.query("SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.email=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1", [access.workspace.id,email]);
+    if (!(staff as unknown[]).length) return NextResponse.json({ error: "Selected sales/contact person is not active in this workspace." }, { status: 400 });
+  }
+  const [destinations] = await db.query("SELECT id,lead_id FROM telegram_destinations WHERE id=? AND workspace_id=? LIMIT 1", [destinationId,access.workspace.id]);
+  const destination = (destinations as Array<{id:string;lead_id:string|null}>)[0];
+  if (!destination) return NextResponse.json({ error: "Telegram destination not found in this workspace." }, { status: 404 });
+  await db.query("UPDATE telegram_destinations SET sales_owner_email=? WHERE id=? AND workspace_id=?", [email,destinationId,access.workspace.id]);
+  if (destination.lead_id) await db.query("UPDATE leads SET owner_email=? WHERE id=? AND workspace_id=?", [email,destination.lead_id,access.workspace.id]);
+  return NextResponse.json({ ok:true, salesOwnerEmail:email });
 }

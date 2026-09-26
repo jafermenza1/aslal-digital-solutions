@@ -522,6 +522,8 @@ model ReferralLink {
   createdAt        DateTime        @default(now()) @map("created_at") @db.DateTime(0)
   partner         Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   partnerCampaign PartnerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  leadAttributions LeadAttribution[]
+  resourceAttributions ResourceAttribution[]
   clicks          ReferralClick[]
   commissions     Commission[]
   orders          Order[]
@@ -570,7 +572,7 @@ model Resource {
   campaignId String? @map("campaign_id") @db.Char(36)
   workspace Workspace? @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
   campaign PartnerCampaign? @relation(fields:[campaignId], references:[id], onDelete:SetNull)
-  attributions ResourceAttribution[]
+  leadAttributions LeadAttribution[]
 
   @@index([category, publishedAt], map: "idx_resources_category_published")
   @@index([active, publishedAt], map: "idx_resources_active_published")
@@ -1248,6 +1250,82 @@ model Message {
   @@map("conversation_messages")
 }
 
+model TelegramChannelConfig {
+  id                          String   @id @db.Char(36)
+  workspaceId                 String   @unique @map("workspace_id") @db.Char(36)
+  enabled                     Boolean  @default(true)
+  miniAppEnabled              Boolean  @default(false) @map("mini_app_enabled")
+  miniAppUrl                  String?  @map("mini_app_url") @db.VarChar(1000)
+  menuButtonEnabled           Boolean  @default(true) @map("menu_button_enabled")
+  menuButtonText              String   @default("Open Catalog") @map("menu_button_text") @db.VarChar(64)
+  defaultPage                 String   @default("catalog") @map("default_page") @db.VarChar(80)
+  localeMode                  String   @default("telegram") @map("locale_mode") @db.VarChar(30)
+  requireWorkspace             Boolean  @default(true) @map("require_workspace")
+  requireAuth                  Boolean  @default(false) @map("require_auth")
+  showProducts                 Boolean  @default(true) @map("show_products")
+  showResources                Boolean  @default(true) @map("show_resources")
+  showCategories               Boolean  @default(true) @map("show_categories")
+  showSearch                   Boolean  @default(true) @map("show_search")
+  showFeatured                 Boolean  @default(true) @map("show_featured")
+  showSpecifications           Boolean  @default(true) @map("show_specifications")
+  showGallery                  Boolean  @default(true) @map("show_gallery")
+  showRelatedItems             Boolean  @default(true) @map("show_related_items")
+  showAvailability             Boolean  @default(false) @map("show_availability")
+  showPrice                    Boolean  @default(true) @map("show_price")
+  showStock                    Boolean  @default(false) @map("show_stock")
+  primaryCta                   String   @default("VIEW_DETAILS") @map("primary_cta") @db.VarChar(40)
+  secondaryCta                 String?  @map("secondary_cta") @db.VarChar(40)
+  allowInquiry                 Boolean  @default(true) @map("allow_inquiry")
+  allowAddToOrder              Boolean  @default(true) @map("allow_add_to_order")
+  allowDirectOrder             Boolean  @default(false) @map("allow_direct_order")
+  allowCheckout                Boolean  @default(false) @map("allow_checkout")
+  requireCustomerIdentity      Boolean  @default(true) @map("require_customer_identity")
+  requirePhone                 Boolean  @default(false) @map("require_phone")
+  requireDeliveryInformation   Boolean  @default(false) @map("require_delivery_information")
+  requireSalesApproval         Boolean  @default(true) @map("require_sales_approval")
+  orderConfirmationMode        String   @default("PENDING") @map("order_confirmation_mode") @db.VarChar(30)
+  paymentEnabled               Boolean  @default(false) @map("payment_enabled")
+  allowedPaymentMethods        Json?    @map("allowed_payment_methods")
+  defaultPaymentMethod         String?  @map("default_payment_method") @db.VarChar(50)
+  currency                     String   @default("ETB") @db.VarChar(10)
+  requirePaymentBeforeOrder    Boolean  @default(false) @map("require_payment_before_order")
+  allowPayLater                Boolean  @default(true) @map("allow_pay_later")
+  paymentExpiryMinutes         Int      @default(30) @map("payment_expiry_minutes")
+  receiptEnabled               Boolean  @default(true) @map("receipt_enabled")
+  captureStartParameter        Boolean  @default(true) @map("capture_start_parameter")
+  preserveCampaignAttribution  Boolean  @default(true) @map("preserve_campaign_attribution")
+  preservePartnerAttribution   Boolean  @default(true) @map("preserve_partner_attribution")
+  preserveReferralAttribution  Boolean  @default(true) @map("preserve_referral_attribution")
+  attributionExpiryHours       Int      @default(720) @map("attribution_expiry_hours")
+  createCustomerOnCommerceAction Boolean @default(true) @map("create_customer_on_commerce_action")
+  createLeadOnInquiry           Boolean @default(true) @map("create_lead_on_inquiry")
+  title                         String?  @db.VarChar(190)
+  logoUrl                       String?  @map("logo_url") @db.VarChar(1000)
+  themeMode                     String   @default("system") @map("theme_mode") @db.VarChar(20)
+  primaryColor                  String?  @map("primary_color") @db.VarChar(20)
+  secondaryColor                String?  @map("secondary_color") @db.VarChar(20)
+  showWorkspaceBranding         Boolean  @default(true) @map("show_workspace_branding")
+  publicEnabled                 Boolean  @default(true) @map("public_enabled")
+  allowAnonymousUsers           Boolean  @default(true) @map("allow_anonymous_users")
+  inlineModeEnabled             Boolean  @default(false) @map("inline_mode_enabled")
+  inlineCatalogEnabled          Boolean  @default(false) @map("inline_catalog_enabled")
+  qualificationEnabled          Boolean  @default(false) @map("qualification_enabled")
+  qualificationFlow             Json?    @map("qualification_flow")
+  knowledgeBaseEnabled          Boolean  @default(false) @map("knowledge_base_enabled")
+  keywordRules                  Json?    @map("keyword_rules")
+  humanHandoffEnabled           Boolean  @default(true) @map("human_handoff_enabled")
+  handoffChatId                 String?  @map("handoff_chat_id") @db.VarChar(80)
+  handoffMode                   String   @default("ADMIN_GROUP") @map("handoff_mode") @db.VarChar(30)
+  publicMenu                    Json?    @map("public_menu")
+  paymentProviders              Json?    @map("payment_providers")
+  telegramPaymentsEnabled       Boolean  @default(false) @map("telegram_payments_enabled")
+  localPaymentsEnabled          Boolean  @default(false) @map("local_payments_enabled")
+  createdAt                     DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt                     DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("telegram_channel_configs")
+}
+
 model TelegramDestination {
   id                    String   @id @db.Char(36)
   workspaceId            String   @map("workspace_id") @db.Char(36)
@@ -1258,6 +1336,7 @@ model TelegramDestination {
   optIn                  Boolean  @default(false) @map("opt_in")
   linkToken              String?  @unique @map("link_token") @db.VarChar(100)
   leadId                String?  @map("lead_id") @db.Char(36)
+  salesOwnerEmail       String?  @map("sales_owner_email") @db.VarChar(190)
   personId              String?  @map("person_id") @db.Char(36)
   productId             String?  @map("product_id") @db.Char(36)
   campaignId            String?  @map("campaign_id") @db.Char(36)
@@ -1322,6 +1401,7 @@ model Workspace {
   campaignAssets CampaignAsset[]
   conversations Conversation[]
   telegramDestinations TelegramDestination[]
+  products Product[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
@@ -1436,7 +1516,7 @@ model PartnerCampaign {
   createdAt           DateTime             @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt           DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
   product             Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
-  resource            Resource?            @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+  resources           Resource[]
   partners            CampaignPartner[]
   referralLinks       ReferralLink[]
   assets              CampaignAsset[]

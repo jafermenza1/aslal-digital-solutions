@@ -1,29 +1,29 @@
 "use client";
 
 import {useEffect,useState} from "react";
+import {useRouter} from "next/navigation";
 
-type Item={id:string;name?:string;title?:string;slug:string;description?:string|null;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null};
+type Item={id:string;name?:string;title?:string;slug:string;description?:string|null;preview?:string;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null};
 
 export default function TelegramCatalogPage(){
  const [items,setItems]=useState<{products:Item[];resources:Item[]}>({products:[],resources:[]});
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
  const [selected,setSelected]=useState<Item|null>(null);
- const [workspaceId,setWorkspaceId]=useState("");
- const [campaignId,setCampaignId]=useState("");
+ const router=useRouter();
+ const [workspaceId]=useState(()=>new URLSearchParams(window.location.search).get("workspaceId")||"");
+ const [campaignId]=useState(()=>new URLSearchParams(window.location.search).get("campaignId")||"");
 
  useEffect(()=>{
-   const q=new URLSearchParams(window.location.search);
-   const w=q.get("workspaceId")||"";
-   const c=q.get("campaignId")||"";
-   setWorkspaceId(w);setCampaignId(c);
-   if(!w){setError("This catalog link is missing its workspace context.");setLoading(false);return;}
+   const w=workspaceId;
+   const c=campaignId;
+   if(!w)return;
    fetch("/api/telegram/catalog?workspaceId="+encodeURIComponent(w)+(c?"&campaignId="+encodeURIComponent(c):""))
      .then(r=>r.ok?r.json():Promise.reject(new Error("Catalog unavailable")))
      .then(d=>setItems({products:d.products||[],resources:d.resources||[]}))
      .catch(e=>setError(e instanceof Error?e.message:"Catalog unavailable"))
      .finally(()=>setLoading(false));
- },[]);
+ },[campaignId,workspaceId]);
 
  useEffect(()=>{
    const script=document.createElement("script");
@@ -37,9 +37,10 @@ export default function TelegramCatalogPage(){
  const openOrder=(item:Item)=>{
    const q=new URLSearchParams({workspaceId,slug:item.slug});
    if(campaignId)q.set("campaignId",campaignId);
-   window.location.href="/telegram/catalog/order?"+q.toString();
+   router.push("/telegram/catalog/order?"+q.toString());
  };
 
+ if(!workspaceId)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">This catalog link is missing its workspace context.</main>;
  if(loading)return <main className="min-h-screen bg-[#f7faf8] p-5 text-slate-700">Loading Aslal catalog…</main>;
  if(error)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">{error}</main>;
 
@@ -47,7 +48,7 @@ export default function TelegramCatalogPage(){
   <header className="mb-5"><div className="text-xs font-black uppercase tracking-[.18em] text-[#0a5a44]">ASLAL CATALOG</div><h1 className="mt-1 text-2xl font-black">Products, services & resources</h1><p className="mt-1 text-sm text-slate-500">Explore the offer, review the details, then start an order or request.</p></header>
   <section className="grid gap-3">
    {[...items.products,...items.resources].map(item=><article key={item.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    {item.imageUrl&&<img src={item.imageUrl} alt="" className="h-40 w-full object-cover"/>}
+    {item.imageUrl&&<img src={item.imageUrl} alt="" className="h-40 w-full object-cover"/>}{item.media?.filter(u=>/\.(mp4|webm|mov|gif)$/i.test(u)).slice(0,1).map(u=>/\.gif$/i.test(u)?<img key={u} src={u} alt="" className="h-40 w-full object-cover"/>:<video key={u} src={u} controls playsInline muted className="h-40 w-full object-cover"/>) }
     <div className="p-4"><div className="text-[10px] font-black uppercase tracking-wider text-[#0a5a44]">{item.kind||item.category}</div><h2 className="mt-1 text-lg font-black">{item.name||item.title}</h2><p className="mt-1 text-sm text-slate-600">{item.tagline||item.shortDescription||item.preview||item.description}</p>
      {item.startingPrice&&<div className="mt-3 font-black">{item.startingPrice} ETB</div>}
      <div className="mt-3 flex gap-2"><button onClick={()=>setSelected(item)} className="min-h-11 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold">Details</button><button onClick={()=>openOrder(item)} className="min-h-11 flex-1 rounded-xl bg-[#0a5a44] px-3 py-2 text-sm font-black text-white">{item.ctaLabel||item.cta||"Order / Request"}</button></div>
