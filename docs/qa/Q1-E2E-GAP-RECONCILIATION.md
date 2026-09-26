@@ -189,3 +189,25 @@ Q1 acceptance remains **NOT ACCEPTED** until these behavioral records are retain
 8. Retain screenshots/request-response/database evidence and local typecheck/lint results.
 
 Q1 remains **NOT ACCEPTED**.
+
+
+## Step 4 implementation progress — 2026-09-26
+
+**Step:** 100-agent provisioning and identity.  
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+The prior `100-partner provisioning` gap is now closed at the implementation level. A protected admin endpoint and Partner workspace control provision the deterministic Q1 fixture `ASL-P-0001` through `ASL-P-0100` as pending AGENT records with deterministic referral identities.
+
+The implementation is transactional, workspace-scoped and rerunnable. Matching fixture records are reused; identifier collisions with another workspace or non-fixture records fail closed. The fixture intentionally does not create credentials, payment, commission or payout activity.
+
+### Remaining evidence
+
+- Execute the 100-record fixture.
+- Verify unique partner numbers and referral codes.
+- Verify partner/referral workspace ownership.
+- Repeat execution and verify no duplicates.
+- Attempt unauthorized workspace provisioning and verify rejection.
+- Retain database and request/response evidence.
+- Keep the distinction between a test/pilot fixture and actual recruitment/vetting.
+
+Q1 remains **NOT ACCEPTED**.
