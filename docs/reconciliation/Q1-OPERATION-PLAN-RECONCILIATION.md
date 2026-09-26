@@ -328,3 +328,15 @@ The attribution policy is now explicit in mainline:
 
 Q1 remains **NOT ACCEPTED**.
 \n\n## Step 6 implementation progress — 2026-09-26\n\n**Client audit/reporting and campaign distribution — IMPLEMENTED FOUNDATION / ACCEPTANCE PENDING**\n\nA workspace-scoped weekly pipeline audit endpoint now provides a repeatable seven-day JSON view or CSV export. It includes lead stage/owner, first-touch acquisition fields, current referral attribution, partner/campaign lineage, published asset count, opportunity value/stage and confirmed-order evidence. Authorization is resolved against the requested workspace before data access.\n\nThe CLIENT CRM exposes the seven-day export. Existing partner distribution remains limited to published campaign assets and workspace-scoped campaign/referral records.\n\n**Acceptance evidence still required:** run and retain the audit for each anchor workspace, prove same-range repeatability, test cross-workspace export denial, reconstruct campaign-to-asset-to-referral-to-lead lineage, and prove unpublished assets are not partner-visible.\n\nQ1 remains **NOT ACCEPTED**.\n
+
+## Step 7 implementation progress — 2026-09-26
+
+**Operational SOP and evidence pack — IMPLEMENTED FOUNDATION / ACCEPTANCE PENDING**
+
+Added the Q1 operator SOP/evidence pack covering attribution disputes, cancelled/refunded orders, merchant invoice collection, payout preparation/external movement, and payment receipt verification/exception handling. The procedures explicitly map actors, controls, evidence and recovery paths.
+
+A remaining product gap is recorded rather than hidden: full payout batch generation is still PARTIAL, so the SOP does not claim automated external payout settlement.
+
+**Acceptance evidence still required:** execute each SOP once under controlled workspace conditions and retain state-transition, authorization, audit/evidence and failure-recovery proof.
+
+Q1 remains **NOT ACCEPTED**.
