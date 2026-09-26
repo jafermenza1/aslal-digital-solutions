@@ -25,7 +25,19 @@ export default function PaymentReconciliationWorkbench() {
     setPayments(data.payments || []);
   }
 
-  useEffect(() => { void load().catch((e) => setError(e instanceof Error ? e.message : "Could not load payment queue.")); }, []);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/payments/reconciliation", { cache: "no-store" })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Could not load payment queue.");
+        if (active) setPayments(data.payments || []);
+      })
+      .catch((e) => {
+        if (active) setError(e instanceof Error ? e.message : "Could not load payment queue.");
+      });
+    return () => { active = false; };
+  }, []);
 
   async function patch(payment: Payment, body: Record<string,string>) {
     setBusy(payment.id); setMessage(""); setError("");
