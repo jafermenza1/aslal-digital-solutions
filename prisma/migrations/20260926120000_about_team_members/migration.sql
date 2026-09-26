@@ -1,0 +1,21 @@
+CREATE TABLE team_members (
+  id CHAR(36) NOT NULL,
+  full_name VARCHAR(160) NOT NULL,
+  job_title VARCHAR(160) NOT NULL,
+  department VARCHAR(80) NOT NULL,
+  profile_image VARCHAR(1000) NULL,
+  bio VARCHAR(250) NOT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  linkedin_url VARCHAR(500) NULL,
+  telegram_url VARCHAR(500) NULL,
+  github_twitter_url VARCHAR(500) NULL,
+  featured_quote VARCHAR(500) NULL,
+  projects VARCHAR(1000) NULL,
+  booking_label VARCHAR(190) NULL,
+  created_at DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_team_members_active_order (is_active, display_order),
+  INDEX idx_team_members_department_active (department, is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
