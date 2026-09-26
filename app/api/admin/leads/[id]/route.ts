@@ -15,7 +15,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body?.dealValue !== undefined) { const n=body.dealValue === null || body.dealValue === "" ? null : Number(body.dealValue); if(n!==null && (!Number.isFinite(n)||n<0)) return NextResponse.json({error:"Invalid deal value."},{status:400}); data.dealValue=n; }
   if (body?.isTest !== undefined) data.isTest=Boolean(body.isTest);
   const lead=await prisma.lead.findUnique({where:{id,workspaceId:access.workspace.id}}); if(!lead) return NextResponse.json({error:"Lead not found."},{status:404});
-  const updated=await prisma.$transaction(async tx=>{ const u=await tx.lead.update({where:{id,workspaceId:access.workspace.id},data: data as Prisma.LeadUpdateInput}); await tx.leadAdminAudit.create({data:{id:crypto.randomUUID(),leadId:id,actor:access.user.email,action:"EDIT",reason,details:{fields:Object.keys(data)}}}); return u; });
+  const attributionFields = ["source","medium","campaign","referralCode"];
+  const attributionChanged = attributionFields.some((key) => data[key] !== undefined && String(data[key] ?? "") !== String((lead as any)[key] ?? ""));
+  if (attributionChanged && lead.attributionLockedAt) {
+    const attributionAccess = await authorizeWorkspacePermission("partners.manage", access.workspace.id);
+    if (!attributionAccess) return NextResponse.json({error:"Attribution is locked. A partner manager or administrator must authorize any correction."},{status:403});
+    data.attributionOverrideReason = reason;
+    data.attributionLockedAt = new Date();
+    data.attributionLockedBy = access.user.email;
+  } else if (attributionChanged) {
+    data.attributionLockedAt = new Date();
+    data.attributionLockedBy = access.user.email;
+  }
+  const updated=await prisma.$transaction(async tx=>{ const u=await tx.lead.update({where:{id,workspaceId:access.workspace.id},data: data as Prisma.LeadUpdateInput}); await tx.leadAdminAudit.create({data:{id:crypto.randomUUID(),leadId:id,actor:access.user.email,action:attributionChanged?"ATTRIBUTION_EDIT":"EDIT",reason,details:{fields:Object.keys(data),attributionLocked:attributionChanged,attributionOverride:Boolean(lead.attributionLockedAt && attributionChanged)}}}); return u; });
   return NextResponse.json({ ok:true, lead:updated });
 }
 
