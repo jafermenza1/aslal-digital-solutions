@@ -10,20 +10,6 @@ export type AttributionInput={source?:string|null;medium?:string|null;campaign?:
 export function normalizeSource(value:string|null|undefined){const key=(value||"").trim().toLowerCase();return aliases[key]||key||null;}
 export function classifyReferrer(referrer:string|null|undefined){if(!referrer)return null;try{return socialHosts[new URL(referrer).hostname.toLowerCase().replace(/^www\./,"")]||null;}catch{return null;}}
 export function resolveAttributionType(input:AttributionInput, referralExists=false):AttributionType{if(referralExists)return "PARTNER";const source=normalizeSource(input.source);const medium=(input.medium||"").toLowerCase();if(source&&SOCIAL_SOURCES.includes(source as typeof SOCIAL_SOURCES[number]))return "SOCIAL";if(medium.includes("paid"))return "PAID";if(medium==="email")return "EMAIL";if(medium==="organic"||source==="google"||source==="bing")return "ORGANIC";if(source&&medium==="referral")return "REFERRAL";return "DIRECT";}
-export function browserAttribution(){
- if(typeof window==="undefined")return null;
- const url=new URL(window.location.href);let previous:Record<string,string|null>={};try{const raw=window.localStorage.getItem("aslal_attribution");previous=raw?JSON.parse(raw):{};}catch{}
- const referrer=document.referrer||null;const refSource=classifyReferrer(referrer);
- const clickSource=url.searchParams.get("fbclid")?"facebook":url.searchParams.get("ttclid")?"tiktok":url.searchParams.get("li_fat_id")?"linkedin":url.searchParams.get("igshid")?"instagram":null;
- const source=normalizeSource(url.searchParams.get("utm_source"))||clickSource||refSource||previous.source||null;
- const medium=url.searchParams.get("utm_medium")||previous.medium||(refSource?"social":null);
- const campaign=url.searchParams.get("utm_campaign")||previous.campaign||null;
- const content=url.searchParams.get("utm_content")||previous.content||null;
- const term=url.searchParams.get("utm_term")||previous.term||null;
- const attribution={source,medium,campaign,content,term,referrer};
- if(source||medium||campaign)window.localStorage.setItem("aslal_attribution",JSON.stringify(attribution));
- return attribution;
-}
 
 export async function recordLeadAttribution(input:{leadId:string;workspaceId:string;attribution:AttributionInput;referralCode?:string|null;productId?:string|null;resourceId?:string|null;}){
  const referralCode=input.referralCode||input.attribution.referralCode||null;let referralLinkId:string|null=null,partnerId:string|null=null,campaignId:string|null=null;
