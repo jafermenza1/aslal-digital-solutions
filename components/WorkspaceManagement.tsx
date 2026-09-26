@@ -20,7 +20,7 @@ export default function WorkspaceManagement({initial,canManage}:{initial:Workspa
  const initialSelected=initial[0]||null;
  const [edit,setEdit]=useState({name:initialSelected?.name||"",slug:initialSelected?.slug||"",clientType:initialSelected?.client_type||"",active:initialSelected?.active??true});
 
- useEffect(()=>{if(selected)void loadMembers(selected.id);},[selected?.id]);
+ useEffect(()=>{if(selected)void loadMembers(selected.id);},[selected]);
  useEffect(()=>{fetch("/api/admin/users").then(r=>r.ok?r.json():null).then(d=>d?.users&&setUsers(d.users)).catch(()=>{});},[]);
 
  async function loadMembers(id:string){
