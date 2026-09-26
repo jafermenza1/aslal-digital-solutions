@@ -23,13 +23,15 @@ function payload(body:any){
  const deliverables=clean(body.deliverables,12000)||null;
  const imageUrl=clean(body.imageUrl,1000)||null;
  const galleryUrls=clean(body.galleryUrls,12000)||null;
+ const mediaUrls=clean(body.mediaUrls,12000)||null;
+ const specifications=body.specifications && typeof body.specifications==="object" ? body.specifications : null;
  const startingPrice=clean(body.startingPrice,100)||null;
  const ctaLabel=clean(body.ctaLabel,80)||null;
  const ctaNote=clean(body.ctaNote,250)||null;
  const sortOrder=Math.max(0,Math.min(9999,Number(body.sortOrder)||0));
  const featured=Boolean(body.featured);
  const active=body.active!==false;
- return {name,slug,kind,providerName,relationshipType,shortDescription,description,tagline,features,benefits,idealFor,deliverables,imageUrl,galleryUrls,startingPrice,ctaLabel,ctaNote,sortOrder,featured,active};
+ return {name,slug,kind,providerName,relationshipType,shortDescription,description,tagline,features,benefits,idealFor,deliverables,imageUrl,galleryUrls,mediaUrls,specifications,startingPrice,ctaLabel,ctaNote,sortOrder,featured,active};
 }
 function valid(p:any){return p.name&&p.slug&&p.shortDescription&&Object.values(ProductKind).includes(p.kind)&&Object.values(ProductRelationship).includes(p.relationshipType);}
 export async function GET(){
