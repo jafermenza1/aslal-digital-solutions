@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     const referralExpiry = referralTouch
       ? new Date(referralTouch.created_at.getTime() + 30 * 24 * 60 * 60 * 1000)
       : null;
-    const referralCode = referralTouch && referralExpiry > new Date() ? referralTouch.code : null;
+    const referralCode = referralTouch && referralExpiry && referralExpiry > new Date() ? referralTouch.code : null;
     const source = referralCode ? "partner" : visitor?.first_source || "website";
     const leadId = randomUUID();
     const nextActionDueAt = new Date(Date.now() + 30 * 60 * 1000);
