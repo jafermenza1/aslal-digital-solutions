@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { browserAttribution } from "@/lib/attribution";
+import { browserAttribution } from "@/lib/browser-attribution";
 
 type ContactFormProps = {
   initialBusiness?: string;

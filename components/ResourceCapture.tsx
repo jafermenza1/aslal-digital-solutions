@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
-import { browserAttribution } from "@/lib/attribution";
+import { browserAttribution } from "@/lib/browser-attribution";
 
 export function ResourceCapture({resourceId,resourceSlug,downloadUrl,cta}:{resourceId:string;resourceSlug:string;downloadUrl:string|null;cta:string}){
  const [name,setName]=useState(""),[contact,setContact]=useState(""),[channel,setChannel]=useState<"WEB"|"WHATSAPP"|"TELEGRAM">("WEB"),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[link,setLink]=useState<string|null>(null),[score,setScore]=useState<number|null>(null);

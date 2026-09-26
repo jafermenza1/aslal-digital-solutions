@@ -176,36 +176,33 @@ Remaining evidence:
 - Run authorized typecheck and lint.
 - Do not mark Gate 1 accepted from code existence alone.
 
-## Workflow suspension — cost-control state
+## Workflow restoration — 2026-09-26
 
-**Date:** 2026-09-26  
-**Branch:** `main`
+**Branch:** `restore/build-deploy-workflow`  
+**Status:** IMPLEMENTED — VALIDATION PENDING
 
-All GitHub Actions workflows have been intentionally removed for the current development/gate cycle:
+The production build and Emerald deployment path has been restored as a contained deployment correction. Production-integrity and sales-automation workflows remain intentionally disabled.
 
-- CI workflow removed.
-- Deployment workflow removed.
-- Production-integrity workflow removed.
-- Sales-automation workflow removed.
+Restored:
+- CI production build using `npm run build`.
+- Standalone Emerald release packaging.
+- Commit-keyed deployment artifact upload with three-day retention.
+- Automatic Emerald deployment after successful CI on `main`.
+- Manual deployment for an explicitly supplied `main` commit SHA.
+- Artifact verification before SSH transfer.
+- Prisma `migrate deploy` against the production environment before the live application release is switched.
+- Passenger restart request and `/api/health` verification.
 
-This is a temporary execution-policy change, not a product-architecture change. Existing application code, Q1 contracts, Gate 1 implementation, and deployment configuration outside `.github/workflows/` are preserved.
+Required GitHub repository secrets:
+- `EMERALD_HOST`
+- `EMERALD_PORT` (optional; defaults to 22)
+- `EMERALD_USER`
+- `EMERALD_SSH_KEY`
+- `EMERALD_KNOWN_HOSTS` (optional)
+- `EMERALD_APP_PATH` (optional; defaults to `/home/aslaldzn/aslal-digital-solutions`)
+- `EMERALD_HEALTH_URL` (optional; defaults to `https://aslaldigital.com/api/health`)
 
-### Current validation policy
-
-Until the final gate explicitly restores automation:
-
-- **No GitHub Actions workflow runs.**
-- **No production build in CI.**
-- **No deployment from GitHub Actions.**
-- **No production-integrity automation.**
-- **No sales-automation workflow execution.**
-- Validation is manual/local and limited to:
-  1. `npm run typecheck`
-  2. `npm run lint`
-
-Build/deployment validation will be restored only at the final gate when the complete acceptance contract is ready.
-
-Gate 1 acceptance remains behavioral and contract-based; removing Actions does not mark any acceptance scenario as passed.
+This restoration does not constitute production deployment or behavioral acceptance. Those remain separate evidence gates.
 
 
 ## Gate 2 continuation — Sales Follow-up and SLA
