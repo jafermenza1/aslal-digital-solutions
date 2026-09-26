@@ -1,12 +1,22 @@
 import { requirePermission } from "@/lib/authorization";
 import { db } from "@/lib/db";
 import WorkspaceManagement from "@/components/WorkspaceManagement";
+import type { RowDataPacket } from "mysql2";
 
 export const dynamic="force-dynamic";
 
+type WorkspaceRow = RowDataPacket & {
+  id:string;
+  name:string;
+  slug:string;
+  client_type:string|null;
+  active:number;
+  member_count:number;
+};
+
 export default async function WorkspacesPage(){
  const user=await requirePermission("users.manage");
- const [rows]=await db.query<Array<{id:string;name:string;slug:string;client_type:string|null;active:number;member_count:number}>>(
+ const [rows]=await db.query<WorkspaceRow[]>(
   user.role==="ADMIN"||user.role==="SUPER_ADMIN"
    ? "SELECT w.id,w.name,w.slug,w.client_type,w.active,(SELECT COUNT(*) FROM workspace_users wu WHERE wu.workspace_id=w.id) member_count FROM workspaces w ORDER BY w.name"
    : "SELECT w.id,w.name,w.slug,w.client_type,w.active,(SELECT COUNT(*) FROM workspace_users wu2 WHERE wu2.workspace_id=w.id) member_count FROM workspaces w JOIN workspace_users wu ON wu.workspace_id=w.id WHERE wu.user_id=? AND w.active=1 ORDER BY w.name",
