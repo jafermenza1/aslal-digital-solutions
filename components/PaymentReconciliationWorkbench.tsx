@@ -77,7 +77,7 @@ export default function PaymentReconciliationWorkbench() {
     {error && <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</div>}
     <div className="mt-6 space-y-4">
       {payments.map((p) => {
-        const busy=p.id===busy;
+        const isBusy=p.id===busy;
         const matched=p.reconciliationStatus==="MATCHED";
         const confirmed=p.status==="CONFIRMED";
         return <article key={p.id} className="rounded-2xl border border-slate-200 p-4">
@@ -95,7 +95,7 @@ export default function PaymentReconciliationWorkbench() {
             <input aria-label="Verification note or exception reason" value={value(p,"notes")} onChange={e=>setNotes(x=>({...x,[p.id]:e.target.value}))} placeholder="Verification note / exception reason" className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"/>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            {!matched && !confirmed && <button disabled={busy} onClick={()=>void match(p)} className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-black disabled:opacity-50">Match receipt</button>}
+            {!matched && !confirmed && <button disabled={isBusy} onClick={()=>void match(p)} className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-black disabled:opacity-50">Match receipt</button>}
             {matched && !confirmed && <button disabled={busy} onClick={()=>void confirm(p)} className="rounded-xl bg-[#0F3E8A] px-4 py-2 text-xs font-black text-white disabled:opacity-50">Confirm collection</button>}
             {confirmed && p.reconciliationStatus!=="RECONCILED" && <button disabled={busy} onClick={()=>void reconcile(p)} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white disabled:opacity-50">Reconcile → revenue</button>}
             {p.reconciliationStatus!=="RECONCILED" && <button disabled={busy} onClick={()=>void exception(p)} className="rounded-xl border border-red-200 px-4 py-2 text-xs font-black text-red-700 disabled:opacity-50">Flag exception</button>}
