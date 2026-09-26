@@ -46,7 +46,7 @@ export async function setReferralCode(code: string) {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 90,
+    maxAge: 60 * 60 * 24 * 30,
     path: "/",
   });
 }
