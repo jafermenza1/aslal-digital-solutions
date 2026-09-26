@@ -48,6 +48,11 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf emerald-deploy
+          test -d .next/standalone
+          test -f .next/standalone/server.js
+          test -d .next/standalone/.next
+          test -d .next/standalone/.next/static
+
           mkdir -p emerald-deploy
           cp -R .next/standalone/. emerald-deploy/
 
@@ -60,12 +65,38 @@ jobs:
           npm install --prefix emerald-deploy/.prisma-cli --no-audit --no-fund --no-package-lock prisma@6.19.0
 
           test -f emerald-deploy/server.js
+          test -f emerald-deploy/next-server.js
+          test -d emerald-deploy/.next
           test -d emerald-deploy/.next/static
           test -d emerald-deploy/public
           test -x emerald-deploy/.prisma-cli/node_modules/.bin/prisma
           test -d emerald-deploy/prisma/migrations
 
           tar -czf aslal-emerald-${RELEASE_SHA}.tar.gz -C emerald-deploy .
+
+          echo "=== Emerald artifact manifest ==="
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -E '^(\\./)?(server\\.js|next-server\\.js|\\.next/|public/)' | head -80
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)server\\.js
+
+      - name: Upload Emerald deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aslal-emerald-${{ github.sha }}
+          path: aslal-emerald-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)next-server\\.js
+
+      - name: Upload Emerald deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aslal-emerald-${{ github.sha }}
+          path: aslal-emerald-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)\\.next/static/'
 
       - name: Upload Emerald deployment artifact
         uses: actions/upload-artifact@v4
