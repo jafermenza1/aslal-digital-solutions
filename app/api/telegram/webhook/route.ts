@@ -11,6 +11,7 @@ type TelegramMessage = {
   chat?: { id?: number | string; type?: string; title?: string; username?: string };
   from?: { id?: number; first_name?: string; last_name?: string; username?: string };
   text?: string;
+  reply_to_message?: TelegramMessage;
 };
 type TelegramCallbackQuery = { id:string; data?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string}; message?:TelegramMessage };
 type TelegramInlineQuery = { id:string; query?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string} };
@@ -61,10 +62,12 @@ async function qualification(chatId:string,workspaceId:string,user:any,stepId?:s
 async function ensurePublicLead(workspaceId:string,user:any,chatId:string,stateData:any){
   const session=await publicSession(workspaceId,user,chatId); if(session.lead_id)return session.lead_id;
   const personId=crypto.randomUUID(),leadId=crypto.randomUUID(),name=[user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram visitor";
+  const [destinationRows]=await db.query<(RowDataPacket & {sales_owner_email:string|null})[]>("SELECT sales_owner_email FROM telegram_destinations WHERE workspace_id=? AND chat_id=? AND active=1 LIMIT 1",[workspaceId,chatId]);
+  const assignedOwner=destinationRows[0]?.sales_owner_email||null;
   const [owners]=await db.query<(RowDataPacket&{email:string})[]>(`SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1`,[workspaceId]);
   await db.query("INSERT INTO persons (id,name) VALUES (?,?)",[personId,name.slice(0,160)]);
   await db.query("INSERT INTO communication_preferences (id,person_id,telegram_allowed) VALUES (?,?,1)",[crypto.randomUUID(),personId]);
-  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,phone,status,source,medium,lead_category,capture_mode,message,owner_email) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),stateData.phone||null,"NEW","telegram","telegram","PUBLIC_TELEGRAM","MANUAL",JSON.stringify(stateData),owners[0]?.email||null]);
+  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,phone,status,source,medium,lead_category,capture_mode,message,owner_email) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),stateData.phone||null,"NEW","telegram","telegram","PUBLIC_TELEGRAM","MANUAL",JSON.stringify(stateData),assignedOwner||owners[0]?.email||null]);
   await db.query("UPDATE telegram_public_sessions SET lead_id=?,person_id=? WHERE workspace_id=? AND telegram_user_id=?",[leadId,personId,workspaceId,String(user?.id||chatId)]);
   return leadId;
 }
