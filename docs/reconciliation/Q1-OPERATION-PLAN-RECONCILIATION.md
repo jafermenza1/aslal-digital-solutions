@@ -268,3 +268,17 @@ No Q1 acceptance claim is changed by this documentation update. The next code ch
 The Step 1 implementation is now present: the Orders capture path creates `PENDING` payments; Finance has a dedicated workspace-scoped reconciliation queue; receipt evidence and exception notes are captured; confirmation precedes reconciliation; reconciliation remains evidence-gated and drives the existing revenue/commission transaction path.
 
 **Status:** IMPLEMENTED — behavioral and local validation pending. Q1 remains NOT ACCEPTED.
+
+
+## Step 2 implementation progress — 2026-09-26
+
+**Current step:** Sales SLA scheduler and notification safety.
+**Status:** FOUNDATION HARDENED — BEHAVIORAL ACCEPTANCE PENDING.
+
+The Step 2 implementation now separates the internal SLA scheduler from customer-facing Telegram follow-up processing. `/api/cron/sales-automation` is protected and runs only overdue/high-intent workflow processing. Telegram customer follow-ups are isolated behind `/api/cron/telegram-followups`, preventing a Gate 2 scheduler invocation from implicitly sending customer messages.
+
+The workflow engine also now atomically claims PENDING executions and due PENDING actions before processing them. This closes the concurrent-worker duplication risk at the execution/action claim boundary while retaining the existing unique idempotency key, overdue deadline key, bounded retry and stale-recovery controls.
+
+The owner-selection path remains workspace-scoped to active sales-capable members. Reply, WON and LOST cancellation hooks remain wired to inbound messaging and lead status transitions.
+
+**Acceptance remains pending.** The controlled proof must demonstrate scheduler success, same-trigger idempotency, one overdue reminder per deadline, retry/stale recovery, reply cancellation, terminal-state cancellation, workspace isolation, operator visibility and absence of customer promotional messaging from the SLA scheduler.
