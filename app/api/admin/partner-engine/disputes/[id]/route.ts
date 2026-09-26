@@ -24,7 +24,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(status==="RESOLVED"&&!evidenceRef)return NextResponse.json({error:"Resolved attribution disputes require evidence reference."},{status:400});
 
   const [existing]=await db.query<RowDataPacket[]>(
-   `SELECT id,partner_id,competing_partner_id,lead_id,status FROM partner_disputes WHERE id=? AND workspace_id=? LIMIT 1`,[id,access.workspace.id]
+   `SELECT id,partner_id,competing_partner_id,lead_id,status,commission_id,campaign_id FROM partner_disputes WHERE id=? AND workspace_id=? LIMIT 1`,[id,access.workspace.id]
   );
   const dispute=existing[0] as {id:string;partner_id:string;competing_partner_id:string|null;lead_id:string|null;status:string}|undefined;
   if(!dispute)return NextResponse.json({error:"Dispute not found."},{status:404});
