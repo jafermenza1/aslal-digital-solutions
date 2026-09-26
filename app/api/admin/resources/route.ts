@@ -25,6 +25,7 @@ export async function PUT(request:Request){
   if(downloadUrl && !downloadUrl.startsWith("/resources/downloads/"))return NextResponse.json({error:"Download URL must point inside /resources/downloads/."},{status:400});
   const active=body?.active!==false;
   const relationshipType=typeof body?.relationshipType==="string"?body.relationshipType:"OWNED";
+  if(!["OWNED","AFFILIATE","RESELLER","IMPLEMENTATION_PARTNER","CUSTOM"].includes(relationshipType))return NextResponse.json({error:"Invalid resource relationship type."},{status:400});
   const providerName=typeof body?.providerName==="string"?body.providerName.trim().slice(0,190)||null:null;
   const workspaceId=typeof body?.workspaceId==="string"&&body.workspaceId.trim()?body.workspaceId.trim():null;
   const campaignId=typeof body?.campaignId==="string"&&body.campaignId.trim()?body.campaignId.trim():null;
