@@ -5,6 +5,9 @@ import { getOrCreateVisitor } from "@/lib/tracking";
 import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { runLeadCreatedAutomation } from "@/lib/automation";
+import type { RowDataPacket } from "mysql2/promise";
+
+type ResourceRow=RowDataPacket&{id:string;slug:string;title:string;download_url:string|null;category:string;intent:string};
 
 function clean(v:unknown,n=500){return typeof v==="string"?v.trim().slice(0,n):"";}
 export async function POST(request:Request){
@@ -12,7 +15,7 @@ export async function POST(request:Request){
   const body=await request.json(); const resourceId=clean(body.resourceId,36), slug=clean(body.resourceSlug,160), name=clean(body.name,160), contact=clean(body.contact,190), channel=clean(body.channel,20)||"WEB";
   if(!resourceId||!slug||!name||!contact)return NextResponse.json({error:"Name, contact and resource are required."},{status:400});
   if(!["WEB","WHATSAPP","TELEGRAM"].includes(channel))return NextResponse.json({error:"Unsupported delivery channel."},{status:400});
-  const [resources]=await db.query<any[]>("SELECT id,slug,title,download_url,category FROM resources WHERE id=? AND slug=? AND active=1 LIMIT 1",[resourceId,slug]);
+  const [resources]=await db.query<ResourceRow[]>("SELECT id,slug,title,download_url,category,intent FROM resources WHERE id=? AND slug=? AND active=1 LIMIT 1",[resourceId,slug]);
   const resource=resources[0]; if(!resource)return NextResponse.json({error:"Resource is unavailable."},{status:404});
   if(!resource.download_url)return NextResponse.json({error:"This resource is currently being prepared. Please use the preview or request implementation help."},{status:409});
   const visitorId=await getOrCreateVisitor();
