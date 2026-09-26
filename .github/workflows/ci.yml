@@ -47,7 +47,10 @@ jobs:
           RELEASE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+
           rm -rf emerald-deploy
+
+          # Fail here if Next did not produce the standalone runtime.
           test -d .next/standalone
           test -f .next/standalone/server.js
           test -d .next/standalone/.next
@@ -56,8 +59,20 @@ jobs:
           mkdir -p emerald-deploy
           cp -R .next/standalone/. emerald-deploy/
 
+          # Passenger starts server.js; keep Next's generated server separately.
           mv emerald-deploy/server.js emerald-deploy/next-server.js
-          printf '%s\n'             'const path = require("node:path");'             'const Module = require("node:module");'             ''             'const runtimeNodeModules = path.join(__dirname, "node_modules");'             'process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]'             '  .filter(Boolean)'             '  .join(path.delimiter);'             'Module._initPaths();'             ''             'require(path.join(__dirname, "next-server.js"));'             > emerald-deploy/server.js
+          cat > emerald-deploy/server.js <<'NODE'
+          const path = require("node:path");
+          const Module = require("node:module");
+
+          const runtimeNodeModules = path.join(__dirname, "node_modules");
+          process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]
+            .filter(Boolean)
+            .join(path.delimiter);
+          Module._initPaths();
+
+          require(path.join(__dirname, "next-server.js"));
+          NODE
 
           mkdir -p emerald-deploy/prisma emerald-deploy/.prisma-cli
           cp -R prisma/. emerald-deploy/prisma/
@@ -71,32 +86,16 @@ jobs:
           test -d emerald-deploy/public
           test -x emerald-deploy/.prisma-cli/node_modules/.bin/prisma
           test -d emerald-deploy/prisma/migrations
+          node --check emerald-deploy/server.js
+          node --check emerald-deploy/next-server.js
 
           tar -czf aslal-emerald-${RELEASE_SHA}.tar.gz -C emerald-deploy .
 
           echo "=== Emerald artifact manifest ==="
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -E '^(\\./)?(server\\.js|next-server\\.js|\\.next/|public/)' | head -80
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)server\\.js
-
-      - name: Upload Emerald deployment artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aslal-emerald-${{ github.sha }}
-          path: aslal-emerald-${{ github.sha }}.tar.gz
-          if-no-files-found: error
-          retention-days: 3
-
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)next-server\\.js
-
-      - name: Upload Emerald deployment artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aslal-emerald-${{ github.sha }}
-          path: aslal-emerald-${{ github.sha }}.tar.gz
-          if-no-files-found: error
-          retention-days: 3
-
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)\\.next/static/'
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -E '(^|/)(server\.js|next-server\.js|\.next/|public/)'
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)server\.js$'
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)next-server\.js$'
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)\.next/static/'
 
       - name: Upload Emerald deployment artifact
         uses: actions/upload-artifact@v4
