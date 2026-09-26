@@ -3,8 +3,9 @@ import { authorizePermission } from "@/lib/authorization";
 import { getWorkspaceForUser } from "@/lib/workspaces";
 import { db } from "@/lib/db";
 import { randomUUID } from "node:crypto";
+import type { RowDataPacket } from "mysql2";
 
-const TOTAL = 100;
+type PartnerProvisionRow = RowDataPacket & {\n  id: string;\n  partner_number: string;\n  workspace_id: string;\n  name: string;\n};\n\ntype ReferralProvisionRow = RowDataPacket & {\n  code: string;\n  partner_id: string;\n  workspace_id: string;\n};\n\nconst TOTAL = 100;
 const PREFIX = "ASL-P-";
 
 function partnerNumber(index: number) {
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
       await connection.beginTransaction();
 
       const [existingRows] = await connection.query<
-        Array<{ id: string; partner_number: string; workspace_id: string; name: string }>
+        PartnerProvisionRow[]
       >(
         `SELECT id, partner_number, workspace_id, name
          FROM partners
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
       }
 
       const [linkRows] = await connection.query<
-        Array<{ code: string; partner_id: string; workspace_id: string }>
+        ReferralProvisionRow[]
       >(
         `SELECT code, partner_id, workspace_id
          FROM referral_links
