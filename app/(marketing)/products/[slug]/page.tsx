@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { EventTracker } from "@/components/EventTracker";
 import type { Metadata } from "next";
-import { siteConfig } from "@/lib/config";
+import { ShareActions } from "@/components/ShareActions";
 
 export const revalidate = 60;
 
@@ -13,7 +13,7 @@ export async function generateMetadata({params}:{params:Promise<{slug:string}>})
   const {slug}=await params;
   const p=await prisma.product.findUnique({where:{slug},select:{name:true,tagline:true,shortDescription:true}});
   const title=p?.name ? `${p.name} | Aslal Digital Solutions` : "Product | Aslal Digital Solutions";
-  const description=p?.tagline||p?.shortDescription||"Explore this Aslal Digital Solutions product or service and request a quote, sample, or demo.";
+  const baseDescription=p?.tagline||p?.shortDescription||"Explore this Aslal Digital Solutions product or service.";\n  const description=`${baseDescription} Explore the offer, review what you get, and request a quote, sample, or demo from Aslal.`;
   const url=`https://aslaldigital.com/products/${encodeURIComponent(slug)}`;
   const image="https://aslaldigital.com/og/products.png";
   return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"website",siteName:"Aslal Digital Solutions",images:[{url,width:1200,height:630,alt:`${p?.name||"Aslal product"} — Aslal Digital Solutions`}],locale:"en_US"},twitter:{card:"summary_large_image",title,description,images:[image]}};
