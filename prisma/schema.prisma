@@ -522,6 +522,8 @@ model ReferralLink {
   createdAt        DateTime        @default(now()) @map("created_at") @db.DateTime(0)
   partner         Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   partnerCampaign PartnerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  leadAttributions LeadAttribution[]
+  resourceAttributions ResourceAttribution[]
   clicks          ReferralClick[]
   commissions     Commission[]
   orders          Order[]
@@ -1399,6 +1401,7 @@ model Workspace {
   campaignAssets CampaignAsset[]
   conversations Conversation[]
   telegramDestinations TelegramDestination[]
+  products Product[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
@@ -1513,7 +1516,7 @@ model PartnerCampaign {
   createdAt           DateTime             @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt           DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
   product             Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
-  resource            Resource?            @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+  resources           Resource[]
   partners            CampaignPartner[]
   referralLinks       ReferralLink[]
   assets              CampaignAsset[]
