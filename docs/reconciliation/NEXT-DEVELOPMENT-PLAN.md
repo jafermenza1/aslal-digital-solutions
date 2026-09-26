@@ -87,6 +87,30 @@ It is not yet the complete target-state Growth OS.
 
 ---
 
+## 2A. Q1 E2E Gap Reconciliation
+
+Before the Q1 acceptance matrix is executed, the current mainline must pass a code-level gap reconciliation against the complete commercial chain.
+
+The reconciliation record is `docs/qa/Q1-E2E-GAP-RECONCILIATION.md`.
+
+The required order is:
+
+**Financial state controls → attribution integrity → trusted workspace routing → duplicate-customer rules → audit coverage → representative partner fixture → manual typecheck/lint → behavioral Q1 acceptance evidence**
+
+No later gate is treated as accepted merely because these code changes exist.
+
+Current status on 2026-09-26:
+
+- Finance payment/commission/payout permissions: implemented.
+- Payment submission state control: implemented.
+- Lead attribution lock and audited override: implemented.
+- Arabic locale/RTL foundation: implemented.
+- Dispute commercial reassignment: remaining implementation gap.
+- Trusted public workspace routing: remaining implementation gap.
+- Duplicate-customer acceptance rules: remaining acceptance gap.
+- Financial/attribution/permission audit completeness: remaining implementation/evidence gap.
+- 100-partner fixture: remaining acceptance gap.
+
 ## 3. Immediate Gate — Production Integrity Closure
 
 This is the first task before meaningful automation or scale.
