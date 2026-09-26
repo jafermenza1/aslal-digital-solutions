@@ -162,3 +162,30 @@ This separation is required for the Q1 acceptance contract because the Gate 2 SL
 11. Run `npm run typecheck` and `npm run lint` and retain the results.
 
 Q1 acceptance remains **NOT ACCEPTED** until these behavioral records are retained.
+
+
+## Step 3 implementation progress — 2026-09-26
+
+**Step:** Three-anchor workspace/client boundary.
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+### Code changes
+
+- Added `app/dashboard/client/page.tsx` as a dedicated workspace-scoped client CRM surface.
+- CLIENT users are redirected from the generic dashboard to the dedicated surface.
+- The client surface queries only through an authorized workspace context and applies `workspaceId = access.workspace.id` to client-visible lead/customer/order/task/commission data.
+- CLIENT no longer receives `commerce.view`; order/payment visibility is presented through the controlled client surface instead of the broad operational Orders page.
+- Existing `authorizeWorkspacePermission` membership checks remain the server-side boundary for workspace selection.
+
+### Remaining behavioral evidence
+
+1. Create/configure three anchor workspaces A/B/C.
+2. Provision intended Finance, Sales, Auditor and Client users in each anchor.
+3. Verify Client A sees only A leads/customers/orders/tasks/commission data.
+4. Verify Client B and C similarly.
+5. Attempt direct cross-workspace dashboard/API access with A credentials against B and C IDs; expect denial/no data leakage.
+6. Execute existing Q1 negative tests for lead, quote, order, payment, customer, revenue, commission and payout paths.
+7. Verify client users cannot reach generic operational mutation surfaces.
+8. Retain screenshots/request-response/database evidence and local typecheck/lint results.
+
+Q1 remains **NOT ACCEPTED**.
