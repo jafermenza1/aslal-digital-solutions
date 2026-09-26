@@ -56,12 +56,14 @@ export async function POST(request: Request) {
   if (!name || !email || !password || !reason) return NextResponse.json({ error: "Name, email, password and reason are required." }, { status: 400 });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
   if (!Object.values(UserRole).includes(role)) return NextResponse.json({ error: "Invalid role." }, { status: 400 });
+  if ((role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN) && actor.role !== UserRole.ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only administrators can create administrator accounts." }, { status: 403 });
   if (role === UserRole.SUPER_ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only a super administrator can create another super administrator." }, { status: 403 });
   if (password.length < 10) return NextResponse.json({ error: "Password must contain at least 10 characters." }, { status: 400 });
   const workspace = await getWorkspaceForUser(actor, requestedWorkspaceId);
   if (!workspace) return NextResponse.json({ error: "Select a workspace you are authorized to manage." }, { status: 403 });
   const allowedWorkspaceRoles = new Set(["OWNER","ADMIN","MANAGER","SALES","FINANCE","AUDITOR","CLIENT","PARTNER","MEMBER"]);
   if (!allowedWorkspaceRoles.has(workspaceRole)) return NextResponse.json({ error: "Invalid workspace role." }, { status: 400 });
+  if ((workspaceRole === "OWNER" || workspaceRole === "ADMIN") && actor.role !== UserRole.ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only administrators can assign OWNER or ADMIN workspace roles." }, { status: 403 });
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id:true } });
   if (existing) return NextResponse.json({ error: "A user with that email already exists." }, { status: 409 });
