@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authorizePermission } from "@/lib/authorization";
+import { getWorkspaceForUser } from "@/lib/workspaces";
 
 export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){
  const actor=await authorizePermission("customers.view");
  if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
  const {id}=await params;
+ const access=await getWorkspaceForUser(actor,id);
+ if(!access)return NextResponse.json({error:"Workspace not found or not authorized."},{status:403});
  const [rows]=await db.query(
   `SELECT wu.id,wu.user_id,u.email,u.name,u.role,wu.role workspace_role
      FROM workspace_users wu JOIN users u ON u.id=wu.user_id
@@ -19,9 +22,13 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
  const {id}=await params;
  try{
+  const access=await getWorkspaceForUser(actor,id);
+  if(!access)return NextResponse.json({error:"Workspace not found or not authorized."},{status:403});
   const b=await request.json();
   const userId=String(b.userId??"").trim();
   const role=String(b.role??"MEMBER").trim().slice(0,80);
+  const allowedRoles=new Set(["OWNER","ADMIN","MANAGER","SALES","FINANCE","AUDITOR","CLIENT","PARTNER","MEMBER"]);
+  if(!allowedRoles.has(role))return NextResponse.json({error:"Invalid workspace role."},{status:400});
   if(!userId)return NextResponse.json({error:"userId is required."},{status:400});
   const [workspace]=await db.query<any[]>(`SELECT id FROM workspaces WHERE id=? AND active=1 LIMIT 1`,[id]);
   if(!workspace[0])return NextResponse.json({error:"Workspace not found."},{status:404});
