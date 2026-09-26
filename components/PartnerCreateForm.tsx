@@ -18,9 +18,10 @@ type PartnerCreateFormProps = {
   canIssueCredentials?: boolean;
   /** Backward-compatible admin gate used by the partner dashboard. */
   adminOnlyActions?: boolean;
+  workspaceId?: string;
 };
 
-export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false, adminOnlyActions }: PartnerCreateFormProps) {
+export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false, adminOnlyActions, workspaceId }: PartnerCreateFormProps) {
   const credentialsAllowed = adminOnlyActions ?? canIssueCredentials;
   const [open, setOpen] = useState(openInitially);
   const [busy, setBusy] = useState(false);
@@ -112,6 +113,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
           <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[2rem] bg-white p-7 shadow-2xl">
             {!created ? (
               <form onSubmit={submit}>
+                {workspaceId && <input type="hidden" name="workspaceId" value={workspaceId} />}
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Partner operations</div>
