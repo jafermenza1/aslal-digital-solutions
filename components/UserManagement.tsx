@@ -15,21 +15,21 @@ type UserRow = {
 const permissions = [
   "dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view",
   "conversations.view","conversations.send","conversations.manage","products.manage","content.manage",
-  "email_templates.manage","users.manage","partners.manage","partners.credentials","partner.portal.view","insights.view","operations.view",
+  "email_templates.manage","users.manage","partners.manage","partners.credentials","partner.portal.view","insights.view","operations.view","commerce.view","commerce.manage",
 ];
 
 const roleDefaults: Record<string, string[]> = {
   SUPER_ADMIN: permissions,
   ADMIN: permissions,
-  BUSINESS_OWNER: ["dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view","conversations.view","conversations.send","conversations.manage","products.manage","content.manage","email_templates.manage","users.manage","partners.manage","insights.view","operations.view"],
+  BUSINESS_OWNER: ["dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view","conversations.view","conversations.send","conversations.manage","products.manage","content.manage","email_templates.manage","users.manage","partners.manage","insights.view","operations.view","commerce.view","commerce.manage"],
   SALES_MANAGER: ["dashboard.view","leads.view","leads.create","leads.edit","customers.view","conversations.view","conversations.send","conversations.manage","insights.view","operations.view"],
   SALES_OPERATOR: ["dashboard.view","leads.view","leads.create","leads.edit","customers.view","conversations.view","conversations.send"],
   MARKETING_OPERATOR: ["dashboard.view","leads.view","customers.view","products.manage","email_templates.manage","insights.view"],
   PARTNER: ["dashboard.view","partner.portal.view"],
   PARTNER_MANAGER: ["dashboard.view","leads.view","customers.view","partners.manage","insights.view"],
   FINANCE: ["dashboard.view","customers.view","insights.view","commerce.view"],
-  AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view"],
-  CLIENT: ["dashboard.view","customers.view","insights.view"],
+  AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view","commerce.view"],
+  CLIENT: ["dashboard.view","customers.view","insights.view","commerce.view"],
 };
 
 type WorkspaceOption = { id: string; name: string; role?: string };
