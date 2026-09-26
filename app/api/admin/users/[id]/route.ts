@@ -41,6 +41,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!reason) return NextResponse.json({ error: "A reason is required for access changes." }, { status: 400 });
   if (!name || !email || !Object.values(UserRole).includes(role)) return NextResponse.json({ error: "Name, email and valid role are required." }, { status: 400 });
   if (target.role === UserRole.SUPER_ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only a super administrator can modify a super administrator." }, { status: 403 });
+  if (role !== target.role && actor.role !== UserRole.ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only administrators can change a user's account role." }, { status: 403 });
   if (role === UserRole.SUPER_ADMIN && actor.role !== UserRole.SUPER_ADMIN) return NextResponse.json({ error: "Only a super administrator can assign that role." }, { status: 403 });
   if (actor.id === target.id && !active) return NextResponse.json({ error: "You cannot disable your own account." }, { status: 400 });
   if (actor.id === target.id && role !== target.role) return NextResponse.json({ error: "You cannot change your own role." }, { status: 400 });
