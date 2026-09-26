@@ -27,34 +27,42 @@ const roleDefaults: Record<string, string[]> = {
   MARKETING_OPERATOR: ["dashboard.view","leads.view","customers.view","products.manage","email_templates.manage","insights.view"],
   PARTNER: ["dashboard.view","partner.portal.view"],
   PARTNER_MANAGER: ["dashboard.view","leads.view","customers.view","partners.manage","insights.view"],
+  FINANCE: ["dashboard.view","customers.view","insights.view","commerce.view"],
+  AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view"],
+  CLIENT: ["dashboard.view","customers.view","insights.view"],
 };
+
+type WorkspaceOption = { id: string; name: string; role?: string };
 
 type Draft = {
   id: string;
+  workspaceId: string;
   name: string;
   email: string;
   password: string;
   role: string;
   active: boolean;
   selected: string[];
+  workspaceRole: string;
   reason: string;
 };
 
-const emptyDraft = (): Draft => ({
+const emptyDraft = (workspaceId = ""): Draft => ({
   id: "", name: "", email: "", password: "", role: "SALES_OPERATOR", active: true,
-  selected: [...roleDefaults.SALES_OPERATOR], reason: "",
+  workspaceId, workspaceRole: "SALES", selected: [...roleDefaults.SALES_OPERATOR], reason: "",
 });
 
-export function UserManagement({ initial }: { initial: UserRow[] }) {
+export function UserManagement({ initial, workspaces }: { initial: UserRow[]; workspaces: WorkspaceOption[] }) {
   const [rows, setRows] = useState(initial);
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
-  const [draft, setDraft] = useState<Draft>(emptyDraft());
+  const [draft, setDraft] = useState<Draft>(emptyDraft(workspaces[0]?.id || ""));
 
   const edit = (user: UserRow) => {
     setDraft({
       id: user.id, name: user.name, email: user.email, password: "",
-      role: user.role, active: user.active, selected: user.permissions, reason: "",
+      role: user.role, active: user.active, workspaceId: workspaces[0]?.id || "", workspaceRole: user.role,
+      selected: user.permissions, reason: "",
     });
     setNotice("");
   };
@@ -78,6 +86,8 @@ export function UserManagement({ initial }: { initial: UserRow[] }) {
       active: draft.active,
       permissions: { grant, revoke },
       reason: draft.reason.trim(),
+      workspaceId: draft.workspaceId,
+      workspaceRole: draft.workspaceRole,
     };
 
     try {
@@ -94,7 +104,7 @@ export function UserManagement({ initial }: { initial: UserRow[] }) {
       setRows(current => draft.id
         ? current.map(row => row.id === draft.id ? data.user : row)
         : [data.user, ...current]);
-      setDraft(emptyDraft());
+      setDraft(emptyDraft(workspaces[0]?.id || ""));
       setNotice("User saved. Access changes are active for subsequent requests.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Unable to save user.");
@@ -143,6 +153,12 @@ export function UserManagement({ initial }: { initial: UserRow[] }) {
           <input required value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} placeholder="Full name" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
           <input required type="email" value={draft.email} onChange={event => setDraft({ ...draft, email: event.target.value })} placeholder="Email" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
           <input type="password" minLength={10} value={draft.password} onChange={event => setDraft({ ...draft, password: event.target.value })} placeholder={draft.id ? "New password (leave blank to keep)" : "Password · 10+ characters"} className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
+          <label className="text-sm font-bold text-white/70">Workspace<select required value={draft.workspaceId} onChange={event => setDraft({ ...draft, workspaceId: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white">
+            <option value="">Select workspace</option>{workspaces.map(workspace => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}
+          </select></label>
+          <label className="text-sm font-bold text-white/70">Workspace role<select required value={draft.workspaceRole} onChange={event => setDraft({ ...draft, workspaceRole: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white">
+            {["OWNER","ADMIN","MANAGER","SALES","FINANCE","AUDITOR","CLIENT","PARTNER","MEMBER"].map(role => <option key={role} value={role}>{role}</option>)}
+          </select></label>
           <select value={draft.role} onChange={event => {
             const role = event.target.value;
             setDraft({ ...draft, role, selected: [...(roleDefaults[role] || [])] });
@@ -155,6 +171,9 @@ export function UserManagement({ initial }: { initial: UserRow[] }) {
             <option value="MARKETING_OPERATOR">Marketing Operator</option>
             <option value="PARTNER_MANAGER">Partner Manager</option>
             <option value="PARTNER">Partner</option>
+            <option value="FINANCE">Finance</option>
+            <option value="AUDITOR">Auditor</option>
+            <option value="CLIENT">Client</option>
           </select>
           <label className="flex items-center gap-3 text-sm font-bold text-white/70">
             <input type="checkbox" checked={draft.active} onChange={event => setDraft({ ...draft, active: event.target.checked })} />

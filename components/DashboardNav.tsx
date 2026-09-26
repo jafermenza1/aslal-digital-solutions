@@ -38,6 +38,7 @@ const ITEMS:Item[]=[
 {key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"management",label:"Partner Marketplace",match:"/dashboard/partners?tab=engine"},
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"management"},
 {key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"management"},
+{key:"users",href:"/dashboard/workspaces",permission:"users.manage",icon:"users",group:"management",label:"Workspaces"},
 {key:"telegramSales",href:"/dashboard/telegram",permission:"leads.view",icon:"message",group:"management",label:"Telegram Sales"},
 {key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"management",nested:true},
 {key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"},

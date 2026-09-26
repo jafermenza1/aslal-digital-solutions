@@ -49,6 +49,9 @@ const sets: Record<UserRole, Permission[]> = {
     "dashboard.view","leads.view","customers.view","partners.manage","insights.view"
   ],
   PARTNER: ["dashboard.view","partner.portal.view"],
+  FINANCE: ["dashboard.view","customers.view","insights.view","commerce.view"],
+  AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view"],
+  CLIENT: ["dashboard.view","customers.view","insights.view"],
 };
 
 export function defaultPermissionsForRole(role: UserRole) {

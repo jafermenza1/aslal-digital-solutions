@@ -121,3 +121,59 @@ The authoritative implementation and scaling sequence is:
 Immediate sequence:
 
 **Production Integrity Closure → Phase 5 Sales Follow-up → Quote/Negotiation → Order/Payment → Revenue/Campaign Attribution → Partner/Influencer Commerce → Trust/Retention → End-to-End Verification → RBAC/Multi-Tenancy → Capacity Scaling → AI**
+
+## Gate 1 continuation — workspace administration and access contract
+
+**Branch:** gate-1-workspace-admin-contract  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Gate 1 was resumed from the Q1 API-gap audit without resetting or replacing the existing workspace/commercial implementation.
+
+Completed in this increment:
+- Added the explicit Finance, Auditor and Client account roles while preserving all existing roles.
+- Added least-privilege default permission sets for the three new roles.
+- Made user creation require an authorized workspace and persist workspace membership transactionally.
+- Added workspace administration UI for create, edit, activate/deactivate, member inspection and active-workspace selection.
+- Made workspace creation atomic with creator OWNER membership.
+- Added workspace lifecycle API and authorized active-workspace cookie context.
+- Bound workspace membership reads/writes to the target workspace authorization boundary.
+- Bound partner and referral-link creation to the active/selected workspace, removing the previous mandatory-workspace database failure path.
+- Added Gate 1 contract and acceptance matrix at docs/gates/GATE-1-WORKSPACE-ADMIN.md.
+
+Remaining evidence:
+- Execute the two-workspace behavioral acceptance with real Workspace A/B fixtures and authenticated sessions.
+- Verify Finance, Auditor, Client and Sales B end-to-end through UI/login/workspace assignment.
+- Verify Agent and Influencer creation end-to-end in separate workspaces.
+- Run authorized typecheck and lint.
+- Do not mark Gate 1 accepted from code existence alone.
+
+## Workflow suspension — cost-control state
+
+**Date:** 2026-09-26  
+**Branch:** `gate-1-workspace-admin-contract`
+
+All GitHub Actions workflows have been intentionally removed for the current development/gate cycle:
+
+- CI workflow removed.
+- Deployment workflow removed.
+- Production-integrity workflow removed.
+- Sales-automation workflow removed.
+
+This is a temporary execution-policy change, not a product-architecture change. Existing application code, Q1 contracts, Gate 1 implementation, and deployment configuration outside `.github/workflows/` are preserved.
+
+### Current validation policy
+
+Until the final gate explicitly restores automation:
+
+- **No GitHub Actions workflow runs.**
+- **No production build in CI.**
+- **No deployment from GitHub Actions.**
+- **No production-integrity automation.**
+- **No sales-automation workflow execution.**
+- Validation is manual/local and limited to:
+  1. `npm run typecheck`
+  2. `npm run lint`
+
+Build/deployment validation will be restored only at the final gate when the complete acceptance contract is ready.
+
+Gate 1 acceptance remains behavioral and contract-based; removing Actions does not mark any acceptance scenario as passed.
