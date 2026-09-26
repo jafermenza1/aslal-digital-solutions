@@ -128,7 +128,12 @@ Therefore the remaining Step 1 gap is not absence of all payment UI; it is the m
 The Q1 acceptance state remains **NOT ACCEPTED**. This correction changes implementation planning only; it does not provide behavioral acceptance evidence.
 
 
-## Step 1 implementation progress — 2026-09-26
+## 
+
+### UI/Prisma alignment review — 2026-09-26
+
+The current payment/revenue/commission Prisma model remains aligned with the Q1 lifecycle: `Payment` records remain PENDING until Finance confirmation, reconciliation evidence is persisted, `Revenue` is linked to the reconciled payment, and `Commission` is linked to revenue/payment/order. The Orders UI now records payments as PENDING and displays reconciliation history only; receipt matching, collection confirmation and reconciliation are owned by the Finance workbench. No Prisma schema change is required for this UI alignment pass. Behavioral database migration/production-schema verification remains an acceptance task.
+Step 1 implementation progress — 2026-09-26
 
 Step 1 implementation closed the previously identified UI/API mismatch. The Orders UI no longer attempts direct payment confirmation. Finance now has a dedicated reconciliation workbench backed by a workspace-scoped queue. The remaining Step 1 work is validation: typecheck, lint, and controlled payment lifecycle evidence.
 
