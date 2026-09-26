@@ -28,20 +28,23 @@ export async function POST(request:Request){
   const requestId=randomUUID();
   await db.query("INSERT INTO resource_requests (id,resource_id,lead_id,visitor_id,channel,contact_value,status,score_points,follow_up_due_at) VALUES (?,?,?,?,?,?,?,?,DATE_ADD(NOW(),INTERVAL 5 MINUTE))",[requestId,resourceId,leadId,visitorId,channel,contact,"REQUESTED",scorePoints]);
   await db.execute("INSERT INTO events (visitor_id,event_name,page_path,product_slug,metadata) VALUES (?,?,?,?,?)",[visitorId,"RESOURCE_DOWNLOAD",`/resources/${resource.slug}`,resource.slug,JSON.stringify({resourceId,category:resource.category,channel,requestId})]);
-  let leadScore:number|null=null;\n  if(leadId){try{const score=await recalculateLeadScore(leadId);leadScore=score.score;await runLeadCreatedAutomation(leadId);}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
+  let leadScore:number|null=null;
+  if(leadId){try{const score=await recalculateLeadScore(leadId);leadScore=score.score;await runLeadCreatedAutomation(leadId);}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
   let deliveryMessage="Your resource is ready.";
   const downloadUrl=new URL(resource.download_url,origin).toString();
   if(channel==="WHATSAPP"){
     const token=process.env.WHATSAPP_ACCESS_TOKEN, phoneId=process.env.WHATSAPP_PHONE_NUMBER_ID;
     if(token&&phoneId&&phone){
-      const r=await fetch(`https://graph.facebook.com/v22.0/${phoneId}/messages`,{method:"POST",headers:{"Authorization":`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({messaging_product:"whatsapp",to:phone.replace(/^\+/,""),type:"text",text:{body:`Aslal resource: ${resource.title}\n${downloadUrl}`}})});
+      const r=await fetch(`https://graph.facebook.com/v22.0/${phoneId}/messages`,{method:"POST",headers:{"Authorization":`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({messaging_product:"whatsapp",to:phone.replace(/^\+/,""),type:"text",text:{body:`Aslal resource: ${resource.title}
+${downloadUrl}`}})});
       if(r.ok){await db.query("UPDATE resource_requests SET status='DELIVERED' WHERE id=?",[requestId]);deliveryMessage="The resource link was sent to WhatsApp.";}else deliveryMessage="The request was recorded. WhatsApp delivery is not currently available, so download it below.";
     } else deliveryMessage="The request was recorded. WhatsApp delivery is not configured, so download it below.";
   } else if(channel==="TELEGRAM"){
     const token=process.env.TELEGRAM_BOT_TOKEN;
     const chatId=/^-?\d+$/.test(contact)?contact:"";
     if(token&&chatId){
-      const r=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:chatId,text:`Aslal resource: ${resource.title}\n${downloadUrl}`,disable_web_page_preview:true})});
+      const r=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:chatId,text:`Aslal resource: ${resource.title}
+${downloadUrl}`,disable_web_page_preview:true})});
       if(r.ok){await db.query("UPDATE resource_requests SET status='DELIVERED' WHERE id=?",[requestId]);deliveryMessage="The resource link was sent to Telegram.";}else deliveryMessage="The request was recorded. Telegram delivery is not available for this contact, so download it below.";
     } else deliveryMessage="The request was recorded. Connect your Telegram chat to receive automated delivery.";
   }
