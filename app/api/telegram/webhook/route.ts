@@ -51,7 +51,7 @@ async function savePublicState(workspaceId:string,userId:string,state:string,sta
 async function qualification(chatId:string,workspaceId:string,user:any,stepId?:string){
   const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow:[];
   if(!cfg?.qualificationEnabled||!flow.length)return reply(chatId,"Qualification is not configured yet. Use Catalog or Talk to Agent.");
-  const session=await publicSession(workspaceId,user,chatId); const current=stepId||String(session.stateData?.currentStep||flow[0]?.id||"");
+  const session=await publicSession(workspaceId,user,chatId); const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{}); const current=stepId||String(stateData.currentStep||flow[0]?.id||"");
   const step=flow.find((x:any)=>x?.id===current); if(!step)return reply(chatId,"Qualification is complete. A sales agent can continue with you.");
   await savePublicState(workspaceId,String(user?.id||chatId),"QUALIFYING",{...(session.stateData||{}),currentStep:step.id});
   return tg("sendMessage",{chat_id:chatId,text:String(step.question||"Please choose:"),reply_markup:{inline_keyboard:(Array.isArray(step.options)?step.options:[]).map((o:any)=>[{text:String(o.label),callback_data:"public:answer:"+workspaceId+":"+step.id+":"+String(o.value)}])}});
@@ -68,7 +68,7 @@ async function ensurePublicLead(workspaceId:string,user:any,chatId:string,stateD
 }
 async function handoffPublic(chatId:string,workspaceId:string,user:any){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled)return reply(chatId,"Human support is currently unavailable.");
-  const session=await publicSession(workspaceId,user,chatId); const data=session.state_data||session.stateData||{};
+  const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
   const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
   await db.query("UPDATE telegram_public_sessions SET state='SUPPORT_REQUESTED',support_requested_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[workspaceId,String(user?.id||chatId)]);
   if(cfg.handoffChatId)await reply(String(cfg.handoffChatId),"🔔 New public Telegram support request\nLead: "+leadId+"\nUser: "+([user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user")+"\nPhone: "+(data.phone||"not provided")+"\nAnswers: "+JSON.stringify(data));
@@ -205,7 +205,7 @@ async function handle(update:TelegramUpdate){
     if(parts[0]==="public"&&parts[1]==="agent")return handoffPublic(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="qualify")return qualification(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="answer"){
-      const stepId=parts[3],value=parts.slice(4).join(":"); const session=await publicSession(workspaceId,user,chatId); const stateData={...(session.state_data||{}),[stepId]:value};
+      const stepId=parts[3],value=parts.slice(4).join(":"); const session=await publicSession(workspaceId,user,chatId); const prior=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{}); const stateData={...prior,[stepId]:value};
       const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow:[]; const step=flow.find((x:any)=>x?.id===stepId); const option=step?.options?.find((x:any)=>String(x.value)===value); const next=option?.next;
       await savePublicState(workspaceId,String(user?.id||chatId),next?"QUALIFYING":"QUALIFIED",{...stateData,currentStep:next||null});
       if(next)return qualification(chatId,workspaceId,user,String(next));
@@ -242,7 +242,7 @@ async function handle(update:TelegramUpdate){
     const p=await partnerForChat(chatId);
     if(p)return catalog(chatId,p.workspace_id);
     const defaultWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"").trim();
-    if(defaultWorkspaceId)return catalog(chatId,defaultWorkspaceId);
+    if(defaultWorkspaceId){const cfg=await getTelegramChannelConfig(defaultWorkspaceId);if(cfg?.publicEnabled&&cfg.allowAnonymousUsers)return publicMenu(chatId,defaultWorkspaceId);return catalog(chatId,defaultWorkspaceId);}
     return reply(chatId,"Welcome to Aslal. Use the workspace connection link provided by Aslal to open the correct catalog.");
   }
 
@@ -254,7 +254,7 @@ async function handle(update:TelegramUpdate){
         if(await keywordResponse(chatId,workspaceId,input))return;
         const session=await publicSession(workspaceId,m.from||{},chatId);
         if(session.state==="SUPPORT_REQUESTED")return handoffPublic(chatId,workspaceId,m.from||{});
-        if(session.state==="QUALIFYING")return qualification(chatId,workspaceId,m.from||{},String(session.state_data?.currentStep||""));
+        if(session.state==="QUALIFYING")return qualification(chatId,workspaceId,m.from||{},String((typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):session.state_data||{}).currentStep||""));
         return publicMenu(chatId,workspaceId);
       }
     }
