@@ -9,7 +9,7 @@ type ContactFormProps = {
   initialProduct?: string;
   initialProductId?: string;
   initialReferralCode?: string;
-  initialReferralName?: string;
+  initialReferralName?: string;\n  initialTeam?: string;
   products?: Array<{ id: string; slug: string; name: string }>;
 };
 
@@ -17,7 +17,7 @@ type FieldErrors = Partial<Record<"name"|"email"|"phone"|"businessType"|"message
 
 export function ContactForm({
   initialBusiness = "", initialGoal = "", initialChannels = "", initialProduct = "", initialProductId = "",
-  initialReferralCode = "", initialReferralName = "", products = [],
+  initialReferralCode = "", initialReferralName = "", initialTeam = "", products = [],
 }: ContactFormProps) {
   const [status, setStatus] = useState<"idle"|"success"|"error">("idle");
   const [message, setMessage] = useState("");
@@ -97,8 +97,8 @@ export function ContactForm({
 
   return <form onSubmit={submit} noValidate className="grid gap-4">
     <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden"><label htmlFor="website">Website</label><input id="website" name="website" tabIndex={-1} autoComplete="off" /></div>
-    <input type="hidden" name="growthGoal" value={initialGoal} /><input type="hidden" name="growthChannels" value={initialChannels} /><input type="hidden" name="referralCode" value={initialReferralCode} /><input type="hidden" name="productId" value={initialProductId} />
-    {initialGoal && <div className="rounded-2xl border border-[#E2B02A]/30 bg-[#E2B02A]/10 p-5 text-sm text-[#1E293B]"><div className="text-xs font-black uppercase tracking-[.16em] text-[#0F3E8A]">Growth Builder demand</div><div className="mt-3 font-black">{initialGoal}</div>{initialChannels && <div className="mt-1 text-slate-600">Channels: {initialChannels}</div>}</div>}
+    <input type="hidden" name="growthGoal" value={initialGoal} /><input type="hidden" name="teamMember" value={initialTeam} /><input type="hidden" name="growthChannels" value={initialChannels} /><input type="hidden" name="referralCode" value={initialReferralCode} /><input type="hidden" name="productId" value={initialProductId} />
+    {initialTeam && <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700"><span className="font-black text-[#0F3E8A]">Consultation with:</span> {initialTeam}</div>}{initialGoal && <div className="rounded-2xl border border-[#E2B02A]/30 bg-[#E2B02A]/10 p-5 text-sm text-[#1E293B]"><div className="text-xs font-black uppercase tracking-[.16em] text-[#0F3E8A]">Growth Builder demand</div><div className="mt-3 font-black">{initialGoal}</div>{initialChannels && <div className="mt-1 text-slate-600">Channels: {initialChannels}</div>}</div>}
     {initialReferralName && <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700"><span className="font-black text-[#0F3E8A]">Referral:</span> {initialReferralName}{initialReferralCode ? <> · {initialReferralCode}</> : ""}</div>}
     <div className="grid gap-4 sm:grid-cols-2">
       <Field id="name" label="Your name" name="name" required error={errors.name} />
