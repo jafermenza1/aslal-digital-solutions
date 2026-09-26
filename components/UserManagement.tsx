@@ -47,7 +47,12 @@ type Draft = {
   reason: string;
 };
 
-function workspaceRoleForAccountRole(role: string) {\n  const map: Record<string, string> = { SUPER_ADMIN: "ADMIN", ADMIN: "ADMIN", BUSINESS_OWNER: "MANAGER", SALES_MANAGER: "MANAGER", SALES_OPERATOR: "SALES", MARKETING_OPERATOR: "MANAGER", PARTNER_MANAGER: "MANAGER", PARTNER: "PARTNER", FINANCE: "FINANCE", AUDITOR: "AUDITOR", CLIENT: "CLIENT" };\n  return map[role] || "MEMBER";\n}\n\nconst emptyDraft = (workspaceId = ""): Draft => ({
+function workspaceRoleForAccountRole(role: string) {
+  const map: Record<string, string> = { SUPER_ADMIN: "ADMIN", ADMIN: "ADMIN", BUSINESS_OWNER: "MANAGER", SALES_MANAGER: "MANAGER", SALES_OPERATOR: "SALES", MARKETING_OPERATOR: "MANAGER", PARTNER_MANAGER: "MANAGER", PARTNER: "PARTNER", FINANCE: "FINANCE", AUDITOR: "AUDITOR", CLIENT: "CLIENT" };
+  return map[role] || "MEMBER";
+}
+
+const emptyDraft = (workspaceId = ""): Draft => ({
   id: "", name: "", email: "", password: "", role: "SALES_OPERATOR", active: true,
   workspaceId, workspaceRole: "SALES", selected: [...roleDefaults.SALES_OPERATOR], reason: "",
 });
