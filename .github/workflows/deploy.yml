@@ -131,10 +131,17 @@ jobs:
           mkdir -p "$RELEASE_PATH"
           tar -xzf "$ARCHIVE" -C "$RELEASE_PATH"
 
+          # CI flattens Next's standalone bundle into the release root.
+          # Both the Passenger launcher and the renamed Next server must exist.
           test -f "$RELEASE_PATH/server.js"
+          test -f "$RELEASE_PATH/next-server.js"
           test -f "$RELEASE_PATH/package.json"
+          test -d "$RELEASE_PATH/.next"
           test -d "$RELEASE_PATH/.next/static"
+          test -f "$RELEASE_PATH/.next/BUILD_ID"
           test -d "$RELEASE_PATH/public"
+          node --check "$RELEASE_PATH/server.js"
+          node --check "$RELEASE_PATH/next-server.js"
           test -x "$RELEASE_PATH/.prisma-cli/node_modules/.bin/prisma"
 
           if [ -f "$APP_PATH/.env" ]; then
@@ -149,15 +156,16 @@ jobs:
           rm -rf "$BACKUP_PATH"
           mkdir -p "$BACKUP_PATH"
 
-          for item in server.js package.json node_modules .next public; do
+          for item in server.js next-server.js package.json node_modules .next public; do
             if [ -e "$APP_PATH/$item" ]; then
               cp -a "$APP_PATH/$item" "$BACKUP_PATH/$item"
             fi
           done
 
-          rm -rf             "$APP_PATH/.next"             "$APP_PATH/node_modules"             "$APP_PATH/public"             "$APP_PATH/server.js"             "$APP_PATH/package.json"
+          rm -rf             "$APP_PATH/.next"             "$APP_PATH/node_modules"             "$APP_PATH/public"             "$APP_PATH/server.js"             "$APP_PATH/next-server.js"             "$APP_PATH/package.json"
 
           cp -a "$RELEASE_PATH/server.js" "$APP_PATH/server.js"
+          cp -a "$RELEASE_PATH/next-server.js" "$APP_PATH/next-server.js"
           cp -a "$RELEASE_PATH/package.json" "$APP_PATH/package.json"
           cp -a "$RELEASE_PATH/node_modules" "$APP_PATH/node_modules"
           cp -a "$RELEASE_PATH/.next" "$APP_PATH/.next"
@@ -167,7 +175,12 @@ jobs:
           touch "$APP_PATH/tmp/restart.txt"
 
           test -f "$APP_PATH/server.js"
+          test -f "$APP_PATH/next-server.js"
+          test -d "$APP_PATH/.next"
           test -d "$APP_PATH/.next/static"
+          test -f "$APP_PATH/.next/BUILD_ID"
+          node --check "$APP_PATH/server.js"
+          node --check "$APP_PATH/next-server.js"
 
           rm -f "$ARCHIVE"
 
