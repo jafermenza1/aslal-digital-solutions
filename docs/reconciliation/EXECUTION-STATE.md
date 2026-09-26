@@ -219,3 +219,30 @@ The Gate 2 owner-assignment path was hardened so automated owner selection is co
 The durable workflow engine, high-intent triage, overdue reminder, idempotency keys, retry controls, cancellation hooks and protected scheduler endpoint remain implemented. Behavioral acceptance is still pending and must be performed without restoring GitHub Actions.
 
 **Gate 2 acceptance remains pending:** scheduler/manual invocation, completed execution, idempotency, overdue deduplication, reply cancellation, WON/LOST cancellation, retry/stale recovery, no recent failed/stuck executions, operator visibility, and local typecheck/lint evidence.
+
+
+## Q1 acceptance blocker closure — 2026-09-26
+
+The remaining pre-acceptance code blockers identified during the current-main audit were closed without expanding Q1 scope:
+
+- Finance now has the `commerce.manage` permission required by payment/reconciliation mutation APIs, plus `operations.view` for the financial operating surface.
+- Commission operations UI no longer offers the invalid `PAYABLE → PAID` transition. PAID remains payout-controlled; PAYABLE can only move to VOID from the commission state endpoint.
+- User provisioning now prevents non-administrators from creating ADMIN/SUPER_ADMIN accounts.
+- User provisioning now prevents non-administrators from assigning OWNER/ADMIN workspace roles.
+- Existing-user account-role escalation is blocked for non-administrators.
+- Partner creation now returns more actionable conflict/constraint errors instead of collapsing all such failures to the generic partner-creation message.
+
+These changes close the identified **code-level** acceptance blockers. They do not constitute acceptance evidence.
+
+### Next Q1 action
+
+Run the controlled two-workspace Q1 acceptance fixture:
+
+`Workspace A + Workspace B → Client/Finance/Auditor/Sales users → Agent/Influencer → cross-workspace negative tests → Lead → Customer → Quote → Order → Payment → Reconciliation → Revenue → Commission → Payout → Refund/Dispute/attribution checks`.
+
+Validation remains local/manual under the current no-Actions policy:
+
+`npm run typecheck`
+`npm run lint`
+
+Gate acceptance must wait for behavioral evidence.
