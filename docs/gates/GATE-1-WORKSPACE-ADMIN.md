@@ -1,8 +1,10 @@
 # Gate 1 — Workspace Administration and Access Contract
 
 **Task:** Gate 1 continuation from the Q1 API-gap audit  
-**Branch:** gate-1-workspace-admin-contract  
-**Status:** IMPLEMENTED — VERIFICATION PENDING  
+**Mainline:** `main`  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+**Canonical branch:** `main` (the implementation branch was merged; the feature branch has been deleted).  
 **Contract rule:** implementation must satisfy the documented contract; code/UI existence is not acceptance evidence.
 
 ## Contract
