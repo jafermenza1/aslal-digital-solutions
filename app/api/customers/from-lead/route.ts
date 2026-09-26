@@ -20,6 +20,20 @@ export async function POST(request: NextRequest) {
   if (lead.status !== "WON") return NextResponse.json({ error: "Only a verified WON lead can become a customer." }, { status: 409 });
   if (!lead.dealValue || Number(lead.dealValue) <= 0) return NextResponse.json({ error: "A positive deal value is required." }, { status: 409 });
 
+  const duplicateCustomer = await prisma.customer.findFirst({
+    where: {
+      workspaceId: access.workspace.id,
+      OR: [
+        ...(lead.email ? [{ email: lead.email }] : []),
+        ...(lead.phone ? [{ phone: lead.phone }] : []),
+      ],
+    },
+    select: { id: true },
+  });
+  if (duplicateCustomer) {
+    return NextResponse.json({ ok: true, customerId: duplicateCustomer.id, created: false, duplicate: true });
+  }
+
   const result = await prisma.$transaction(async (tx) => {
     let person = lead.personId ? await tx.person.findUnique({ where: { id: lead.personId } }) : null;
 
