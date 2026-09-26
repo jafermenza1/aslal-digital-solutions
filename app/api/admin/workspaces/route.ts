@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
 
 export async function GET(){
- const user=await authorizePermission("customers.view");
+ const user=await authorizePermission("users.manage");
  if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
  const [rows]=await db.query(
   user.role==="ADMIN"||user.role==="SUPER_ADMIN"
@@ -19,7 +19,7 @@ export async function GET(){
 }
 
 export async function POST(request:Request){
- const user=await authorizePermission("customers.view");
+ const user=await authorizePermission("users.manage");
  if(!user || (user.role!=="ADMIN"&&user.role!=="SUPER_ADMIN"))return NextResponse.json({error:"Only administrators can create client workspaces."},{status:403});
  try{
   const b=await request.json();
