@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { authorizePermission } from "@/lib/authorization";
 import { ProductKind, ProductRelationship } from "@prisma/client";
 import { randomUUID } from "node:crypto";
+import { INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
 
 const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):"";
 const slugify=(value:string)=>value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,160);
@@ -45,7 +46,7 @@ export async function POST(request:Request){
  let finalSlug=p.slug;
  let suffix=2;
  while(await prisma.product.findUnique({where:{slug:finalSlug},select:{id:true}})){finalSlug=`${p.slug}-${suffix++}`.slice(0,160);}
- const product=await prisma.product.create({data:{id:randomUUID(),...p,slug:finalSlug}});
+ const product=await prisma.product.create({data:{id:randomUUID(),...p,slug:finalSlug,workspaceId:INTERNAL_WORKSPACE_ID}});
  revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
 }
