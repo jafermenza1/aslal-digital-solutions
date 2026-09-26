@@ -40,6 +40,13 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
+      - name: Remove non-deployable Next.js build cache
+        run: |
+          set -euo pipefail
+          # .next/cache is generated build state and is not required at runtime.
+          # Keeping it out of the deploy branch avoids GitHub's 100 MB file limit.
+          rm -rf .next/cache
+
       - name: Publish production build to deploy branch
         run: |
           set -euo pipefail
@@ -47,8 +54,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Keep source files on main untouched; only the generated .next output
-          # is force-added to the deployment branch.
+          # Publish the runtime build only. The source tree on main remains unchanged.
           git add -f .next
 
           if git diff --cached --quiet; then
