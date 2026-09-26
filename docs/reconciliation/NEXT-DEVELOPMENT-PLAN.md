@@ -1382,3 +1382,124 @@ The final system must allow a business to answer, from one connected commercial 
 **Did the customer later return or refer someone else?**
 
 That is the complete Growth OS.
+
+
+---
+
+# Q1 Operational Blocker Closure Program — 2026-09-26
+
+This section is the active implementation plan for closing the remaining Month 1–3 operational blockers before Q1 behavioral acceptance. It does not create a second roadmap; it is a controlled execution program inside this canonical roadmap.
+
+## Closure order
+
+### Step 1 — Manual payment reconciliation workbench
+**Status: STARTING — code/UI reconciliation required**
+
+Current evidence shows an Orders workspace already contains payment/reconciliation controls and the payment API now correctly rejects direct CONFIRMED submission. However, the UI still submits a CONFIRMED payment and therefore conflicts with the hardened API. The Finance page exposes commission/payout controls but not the payment review queue.
+
+**Implementation sequence**
+1. Make payment capture create PENDING only.
+2. Move confirmation/reconciliation authority into a Finance-controlled review surface.
+3. Expose order/payment queue filtered by active workspace.
+4. Require provider, method, amount, provider transaction reference where available, evidence reference, verification notes and exception reason.
+5. Confirm payment only through the authorized transition path.
+6. Reconcile only a confirmed payment with evidence.
+7. Preserve verifier, timestamp and activity/audit evidence.
+8. Prevent duplicate/idempotent payment creation and overpayment.
+9. Verify revenue and commission are created only after reconciliation.
+10. Verify reversal/refund removes recognized revenue and voids commission without deleting history.
+
+**Exit gate:** one controlled order can move PENDING → CONFIRMED → RECONCILED → REVENUE → COMMISSION through the Finance workbench, with retained evidence and no cross-workspace access.
+
+### Step 2 — Sales SLA scheduler and notification safety
+**Status: IMPLEMENTED FOUNDATION — ACCEPTANCE BLOCKED**
+
+The protected /api/cron/sales-automation endpoint exists and calls the scheduler plus Telegram follow-up processing. No GitHub Actions scheduler will be restored.
+
+**Implementation sequence**
+1. Verify runScheduledAutomation() finds eligible overdue/high-intent executions.
+2. Prove idempotency for repeated scheduler calls.
+3. Prove bounded retry/stale recovery.
+4. Prove reply/WON/LOST cancellation.
+5. Keep internal reminder behavior distinct from customer messaging.
+6. Add provider-backed SMS/Telegram SLA notification only if the pilot requires it; make delivery idempotent and auditable.
+7. Retain scheduler request/response and execution records as evidence.
+
+**Exit gate:** repeated protected scheduler runs produce no duplicate work and all stop conditions are proven.
+
+### Step 3 — Three-anchor workspace/client boundary
+**Status: FOUNDATION — IMPLEMENTATION/ACCEPTANCE REQUIRED**
+
+1. Create three isolated pilot workspaces.
+2. Create Finance/Sales/Auditor/Client users in each intended workspace.
+3. Prove every client-visible lead/customer/order/payment/commission/report query is workspace-scoped.
+4. Build/complete a client CRM surface showing only that client's pipeline, assigned leads and rep tasks.
+5. Prove negative cross-workspace access for direct routes and APIs.
+6. Keep shared SaaS exposure blocked until this gate passes.
+
+**Exit gate:** three anchor fixtures can operate independently without cross-workspace data visibility.
+
+### Step 4 — 100-agent provisioning and identity
+**Status: PARTIAL — IMPLEMENTATION REQUIRED**
+
+1. Add deterministic bulk onboarding for 100 vetted test/pilot partners.
+2. Reconcile the requested display convention ASL-P-0001 through ASL-P-0100 without silently rewriting historical IDs.
+3. Generate unique referral links and QR badges.
+4. Verify workspace ownership and partner status.
+5. Produce a retained cohort manifest.
+
+**Exit gate:** 100 unique partners, IDs, links and badges are generated and workspace-safe.
+
+### Step 5 — Attribution policy and retention
+**Status: PARTIAL — POLICY + IMPLEMENTATION REQUIRED**
+
+1. Document first-touch and last-touch semantics.
+2. Define when attribution locks.
+3. Define authorized override reasons and audit fields.
+4. Define the 30-day referral click/cookie/link retention window.
+5. Define expiry behavior and what happens after expiry.
+6. Test competing-agent attribution and dispute reassignment.
+7. Prove atomic rollback on failed dispute resolution.
+
+**Exit gate:** attribution is deterministic, auditable and recoverable across the defined 30-day window.
+
+### Step 6 — Client audit/reporting and campaign distribution
+**Status: PARTIAL**
+
+1. Add a repeatable weekly client pipeline audit view/export.
+2. Complete campaign asset publishing/distribution acceptance.
+3. Preserve campaign → asset → referral/visitor → lead lineage.
+4. Verify partner-facing material visibility is limited to published assets in the correct workspace.
+
+**Exit gate:** an operator can produce the same weekly pipeline/audit evidence without manual copying across systems.
+
+### Step 7 — Operational SOP and evidence pack
+**Status: OPEN**
+
+Create and retain operator procedures for:
+- disputed attribution;
+- cancelled/refunded orders;
+- merchant invoice issuance/allocation/payment collection;
+- payout batch preparation and external money movement;
+- receipt verification and exception handling.
+
+**Exit gate:** each SOP maps to a system control, actor, evidence record and recovery path.
+
+### Step 8 — Final Q1 behavioral acceptance
+**Status: BLOCKED until Steps 1–7 exit**
+
+Run the controlled two/three-workspace matrix:
+Lead → Qualification → Follow-up → Customer → Quote → Order → PENDING Payment → Finance confirmation → Reconciliation → Revenue → Commission → Payout, plus partner attribution, dispute/refund, audit, mobile and localization checks.
+
+Only retained behavioral evidence may move Q1 from NOT ACCEPTED to accepted.
+
+## Working rule
+
+After each step:
+1. inspect current mainline;
+2. implement only the gap for that step;
+3. run the allowed local checks (npm run typecheck, npm run lint) when code changes are made;
+4. update this plan, Q1-OPERATION-PLAN-RECONCILIATION.md, Q1-E2E-GAP-RECONCILIATION.md and execution state with exact evidence;
+5. do not advance the next step merely because code exists.
+
+GitHub Actions remain disabled during this program.
