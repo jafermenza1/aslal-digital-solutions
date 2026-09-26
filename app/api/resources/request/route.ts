@@ -16,12 +16,15 @@ function clean(v:unknown,n=500){return typeof v==="string"?v.trim().slice(0,n):"
 export async function POST(request:Request){
  try{
   const body=await request.json(); const resourceId=clean(body.resourceId,36), slug=clean(body.resourceSlug,160), name=clean(body.name,160), contact=clean(body.contact,190), channel=clean(body.channel,20)||"WEB";
-  let attribution:AttributionInput={}; if(typeof body.attribution==="string"){try{attribution=JSON.parse(body.attribution) as AttributionInput;}catch{}}\n  if(!resourceId||!slug||!name||!contact)return NextResponse.json({error:"Name, contact and resource are required."},{status:400});
+  let attribution:AttributionInput={}; if(typeof body.attribution==="string"){try{attribution=JSON.parse(body.attribution) as AttributionInput;}catch{}}
+  if(!resourceId||!slug||!name||!contact)return NextResponse.json({error:"Name, contact and resource are required."},{status:400});
   if(!["WEB","WHATSAPP","TELEGRAM"].includes(channel))return NextResponse.json({error:"Unsupported delivery channel."},{status:400});
   const [resources]=await db.query<ResourceRow[]>("SELECT id,slug,title,download_url,category,intent FROM resources WHERE id=? AND slug=? AND active=1 LIMIT 1",[resourceId,slug]);
   const resource=resources[0]; if(!resource)return NextResponse.json({error:"Resource is unavailable."},{status:404});
   if(!resource.download_url)return NextResponse.json({error:"This resource is currently being prepared. Please use the preview or request implementation help."},{status:409});
-  const visitorId=await getOrCreateVisitor();\n  const workspaceId=resolvePublicWorkspaceId(request.headers.get("host"));\n  const referralCode=typeof attribution.referralCode==="string"?attribution.referralCode:await getReferralCode();
+  const visitorId=await getOrCreateVisitor();
+  const workspaceId=resolvePublicWorkspaceId(request.headers.get("host"));
+  const referralCode=typeof attribution.referralCode==="string"?attribution.referralCode:await getReferralCode();
   const phone=normalizeEthiopianPhone(contact);
   const email=contact.includes("@")?contact.toLowerCase():null;
   const origin=new URL(request.url).origin;
@@ -32,7 +35,8 @@ export async function POST(request:Request){
   const leadId=leadData.leadId||null;
   const scorePoints=resource.category==="tool"?20:10;
   const requestId=randomUUID();
-  await db.query("INSERT INTO resource_requests (id,resource_id,lead_id,visitor_id,channel,contact_value,status,score_points,follow_up_due_at) VALUES (?,?,?,?,?,?,?,?,DATE_ADD(NOW(),INTERVAL 5 MINUTE))",[requestId,resourceId,leadId,visitorId,channel,contact,"REQUESTED",scorePoints]);\n  try{await recordResourceAttribution({resourceRequestId:requestId,workspaceId,attribution,referralCode});}catch(error){console.error("RESOURCE_ATTRIBUTION_ERROR",error);}
+  await db.query("INSERT INTO resource_requests (id,resource_id,lead_id,visitor_id,channel,contact_value,status,score_points,follow_up_due_at) VALUES (?,?,?,?,?,?,?,?,DATE_ADD(NOW(),INTERVAL 5 MINUTE))",[requestId,resourceId,leadId,visitorId,channel,contact,"REQUESTED",scorePoints]);
+  try{await recordResourceAttribution({resourceRequestId:requestId,workspaceId,attribution,referralCode});}catch(error){console.error("RESOURCE_ATTRIBUTION_ERROR",error);}
   await db.execute("INSERT INTO events (visitor_id,event_name,page_path,product_slug,metadata) VALUES (?,?,?,?,?)",[visitorId,"RESOURCE_DOWNLOAD",`/resources/${resource.slug}`,resource.slug,JSON.stringify({resourceId,category:resource.category,channel,requestId})]);
   let leadScore:number|null=null;
   if(leadId){try{const score=await recalculateLeadScore(leadId);leadScore=score.score;await runLeadCreatedAutomation(leadId);if(leadScore>=60){const [leadRows]=await db.query<(RowDataPacket&{workspace_id:string;owner_email:string|null;name:string})[]>("SELECT workspace_id,owner_email,name FROM leads WHERE id=? LIMIT 1",[leadId]);const lead=leadRows[0];if(lead?.workspace_id)await notifyWorkspaceSales(lead.workspace_id,lead.owner_email,["🚨 High-intent resource lead",`Lead: ${lead.name}`,`Resource: ${resource.title}`,`Intent score: ${leadScore}/100`,`Next action: review resource activity and contact promptly.`].join("\n")).catch(()=>undefined);}}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
