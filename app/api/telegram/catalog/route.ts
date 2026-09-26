@@ -12,15 +12,18 @@ export async function GET(request:Request) {
   const workspaceId=url.searchParams.get("workspaceId");
   const campaignId=url.searchParams.get("campaignId");
   if(!workspaceId) return NextResponse.json({error:"workspaceId is required."},{status:400});
+  const { getTelegramChannelConfig } = await import("@/lib/telegram-channel-config");
+  const config=await getTelegramChannelConfig(workspaceId);
+  if(!config?.enabled||!config.publicEnabled||!config.allowAnonymousUsers) return NextResponse.json({error:"Public Telegram catalog is disabled."},{status:403});
 
   const [products,resources]=await Promise.all([
     prisma.product.findMany({
-      where:{active:true,workspaceId,...(campaignId?{campaigns:{some:{id:campaignId,status:{in:["OPEN","ACTIVE"]}}}}:{})},
+      where:{active:true,workspaceId,...(config.showProducts?{}:{id:"__hidden__"}),...(campaignId?{campaigns:{some:{id:campaignId,status:{in:["OPEN","ACTIVE"]}}}}:{})},
       orderBy:[{featured:"desc"},{sortOrder:"asc"},{name:"asc"}],
       select:{id: true,slug:true,name:true,kind:true,tagline:true,shortDescription:true,description:true,features:true,benefits:true,deliverables:true,imageUrl:true,galleryUrls:true,mediaUrls:true,specifications:true,startingPrice:true,ctaLabel:true,ctaNote:true,relationshipType:true,providerName:true}
     }),
     prisma.resource.findMany({
-      where:{active:true,workspaceId,...(campaignId?{campaignId}:{})},
+      where:{active:true,workspaceId,...(config.showResources?{}:{id:"__hidden__"}),...(campaignId?{campaignId}:{})},
       orderBy:[{publishedAt:"desc"},{title:"asc"}],
       select:{id:true,slug:true,title:true,category:true,description:true,preview:true,cta:true,intent:true,downloadUrl:true,mediaUrls:true,specifications:true,relationshipType:true,providerName:true}
     })
