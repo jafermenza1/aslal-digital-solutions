@@ -18,7 +18,8 @@ export async function GET(request:Request){
 export async function PUT(request:Request){
   const user=await authorizePermission("content.manage"); if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
-  const id=typeof body?.id==="string"?body.id:""; if(!id)return NextResponse.json({error:"Resource id is required."},{status:400});
+  if(!body)return NextResponse.json({error:"Request body is required."},{status:400});
+  const id=typeof body.id==="string"?body.id:""; if(!id)return NextResponse.json({error:"Resource id is required."},{status:400});
   const fields=["category","title","description","preview","cta","intent","downloadUrl"] as const;
   for(const f of fields)if(typeof body?.[f]!=="string"||!(body?.[f] as string).trim())return NextResponse.json({error:`${f} is required.`},{status:400});
   const downloadUrl=typeof body?.downloadUrl==="string"?body.downloadUrl.trim():"";
@@ -41,7 +42,8 @@ export async function PUT(request:Request){
 export async function POST(request:Request){
   const user=await authorizePermission("content.manage"); if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
-  const slug=typeof body?.slug==="string"?body.slug.trim().toLowerCase():"";
+  if(!body)return NextResponse.json({error:"Request body is required."},{status:400});
+  const slug=typeof body.slug==="string"?body.slug.trim().toLowerCase():"";
   if(!/^[a-z0-9-]{3,160}$/.test(slug))return NextResponse.json({error:"Invalid slug."},{status:400});
   const mediaUrls=typeof body?.mediaUrls==="string"?body.mediaUrls.trim().slice(0,12000):null;
   const specifications=body?.specifications&&typeof body.specifications==="object"?JSON.stringify(body.specifications):null;
