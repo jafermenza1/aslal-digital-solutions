@@ -55,7 +55,7 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
             <div><h3 className="font-black">3. Measure what happens after the click</h3><p className="mt-2 leading-7">A resource interaction is useful only when it can be connected to qualification, opportunity, order and revenue outcomes.</p></div>
           </div>}
         </article>
-        <aside className="h-fit rounded-[2rem] bg-[#F8FAFC] p-7 sm:p-9"><ResourceCapture resourceId={resource.id} resourceSlug={resource.slug} downloadUrl={resource.download_url} cta={resource.cta}/>
+        <aside className="h-fit lg:sticky lg:top-24 rounded-[2rem] bg-[#F8FAFC] p-7 sm:p-9"><ResourceCapture resourceId={resource.id} resourceSlug={resource.slug} downloadUrl={resource.download_url} cta={resource.cta}/>
           <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Next action</div>
           <h2 className="mt-3 text-2xl font-black">{resource.cta}</h2>
           <p className="mt-4 leading-7 text-slate-600">Keep the resource useful without forcing a long form. If you already know the problem, send the topic directly to Aslal and the request can enter the existing lead workflow.</p>
