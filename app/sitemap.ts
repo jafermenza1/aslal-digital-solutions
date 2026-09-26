@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     where: { active: true },
     select: { slug: true, updatedAt: true },
   });
-  const staticPaths = ["/", "/services", "/products", "/work", "/demo", "/contact"];
+  const staticPaths = ["/", "/services", "/products", "/portfolio", "/automation-lab", "/contact"];
   return [
     ...staticPaths.map(path => ({ url: `${base}${path}` })),
     ...products.map(product => ({
