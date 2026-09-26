@@ -26,6 +26,7 @@ const stringFields = [
 ] as const;
 
 const intFields = ["paymentExpiryMinutes","attributionExpiryHours"] as const;
+const jsonFields = ["qualificationFlow","keywordRules","publicMenu","paymentProviders"] as const;
 
 export async function GET(request: Request) {
   const workspaceId = new URL(request.url).searchParams.get("workspaceId");
