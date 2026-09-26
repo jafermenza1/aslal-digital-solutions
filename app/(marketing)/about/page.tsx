@@ -3,7 +3,7 @@ import { AboutTeam } from "@/components/AboutTeam";
 import { getPageContent, contentValue, contentStyle } from "@/lib/public-content";
 import { getTeamMembers } from "@/lib/team-members";
 
-export const revalidate=60;
+export const revalidate=60;\n\nexport const metadata={title:"About Aslal Digital Solutions | Growth Systems for Ethiopia",description:"Learn how Aslal Digital Solutions connects technology, marketing, CRM, sales automation and digital growth around practical business outcomes.",alternates:{canonical:"https://aslaldigital.com/about"},openGraph:{title:"About Aslal Digital Solutions",description:"Technology and marketing connected around practical business growth.",url:"https://aslaldigital.com/about",type:"website",images:[{url:"https://aslaldigital.com/og/resources.png",width:1200,height:630}]},twitter:{card:"summary_large_image",title:"About Aslal Digital Solutions",description:"Technology and marketing connected around practical business growth.",images:["https://aslaldigital.com/og/resources.png"]}};
 
 const proofSignals=[
   ["Ethiopia-first","Built around local payment, connectivity, language and customer realities."],
