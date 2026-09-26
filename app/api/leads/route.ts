@@ -8,7 +8,7 @@ import { runLeadCreatedAutomation } from "@/lib/automation";
 import { sendContactAutoReply } from "@/lib/contact-autoreply";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
-import { INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
+import { resolvePublicWorkspaceId } from "@/lib/workspaces";
 
 type VisitorRow = RowDataPacket & {
   first_source: string | null;
@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
 
     recordSubmission(key);
     const visitorId = await getOrCreateVisitor();
+    const workspaceId = resolvePublicWorkspaceId(request.headers.get("host"));
     const referralCode = await getReferralCode();
     const [visitorRows] = await db.execute<VisitorRow[]>(
       "SELECT first_source, first_medium, first_campaign FROM visitors WHERE id = ? LIMIT 1",
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'WEB', 'Website contact')`,
         [
           leadId,
-          INTERNAL_WORKSPACE_ID,
+          workspaceId,
           visitorId,
           personId,
           name,
