@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
 
       await connection.execute(
         `INSERT INTO leads
-          (id, workspace_id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code, capture_mode, lead_category)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, 'WEB', 'Website contact')`,
+          (id, workspace_id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code, attribution_locked_at, attribution_locked_by, attribution_override_reason, capture_mode, lead_category)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'WEB', 'Website contact')`,
         [
           leadId,
           INTERNAL_WORKSPACE_ID,
@@ -149,6 +149,8 @@ export async function POST(request: NextRequest) {
           DEFAULT_NEXT_ACTION,
           nextActionDueAt,
           referralCode || null,
+          referralCode ? new Date() : null,
+          referralCode ? "website" : null,
         ]
       );
 
