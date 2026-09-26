@@ -588,6 +588,7 @@ model ResourceRequest {
   followUpSentAt DateTime? @map("follow_up_sent_at") @db.DateTime(0)
   createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(0)
   resource       Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  attributions   ResourceAttribution[]
 
   @@index([resourceId, createdAt], map: "idx_resource_requests_resource_created")
   @@index([leadId, createdAt], map: "idx_resource_requests_lead_created")
@@ -621,6 +622,7 @@ model Product {
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.DateTime(0)
   interests        LeadProductInterest[]
   campaigns        PartnerCampaign[]
+  attributions     LeadAttribution[]
 
   @@index([kind, active, sortOrder], map: "idx_products_kind_active_sort")
   @@index([featured], map: "idx_products_featured")
@@ -1313,6 +1315,10 @@ model Workspace {
   campaignAssets CampaignAsset[]
   conversations Conversation[]
   telegramDestinations TelegramDestination[]
+  socialProfiles SocialProfile[]
+  leadAttributions LeadAttribution[]
+  resourceAttributions ResourceAttribution[]
+  resources Resource[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
   @@map("workspaces")
@@ -1416,14 +1422,13 @@ model PartnerCampaign {
   rewardRate          Decimal?             @map("reward_rate") @db.Decimal(7,4)
   requiredPartnerTypes String?            @map("required_partner_types") @db.Text
   productId           String?              @map("product_id") @db.Char(36)
+  resourceId          String?              @map("resource_id") @db.Char(36)
   startsAt            DateTime?            @map("starts_at") @db.DateTime(0)
   endsAt              DateTime?            @map("ends_at") @db.DateTime(0)
   createdBy           String?              @map("created_by") @db.VarChar(190)
   createdAt           DateTime             @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt           DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
   product             Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
-  attributions        LeadAttribution[]
-  resources           Resource[]
   resource            Resource?            @relation(fields: [resourceId], references: [id], onDelete: SetNull)
   partners            CampaignPartner[]
   referralLinks       ReferralLink[]
@@ -1435,6 +1440,7 @@ model PartnerCampaign {
   @@index([status, startsAt, endsAt], map: "idx_partner_campaign_status_dates")
   @@index([location], map: "idx_partner_campaign_location")
   @@index([productId], map: "idx_partner_campaign_product")
+  @@index([resourceId], map: "idx_partner_campaign_resource")
   @@map("partner_campaigns")
   workspace             Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 }
