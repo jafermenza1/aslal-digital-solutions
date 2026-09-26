@@ -27,6 +27,7 @@ async function tg(method:string,body:Record<string,unknown>){
   return r.json();
 }
 const reply=(chatId:string,text:string)=>tg("sendMessage",{chat_id:chatId,text,disable_web_page_preview:true});
+const catalog=(chatId:string,workspaceId:string,campaignId?:string|null)=>{const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");const qs=new URLSearchParams({workspaceId});if(campaignId)qs.set("campaignId",campaignId);return tg("sendMessage",{chat_id:chatId,text:"Open the Aslal catalog to browse products, services and resources.",reply_markup:{inline_keyboard:[[{text:"Open Aslal Catalog",web_app:{url:site+"/telegram/catalog?"+qs.toString()}}]]}});};
 
 async function partnerForChat(chatId:string){
   const [rows]=await db.query<Partner[]>("SELECT id,name,partner_number,workspace_id,status,verification_status,type FROM partners WHERE telegram_chat_id=? LIMIT 1",[chatId]);
@@ -34,7 +35,7 @@ async function partnerForChat(chatId:string){
 }
 
 async function help(chatId:string){
-  return reply(chatId,["Aslal Telegram Workbench","","Partners:","/campaigns — active campaigns","/campaign <id> — campaign details and published materials","/apply <id> — apply to a campaign","/links — your referral links","/earnings — commission and payout status","/me — identity","/help — this menu","","Internal sales users are linked from the Aslal dashboard. Client replies are automatically recorded, follow-up is stopped, and the assigned salesperson/admin is alerted."].join("\n"));
+  return reply(chatId,["Aslal Telegram Workbench","","Partners:","/campaigns — active campaigns","/campaign <id> — campaign details and published materials","/apply <id> — apply to a campaign","/links — your referral links","/earnings — commission and payout status","/catalog — open the catalog","/me — identity","/help — this menu","","Internal sales users are linked from the Aslal dashboard. Client replies are automatically recorded, follow-up is stopped, and the assigned salesperson/admin is alerted."].join("\n"));
 }
 
 async function campaigns(chatId:string,p:Partner){
@@ -161,8 +162,8 @@ async function handle(update:TelegramUpdate){
       return reply(chatId,"You are connected. Reply with your question or interest and our sales team will respond.");
     }
     const p=await partnerForChat(chatId);
-    if(p)return help(chatId);
-    return reply(chatId,"Welcome to Aslal. Use the link provided by Aslal to connect your client or staff Telegram session.");
+    if(p)return catalog(chatId,p.workspace_id);
+    return catalog(chatId,"00000000-0000-0000-0000-000000000001");
   }
 
   const staff=await staffForChat(chatId);
@@ -182,6 +183,7 @@ async function handle(update:TelegramUpdate){
     if(command==="/apply"&&arg)return apply(chatId,p,arg);
     if(command==="/links")return links(chatId,p);
     if(command==="/earnings")return earnings(chatId,p);
+    if(command==="/catalog")return catalog(chatId,p.workspace_id);
     return reply(chatId,"Unknown command. Use /help.");
   }
 
