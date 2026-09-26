@@ -27,8 +27,8 @@ Workspace isolation, attribution integrity, payment/reconciliation controls, com
 | Payout operations | Payout endpoint used broad partner-management permission | **CLOSED IN CODE** with dedicated `payouts.manage` permission | Finance must create/settle a payout from PAYABLE commissions. |
 | Attribution mutation | Lead attribution fields were freely editable | **CLOSED IN CODE** | Locked attribution must reject ordinary edits and permit only authorized, reasoned override with audit evidence. |
 | Attribution persistence | No lock metadata | **CLOSED IN SCHEMA** | Migration must apply and lock fields must survive the journey. |
-| Dispute reassignment | Resolution stored awarded partner but did not recalculate commission/revenue | **OPEN** | Resolution must update commercial attribution atomically and retain audit history. |
-| Public workspace routing | Public lead capture is still hard-bound to INTERNAL workspace | **OPEN / DESIGN REQUIRED** | Three-anchor fixture needs a trusted workspace-routing mechanism; arbitrary client-supplied workspace IDs must not be trusted. |
+| Dispute reassignment | Resolution stored awarded partner but did not recalculate commission/revenue | **CLOSED IN CODE / ATOMICITY EVIDENCE PENDING** | Resolution now reassigns linked commission and revenue and records old/new attribution; controlled transaction-failure/atomicity proof remains. |
+| Public workspace routing | Public lead capture was hard-bound to INTERNAL workspace | **CLOSED IN CODE / CONFIGURATION PENDING** | Public capture now resolves workspace from trusted host mapping with INTERNAL fallback; configure and verify the three-anchor domains. |
 | Arabic/RTL | Only en/am/om and root LTR | **CLOSED IN CODE** for locale/RTL foundation | Arabic UI smoke test, RTL layout, font/fallback and critical forms must be verified. |
 | Duplicate customer matching | Person reuse exists but universal duplicate policy not proven | **OPEN / ACCEPTANCE** | Execute duplicate identity variants and verify one customer record. |
 | Financial/attribution/permission audit | Coverage incomplete | **PARTIAL** | Verify who/what/when/previous/new/reason/workspace for critical transitions. |
@@ -68,13 +68,13 @@ These remain **IMPLEMENTED-UNVERIFIED** until controlled evidence is retained.
    - Record old/new attribution and actor in audit evidence.
    - Keep the operation workspace-scoped and atomic.
 
-2. **Implement trusted public workspace routing.**
+2. **Configure and verify trusted public workspace routing.**
    - Do not accept an arbitrary workspace ID from an unauthenticated browser.
    - Use deployment/domain/form configuration to map a public origin to a workspace.
    - Keep INTERNAL as the safe default for the Aslal public site.
    - Support the three-anchor fixture through explicit trusted configuration.
 
-3. **Complete duplicate-customer acceptance rules.**
+3. **Execute duplicate-customer acceptance rules.**
    - Email match.
    - Phone match.
    - Existing Person + changed contact detail.
