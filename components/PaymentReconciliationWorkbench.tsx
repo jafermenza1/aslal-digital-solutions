@@ -96,9 +96,9 @@ export default function PaymentReconciliationWorkbench() {
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {!matched && !confirmed && <button disabled={isBusy} onClick={()=>void match(p)} className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-black disabled:opacity-50">Match receipt</button>}
-            {matched && !confirmed && <button disabled={busy} onClick={()=>void confirm(p)} className="rounded-xl bg-[#0F3E8A] px-4 py-2 text-xs font-black text-white disabled:opacity-50">Confirm collection</button>}
-            {confirmed && p.reconciliationStatus!=="RECONCILED" && <button disabled={busy} onClick={()=>void reconcile(p)} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white disabled:opacity-50">Reconcile → revenue</button>}
-            {p.reconciliationStatus!=="RECONCILED" && <button disabled={busy} onClick={()=>void exception(p)} className="rounded-xl border border-red-200 px-4 py-2 text-xs font-black text-red-700 disabled:opacity-50">Flag exception</button>}
+            {matched && !confirmed && <button disabled={isBusy} onClick={()=>void confirm(p)} className="rounded-xl bg-[#0F3E8A] px-4 py-2 text-xs font-black text-white disabled:opacity-50">Confirm collection</button>}
+            {confirmed && p.reconciliationStatus!=="RECONCILED" && <button disabled={isBusy} onClick={()=>void reconcile(p)} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white disabled:opacity-50">Reconcile → revenue</button>}
+            {p.reconciliationStatus!=="RECONCILED" && <button disabled={isBusy} onClick={()=>void exception(p)} className="rounded-xl border border-red-200 px-4 py-2 text-xs font-black text-red-700 disabled:opacity-50">Flag exception</button>}
           </div>
         </article>;
       })}
