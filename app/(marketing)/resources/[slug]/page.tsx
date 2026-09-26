@@ -27,7 +27,6 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
   const resource=await getResourceBySlug(slug);
   if(!resource) notFound();
   const isTool=resource.category==="tool";
-  const isTemplate=resource.category==="template";
   const whatsapp=`https://wa.me/251911276682?text=${encodeURIComponent(`Hi Aslal, I am interested in: ${resource.title}`)}`;
   const telegram=`https://t.me/share/url?url=${encodeURIComponent(`https://aslaldigital.com/resources/${resource.slug}`)}&text=${encodeURIComponent(`Hi Aslal, I am interested in: ${resource.title}`)}`;
   return <main>
