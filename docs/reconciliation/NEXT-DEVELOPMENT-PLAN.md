@@ -1512,3 +1512,23 @@ GitHub Actions remain disabled during this program.
 Implemented on `main`: payment capture is now PENDING-only in the Orders UI; a workspace-scoped Finance reconciliation queue/API was added; Finance can match receipt evidence, confirm collection, reconcile to revenue, or flag an exception. Existing payment API controls remain authoritative. No GitHub Actions were restored.
 
 **Validation limitation:** repository changes were inspected through the GitHub source; `npm run typecheck` and `npm run lint` have not yet been executed in this step. They are required before Step 1 can exit.
+
+
+## Step 2 implementation progress — 2026-09-26
+
+**Current step:** Step 2 — Sales SLA scheduler and notification safety.
+**Status:** IMPLEMENTED FOUNDATION — ACCEPTANCE PENDING.
+
+Step 2 hardening is now on `main` without restoring GitHub Actions:
+
+- the protected `/api/cron/sales-automation` endpoint now invokes only the internal sales SLA scheduler;
+- customer-facing Telegram follow-up processing was separated into its own protected `/api/cron/telegram-followups` endpoint so Gate 2 scheduler execution cannot unexpectedly send customer messages;
+- Telegram follow-up scheduling accepts a dedicated `TELEGRAM_FOLLOWUP_CRON_SECRET` and falls back to `AUTOMATION_CRON_SECRET` for controlled migration of existing deployments;
+- workflow execution claiming is now atomic: only a PENDING execution can be claimed by a worker;
+- workflow action claiming is now atomic: only a due PENDING action can be claimed, preventing concurrent scheduler invocations from executing the same action twice;
+- existing idempotency keys, overdue-deadline keys, bounded retries, stale-running recovery, reply cancellation and WON/LOST cancellation remain intact;
+- Gate 2 remains internal-only: no promotional customer messaging is introduced by the SLA scheduler.
+
+**Required exit evidence:** protected scheduler invocation, high-intent execution, repeated-trigger idempotency, overdue deduplication, retry/stale recovery, reply cancellation, WON/LOST cancellation, workspace-scoped ownership, operator visibility, no customer promotional message, and local typecheck/lint evidence.
+
+Q1 remains **NOT ACCEPTED** until this behavioral evidence is retained.
