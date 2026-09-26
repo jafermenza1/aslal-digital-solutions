@@ -261,3 +261,10 @@ The actual Step 1 blocker is **UI/API workflow mismatch and Finance-surface plac
 **STEP 1 — Manual payment reconciliation workbench**
 
 No Q1 acceptance claim is changed by this documentation update. The next code change should address only Step 1 and preserve the existing Order → Payment → Reconciliation → Revenue → Commission → Payout chain.
+
+
+## Step 1 implementation progress — 2026-09-26
+
+The Step 1 implementation is now present: the Orders capture path creates `PENDING` payments; Finance has a dedicated workspace-scoped reconciliation queue; receipt evidence and exception notes are captured; confirmation precedes reconciliation; reconciliation remains evidence-gated and drives the existing revenue/commission transaction path.
+
+**Status:** IMPLEMENTED — behavioral and local validation pending. Q1 remains NOT ACCEPTED.
