@@ -315,3 +315,10 @@ Important correction from the prior audit: the current mainline already has paym
 No GitHub Actions workflow is to be restored. Validation remains manual/local with npm run typecheck and npm run lint when code changes are made.
 
 Q1 remains **NOT ACCEPTED** until all blocker steps and the controlled behavioral evidence gate are complete.
+
+
+## Step 1 implementation progress — 2026-09-26
+
+**Current step:** Step 1 — Manual payment reconciliation workbench.
+
+Implementation is now in `main`: PENDING-first capture, Finance review queue, receipt/evidence matching, authorized confirmation, evidence-gated reconciliation and exception handling. **Acceptance is still pending** until local typecheck/lint and controlled end-to-end evidence are retained.
