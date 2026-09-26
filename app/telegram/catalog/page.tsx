@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect,useState} from "react";
+import {useRouter} from "next/navigation";
 
 type Item={id:string;name?:string;title?:string;slug:string;description?:string|null;preview?:string;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null};
 
@@ -9,21 +10,20 @@ export default function TelegramCatalogPage(){
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
  const [selected,setSelected]=useState<Item|null>(null);
- const [workspaceId,setWorkspaceId]=useState("");
- const [campaignId,setCampaignId]=useState("");
+ const router=useRouter();
+ const [workspaceId]=useState(()=>new URLSearchParams(window.location.search).get("workspaceId")||"");
+ const [campaignId]=useState(()=>new URLSearchParams(window.location.search).get("campaignId")||"");
 
  useEffect(()=>{
-   const q=new URLSearchParams(window.location.search);
-   const w=q.get("workspaceId")||"";
-   const c=q.get("campaignId")||"";
-   setWorkspaceId(w);setCampaignId(c);
+   const w=workspaceId;
+   const c=campaignId;
    if(!w){setError("This catalog link is missing its workspace context.");setLoading(false);return;}
    fetch("/api/telegram/catalog?workspaceId="+encodeURIComponent(w)+(c?"&campaignId="+encodeURIComponent(c):""))
      .then(r=>r.ok?r.json():Promise.reject(new Error("Catalog unavailable")))
      .then(d=>setItems({products:d.products||[],resources:d.resources||[]}))
      .catch(e=>setError(e instanceof Error?e.message:"Catalog unavailable"))
      .finally(()=>setLoading(false));
- },[]);
+ },[campaignId,workspaceId]);
 
  useEffect(()=>{
    const script=document.createElement("script");
@@ -37,7 +37,7 @@ export default function TelegramCatalogPage(){
  const openOrder=(item:Item)=>{
    const q=new URLSearchParams({workspaceId,slug:item.slug});
    if(campaignId)q.set("campaignId",campaignId);
-   window.location.href="/telegram/catalog/order?"+q.toString();
+   router.push("/telegram/catalog/order?"+q.toString());
  };
 
  if(loading)return <main className="min-h-screen bg-[#f7faf8] p-5 text-slate-700">Loading Aslal catalog…</main>;
