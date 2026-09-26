@@ -14,7 +14,7 @@ export function browserAttribution(){
  if(typeof window==="undefined")return null;
  const url=new URL(window.location.href);let previous:Record<string,string|null>={};try{const raw=window.localStorage.getItem("aslal_attribution");previous=raw?JSON.parse(raw):{};}catch{}
  const referrer=document.referrer||null;const refSource=classifyReferrer(referrer);
- const clickSource=url.searchParams.get("fbclid")?"facebook":url.searchParams.get("ttclid")?"tiktok":url.searchParams.get("li_fat_id")?"linkedin":null;
+ const clickSource=url.searchParams.get("fbclid")?"facebook":url.searchParams.get("ttclid")?"tiktok":url.searchParams.get("li_fat_id")?"linkedin":url.searchParams.get("igshid")?"instagram":null;
  const source=normalizeSource(url.searchParams.get("utm_source"))||clickSource||refSource||previous.source||null;
  const medium=url.searchParams.get("utm_medium")||previous.medium||(refSource?"social":null);
  const campaign=url.searchParams.get("utm_campaign")||previous.campaign||null;
