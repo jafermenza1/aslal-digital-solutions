@@ -30,8 +30,8 @@ export async function PUT(request:Request){
   const campaignId=typeof body?.campaignId==="string"&&body.campaignId.trim()?body.campaignId.trim():null;
   const publishedAt=typeof body?.publishedAt==="string"&&body.publishedAt?new Date(body.publishedAt):new Date();
   if(Number.isNaN(publishedAt.getTime()))return NextResponse.json({error:"Invalid publish date."},{status:400});
-  await db.query(`UPDATE resources SET category=?,title=?,description=?,preview=?,cta=?,intent=?,download_url=?,active=?,published_at=? WHERE id=?`,
-    [body.category,body.title,body.description,body.preview,body.cta,body.intent,downloadUrl||null,active?1:0,publishedAt,id]);
+  await db.query(`UPDATE resources SET category=?,title=?,description=?,preview=?,cta=?,intent=?,download_url=?,active=?,published_at=?,relationship_type=?,provider_name=?,workspace_id=?,campaign_id=? WHERE id=?`,
+    [body.category,body.title,body.description,body.preview,body.cta,body.intent,downloadUrl||null,active?1:0,publishedAt,relationshipType,providerName,workspaceId,campaignId,id]);
   return NextResponse.json({ok:true});
 }
 
