@@ -50,7 +50,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | ID | Requirement | Current status | Evidence/remaining proof |
 |---|---|---|---|
 | R27 | Campaign | IMPLEMENTED-UNVERIFIED | First-class PartnerCampaign lifecycle, budgets, partner budget, reward model, dates, status and product linkage now exist; production campaign acceptance remains. |
-| R28 | Campaign asset/content | PARTIAL | Campaign partner matching and referral distribution exist, but a first-class creative/asset/post/QR/offline-placement entity remains incomplete. |
+| R28 | Campaign asset/content | IMPLEMENTED-UNVERIFIED | First-class CampaignAsset domain, tracking code, asset URL/content, placement and campaign linkage exist; controlled campaign-asset attribution evidence remains. |
 | R29 | Partner/referral journey | IMPLEMENTED-UNVERIFIED | Partner identity → campaign → application/invitation → referral attribution → order → payment → reconciled revenue is now traceable; controlled production reconstruction remains. |
 | R30 | Commission lifecycle | IMPLEMENTED-UNVERIFIED | Confirmed/reconciled payment derives commission, dedicated commission approval permission exists, payout settlement controls PAID; behavioral approval/payout evidence remains. |
 | R31 | Influencer/agent workspace | IMPLEMENTED-UNVERIFIED | Partner portal now exposes profile, campaign opportunities, application, earnings/payout history and disputes; controlled partner acceptance and mobile evidence remain. |
