@@ -13,7 +13,7 @@ function subscribeLocale(cb:()=>void){ window.addEventListener("aslal-locale-cha
 
 export function Header(){
  const locale=useSyncExternalStore(subscribeLocale,readLocale,():Locale=>"en"); const t=getCopy(locale);
- const nav=[["/services",t.nav.solutions],["/work",t.nav.work],["/products",t.nav.products],["/demo",t.nav.lab],["/about",t.nav.about],["/resources",t.nav.resources]] as const;
+ const nav=[["/services",t.nav.solutions],["/portfolio","Portfolio"],["/products",t.nav.products],["/automation-lab","Automation Lab"],["/about",t.nav.about],["/resources",t.nav.resources]] as const;
  return <header className="site-header"><div className="container-aslal site-header-inner">
   <BrandLogo/>
   <nav className="desktop-nav">{nav.map(([href,label])=><Link key={href} href={href}>{label}</Link>)}</nav>
