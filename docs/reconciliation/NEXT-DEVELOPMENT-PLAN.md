@@ -105,10 +105,10 @@ Current status on 2026-09-26:
 - Payment submission state control: implemented.
 - Lead attribution lock and audited override: implemented.
 - Arabic locale/RTL foundation: implemented.
-- Dispute commercial reassignment: remaining implementation gap.
-- Trusted public workspace routing: remaining implementation gap.
-- Duplicate-customer acceptance rules: remaining acceptance gap.
-- Financial/attribution/permission audit completeness: remaining implementation/evidence gap.
+- Dispute commercial reassignment: implemented; transaction-failure atomicity evidence remains.
+- Trusted public workspace routing: implemented with host mapping; three-anchor configuration/evidence remains.
+- Duplicate-customer guard: implemented; duplicate identity behavioral evidence remains.
+- Financial/attribution/permission audit completeness: still requires coverage closure and evidence.
 - 100-partner fixture: remaining acceptance gap.
 
 ## 3. Immediate Gate — Production Integrity Closure
