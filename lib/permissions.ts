@@ -57,7 +57,7 @@ const sets: Record<UserRole, Permission[]> = {
     "commissions.manage","payouts.manage"
   ],
   AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view","commerce.view"],
-  CLIENT: ["dashboard.view","customers.view","insights.view","commerce.view"],
+  CLIENT: ["dashboard.view","customers.view","insights.view"],
 };
 
 export function defaultPermissionsForRole(role: UserRole) {
