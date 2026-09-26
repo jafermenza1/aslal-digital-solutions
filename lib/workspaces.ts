@@ -3,6 +3,21 @@ import { cookies } from "next/headers";
 import { authorizePermission, type CurrentUser } from "@/lib/authorization";
 
 export const INTERNAL_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
+export function resolvePublicWorkspaceId(hostname?: string | null) {
+  const host = String(hostname || "").trim().toLowerCase().split(":")[0];
+  const raw = process.env.ASLAL_PUBLIC_WORKSPACE_MAP;
+  if (raw) {
+    try {
+      const map = JSON.parse(raw) as Record<string, unknown>;
+      const configured = host && typeof map[host] === "string" ? String(map[host]).trim() : "";
+      if (configured) return configured;
+    } catch {
+      // Invalid deployment configuration must fail closed to the internal workspace.
+    }
+  }
+  return INTERNAL_WORKSPACE_ID;
+}
+
 
 export type WorkspaceContext = {
   id: string;
