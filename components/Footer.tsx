@@ -6,6 +6,7 @@ import { siteConfig } from "@/lib/config";
 import { getCopy, type Locale } from "@/lib/i18n";
 import { BrandLogo } from "@/components/BrandLogo";
 import { SocialLinks } from "@/components/SocialLinks";
+import type { SocialProfile } from "@/lib/social-profiles";
 import { useEffect, useState } from "react";
 
 function readLocale(): Locale { if(typeof document==="undefined") return "en"; const v=document.cookie.split("; ").find(x=>x.startsWith("aslal_locale="))?.split("=")[1]; return v==="am"||v==="om"?v:"en"; }
