@@ -282,3 +282,15 @@ The workflow engine also now atomically claims PENDING executions and due PENDIN
 The owner-selection path remains workspace-scoped to active sales-capable members. Reply, WON and LOST cancellation hooks remain wired to inbound messaging and lead status transitions.
 
 **Acceptance remains pending.** The controlled proof must demonstrate scheduler success, same-trigger idempotency, one overdue reminder per deadline, retry/stale recovery, reply cancellation, terminal-state cancellation, workspace isolation, operator visibility and absence of customer promotional messaging from the SLA scheduler.
+
+
+## Step 3 implementation progress — 2026-09-26
+
+**Step:** Three-anchor workspace/client boundary.
+**Status:** IMPLEMENTED FOUNDATION — ACCEPTANCE PENDING.
+
+A dedicated CLIENT CRM surface is now implemented at `/dashboard/client`. It authorizes the client against the requested/active workspace before loading data and scopes every client-visible lead, customer, order, task and commission query to that workspace. CLIENT no longer has the generic `commerce.view` permission, so the broad Orders workspace is not exposed as a client surface.
+
+The existing workspace authorization layer continues to reject requested workspaces for users without membership. The implementation therefore supports the intended A/B/C fixture while preserving the safe boundary.
+
+**Acceptance remains pending:** configure three isolated anchor workspaces and their role users, then execute direct cross-workspace negative tests and client-surface checks with retained evidence.
