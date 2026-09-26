@@ -572,7 +572,6 @@ model Resource {
   campaignId String? @map("campaign_id") @db.Char(36)
   workspace Workspace? @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
   campaign PartnerCampaign? @relation(fields:[campaignId], references:[id], onDelete:SetNull)
-  attributions ResourceAttribution[]
   leadAttributions LeadAttribution[]
 
   @@index([category, publishedAt], map: "idx_resources_category_published")
