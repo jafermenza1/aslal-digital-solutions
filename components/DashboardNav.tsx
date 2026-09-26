@@ -34,6 +34,7 @@ const ITEMS:Item[]=[
 {key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"intelligence"},
 {key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"intelligence"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"intelligence"},
+{key:"operations",href:"/dashboard/finance",permission:"commissions.manage",icon:"ops",group:"intelligence",label:"Finance"},
 {key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"management"},
 {key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"management",label:"Partner Marketplace",match:"/dashboard/partners?tab=engine"},
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"management"},
