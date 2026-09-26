@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
 
     const visitorId = await getOrCreateVisitor();
     const referral = await getReferralCode();
-    const utmSource = typeof metadataObject.utmSource === "string" ? metadataObject.utmSource.slice(0, 100) : null;
-    const utmMedium = typeof metadataObject.utmMedium === "string" ? metadataObject.utmMedium.slice(0, 100) : null;
+    const utmSource = typeof metadataObject.attributionSource === "string" ? metadataObject.attributionSource.slice(0, 100) : typeof metadataObject.utmSource === "string" ? metadataObject.utmSource.slice(0, 100) : null;
+    const utmMedium = typeof metadataObject.attributionMedium === "string" ? metadataObject.attributionMedium.slice(0, 100) : typeof metadataObject.utmMedium === "string" ? metadataObject.utmMedium.slice(0, 100) : null;
     const utmCampaign = typeof metadataObject.utmCampaign === "string" ? metadataObject.utmCampaign.slice(0, 150) : null;
 
     await db.execute(
