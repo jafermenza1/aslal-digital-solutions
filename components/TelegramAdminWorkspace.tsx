@@ -56,7 +56,7 @@ export function TelegramAdminWorkspace({workspaceId,workspaceName}:{workspaceId:
     <div><span className="dashboard-kicker">DETERMINISTIC STATE MACHINE</span><h2>Lead qualification flow</h2><p className="text-sm opacity-70">Use button-driven steps. Answers are stored in the public Telegram session and can be promoted into the canonical lead record.</p></div>
     <label className="flex items-center gap-3 rounded-xl border p-4 font-bold"><input type="checkbox" checked={!!config.qualificationEnabled} onChange={()=>toggle("qualificationEnabled")}/> Enable decision-tree qualification</label>
     <label className="block text-sm font-bold">Flow JSON<textarea rows={18} className="mt-2 w-full rounded-xl border p-3 text-slate-900 font-mono text-xs" value={json("qualificationFlow",[])} onChange={e=>{try{setConfig(c=>({...c,qualificationFlow:JSON.parse(e.target.value)}))}catch{}}}/></label>
-    <p className="text-xs opacity-60">Example step: {"{ "id":"service", "question":"Select Service", "options":[{"label":"Website","value":"website","next":"budget"}] }"}.</p>
+    <p className="text-xs opacity-60">Example step: <code>{'{ "id": "service", "question": "Select Service", "options": [{ "label": "Website", "value": "website", "next": "budget" }] }'}</code>.</p>
     <button disabled={busy} onClick={()=>void save({qualificationEnabled:config.qualificationEnabled,qualificationFlow:config.qualificationFlow})} className="dashboard-primary-link">{busy?"Saving…":"Save qualification"}</button>
   </section>}
 
@@ -64,7 +64,7 @@ export function TelegramAdminWorkspace({workspaceId,workspaceName}:{workspaceId:
     <div><span className="dashboard-kicker">MENU + KEYWORDS</span><h2>Knowledge base rules</h2><p className="text-sm opacity-70">Exact or regex rules can return a configured answer/card without AI. Keep matching deterministic.</p></div>
     <label className="flex items-center gap-3 rounded-xl border p-4 font-bold"><input type="checkbox" checked={!!config.knowledgeBaseEnabled} onChange={()=>toggle("knowledgeBaseEnabled")}/> Enable keyword knowledge base</label>
     <label className="block text-sm font-bold">Keyword rules JSON<textarea rows={18} className="mt-2 w-full rounded-xl border p-3 text-slate-900 font-mono text-xs" value={json("keywordRules",[])} onChange={e=>{try{setConfig(c=>({...c,keywordRules:JSON.parse(e.target.value)}))}catch{}}}/></label>
-    <p className="text-xs opacity-60">Example: {"{ "pattern":"\\b(price|pricing|cost)\\b", "mode":"REGEX", "response":"Here is our pricing…", "priority":10 }"}.</p>
+    <p className="text-xs opacity-60">Example: <code>{'{ "pattern": "\\b(price|pricing|cost)\\b", "mode": "REGEX", "response": "Here is our pricing…", "priority": 10 }'}</code>.</p>
     <button disabled={busy} onClick={()=>void save({knowledgeBaseEnabled:config.knowledgeBaseEnabled,keywordRules:config.keywordRules})} className="dashboard-primary-link">{busy?"Saving…":"Save knowledge rules"}</button>
   </section>}
 
