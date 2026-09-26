@@ -101,3 +101,12 @@ Gate 2 automation previously selected a sales owner globally. That could assign 
 Offline/manual lead creation is likewise constrained to a sales-capable member of the selected workspace.
 
 This is a correctness hardening change, not acceptance evidence.
+
+
+## Step 2 safety hardening — 2026-09-26
+
+The protected SLA scheduler now runs only the internal sales workflow engine. Customer-facing Telegram follow-ups are isolated behind `/api/cron/telegram-followups`, so invoking the Gate 2 scheduler cannot implicitly send customer messages.
+
+Workflow and action execution claims are also atomic at the PENDING boundary. A concurrent scheduler call can no longer claim the same workflow execution or due action after another worker has claimed it. Existing unique trigger idempotency, overdue-deadline deduplication, bounded retry, stale recovery and cancellation hooks remain active.
+
+Acceptance is still pending. This hardening does not itself satisfy the behavioral matrix.
