@@ -102,7 +102,7 @@ export async function GET(request: Request) {
          opportunity_id,
          workspace_id,
          COUNT(*) AS order_count,
-         SUM(CASE WHEN status IN ('CONFIRMED','PROCESSING','COMPLETED') THEN total ELSE 0 END) AS confirmed_order_value
+         SUM(CASE WHEN status IN ('CONFIRMED','FULFILLING','COMPLETED') THEN total ELSE 0 END) AS confirmed_order_value
        FROM orders
        WHERE workspace_id = ?
        GROUP BY opportunity_id, workspace_id
