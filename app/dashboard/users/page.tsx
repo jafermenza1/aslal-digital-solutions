@@ -4,8 +4,15 @@ import { resolvePermissions } from "@/lib/permissions";
 import { UserManagement } from "@/components/UserManagement";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import type { RowDataPacket } from "mysql2";
 
 export const dynamic = "force-dynamic";
+
+type WorkspaceRow = RowDataPacket & {
+  id: string;
+  name: string;
+  slug: string;
+};
 
 export default async function UsersPage() {
   const user=await requirePermission("users.manage");
@@ -13,7 +20,7 @@ export default async function UsersPage() {
     orderBy:[{active:"desc"},{name:"asc"}],
     select:{id:true,email:true,name:true,role:true,active:true,permissions:true,lastLoginAt:true},
   });
-  const [workspaceRows] = await db.query<Array<{ id:string; name:string; slug:string }>>(
+  const [workspaceRows] = await db.query<WorkspaceRow[]>(
     user.role === "ADMIN" || user.role === "SUPER_ADMIN"
       ? "SELECT id,name,slug FROM workspaces WHERE active=1 ORDER BY name"
       : "SELECT w.id,w.name,w.slug FROM workspaces w JOIN workspace_users wu ON wu.workspace_id=w.id WHERE wu.user_id=? AND w.active=1 ORDER BY w.name",
