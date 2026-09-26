@@ -126,3 +126,10 @@ Current mainline evidence was rechecked:
 Therefore the remaining Step 1 gap is not absence of all payment UI; it is the mismatch between the existing capture UI and the hardened state contract, plus the absence of a Finance-controlled payment review queue.
 
 The Q1 acceptance state remains **NOT ACCEPTED**. This correction changes implementation planning only; it does not provide behavioral acceptance evidence.
+
+
+## Step 1 implementation progress — 2026-09-26
+
+Step 1 implementation closed the previously identified UI/API mismatch. The Orders UI no longer attempts direct payment confirmation. Finance now has a dedicated reconciliation workbench backed by a workspace-scoped queue. The remaining Step 1 work is validation: typecheck, lint, and controlled payment lifecycle evidence.
+
+Q1 remains NOT ACCEPTED.
