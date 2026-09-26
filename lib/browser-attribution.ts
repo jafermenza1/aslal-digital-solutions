@@ -24,7 +24,11 @@ export function browserAttribution(): BrowserAttribution | null {
     "reddit.com":"reddit","pinterest.com":"pinterest","snapchat.com":"snapchat","threads.net":"threads"
   };
   let refSource: string | null = null;
-  try { refSource = socialHosts[new URL(referrer).hostname.toLowerCase().replace(/^www\\./, "")] || null; } catch {}
+  if (referrer) {
+    try {
+      refSource = socialHosts[new URL(referrer).hostname.toLowerCase().replace(/^www\./, "")] || null;
+    } catch {}
+  }
   const clickSource = url.searchParams.get("fbclid") ? "facebook"
     : url.searchParams.get("ttclid") ? "tiktok"
     : url.searchParams.get("li_fat_id") ? "linkedin"
