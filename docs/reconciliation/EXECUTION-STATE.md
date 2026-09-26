@@ -391,3 +391,14 @@ Existing attribution-lock, audited override and competing-partner dispute contro
 
 Q1 remains **NOT ACCEPTED**.
 \n\n## Step 6 execution state — 2026-09-26\n\n**Step 6 — Client audit/reporting and campaign distribution**  \n**Status: IMPLEMENTED FOUNDATION — ACCEPTANCE PENDING**\n\nA workspace-scoped weekly pipeline audit/export is now implemented. The endpoint requires dashboard.view, defaults to seven days, accepts explicit bounds, returns JSON, and supports CSV export. The client CRM links the seven-day export. The audit joins first-touch data, current attribution, partner/campaign lineage, published asset count, opportunity evidence and confirmed-order evidence within the authorized workspace.\n\nExisting partner-facing campaign delivery continues to select only published assets from the partner's workspace.\n\n**Required evidence:** anchor-workspace audit exports, same-range repeatability, cross-workspace denial, campaign/asset/referral/visitor/lead lineage reconstruction, and unpublished-asset visibility denial.\n\nQ1 remains **NOT ACCEPTED**.\n
+
+## Step 7 execution state — 2026-09-26
+
+**Step 7 — Operational SOP and evidence pack**  
+**Status: IMPLEMENTED FOUNDATION — ACCEPTANCE PENDING**
+
+Added docs/ops/Q1-OPERATOR-SOP-EVIDENCE.md. It maps the required Q1 operator procedures to system controls, actors, evidence records and recovery paths. It explicitly records the known partial payout-batch capability rather than treating preparation as settlement.
+
+**Required evidence:** one controlled execution per SOP, authorization/state-transition evidence, failed-transaction rollback proof, receipt-exception proof and payout settlement evidence.
+
+Q1 remains **NOT ACCEPTED**.
