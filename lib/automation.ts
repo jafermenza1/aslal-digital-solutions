@@ -2,7 +2,7 @@ import { Prisma, TaskPriority, WorkflowActionStatus, WorkflowActionType, Workflo
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 
-type LeadTarget = { id:string; status:string; score:number; ownerEmail:string|null; nextActionDueAt:Date|null; name:string };
+type LeadTarget = { id:string; workspaceId:string|null; status:string; score:number; ownerEmail:string|null; nextActionDueAt:Date|null; name:string };
 type Conditions = { activeOnly?:boolean; minScore?:number; allowedStatuses?:string[] };
 export type WorkflowActionDefinition = { type:WorkflowActionType; title?:string; subject?:string; description?:string; priority?:TaskPriority; dueMinutes?:number; delayMinutes?:number; retryDelayMinutes?:number; maxAttempts?:number };
 export type WorkflowDefinition = { version:number; conditions?:Conditions; actions:WorkflowActionDefinition[]; maxLifetimeMinutes?:number };
@@ -31,7 +31,7 @@ const matches=(lead:LeadTarget,c?:Conditions)=>{
  if(typeof c.minScore==="number"&&lead.score<c.minScore)return false;
  return !c.allowedStatuses?.length||c.allowedStatuses.includes(lead.status);
 };
-async function lead(id:string){return prisma.lead.findUnique({where:{id},select:{id:true,status:true,score:true,ownerEmail:true,nextActionDueAt:true,name:true}});}
+async function lead(id:string){return prisma.lead.findUnique({where:{id},select:{id:true,workspaceId:true,status:true,score:true,ownerEmail:true,nextActionDueAt:true,name:true}});}
 async function ensureInternal(){
  for(const d of CORE){
   const w=await prisma.workflow.upsert({where:{systemKey:d.systemKey},update:{name:d.name,description:d.description,triggerType:d.triggerType},create:{id:randomUUID(),systemKey:d.systemKey,name:d.name,description:d.description,triggerType:d.triggerType,ownerEmail:process.env.ADMIN_EMAIL||null}});
@@ -154,16 +154,31 @@ export async function runScheduledAutomation(o?:{leadLimit?:number;executionLimi
 export async function runLeadCreatedAutomation(id:string){
   const current=await lead(id);
   if(!current)return [];
-  if(!current.ownerEmail){
-   const fallback=String(process.env.ADMIN_EMAIL||"").trim().toLowerCase()||null;
-   const sales=await prisma.user.findFirst({where:{active:true,role:{in:["SALES_MANAGER","SALES_OPERATOR","BUSINESS_OWNER","ADMIN","SUPER_ADMIN"]}},orderBy:[{lastLoginAt:"desc"},{createdAt:"asc"}],select:{email:true}});
-   const owner=sales?.email||fallback;
-   if(owner){
-    await prisma.lead.update({where:{id},data:{ownerEmail:owner}});
-    await prisma.activity.create({data:{type:"LEAD_OWNER_ASSIGNED",subject:"High-intent lead owner assigned",details:json({leadId:id,ownerEmail:owner,actor:"automation:lead-created"})}});
-   }
+
+  if(!current.ownerEmail && current.workspaceId){
+    const sales=await prisma.user.findFirst({
+      where:{
+        active:true,
+        role:{in:["SALES_MANAGER","SALES_OPERATOR","BUSINESS_OWNER","ADMIN","SUPER_ADMIN"]},
+        workspaceUsers:{some:{workspaceId:current.workspaceId}},
+      },
+      orderBy:[{lastLoginAt:"desc"},{createdAt:"asc"}],
+      select:{email:true},
+    });
+    const owner=sales?.email||null;
+    if(owner){
+      await prisma.lead.update({where:{id},data:{ownerEmail:owner}});
+      await prisma.activity.create({
+        data:{
+          type:"LEAD_OWNER_ASSIGNED",
+          subject:"High-intent lead owner assigned",
+          details:json({leadId:id,workspaceId:current.workspaceId,ownerEmail:owner,actor:"automation:lead-created"}),
+        },
+      });
+    }
   }
-  return runTrigger({triggerType:WorkflowTriggerType.LEAD_CREATED,targetType:"LEAD",targetId:id,idempotencyKey:`lead-created:${id}`});
+
+  return runTrigger({triggerType:WorkflowTriggerType.LEAD_CREATED,targetType:"LEAD",targetId:id,idempotencyKey:"lead-created:"+id});
 }
 export async function cancelLeadAutomation(id:string,reason:string){
  const rows=await prisma.workflowExecution.findMany({where:{targetType:"LEAD",targetId:id,status:{in:[WorkflowExecutionStatus.PENDING,WorkflowExecutionStatus.RUNNING]}},select:{id:true}});
