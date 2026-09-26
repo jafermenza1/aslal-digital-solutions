@@ -53,7 +53,7 @@ export async function runTelegramFollowUps(limit=100) {
       ]);
       if(done){
         const lead=await prisma.lead.findUnique({where:{id:d.leadId!},select:{name:true,ownerEmail:true}});
-        await remindWorkspace(d.workspaceId,lead?.ownerEmail||conversation.assignedTo||null,["🚨 Telegram follow-up escalation","Lead: "+(lead?.name||d.leadId||"unknown"),"Automated follow-up reached the configured maximum without a reply.","Action: admin/manager review and manual follow-up required."].join("\\n")).catch(()=>undefined);
+        await notifyWorkspaceSales(d.workspaceId,lead?.ownerEmail||conversation.assignedTo||null,["🚨 Telegram follow-up escalation","Lead: "+(lead?.name||d.leadId||"unknown"),"Automated follow-up reached the configured maximum without a reply.","Action: admin/manager review and manual follow-up required."].join("\\n")).catch(()=>undefined);
       }
       sent++;
     } catch(error) {
