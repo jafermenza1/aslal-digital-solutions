@@ -49,7 +49,7 @@ export async function POST(request:Request){
   if(required.some(k=>typeof body?.[k]!=="string"||!(body[k] as string).trim()))return NextResponse.json({error:"All resource fields are required."},{status:400});
   const downloadUrl=typeof body?.downloadUrl==="string"?body.downloadUrl.trim():"";
   if(downloadUrl&&!downloadUrl.startsWith("/resources/downloads/"))return NextResponse.json({error:"Download URL must point inside /resources/downloads/."},{status:400});
-  await db.query(`INSERT INTO resources (id,slug,category,title,description,preview,cta,intent,download_url,active,published_at,relationship_type,provider_name,workspace_id,campaign_id,media_urls,specifications) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+  await db.query(`INSERT INTO resources (id,slug,category,title,description,preview,cta,intent,download_url,active,published_at,relationship_type,provider_name,workspace_id,campaign_id,media_urls,specifications) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [randomUUID(),slug,body.category,body.title,body.description,body.preview,body.cta,body.intent,downloadUrl||null,1,new Date(),typeof body.relationshipType==="string"?body.relationshipType:"OWNED",typeof body.providerName==="string"?body.providerName.trim().slice(0,190)||null:null,typeof body.workspaceId==="string"&&body.workspaceId.trim()?body.workspaceId.trim():null,typeof body.campaignId==="string"&&body.campaignId.trim()?body.campaignId.trim():null,mediaUrls,specifications]);
   return NextResponse.json({ok:true});
 }
