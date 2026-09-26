@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authorizePermission } from "@/lib/authorization";
-import { INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
+import { getWorkspaceForUser, INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
 
 async function canManage(user: Awaited<ReturnType<typeof authorizePermission>>) {
   return Boolean(user && (user.role === "ADMIN" || user.role === "SUPER_ADMIN"));
@@ -11,6 +11,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   const actor = await authorizePermission("users.manage");
   if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
+  const access = await getWorkspaceForUser(actor, id);
+  if (!access) return NextResponse.json({ error: "Workspace not found or not authorized." }, { status: 403 });
   const [rows] = await db.query<any[]>(
     `SELECT w.id,w.name,w.slug,w.client_type,w.active,w.created_at,w.updated_at,
             (SELECT COUNT(*) FROM workspace_users wu WHERE wu.workspace_id=w.id) member_count
