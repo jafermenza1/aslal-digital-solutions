@@ -1626,3 +1626,21 @@ The CLIENT CRM now exposes the seven-day CSV export. Campaign distribution remai
 6. Retain audit/export and partner-material evidence.
 
 Q1 remains NOT ACCEPTED until Step 6 behavioral evidence is retained.
+
+
+## Step 7 implementation progress — 2026-09-26
+
+**Step:** Operational SOP and evidence pack.
+**Status:** IMPLEMENTED FOUNDATION — OPERATIONAL EXECUTION PENDING.
+
+Added docs/ops/Q1-OPERATOR-SOP-EVIDENCE.md covering disputed attribution, cancelled/refunded orders, merchant invoice issuance/allocation/collection, payout batch preparation/external money movement, and receipt verification/exception handling. Each SOP maps the procedure to the relevant system control, authorized actor, retained evidence and recovery path. The payout section explicitly records that full batch-generation remains a known PARTIAL implementation gap and does not imply external settlement merely from platform state.
+
+### Step 7 acceptance still required
+
+1. Execute one controlled run of each SOP.
+2. Retain request/action, authorization, database before/after and recovery evidence.
+3. Prove failed financial/dispute transactions leave protected state unchanged.
+4. Verify payout evidence distinguishes prepared batches from externally settled money.
+5. Verify receipt exceptions remain non-reconciled until resolved.
+
+Q1 remains **NOT ACCEPTED**.
