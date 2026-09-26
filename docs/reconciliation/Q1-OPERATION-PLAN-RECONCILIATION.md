@@ -294,3 +294,16 @@ A dedicated CLIENT CRM surface is now implemented at `/dashboard/client`. It aut
 The existing workspace authorization layer continues to reject requested workspaces for users without membership. The implementation therefore supports the intended A/B/C fixture while preserving the safe boundary.
 
 **Acceptance remains pending:** configure three isolated anchor workspaces and their role users, then execute direct cross-workspace negative tests and client-surface checks with retained evidence.
+
+
+## Step 4 implementation progress — 2026-09-26
+
+**100-agent provisioning and identity — IMPLEMENTED FOUNDATION / ACCEPTANCE PENDING**
+
+The Month 1 field requirement is now represented by a deterministic, administrator-only fixture path. `/api/admin/partners/bulk-provision` provisions up to 100 pending AGENT identities for the selected authorized workspace using `ASL-P-0001` through `ASL-P-0100`. Each identity receives a globally unique deterministic referral code and remains workspace-bound.
+
+The operation runs in one database transaction. Existing matching fixture records are safely reused on repeat execution; a collision with another workspace or a non-fixture record fails closed. The fixture does not issue credentials or create financial activity.
+
+This is a provisioning mechanism, not proof that 100 real vetted agents have been recruited. Real-agent onboarding, verification and acceptance evidence remain operational tasks.
+
+**Acceptance evidence still required:** execute the fixture in the intended anchor workspace(s), verify counts/uniqueness/workspace ownership, repeat for idempotency, test unauthorized workspace rejection, and retain database/request-response evidence.
