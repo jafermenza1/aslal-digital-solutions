@@ -2,7 +2,7 @@
 
 import {useEffect,useState} from "react";
 
-type Item={id:string;name?:string;title?:string;slug:string;description?:string|null;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null};
+type Item={id:string;name?:string;title?:string;slug:string;description?:string|null;preview?:string;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null};
 
 export default function TelegramCatalogPage(){
  const [items,setItems]=useState<{products:Item[];resources:Item[]}>({products:[],resources:[]});
