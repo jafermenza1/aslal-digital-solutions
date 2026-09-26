@@ -1,0 +1,6 @@
+import { requirePermission } from "@/lib/authorization";
+import { getAllSocialProfiles } from "@/lib/social-profiles";
+import { resolvePublicWorkspaceId } from "@/lib/workspaces";
+import { SocialProfileManager } from "@/components/SocialProfileManager";
+export const dynamic="force-dynamic";
+export default async function SocialProfilesPage(){const user=await requirePermission("content.manage");const workspaceId=resolvePublicWorkspaceId(null);const profiles=await getAllSocialProfiles(workspaceId);return <main className="dashboard-page min-h-screen py-10"><div className="container-aslal"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Website CMS / Brand</div><h1 className="mt-2 text-4xl font-black tracking-tight">Social media profiles</h1><p className="mt-2 max-w-3xl text-slate-500">Configure Aslal&apos;s official public social links for this workspace. These links appear in the website footer with consistent branded icons and are managed without code deployment.</p></div><div className="mt-8"><SocialProfileManager initial={profiles.map((p:any)=>({id:p.id,platform:p.platform,label:p.label,url:p.url,handle:p.handle,display_order:Number(p.display_order),is_active:Number(p.is_active)}))}/></div></div></main>
