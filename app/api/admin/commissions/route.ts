@@ -11,7 +11,7 @@ type LinkRow = RowDataPacket & { id: string; code: string; partner_id: string; p
 type CommissionRow = RowDataPacket & { id: string; partner_id: string; partner_name: string; lead_id: string | null; lead_name: string | null; referral_link_id: string | null; referral_code: string | null; amount: number | string; currency: string; status: string; created_at: Date };
 
 export async function GET() {
-  const access = await authorizeWorkspacePermission("partners.manage");
+  const access = await authorizeWorkspacePermission("commissions.manage");
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { workspace } = access;
 
@@ -26,7 +26,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const access = await authorizeWorkspacePermission("partners.manage");
+  const access = await authorizeWorkspacePermission("commissions.manage");
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { workspace } = access;
 
