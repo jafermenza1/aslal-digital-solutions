@@ -14,6 +14,12 @@ type VisitorRow = RowDataPacket & {
   first_source: string | null;
   first_medium: string | null;
   first_campaign: string | null;
+  first_referral_code: string | null;
+};
+
+type ReferralAttributionRow = RowDataPacket & {
+  code: string;
+  created_at: Date;
 };
 
 type ProductRow = RowDataPacket & { id: string; slug: string; name: string };
@@ -84,12 +90,23 @@ export async function POST(request: NextRequest) {
     recordSubmission(key);
     const visitorId = await getOrCreateVisitor();
     const workspaceId = resolvePublicWorkspaceId(request.headers.get("host"));
-    const referralCode = await getReferralCode();
+    const requestedReferralCode = await getReferralCode();
     const [visitorRows] = await db.execute<VisitorRow[]>(
-      "SELECT first_source, first_medium, first_campaign FROM visitors WHERE id = ? LIMIT 1",
+      "SELECT first_source, first_medium, first_campaign, first_referral_code FROM visitors WHERE id = ? LIMIT 1",
       [visitorId]
     );
     const visitor = visitorRows[0];
+    const [referralRows] = requestedReferralCode
+      ? await db.execute<ReferralAttributionRow[]>(
+          "SELECT rl.code, rc.created_at FROM referral_clicks rc INNER JOIN referral_links rl ON rl.id = rc.referral_link_id WHERE rc.visitor_id = ? AND rl.code = ? AND rl.workspace_id = ? ORDER BY rc.created_at DESC LIMIT 1",
+          [visitorId, requestedReferralCode, workspaceId]
+        )
+      : [[] as ReferralAttributionRow[]];
+    const referralTouch = referralRows[0];
+    const referralExpiry = referralTouch
+      ? new Date(referralTouch.created_at.getTime() + 30 * 24 * 60 * 60 * 1000)
+      : null;
+    const referralCode = referralTouch && referralExpiry > new Date() ? referralTouch.code : null;
     const source = referralCode ? "partner" : visitor?.first_source || "website";
     const leadId = randomUUID();
     const nextActionDueAt = new Date(Date.now() + 30 * 60 * 1000);
@@ -130,8 +147,8 @@ export async function POST(request: NextRequest) {
 
       await connection.execute(
         `INSERT INTO leads
-          (id, workspace_id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code, attribution_locked_at, attribution_locked_by, attribution_override_reason, capture_mode, lead_category)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'WEB', 'Website contact')`,
+          (id, workspace_id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code, attribution_locked_at, attribution_locked_by, attribution_override_reason, attribution_expires_at, capture_mode, lead_category)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, 'WEB', 'Website contact')`,
         [
           leadId,
           workspaceId,
@@ -152,6 +169,7 @@ export async function POST(request: NextRequest) {
           referralCode || null,
           referralCode ? new Date() : null,
           referralCode ? "website" : null,
+          referralExpiry,
         ]
       );
 
