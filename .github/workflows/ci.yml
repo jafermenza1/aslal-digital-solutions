@@ -92,10 +92,32 @@ jobs:
           tar -czf aslal-emerald-${RELEASE_SHA}.tar.gz -C emerald-deploy .
 
           echo "=== Emerald artifact manifest ==="
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -E '(^|/)(server\.js|next-server\.js|\.next/|public/)'
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)server\.js$'
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)next-server\.js$'
-          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz | grep -Eq '(^|/)\.next/static/'
+          # Write the complete manifest first. Do not pipe tar directly into grep:
+          # a downstream process can close stdout early and make tar exit with EPIPE
+          # (exit 2), falsely failing an otherwise valid deployment artifact.
+          tar -tzf aslal-emerald-${RELEASE_SHA}.tar.gz > emerald-artifact-manifest.txt
+          grep -E '(^|/)(server\.js|next-server\.js|\.next/|public/)' emerald-artifact-manifest.txt
+          grep -Eq '(^|/)server\.js
+
+      - name: Upload Emerald deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aslal-emerald-${{ github.sha }}
+          path: aslal-emerald-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+ emerald-artifact-manifest.txt
+          grep -Eq '(^|/)next-server\.js
+
+      - name: Upload Emerald deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aslal-emerald-${{ github.sha }}
+          path: aslal-emerald-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+ emerald-artifact-manifest.txt
+          grep -Eq '(^|/)\.next/static/' emerald-artifact-manifest.txt
 
       - name: Upload Emerald deployment artifact
         uses: actions/upload-artifact@v4
