@@ -246,3 +246,21 @@ Validation remains local/manual under the current no-Actions policy:
 `npm run lint`
 
 Gate acceptance must wait for behavioral evidence.
+
+
+## Q1 acceptance-blocker hardening — 2026-09-26
+
+Current main has completed the remaining schema/UI alignment work identified before Q1 acceptance execution:
+
+- UserRole and Gate 1 account roles remain aligned: FINANCE, AUDITOR, and CLIENT are explicit.
+- WorkspaceUser.role is now a Prisma WorkspaceRole enum matching the Gate 1 workspace-role contract.
+- A MariaDB migration normalizes legacy INTERNAL workspace memberships to MEMBER before enforcing the enum.
+- User-management permission defaults and the visible permission editor are aligned with the Gate 1 role contract.
+- Account-role selection in the user UI now automatically selects the corresponding workspace role for Finance, Auditor, Client, Sales, Partner, and management roles.
+- Existing-user editing no longer presents workspace assignment as if the account-role edit endpoint were changing membership; workspace membership remains managed through Workspace Administration.
+- Partner creation already resolves and persists the authorized workspace on both partners and referral_links, with actionable authorization/constraint errors.
+- Commission UI/backend state is aligned: PAYABLE cannot be changed directly to PAID; payout settlement is the only path to PAID.
+
+Current main: 6c56e52e22018f15506e75e5e21f7b7c524344ac
+
+These changes remove implementation/schema mismatches; they do not mark Gate 1 or the Q1 E2E plan accepted. Local npm run typecheck and npm run lint, followed by the isolated two-workspace behavioral acceptance matrix, remain required.
