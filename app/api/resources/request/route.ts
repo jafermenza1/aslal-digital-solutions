@@ -5,6 +5,7 @@ import { getOrCreateVisitor } from "@/lib/tracking";
 import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { runLeadCreatedAutomation } from "@/lib/automation";
+import { notifyWorkspaceSales } from "@/lib/telegram-sales";
 import type { RowDataPacket } from "mysql2/promise";
 
 type ResourceRow=RowDataPacket&{id:string;slug:string;title:string;download_url:string|null;category:string;intent:string};
@@ -32,7 +33,7 @@ export async function POST(request:Request){
   await db.query("INSERT INTO resource_requests (id,resource_id,lead_id,visitor_id,channel,contact_value,status,score_points,follow_up_due_at) VALUES (?,?,?,?,?,?,?,?,DATE_ADD(NOW(),INTERVAL 5 MINUTE))",[requestId,resourceId,leadId,visitorId,channel,contact,"REQUESTED",scorePoints]);
   await db.execute("INSERT INTO events (visitor_id,event_name,page_path,product_slug,metadata) VALUES (?,?,?,?,?)",[visitorId,"RESOURCE_DOWNLOAD",`/resources/${resource.slug}`,resource.slug,JSON.stringify({resourceId,category:resource.category,channel,requestId})]);
   let leadScore:number|null=null;
-  if(leadId){try{const score=await recalculateLeadScore(leadId);leadScore=score.score;await runLeadCreatedAutomation(leadId);}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
+  if(leadId){try{const score=await recalculateLeadScore(leadId);leadScore=score.score;await runLeadCreatedAutomation(leadId);if(leadScore>=60){const [leadRows]=await db.query<(RowDataPacket&{workspace_id:string;owner_email:string|null;name:string})[]>("SELECT workspace_id,owner_email,name FROM leads WHERE id=? LIMIT 1",[leadId]);const lead=leadRows[0];if(lead?.workspace_id)await notifyWorkspaceSales(lead.workspace_id,lead.owner_email,["🚨 High-intent resource lead",`Lead: ${lead.name}`,`Resource: ${resource.title}`,`Intent score: ${leadScore}/100`,`Next action: review resource activity and contact promptly.`].join("\\n")).catch(()=>undefined);}}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
   let deliveryMessage="Your resource is ready.";
   const downloadUrl=new URL(resource.download_url,origin).toString();
   if(channel==="WHATSAPP"){
