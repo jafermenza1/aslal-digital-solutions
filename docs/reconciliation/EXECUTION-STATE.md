@@ -302,3 +302,16 @@ The next controlled fixture is:
 **Workspace A/B → Finance/Sales/Auditor/Client → Lead → Customer → Quote → Order → Payment PENDING → Finance CONFIRMED → Reconciliation → Revenue → Commission QUALIFIED → Finance APPROVED → PAYABLE → Payout Settlement → Refund/Dispute/Attribution → Audit → Reporting → Mobile/Localization**
 
 No Q1 or Gate 1 status is upgraded from code inspection alone.
+
+
+## Q1 operational blocker closure status — 2026-09-26
+
+The canonical implementation sequence is now explicitly controlled by the Q1 Operational Blocker Closure Program in docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md.
+
+**Current step: Step 1 — Manual payment reconciliation workbench.**
+
+Important correction from the prior audit: the current mainline already has payment/reconciliation controls in app/dashboard/orders/OrdersWorkspace.tsx and evidence/verifier enforcement in app/api/payments/[id]/route.ts. The remaining blocker is that the UI still attempts direct CONFIRMED payment creation while the hardened API correctly requires PENDING first, and the Finance page does not yet provide the dedicated payment review queue.
+
+No GitHub Actions workflow is to be restored. Validation remains manual/local with npm run typecheck and npm run lint when code changes are made.
+
+Q1 remains **NOT ACCEPTED** until all blocker steps and the controlled behavioral evidence gate are complete.
