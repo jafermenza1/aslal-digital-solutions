@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
-import { getOrCreateVisitor } from "@/lib/tracking";
+import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { runLeadCreatedAutomation } from "@/lib/automation";
@@ -21,7 +21,7 @@ export async function POST(request:Request){
   const [resources]=await db.query<ResourceRow[]>("SELECT id,slug,title,download_url,category,intent FROM resources WHERE id=? AND slug=? AND active=1 LIMIT 1",[resourceId,slug]);
   const resource=resources[0]; if(!resource)return NextResponse.json({error:"Resource is unavailable."},{status:404});
   if(!resource.download_url)return NextResponse.json({error:"This resource is currently being prepared. Please use the preview or request implementation help."},{status:409});
-  const visitorId=await getOrCreateVisitor();\n  const workspaceId=resolvePublicWorkspaceId(request.headers.get("host"));\n  const referralCode=typeof attribution.referralCode==="string"?attribution.referralCode:null;
+  const visitorId=await getOrCreateVisitor();\n  const workspaceId=resolvePublicWorkspaceId(request.headers.get("host"));\n  const referralCode=typeof attribution.referralCode==="string"?attribution.referralCode:await getReferralCode();
   const phone=normalizeEthiopianPhone(contact);
   const email=contact.includes("@")?contact.toLowerCase():null;
   const origin=new URL(request.url).origin;
