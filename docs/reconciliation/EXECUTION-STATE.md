@@ -287,9 +287,9 @@ This pass reconciles the current mainline against the Q1 commercial journey befo
 
 ### Remaining Q1 gaps before acceptance
 
-1. Dispute resolution must atomically reassign linked commercial attribution to the awarded partner and retain old/new audit evidence.
-2. Public lead capture must gain trusted workspace routing for the three-anchor fixture without trusting arbitrary browser-supplied workspace IDs.
-3. Duplicate-customer matching needs explicit behavioral rules and acceptance evidence.
+1. Dispute resolution now reassigns linked commission/revenue attribution and retains old/new audit evidence; transaction-failure atomicity still needs behavioral proof.
+2. Public lead capture now uses trusted host → workspace configuration with INTERNAL fallback; configure and verify the three-anchor fixture.
+3. Duplicate-customer matching now blocks same-workspace duplicate customer creation by email/phone; execute the behavioral matrix.
 4. Financial, attribution and permission audit coverage must be checked across every critical transition.
 5. A deterministic 100-partner fixture must be executed and evidence retained.
 6. Mobile/low-bandwidth and Arabic/RTL critical-path tests still require actual device/browser evidence.
