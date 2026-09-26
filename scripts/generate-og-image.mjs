@@ -13,4 +13,5 @@ function crc32(buf){let c=0xffffffff;for(const b of buf){c^=b;for(let k=0;k<8;k+
 function chunk(type,data){const t=Buffer.from(type);const out=Buffer.alloc(8+data.length+4);out.writeUInt32BE(data.length,0);t.copy(out,4);data.copy(out,8);out.writeUInt32BE(crc32(Buffer.concat([t,data])),8+data.length);return out;}
 const ihdr=Buffer.alloc(13);ihdr.writeUInt32BE(width,0);ihdr.writeUInt32BE(height,4);ihdr[8]=8;ihdr[9]=6;
 const png=Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk("IHDR",ihdr),chunk("IDAT",zlib.deflateSync(raw,{level:9})),chunk("IEND",Buffer.alloc(0))]);
-const out=path.join(process.cwd(),"public","og","products.png");fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,png);if(png.length>=300000)throw new Error("OG image exceeds 300 KB");console.log("Generated "+out+": "+png.length+" bytes (1200x630)");
+const outDir=path.join(process.cwd(),"public","og");fs.mkdirSync(outDir,{recursive:true});
+for(const name of ["products.png","resources.png"]){const out=path.join(outDir,name);fs.writeFileSync(out,png);if(png.length>=300000)throw new Error("OG image exceeds 300 KB");console.log("Generated "+out+": "+png.length+" bytes (1200x630)");}
