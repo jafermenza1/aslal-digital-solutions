@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { cookies } from "next/headers";
 import { authorizePermission, type CurrentUser } from "@/lib/authorization";
+import type { Permission } from "@/lib/permissions";
 
 export const INTERNAL_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
 export function resolvePublicWorkspaceId(hostname?: string | null) {
@@ -48,7 +49,7 @@ export async function getWorkspaceForUser(user: CurrentUser, workspaceId?: strin
   return null;
 }
 
-export async function authorizeWorkspacePermission(permission:"dashboard.view"|"customers.view"|"leads.view"|"leads.create"|"leads.edit"|"customers.view"|"commerce.view"|"commerce.manage"|"partners.manage"|"operations.view"|"insights.view", workspaceId?:string|null) {
+export async function authorizeWorkspacePermission(permission: Permission, workspaceId?:string|null) {
   const user = await authorizePermission(permission);
   if (!user) return null;
   const workspace = await getWorkspaceForUser(user, workspaceId);
