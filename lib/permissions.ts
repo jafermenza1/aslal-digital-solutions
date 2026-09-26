@@ -21,6 +21,8 @@ export const PERMISSIONS = [
   "operations.view",
   "commerce.view",
   "commerce.manage",
+  "commissions.manage",
+  "payouts.manage",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -31,7 +33,8 @@ const sets: Record<UserRole, Permission[]> = {
   BUSINESS_OWNER: [
     "dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view",
     "conversations.view","conversations.send","conversations.manage","products.manage","content.manage",
-    "email_templates.manage","users.manage","partners.manage","insights.view","operations.view","commerce.view","commerce.manage"
+    "email_templates.manage","users.manage","partners.manage","insights.view","operations.view","commerce.view","commerce.manage",
+    "commissions.manage","payouts.manage"
   ],
   SALES_MANAGER: [
     "dashboard.view","leads.view","leads.create","leads.edit","customers.view",
@@ -49,7 +52,10 @@ const sets: Record<UserRole, Permission[]> = {
     "dashboard.view","leads.view","customers.view","partners.manage","insights.view"
   ],
   PARTNER: ["dashboard.view","partner.portal.view"],
-  FINANCE: ["dashboard.view","customers.view","insights.view","commerce.view"],
+  FINANCE: [
+    "dashboard.view","customers.view","insights.view","operations.view","commerce.view","commerce.manage",
+    "commissions.manage","payouts.manage"
+  ],
   AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view","commerce.view"],
   CLIENT: ["dashboard.view","customers.view","insights.view","commerce.view"],
 };
