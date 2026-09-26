@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { getOrCreateTelegramChannelConfig } from "@/lib/telegram-channel-config";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,7 +41,7 @@ export async function PATCH(request: Request) {
   if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied." }, { status: 403 });
 
   const current = await getOrCreateTelegramChannelConfig(access.workspace.id);
-  const data: Record<string, unknown> = {};
+  const data: Prisma.TelegramChannelConfigUpdateInput = {};
 
   for (const key of booleanFields) if (typeof body[key] === "boolean") data[key] = body[key];
   for (const key of stringFields) if (typeof body[key] === "string") data[key] = String(body[key]).trim().slice(0, key === "miniAppUrl" || key === "logoUrl" ? 1000 : 190);
