@@ -53,6 +53,21 @@ export const DEFAULT_TELEGRAM_CHANNEL_CONFIG = {
   primaryColor: null,
   secondaryColor: null,
   showWorkspaceBranding: true,
+  publicEnabled: true,
+  allowAnonymousUsers: true,
+  inlineModeEnabled: false,
+  inlineCatalogEnabled: false,
+  qualificationEnabled: false,
+  qualificationFlow: [],
+  knowledgeBaseEnabled: false,
+  keywordRules: [],
+  humanHandoffEnabled: true,
+  handoffChatId: null,
+  handoffMode: "ADMIN_GROUP",
+  publicMenu: ["Catalog","Qualify me","Pricing","Talk to Agent"],
+  paymentProviders: ["CHAPA","TELEBIRR","CBE_BIRR"],
+  telegramPaymentsEnabled: false,
+  localPaymentsEnabled: false,
 } as const;
 
 export async function getTelegramChannelConfig(workspaceId: string) {
