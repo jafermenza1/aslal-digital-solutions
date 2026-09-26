@@ -1,13 +1,13 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 export function ResourceCapture({resourceId,resourceSlug,downloadUrl,cta}:{resourceId:string;resourceSlug:string;downloadUrl:string|null;cta:string}){
- const [name,setName]=useState(""),[contact,setContact]=useState(""),[channel,setChannel]=useState<"WEB"|"WHATSAPP"|"TELEGRAM">("WEB"),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[link,setLink]=useState<string|null>(null);
+ const [name,setName]=useState(""),[contact,setContact]=useState(""),[channel,setChannel]=useState<"WEB"|"WHATSAPP"|"TELEGRAM">("WEB"),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[link,setLink]=useState<string|null>(null);\n useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem("aslal_resource_profile")||"null");if(saved?.name)setName(String(saved.name));if(saved?.contact)setContact(String(saved.contact));}catch{ /* ignore invalid local profile */}},[]);
  async function submit(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
   const res=await fetch("/api/resources/request",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resourceId,resourceSlug,name,contact,channel})});
   const data=await res.json().catch(()=>({}));setBusy(false);
   if(!res.ok){setMessage(data.error||"Unable to request the resource.");return;}
-  setLink(data.downloadUrl||downloadUrl||null);setMessage(data.deliveryMessage||"Your resource is ready.");
+  setLink(data.downloadUrl||downloadUrl||null);setMessage(data.deliveryMessage||"Your resource is ready.");try{localStorage.setItem("aslal_resource_profile",JSON.stringify({name,contact}))}catch{/* storage may be unavailable */}
  }
  return <div className="rounded-[2rem] border border-[#0F3E8A]/15 bg-white p-6 shadow-lg sm:p-8">
   <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Unlock the full resource</div>
