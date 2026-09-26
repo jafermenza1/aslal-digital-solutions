@@ -47,7 +47,7 @@ type Draft = {
   reason: string;
 };
 
-const emptyDraft = (workspaceId = ""): Draft => ({
+function workspaceRoleForAccountRole(role: string) {\n  const map: Record<string, string> = { SUPER_ADMIN: "ADMIN", ADMIN: "ADMIN", BUSINESS_OWNER: "MANAGER", SALES_MANAGER: "MANAGER", SALES_OPERATOR: "SALES", MARKETING_OPERATOR: "MANAGER", PARTNER_MANAGER: "MANAGER", PARTNER: "PARTNER", FINANCE: "FINANCE", AUDITOR: "AUDITOR", CLIENT: "CLIENT" };\n  return map[role] || "MEMBER";\n}\n\nconst emptyDraft = (workspaceId = ""): Draft => ({
   id: "", name: "", email: "", password: "", role: "SALES_OPERATOR", active: true,
   workspaceId, workspaceRole: "SALES", selected: [...roleDefaults.SALES_OPERATOR], reason: "",
 });
@@ -61,7 +61,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
   const edit = (user: UserRow) => {
     setDraft({
       id: user.id, name: user.name, email: user.email, password: "",
-      role: user.role, active: user.active, workspaceId: workspaces[0]?.id || "", workspaceRole: user.role,
+      role: user.role, active: user.active, workspaceId: workspaces[0]?.id || "", workspaceRole: workspaceRoleForAccountRole(user.role),
       selected: user.permissions, reason: "",
     });
     setNotice("");
@@ -153,7 +153,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
           <input required value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} placeholder="Full name" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
           <input required type="email" value={draft.email} onChange={event => setDraft({ ...draft, email: event.target.value })} placeholder="Email" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
           <input type="password" minLength={10} value={draft.password} onChange={event => setDraft({ ...draft, password: event.target.value })} placeholder={draft.id ? "New password (leave blank to keep)" : "Password · 10+ characters"} className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
-          <label className="text-sm font-bold text-white/70">Workspace<select required value={draft.workspaceId} onChange={event => setDraft({ ...draft, workspaceId: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white">
+          <label className="text-sm font-bold text-white/70">Workspace<select required disabled={Boolean(draft.id)} value={draft.workspaceId} onChange={event => setDraft({ ...draft, workspaceId: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white disabled:opacity-50">
             <option value="">Select workspace</option>{workspaces.map(workspace => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}
           </select></label>
           <label className="text-sm font-bold text-white/70">Workspace role<select required value={draft.workspaceRole} onChange={event => setDraft({ ...draft, workspaceRole: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white">
@@ -161,7 +161,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
           </select></label>
           <select value={draft.role} onChange={event => {
             const role = event.target.value;
-            setDraft({ ...draft, role, selected: [...(roleDefaults[role] || [])] });
+            setDraft({ ...draft, role, workspaceRole: workspaceRoleForAccountRole(role), selected: [...(roleDefaults[role] || [])] });
           }} className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white">
             <option value="SUPER_ADMIN">Super Administrator</option>
             <option value="ADMIN">Administrator</option>
