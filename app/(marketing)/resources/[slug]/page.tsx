@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventTracker } from "@/components/EventTracker";
 import { ResourceTool } from "@/components/ResourceTools";
-import { RESOURCES, getResource } from "@/lib/resources";
+import { RESOURCES } from "@/lib/resources";
+import { getResourceBySlug } from "@/lib/resources-server";
+import { ResourceCapture } from "@/components/ResourceCapture";
 
 export const revalidate = 3600;
 
@@ -11,7 +13,7 @@ export function generateStaticParams(){ return RESOURCES.map(resource=>({slug:re
 
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}):Promise<Metadata>{
   const {slug}=await params;
-  const resource=getResource(slug);
+  const resource=await getResourceBySlug(slug);
   if(!resource) return {};
   const title=`${resource.title} | Aslal Resources`;
   const description=`${resource.description} Get a practical preview, use the tool or template, and take the next step with Aslal Digital Solutions.`;
@@ -22,17 +24,17 @@ export async function generateMetadata({params}:{params:Promise<{slug:string}>})
 
 export default async function ResourceDetailPage({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params;
-  const resource=getResource(slug);
+  const resource=await getResourceBySlug(slug);
   if(!resource) notFound();
-  const isTool=resource.kind==="tool";
-  const isTemplate=resource.kind==="template";
+  const isTool=resource.category==="tool";
+  const isTemplate=resource.category==="template";
   const whatsapp=`https://wa.me/251911276682?text=${encodeURIComponent(`Hi Aslal, I am interested in: ${resource.title}`)}`;
   const telegram=`https://t.me/share/url?url=${encodeURIComponent(`https://aslaldigital.com/resources/${resource.slug}`)}&text=${encodeURIComponent(`Hi Aslal, I am interested in: ${resource.title}`)}`;
   return <main>
     <EventTracker eventName="CONTENT_VIEW" productSlug={resource.slug}/>
     <section className="bg-[#071F47] py-20 text-white">
       <div className="container-aslal">
-        <div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">{resource.kind} • Aslal Resources</div>
+        <div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">{resource.category} • Aslal Resources</div>
         <h1 className="mt-5 max-w-5xl text-4xl font-black tracking-[-.04em] sm:text-6xl">{resource.title}</h1>
         <p className="mt-6 max-w-3xl text-lg leading-8 text-white/70">{resource.description}</p>
         <div className="mt-8 flex flex-wrap gap-3">
@@ -54,11 +56,11 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
             <div><h3 className="font-black">3. Measure what happens after the click</h3><p className="mt-2 leading-7">A resource interaction is useful only when it can be connected to qualification, opportunity, order and revenue outcomes.</p></div>
           </div>}
         </article>
-        <aside className="h-fit rounded-[2rem] bg-[#F8FAFC] p-7 sm:p-9">
+        <aside className="h-fit rounded-[2rem] bg-[#F8FAFC] p-7 sm:p-9"><ResourceCapture resourceId={resource.id} resourceSlug={resource.slug} downloadUrl={resource.download_url} cta={resource.cta}/>
           <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Next action</div>
           <h2 className="mt-3 text-2xl font-black">{resource.cta}</h2>
           <p className="mt-4 leading-7 text-slate-600">Keep the resource useful without forcing a long form. If you already know the problem, send the topic directly to Aslal and the request can enter the existing lead workflow.</p>
-          {isTemplate && resource.download && <a href={resource.download} download onClick={()=>{}} className="mt-6 block rounded-2xl border border-[#0F3E8A]/20 bg-white px-5 py-4 text-center font-black text-[#0F3E8A]">Download template</a>}
+          {isTemplate && resource.download_url && <a href={resource.download_url} download className="mt-6 block rounded-2xl border border-[#0F3E8A]/20 bg-white px-5 py-4 text-center font-black text-[#0F3E8A]">Direct download</a>}
           <Link href={`/contact?goal=${encodeURIComponent(resource.intent)}`} className="mt-3 block rounded-2xl bg-[#0F3E8A] px-5 py-4 text-center font-black text-white">Request implementation help</Link>
           <p className="mt-5 text-xs leading-5 text-slate-500">No purchase is implied by using a resource or calculator. Estimates are illustrative.</p>
         </aside>
