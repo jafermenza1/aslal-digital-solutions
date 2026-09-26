@@ -3,7 +3,7 @@ import { sendThroughAdapter } from "@/lib/messaging";
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 
-export async function notifyWorkspaceSales(workspaceId:string,ownerEmail:string|null,body:string){workspaceId:string,ownerEmail:string|null,body:string){
+export async function notifyWorkspaceSales(workspaceId:string,ownerEmail:string|null,body:string){
   let chatId:string|null=null;
   if(ownerEmail){
     const [ownerRows]=await db.query<any[]>("SELECT u.telegram_chat_id FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE u.email=? AND u.active=1 AND wu.workspace_id=? LIMIT 1",[ownerEmail,workspaceId]);
@@ -53,7 +53,7 @@ export async function runTelegramFollowUps(limit=100) {
       ]);
       if(done){
         const lead=await prisma.lead.findUnique({where:{id:d.leadId!},select:{name:true,ownerEmail:true}});
-        await notifyWorkspaceSales(d.workspaceId,lead?.ownerEmail||conversation.assignedTo||null,["🚨 Telegram follow-up escalation","Lead: "+(lead?.name||d.leadId||"unknown"),"Automated follow-up reached the configured maximum without a reply.","Action: admin/manager review and manual follow-up required."].join("\\n")).catch(()=>undefined);
+        await notifyWorkspaceSales(d.workspaceId,lead?.ownerEmail||conversation.assignedTo||null,["🚨 Telegram follow-up escalation","Lead: "+(lead?.name||d.leadId||"unknown"),"Automated follow-up reached the configured maximum without a reply.","Action: admin/manager review and manual follow-up required."].join("\n")).catch(()=>undefined);
       }
       sent++;
     } catch(error) {
