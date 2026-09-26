@@ -41,7 +41,7 @@ const ITEMS:Item[]=[
 {key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"management"},
 {key:"users",href:"/dashboard/workspaces",permission:"users.manage",icon:"users",group:"management",label:"Workspaces"},
 {key:"telegramSales",href:"/dashboard/telegram",permission:"leads.view",icon:"message",group:"management",label:"Telegram Sales"},
-{key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"management",nested:true},
+{key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"management",nested:true},{key:"publicContent",href:"/dashboard/resources",permission:"content.manage",icon:"store",group:"management",nested:true,label:"Resources"},
 {key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"},
 {key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"}
 ];
