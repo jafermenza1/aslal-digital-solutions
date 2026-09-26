@@ -68,6 +68,24 @@ async function ensurePublicLead(workspaceId:string,user:any,chatId:string,stateD
   await db.query("UPDATE telegram_public_sessions SET lead_id=?,person_id=? WHERE workspace_id=? AND telegram_user_id=?",[leadId,personId,workspaceId,String(user?.id||chatId)]);
   return leadId;
 }
+async function routePublicMessageToHandoff(chatId:string,workspaceId:string,user:any,m:TelegramMessage){
+  const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled||!cfg.handoffChatId)return false;
+  const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+  const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
+  const forwarded=await tg("copyMessage",{chat_id:String(cfg.handoffChatId),from_chat_id:chatId,message_id:m.message_id});
+  const adminMessageId=forwarded?.result?.message_id;
+  await savePublicState(workspaceId,String(user?.id||chatId),"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:adminMessageId,publicChatId:chatId,leadId});
+  return true;
+}
+async function routeAdminReplyToPublic(m:TelegramMessage){
+  const [rows]=await db.query<(RowDataPacket&{workspace_id:string;state_data:any})[]>(`SELECT workspace_id,state_data FROM telegram_public_sessions WHERE state='SUPPORT_REQUESTED' ORDER BY updated_at DESC LIMIT 100`);
+  const replyId=String(m.reply_to_message?.message_id||"");
+  const row=rows.find(r=>{const d=typeof r.state_data==="string"?JSON.parse(r.state_data||"{}"):(r.state_data||{});return String(d.handoffAdminMessageId||"")===replyId;});
+  if(!row)return false;
+  const d=typeof row.state_data==="string"?JSON.parse(row.state_data||"{}"):(row.state_data||{}); if(!d.publicChatId)return false;
+  await reply(String(d.publicChatId),clean(m.text)); return true;
+}
+
 async function handoffPublic(chatId:string,workspaceId:string,user:any){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled)return reply(chatId,"Human support is currently unavailable.");
   const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
@@ -262,7 +280,7 @@ async function handle(update:TelegramUpdate){
       if(cfg?.publicEnabled&&cfg.allowAnonymousUsers){
         if(await keywordResponse(chatId,workspaceId,input))return;
         const session=await publicSession(workspaceId,m.from||{},chatId);
-        if(session.state==="SUPPORT_REQUESTED")return handoffPublic(chatId,workspaceId,m.from||{});
+        if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,workspaceId,m.from||{},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,workspaceId,m.from||{});}
         if(session.state==="QUALIFYING")return qualification(chatId,workspaceId,m.from||{},String((typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):session.state_data||{}).currentStep||""));
         return publicMenu(chatId,workspaceId);
       }
@@ -317,6 +335,11 @@ async function handle(update:TelegramUpdate){
     const d=destinations[0];
     if(!d||!d.active||!d.opt_in)return reply(chatId,"This Telegram chat is not connected to an Aslal client conversation yet. Use the client link provided by Aslal.");
     return handleClientInbound(d.workspace_id,d,m,chatId);
+  }
+
+  const publicHandoffChatId=String((await getTelegramChannelConfig(String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"")))?.handoffChatId||"");
+  if((chatType==="group"||chatType==="supergroup") && publicHandoffChatId===chatId && m.reply_to_message?.message_id){
+    if(await routeAdminReplyToPublic(m))return;
   }
 
   if(chatType==="group"||chatType==="supergroup"||chatType==="channel"){
