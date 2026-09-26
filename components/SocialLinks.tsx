@@ -1,0 +1,5 @@
+"use client";
+import { Facebook, Instagram, Linkedin, MessageCircle, Send, Music2, Youtube, Twitter } from "lucide-react";
+import type { SocialProfile } from "@/lib/social-profiles";
+const ICONS={facebook:Facebook,instagram:Instagram,tiktok:Music2,linkedin:Linkedin,whatsapp:MessageCircle,telegram:Send,youtube:Youtube,x:Twitter} as const;
+export function SocialLinks({profiles}:{profiles:SocialProfile[]}){if(!profiles.length)return null;return <div className="flex flex-wrap items-center gap-2" aria-label="Aslal social media"><span className="sr-only">Aslal social media:</span>{profiles.map(profile=>{const Icon=ICONS[profile.platform];return <a key={profile.id} href={profile.url} target="_blank" rel="noreferrer" aria-label={profile.label} title={profile.handle?profile.label+" · "+profile.handle:profile.label} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[.05] text-white/70 transition hover:-translate-y-0.5 hover:border-[#E2B02A]/60 hover:bg-[#E2B02A] hover:text-[#071F47]"><Icon size={18} strokeWidth={1.8}/></a>})}</div>}
