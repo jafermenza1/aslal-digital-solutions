@@ -232,3 +232,11 @@ The Q1 attribution gap is now narrowed from an undefined policy to an explicit c
 
 Remaining evidence gap: execute the controlled tests, including a forced transaction failure, and retain database/audit evidence. Code presence is not acceptance evidence.
 \n\n## Step 6 — Client audit/reporting and campaign distribution\n\n**Status: IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING**\n\nThe weekly audit/reporting gap now has a concrete mainline path: /api/admin/reports/weekly-pipeline is workspace-scoped, supports explicit date ranges, returns structured JSON, and exports CSV. It preserves first-touch fields and joins current partner/campaign attribution, published asset count, opportunity state/value and confirmed-order evidence. The CLIENT CRM exposes the seven-day export.\n\nExisting Telegram partner campaign details already select only PUBLISHED assets within the partner workspace.\n\nRemaining evidence gap: execute the audit for the anchor workspaces, verify repeatability and cross-workspace denial, then reconstruct a controlled campaign → asset → referral → visitor/lead lineage and prove unpublished assets remain hidden.\n
+
+## Step 7 — Operational SOP and evidence pack
+
+**Status: IMPLEMENTED FOUNDATION — OPERATIONAL ACCEPTANCE PENDING**
+
+A dedicated Q1 operator SOP/evidence document now maps disputed attribution, cancellation/refund, merchant invoicing/collection, payout preparation, and receipt exception handling to system controls, actors, evidence and recovery paths.
+
+Remaining gap: SOP existence is not operational proof. Each procedure must be executed and its evidence retained, including failed-transaction rollback and the distinction between payout preparation and actual external settlement.
