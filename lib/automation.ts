@@ -86,12 +86,21 @@ export async function processWorkflowExecution(id:string){
   await prisma.workflowActionExecution.updateMany({where:{executionId:id,status:WorkflowActionStatus.PENDING},data:{status:WorkflowActionStatus.SKIPPED,error:"Workflow conditions were not met.",completedAt:new Date()}});
   return {status:"SKIPPED" as const};
  }
- await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.RUNNING,startedAt:e.startedAt||new Date(),attempts:{increment:1},lastError:null}});
+ const claimed=await prisma.workflowExecution.updateMany({
+  where:{id,status:WorkflowExecutionStatus.PENDING},
+  data:{status:WorkflowExecutionStatus.RUNNING,startedAt:e.startedAt||new Date(),attempts:{increment:1},lastError:null},
+ });
+ if(!claimed.count)return {status:"CLAIMED_BY_OTHER_WORKER" as const};
  for(const ax of e.actions){
   const action=def.actions[ax.actionIndex];
   if(!action){await prisma.workflowActionExecution.update({where:{id:ax.id},data:{status:WorkflowActionStatus.FAILED,error:"Action definition missing.",completedAt:new Date()}});continue;}
   if(ax.status===WorkflowActionStatus.COMPLETED||ax.status===WorkflowActionStatus.SKIPPED)continue;
   if(ax.scheduledFor&&ax.scheduledFor>new Date())continue;
+  const actionClaim=await prisma.workflowActionExecution.updateMany({
+   where:{id:ax.id,status:WorkflowActionStatus.PENDING,OR:[{scheduledFor:null},{scheduledFor:{lte:new Date()}}]},
+   data:{status:WorkflowActionStatus.RUNNING,startedAt:new Date(),attempts:{increment:1},error:null},
+  });
+  if(!actionClaim.count)continue;
   target=e.targetType==="LEAD"?await lead(e.targetId):null;
   if(e.targetType==="LEAD"&&(!target||!matches(target,def.conditions))){
    await prisma.workflowExecution.update({where:{id},data:{status:WorkflowExecutionStatus.CANCELLED,completedAt:new Date(),lastError:"Stop condition reached before action execution."}});
@@ -99,10 +108,12 @@ export async function processWorkflowExecution(id:string){
    return {status:"CANCELLED" as const};
   }
   const current=await prisma.workflowActionExecution.findUnique({where:{id:ax.id},select:{attempts:true,status:true}});
-  if(!current||current.status!==WorkflowActionStatus.PENDING)continue;
+  if(!current||current.status!==WorkflowActionStatus.RUNNING)continue;
   const max=Math.max(1,Math.min(10,Number(action.maxAttempts??3)));
-  if(current.attempts>=max){await prisma.workflowActionExecution.update({where:{id:ax.id},data:{status:WorkflowActionStatus.FAILED,error:ax.error||"Maximum attempts reached.",completedAt:new Date()}});continue;}
-  await prisma.workflowActionExecution.update({where:{id:ax.id},data:{status:WorkflowActionStatus.RUNNING,startedAt:new Date(),attempts:{increment:1},error:null}});
+  if(current.attempts>max){
+   await prisma.workflowActionExecution.update({where:{id:ax.id},data:{status:WorkflowActionStatus.FAILED,error:ax.error||"Maximum attempts reached.",completedAt:new Date()}});
+   continue;
+  }
   try{
    if(!target)throw new Error("Automation action requires an active lead target.");
    const result=action.type===WorkflowActionType.CREATE_TASK
