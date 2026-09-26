@@ -364,3 +364,15 @@ Mainline changes:
 Three anchor workspaces A/B/C; Finance/Sales/Auditor/Client role provisioning; client-only scoped reads; cross-workspace negative route/API tests; operational-surface denial; retained request/response/database evidence; and local typecheck/lint evidence.
 
 No Q1 acceptance status is upgraded from code existence alone.
+
+
+## Step 4 implementation progress — 2026-09-26
+
+**Current blocker-closure step:** Step 4 — 100-agent provisioning and identity.  
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+The Partner workspace now exposes an administrator-only deterministic Q1 fixture provisioner. The backend provisions up to 100 pending AGENT records as `ASL-P-0001` through `ASL-P-0100`, creates deterministic referral codes, binds both records to the authorized workspace and executes the batch transactionally.
+
+The operation is idempotent for matching fixture records and fails closed for workspace collisions or existing non-fixture identities. It creates no credentials or financial activity.
+
+Step 4 is not behaviorally accepted until the fixture is executed with retained count, uniqueness, workspace-boundary, repeat-run and unauthorized-access evidence. This fixture does not substitute for recruiting or vetting 100 real agents.
