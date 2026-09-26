@@ -343,3 +343,24 @@ Mainline changes for this step:
 Protected scheduler response, high-intent execution, repeated-trigger idempotency, overdue deduplication, retry/stale recovery, reply cancellation, WON/LOST cancellation, workspace-scoped ownership, operator visibility, customer-messaging safety and local typecheck/lint evidence.
 
 No Q1 or Gate 2 acceptance status is upgraded from code existence alone.
+
+
+## Step 3 implementation progress — 2026-09-26
+
+**Current blocker-closure step:** Step 3 — Three-anchor workspace/client boundary.
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+Mainline changes:
+
+- dedicated `/dashboard/client` surface for CLIENT users;
+- workspace authorization occurs before client CRM data access;
+- client-visible leads, customers, orders, tasks and commission totals are explicitly filtered by the authorized workspace;
+- CLIENT role no longer has generic `commerce.view`; this prevents accidental exposure of the broad Orders workspace;
+- generic dashboard redirects CLIENT to the dedicated client CRM surface;
+- existing workspace membership and server-side workspace authorization remain mandatory.
+
+### Step 3 evidence still required
+
+Three anchor workspaces A/B/C; Finance/Sales/Auditor/Client role provisioning; client-only scoped reads; cross-workspace negative route/API tests; operational-surface denial; retained request/response/database evidence; and local typecheck/lint evidence.
+
+No Q1 acceptance status is upgraded from code existence alone.
