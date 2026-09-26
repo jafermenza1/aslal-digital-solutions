@@ -1503,3 +1503,12 @@ After each step:
 5. do not advance the next step merely because code exists.
 
 GitHub Actions remain disabled during this program.
+
+
+## Step 1 implementation progress — 2026-09-26
+
+**Status: IMPLEMENTED — BEHAVIORAL ACCEPTANCE PENDING.**
+
+Implemented on `main`: payment capture is now PENDING-only in the Orders UI; a workspace-scoped Finance reconciliation queue/API was added; Finance can match receipt evidence, confirm collection, reconcile to revenue, or flag an exception. Existing payment API controls remain authoritative. No GitHub Actions were restored.
+
+**Validation limitation:** repository changes were inspected through the GitHub source; `npm run typecheck` and `npm run lint` have not yet been executed in this step. They are required before Step 1 can exit.
