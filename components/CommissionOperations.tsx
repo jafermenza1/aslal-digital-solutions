@@ -11,7 +11,7 @@ const nextStatus: Record<string, string[]> = {
   PENDING: ["QUALIFIED", "VOID"],
   QUALIFIED: ["APPROVED", "VOID"],
   APPROVED: ["PAYABLE", "VOID"],
-  PAYABLE: ["PAID", "VOID"],
+  PAYABLE: ["VOID"],
   PAID: [],
   VOID: [],
 };
@@ -92,7 +92,7 @@ export default function CommissionOperations() {
   }
 
   return <section className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><h2 className="text-xl font-black">Commission operations</h2><p className="mt-1 text-sm text-slate-500">Create earned commissions and move them through qualification, approval, payable and paid.</p></div><div className="rounded-full bg-[#0F3E8A]/5 px-4 py-2 text-xs font-black uppercase tracking-wider text-[#0F3E8A]">PENDING → QUALIFIED → APPROVED → PAYABLE → PAID</div></div>
+    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><h2 className="text-xl font-black">Commission operations</h2><p className="mt-1 text-sm text-slate-500">Create earned commissions and move them through qualification, approval and payable; payout settlement is what makes a commission PAID.</p></div><div className="rounded-full bg-[#0F3E8A]/5 px-4 py-2 text-xs font-black uppercase tracking-wider text-[#0F3E8A]">PENDING → QUALIFIED → APPROVED → PAYABLE → PAYOUT → PAID</div></div>
     <form onSubmit={createCommission} className="mt-6 grid gap-3 lg:grid-cols-6">
       <select required value={partnerId} onChange={(e) => { setPartnerId(e.target.value); setReferralLinkId(""); }} className="rounded-xl border border-slate-200 px-3 py-3 text-sm lg:col-span-2"><option value="">Partner</option>{partners.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.status}</option>)}</select>
       <select value={leadId} onChange={(e) => setLeadId(e.target.value)} className="rounded-xl border border-slate-200 px-3 py-3 text-sm lg:col-span-2"><option value="">Optional lead</option>{leads.map((l) => <option key={l.id} value={l.id}>{l.name}{l.company ? ` · ${l.company}` : ""} · {l.status}</option>)}</select>
