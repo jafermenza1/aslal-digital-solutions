@@ -49,11 +49,11 @@ export async function POST(request: Request) {
       );
 
       const existing = new Map(existingRows.map((row) => [row.partner_number, row]));
-      const conflicts = existingRows.filter((row) => row.workspace_id !== workspace.id);
+      const conflicts = existingRows.filter((row) => row.workspace_id !== workspace.id || row.name !== "Q1 Pilot Agent " + row.partner_number.slice(-4));
       if (conflicts.length) {
         await connection.rollback();
         return NextResponse.json({
-          error: "The requested ASL-P identifiers already belong to another workspace.",
+          error: "The requested ASL-P identifiers are already assigned to another workspace or to non-fixture records.",
           conflicts: conflicts.map((row) => ({ partnerNumber: row.partner_number, workspaceId: row.workspace_id })),
         }, { status: 409 });
       }
