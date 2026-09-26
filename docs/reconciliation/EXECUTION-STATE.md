@@ -376,3 +376,17 @@ The Partner workspace now exposes an administrator-only deterministic Q1 fixture
 The operation is idempotent for matching fixture records and fails closed for workspace collisions or existing non-fixture identities. It creates no credentials or financial activity.
 
 Step 4 is not behaviorally accepted until the fixture is executed with retained count, uniqueness, workspace-boundary, repeat-run and unauthorized-access evidence. This fixture does not substitute for recruiting or vetting 100 real agents.
+
+
+## Step 5 execution state — 2026-09-26
+
+**Step 5 — Attribution policy and 30-day retention**  
+**Status: IMPLEMENTED FOUNDATION — ACCEPTANCE PENDING**
+
+Mainline now has an explicit first-touch/last-touch policy and a 30-day referral retention boundary. First-touch visitor acquisition fields remain immutable; the latest valid workspace-scoped referral click is selected as last-touch partner attribution at lead capture; the lead stores an attribution expiry timestamp; the referral cookie expires after 30 days; expired or cross-workspace referral attribution is rejected.
+
+Existing attribution-lock, audited override and competing-partner dispute controls remain authoritative.
+
+**Required evidence:** first/last-touch fixture, 30-day expiry fixture, cross-workspace rejection, locked-edit denial, authorized override reason/audit, competing-agent dispute reassignment, and failed-transaction atomicity proof.
+
+Q1 remains **NOT ACCEPTED**.
