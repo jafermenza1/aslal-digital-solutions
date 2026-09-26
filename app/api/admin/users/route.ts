@@ -28,7 +28,12 @@ function present(user: { id:string; email:string; name:string; role:UserRole; ac
 export async function GET() {
   const actor = await authorizePermission("users.manage");
   if (!actor) return NextResponse.json({ error: "User administration is not permitted." }, { status: 403 });
+  const workspace = actor.role === "ADMIN" || actor.role === "SUPER_ADMIN" ? null : await getWorkspaceForUser(actor);
+  if (actor.role !== "ADMIN" && actor.role !== "SUPER_ADMIN" && !workspace) {
+    return NextResponse.json({ error: "No active workspace is available." }, { status: 403 });
+  }
   const users = await prisma.user.findMany({
+    where: workspace ? { workspaceUsers: { some: { workspaceId: workspace.id } } } : undefined,
     orderBy: [{ active: "desc" }, { name: "asc" }],
     select: { id:true, email:true, name:true, role:true, active:true, permissions:true, lastLoginAt:true },
   });
