@@ -121,3 +121,28 @@ The authoritative implementation and scaling sequence is:
 Immediate sequence:
 
 **Production Integrity Closure → Phase 5 Sales Follow-up → Quote/Negotiation → Order/Payment → Revenue/Campaign Attribution → Partner/Influencer Commerce → Trust/Retention → End-to-End Verification → RBAC/Multi-Tenancy → Capacity Scaling → AI**
+
+## Gate 1 continuation — workspace administration and access contract
+
+**Branch:** gate-1-workspace-admin-contract  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Gate 1 was resumed from the Q1 API-gap audit without resetting or replacing the existing workspace/commercial implementation.
+
+Completed in this increment:
+- Added the explicit Finance, Auditor and Client account roles while preserving all existing roles.
+- Added least-privilege default permission sets for the three new roles.
+- Made user creation require an authorized workspace and persist workspace membership transactionally.
+- Added workspace administration UI for create, edit, activate/deactivate, member inspection and active-workspace selection.
+- Made workspace creation atomic with creator OWNER membership.
+- Added workspace lifecycle API and authorized active-workspace cookie context.
+- Bound workspace membership reads/writes to the target workspace authorization boundary.
+- Bound partner and referral-link creation to the active/selected workspace, removing the previous mandatory-workspace database failure path.
+- Added Gate 1 contract and acceptance matrix at docs/gates/GATE-1-WORKSPACE-ADMIN.md.
+
+Remaining evidence:
+- Execute the two-workspace behavioral acceptance with real Workspace A/B fixtures and authenticated sessions.
+- Verify Finance, Auditor, Client and Sales B end-to-end through UI/login/workspace assignment.
+- Verify Agent and Influencer creation end-to-end in separate workspaces.
+- Run authorized typecheck and lint.
+- Do not mark Gate 1 accepted from code existence alone.
