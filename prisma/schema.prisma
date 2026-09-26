@@ -558,6 +558,8 @@ model Resource {
   cta         String   @db.VarChar(190)
   intent      String   @db.VarChar(190)
   downloadUrl String?  @map("download_url") @db.VarChar(500)
+  mediaUrls String? @map("media_urls") @db.Text
+  specifications Json?
   active      Boolean  @default(true)
   publishedAt DateTime @default(now()) @map("published_at") @db.DateTime(0)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
@@ -613,6 +615,8 @@ model Product {
   deliverables     String?             @db.Text
   imageUrl         String?             @map("image_url") @db.VarChar(1000)
   galleryUrls      String?             @map("gallery_urls") @db.Text
+  mediaUrls        String?             @map("media_urls") @db.Text
+  specifications   Json?
   startingPrice    String?             @map("starting_price") @db.VarChar(100)
   ctaLabel         String?             @map("cta_label") @db.VarChar(80)
   ctaNote          String?             @map("cta_note") @db.VarChar(250)
