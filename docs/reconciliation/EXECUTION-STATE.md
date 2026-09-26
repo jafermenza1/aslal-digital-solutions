@@ -146,3 +146,34 @@ Remaining evidence:
 - Verify Agent and Influencer creation end-to-end in separate workspaces.
 - Run authorized typecheck and lint.
 - Do not mark Gate 1 accepted from code existence alone.
+
+## Workflow suspension — cost-control state
+
+**Date:** 2026-09-26  
+**Branch:** `gate-1-workspace-admin-contract`
+
+All GitHub Actions workflows have been intentionally removed for the current development/gate cycle:
+
+- CI workflow removed.
+- Deployment workflow removed.
+- Production-integrity workflow removed.
+- Sales-automation workflow removed.
+
+This is a temporary execution-policy change, not a product-architecture change. Existing application code, Q1 contracts, Gate 1 implementation, and deployment configuration outside `.github/workflows/` are preserved.
+
+### Current validation policy
+
+Until the final gate explicitly restores automation:
+
+- **No GitHub Actions workflow runs.**
+- **No production build in CI.**
+- **No deployment from GitHub Actions.**
+- **No production-integrity automation.**
+- **No sales-automation workflow execution.**
+- Validation is manual/local and limited to:
+  1. `npm run typecheck`
+  2. `npm run lint`
+
+Build/deployment validation will be restored only at the final gate when the complete acceptance contract is ready.
+
+Gate 1 acceptance remains behavioral and contract-based; removing Actions does not mark any acceptance scenario as passed.
