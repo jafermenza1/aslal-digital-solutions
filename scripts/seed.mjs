@@ -21,9 +21,9 @@ const products = [
 
   // Aslal-owned recurring marketing packages. These are catalog records so the same
   // product -> contact -> lead -> qualification -> quote -> order workflow applies.
-  ["marketing-starter", "Starter Growth Package", "Aslal Digital Solutions", "OWNED", "A focused monthly demand foundation for small businesses and new ventures.", "Build a consistent local presence, improve discoverability and establish the measurement and follow-up foundation for growth.", "15,000 ETB / month", 1],
+  ["marketing-starter", "Starter Growth Package", "Aslal Digital Solutions", "OWNED", "A focused monthly demand foundation for small businesses and new ventures.", "Build a consistent local presence, improve discoverability and establish the measurement and follow-up foundation for growth.", "15,000 ETB / month", 0],
   ["marketing-growth", "Growth Package", "Aslal Digital Solutions", "OWNED", "A full lead-generation and content engine for established businesses.", "Combine multi-platform content, Meta lead generation, customer support, SEO and reporting into one managed growth workflow.", "40,000–60,000 ETB / month", 1],
-  ["marketing-market-leader", "Market Leader Package", "Aslal Digital Solutions", "OWNED", "A managed digital growth ecosystem for medium enterprises.", "Coordinate content, professional production, paid acquisition, SEO, conversion operations and ROI reporting around one commercial growth plan.", "100,000+ ETB / month", 1],
+  ["marketing-market-leader", "Market Leader Package", "Aslal Digital Solutions", "OWNED", "A managed digital growth ecosystem for medium enterprises.", "Coordinate content, professional production, paid acquisition, SEO, conversion operations and ROI reporting around one commercial growth plan.", "100,000+ ETB / month", 0],
 
   ["addon-consultation", "Growth Consultation", "Aslal Digital Solutions", "OWNED", "A focused commercial growth consultation and action plan.", "Clarify the growth bottleneck, priority channels, offer, funnel and next actions before committing to a larger engagement.", "Request quote", 0],
   ["addon-branding", "Branding", "Aslal Digital Solutions", "OWNED", "Brand identity and positioning for a stronger market presence.", "Develop practical brand foundations that make campaigns, content and sales communication consistent.", "Request quote", 0],
