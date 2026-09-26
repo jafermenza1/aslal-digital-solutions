@@ -1,7 +1,7 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `main` @ `e61c145d76e903731815ab1784dd74a4c00f8030`
+**Current mainline:** `main` @ `06634b1e11e549ba75a5a28db7af54502b8c66f1`
 **Latest verified CI:** workflow run `36011102581` for `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd` — SUCCESS (typecheck, lint, production build, Emerald packaging)
 **Latest verified deployment:** Emerald workflow run `36011395603` for `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd` — SUCCESS
 
@@ -82,15 +82,13 @@ An app UI translation dictionary and editing guide are now checked into the repo
 
 ## Current exact next action
 
-1. Run the production-integrity check against the newly deployed release and correct only real data gaps with audit reasons.
-2. Verify product/service creation → public catalog/detail → product-ID contact attribution in production.
-3. Verify offline lead capture → owner/next action/stage history/scoring → existing Phase 5 lead-created automation path.
-4. Verify contact email consent → rich branded auto-reply → canonical Email conversation/message/activity, including provider failure behavior.
-5. Verify user creation → login → role defaults → editable grants/revokes → activation/deactivation → audit record.
-6. Harden remaining legacy routes so the new permission model consistently replaces the older admin-email guards.
-7. Complete the Phase 6A controlled quote acceptance: create → send → viewed/negotiating → revise → accept/reject, then reconstruct the full offer history and actor changes.
-8. Configure the Phase 5 scheduler secrets and complete scheduler/idempotency/cancellation acceptance before marking R20/R21 SATISFIED.
-9. Do not enable shared multi-tenant SaaS, payment-backed revenue, automated partner commissions or AI autonomy until their roadmap gates are separately satisfied.
+1. Complete Gate 1 behavioral acceptance with real Workspace A/B fixtures; do not mark Gate 1 accepted from code existence.
+2. Execute Gate 2 controlled sales-follow-up acceptance using the contract in `docs/gates/GATE-2-SALES-FOLLOWUP.md`.
+3. Prove workspace-scoped automated ownership, high-intent idempotency, overdue deduplication, reply cancellation and WON/LOST cancellation.
+4. Run `npm run typecheck` and `npm run lint` locally; no GitHub Actions workflow is expected under the current cost-control policy.
+5. Reconcile R20/R21 only after behavioral evidence exists.
+6. Complete the Phase 6A controlled quote acceptance only after the preceding gate evidence is recorded.
+7. Do not enable shared multi-tenant SaaS, payment-backed revenue, automated partner commissions or AI autonomy until their roadmap gates are separately satisfied.
 
 ## Hard scaling stops
 
@@ -177,3 +175,16 @@ Until the final gate explicitly restores automation:
 Build/deployment validation will be restored only at the final gate when the complete acceptance contract is ready.
 
 Gate 1 acceptance remains behavioral and contract-based; removing Actions does not mark any acceptance scenario as passed.
+
+
+## Gate 2 continuation — Sales Follow-up and SLA
+
+**Mainline:** `main`
+**Status:** IMPLEMENTED — ACCEPTANCE PENDING
+**Contract:** `docs/gates/GATE-2-SALES-FOLLOWUP.md`
+
+The Gate 2 owner-assignment path was hardened so automated owner selection is constrained to active sales-capable users who belong to the lead's workspace. Offline/manual lead capture uses the same workspace-scoped owner rule. This prevents automation from assigning Workspace A work to a Workspace B salesperson.
+
+The durable workflow engine, high-intent triage, overdue reminder, idempotency keys, retry controls, cancellation hooks and protected scheduler endpoint remain implemented. Behavioral acceptance is still pending and must be performed without restoring GitHub Actions.
+
+**Gate 2 acceptance remains pending:** scheduler/manual invocation, completed execution, idempotency, overdue deduplication, reply cancellation, WON/LOST cancellation, retry/stale recovery, no recent failed/stuck executions, operator visibility, and local typecheck/lint evidence.
