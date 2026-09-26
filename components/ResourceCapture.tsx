@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 export function ResourceCapture({resourceId,resourceSlug,downloadUrl,cta}:{resourceId:string;resourceSlug:string;downloadUrl:string|null;cta:string}){
  const [name,setName]=useState(""),[contact,setContact]=useState(""),[channel,setChannel]=useState<"WEB"|"WHATSAPP"|"TELEGRAM">("WEB"),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[link,setLink]=useState<string|null>(null);
- async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setMessage("");
+ async function submit(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
   const res=await fetch("/api/resources/request",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resourceId,resourceSlug,name,contact,channel})});
   const data=await res.json().catch(()=>({}));setBusy(false);
   if(!res.ok){setMessage(data.error||"Unable to request the resource.");return;}
