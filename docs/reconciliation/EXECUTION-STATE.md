@@ -322,3 +322,24 @@ Q1 remains **NOT ACCEPTED** until all blocker steps and the controlled behaviora
 **Current step:** Step 1 — Manual payment reconciliation workbench.
 
 Implementation is now in `main`: PENDING-first capture, Finance review queue, receipt/evidence matching, authorized confirmation, evidence-gated reconciliation and exception handling. **Acceptance is still pending** until local typecheck/lint and controlled end-to-end evidence are retained.
+
+
+## Step 2 implementation progress — 2026-09-26
+
+**Current blocker-closure step:** Step 2 — Sales SLA scheduler and notification safety.
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+Mainline changes for this step:
+
+- protected sales SLA scheduler remains available at `/api/cron/sales-automation` and now runs only the internal workflow scheduler;
+- customer-facing Telegram follow-ups are isolated at `/api/cron/telegram-followups` with separate authorization support;
+- WorkflowExecution claiming is atomic for PENDING executions;
+- WorkflowActionExecution claiming is atomic for due PENDING actions;
+- existing workspace-scoped owner selection, trigger idempotency, overdue-deadline deduplication, bounded retries, stale-running recovery, inbound-reply cancellation and WON/LOST cancellation are preserved;
+- no GitHub Actions scheduler is restored.
+
+### Step 2 exit evidence still required
+
+Protected scheduler response, high-intent execution, repeated-trigger idempotency, overdue deduplication, retry/stale recovery, reply cancellation, WON/LOST cancellation, workspace-scoped ownership, operator visibility, customer-messaging safety and local typecheck/lint evidence.
+
+No Q1 or Gate 2 acceptance status is upgraded from code existence alone.
