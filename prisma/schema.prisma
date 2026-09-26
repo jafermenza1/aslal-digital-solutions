@@ -352,6 +352,7 @@ model Lead {
   tasks             LeadTask[]
   stageHistory      LeadStageHistory[]
   productInterests  LeadProductInterest[]
+  attributions      LeadAttribution[]
   commissions       Commission[]
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
@@ -370,6 +371,81 @@ model Lead {
   @@index([leadCategory, createdAt], map: "idx_leads_category_created")
   @@map("leads")
   workspace         Workspace?         @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+}
+
+model LeadAttribution {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  leadId String @map("lead_id") @db.Char(36)
+  attributionType String @map("attribution_type") @db.VarChar(40)
+  source String? @db.VarChar(100)
+  medium String? @db.VarChar(100)
+  campaign String? @db.VarChar(150)
+  content String? @db.VarChar(190)
+  term String? @db.VarChar(190)
+  referralCode String? @map("referral_code") @db.VarChar(100)
+  referralLinkId String? @map("referral_link_id") @db.Char(36)
+  partnerId String? @map("partner_id") @db.Char(36)
+  campaignId String? @map("campaign_id") @db.Char(36)
+  productId String? @map("product_id") @db.Char(36)
+  resourceId String? @map("resource_id") @db.Char(36)
+  isFirstTouch Boolean @default(true) @map("is_first_touch")
+  isLastTouch Boolean @default(true) @map("is_last_touch")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  lead Lead @relation(fields:[leadId], references:[id], onDelete:Cascade)
+  referralLink ReferralLink? @relation(fields:[referralLinkId], references:[id], onDelete:SetNull)
+  partner Partner? @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  campaignRef PartnerCampaign? @relation(fields:[campaignId], references:[id], onDelete:SetNull)
+  product Product? @relation(fields:[productId], references:[id], onDelete:SetNull)
+  resource Resource? @relation(fields:[resourceId], references:[id], onDelete:SetNull)
+  @@index([leadId,createdAt], map:"idx_lead_attr_lead")
+  @@index([workspaceId,createdAt], map:"idx_lead_attr_workspace")
+  @@index([partnerId], map:"idx_lead_attr_partner")
+  @@index([campaignId], map:"idx_lead_attr_campaign")
+  @@index([source,medium,campaign], map:"idx_lead_attr_source")
+  @@map("lead_attributions")
+}
+
+model SocialProfile {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  platform String @db.VarChar(40)
+  label String @db.VarChar(80)
+  url String @db.VarChar(1000)
+  handle String? @db.VarChar(190)
+  displayOrder Int @default(0) @map("display_order")
+  isActive Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Cascade)
+  @@unique([workspaceId,platform], map:"uq_social_profile_workspace_platform")
+  @@index([workspaceId,isActive,displayOrder], map:"idx_social_profile_workspace_active")
+  @@map("social_profiles")
+}
+
+model ResourceAttribution {
+  id String @id @db.Char(36)
+  resourceRequestId String @map("resource_request_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  referralCode String? @map("referral_code") @db.VarChar(100)
+  referralLinkId String? @map("referral_link_id") @db.Char(36)
+  partnerId String? @map("partner_id") @db.Char(36)
+  campaignId String? @map("campaign_id") @db.Char(36)
+  source String? @db.VarChar(100)
+  medium String? @db.VarChar(100)
+  campaign String? @db.VarChar(150)
+  content String? @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  request ResourceRequest @relation(fields:[resourceRequestId], references:[id], onDelete:Cascade)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  referralLink ReferralLink? @relation(fields:[referralLinkId], references:[id], onDelete:SetNull)
+  partner Partner? @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  campaignRef PartnerCampaign? @relation(fields:[campaignId], references:[id], onDelete:SetNull)
+  @@index([resourceRequestId], map:"idx_resource_attr_request")
+  @@index([partnerId], map:"idx_resource_attr_partner")
+  @@index([campaignId], map:"idx_resource_attr_campaign")
+  @@map("resource_attributions")
 }
 
 model Event {
@@ -414,6 +490,8 @@ model Partner {
   verifiedBy         String?                   @map("verified_by") @db.VarChar(190)
   createdAt          DateTime                  @default(now()) @map("created_at") @db.DateTime(0)
   referralLinks      ReferralLink[]
+  attributions       LeadAttribution[]
+  resourceAttributions ResourceAttribution[]
   commissions        Commission[]
   revenues           Revenue[]
   orders             Order[]
@@ -484,6 +562,13 @@ model Resource {
   publishedAt DateTime @default(now()) @map("published_at") @db.DateTime(0)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
   requests    ResourceRequest[]
+  workspaceId String? @map("workspace_id") @db.Char(36)
+  relationshipType ProductRelationship @default(OWNED) @map("relationship_type")
+  providerName String? @map("provider_name") @db.VarChar(190)
+  campaignId String? @map("campaign_id") @db.Char(36)
+  workspace Workspace? @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
+  campaign PartnerCampaign? @relation(fields:[campaignId], references:[id], onDelete:SetNull)
+  attributions ResourceAttribution[]
 
   @@index([category, publishedAt], map: "idx_resources_category_published")
   @@index([active, publishedAt], map: "idx_resources_active_published")
@@ -1337,10 +1422,15 @@ model PartnerCampaign {
   createdAt           DateTime             @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt           DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
   product             Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
+  attributions        LeadAttribution[]
+  resources           Resource[]
+  resource            Resource?            @relation(fields: [resourceId], references: [id], onDelete: SetNull)
   partners            CampaignPartner[]
   referralLinks       ReferralLink[]
   assets              CampaignAsset[]
   disputes            PartnerDispute[]
+  attributions        LeadAttribution[]
+  resourceAttributions ResourceAttribution[]
 
   @@index([status, startsAt, endsAt], map: "idx_partner_campaign_status_dates")
   @@index([location], map: "idx_partner_campaign_location")
