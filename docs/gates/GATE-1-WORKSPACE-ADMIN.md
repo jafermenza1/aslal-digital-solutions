@@ -92,6 +92,12 @@ Those remain governed by their existing phase gates.
 
 No existing commercial state machine, migration history, reconciliation logic, Q1 workspace boundary, CI-only policy, or previously accepted behavior may be removed or weakened to satisfy Gate 1.
 
+## Mainline hardening correction
+
+After the Gate 1 feature branch was deleted, the remaining implementation was reviewed directly on `main`. Workspace membership mutation is now explicitly restricted at the API boundary to `ADMIN` and `SUPER_ADMIN`; the UI restriction is no longer the only control. Workspace member reads also require `users.manage` and continue to require authorization for the target workspace.
+
+This is a contract-hardening correction only. It does not change the documented acceptance status; G1-01 through G1-15 remain pending until behavioral evidence is collected.
+
 ## Verification command policy
 
 For this increment, repository validation is limited to the currently authorized code-quality checks:
