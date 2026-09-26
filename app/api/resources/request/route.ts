@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { getOrCreateVisitor } from "@/lib/tracking";
 import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
+import { recalculateLeadScore } from "@/lib/lead-scoring";
+import { runLeadCreatedAutomation } from "@/lib/automation";
 
 function clean(v:unknown,n=500){return typeof v==="string"?v.trim().slice(0,n):"";}
 export async function POST(request:Request){
@@ -26,6 +28,7 @@ export async function POST(request:Request){
   const requestId=randomUUID();
   await db.query("INSERT INTO resource_requests (id,resource_id,lead_id,visitor_id,channel,contact_value,status,score_points,follow_up_due_at) VALUES (?,?,?,?,?,?,?,?,DATE_ADD(NOW(),INTERVAL 5 MINUTE))",[requestId,resourceId,leadId,visitorId,channel,contact,"REQUESTED",scorePoints]);
   await db.execute("INSERT INTO events (visitor_id,event_name,page_path,product_slug,metadata) VALUES (?,?,?,?,?)",[visitorId,"RESOURCE_DOWNLOAD",`/resources/${resource.slug}`,resource.slug,JSON.stringify({resourceId,category:resource.category,channel,requestId})]);
+  if(leadId){try{await recalculateLeadScore(leadId);await runLeadCreatedAutomation(leadId);}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
   let deliveryMessage="Your resource is ready.";
   const downloadUrl=new URL(resource.download_url,origin).toString();
   if(channel==="WHATSAPP"){
