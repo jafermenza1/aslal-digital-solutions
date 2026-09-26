@@ -221,7 +221,6 @@ async function handleClientInbound(workspaceId:string,d:any,m:TelegramMessage,ch
 }
 
 async function handle(update:TelegramUpdate){
-async function handle(update:TelegramUpdate){
   if(update.inline_query)return inlineCatalog(update.inline_query);
   if(update.callback_query){
     const q=update.callback_query; const data=clean(q.data); const chatId=String(q.message?.chat?.id||""); if(!chatId)return;
@@ -273,20 +272,6 @@ async function handle(update:TelegramUpdate){
     return reply(chatId,"Welcome to Aslal. Use the workspace connection link provided by Aslal to open the correct catalog.");
   }
 
-  if(chatType==="private" && !input.startsWith("/")){
-    const workspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
-    if(workspaceId){
-      const cfg=await getTelegramChannelConfig(workspaceId);
-      if(cfg?.publicEnabled&&cfg.allowAnonymousUsers){
-        if(await keywordResponse(chatId,workspaceId,input))return;
-        const session=await publicSession(workspaceId,m.from||{},chatId);
-        if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,workspaceId,m.from||{},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,workspaceId,m.from||{});}
-        if(session.state==="QUALIFYING")return qualification(chatId,workspaceId,m.from||{},String((typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):session.state_data||{}).currentStep||""));
-        return publicMenu(chatId,workspaceId);
-      }
-    }
-  }
-
   const publicWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
   if(chatType==="private" && publicWorkspaceId){
     const cfg=await getTelegramChannelConfig(publicWorkspaceId);
@@ -306,6 +291,10 @@ async function handle(update:TelegramUpdate){
       if(input==="/help")return publicMenu(chatId,publicWorkspaceId);
       if(input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
       if(input==="/catalog")return catalog(chatId,publicWorkspaceId);
+      if(await keywordResponse(chatId,publicWorkspaceId,input))return;
+      if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,m.from||{},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,m.from||{});}
+      if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,m.from||{},String(stateData.currentStep||""));
+      return publicMenu(chatId,publicWorkspaceId);
     }
   }
 
