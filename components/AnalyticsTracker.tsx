@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { browserAttribution } from "@/lib/attribution";
+import { browserAttribution } from "@/lib/browser-attribution";
 
 export function AnalyticsTracker() {
   useEffect(() => {
