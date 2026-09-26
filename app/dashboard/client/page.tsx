@@ -57,7 +57,7 @@ export default async function ClientDashboard({ searchParams }: { searchParams: 
           </p>
           <div className="mt-5 flex flex-wrap gap-2 text-sm font-bold">
             <span className="rounded-full bg-white/10 px-4 py-2">Workspace · {access.workspace.name}</span>
-            <Link href="/dashboard" className="rounded-full bg-white px-4 py-2 text-[#0F3E8A]">Dashboard</Link>
+            <Link href="/dashboard" className="rounded-full bg-white px-4 py-2 text-[#0F3E8A]">Dashboard</Link>\n            <a href="/api/admin/reports/weekly-pipeline?format=csv" className="rounded-full bg-white/10 px-4 py-2 text-white ring-1 ring-white/20">Export 7-day audit CSV</a>
           </div>
         </header>
 
