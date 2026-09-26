@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getTelegramChannelConfig } from "@/lib/telegram-channel-config";
 import type { RowDataPacket } from "mysql2/promise";
 
 export const runtime = "nodejs";
@@ -27,7 +28,7 @@ async function tg(method:string,body:Record<string,unknown>){
   return r.json();
 }
 const reply=(chatId:string,text:string)=>tg("sendMessage",{chat_id:chatId,text,disable_web_page_preview:true});
-const catalog=(chatId:string,workspaceId:string,campaignId?:string|null)=>{const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");const qs=new URLSearchParams({workspaceId});if(campaignId)qs.set("campaignId",campaignId);return tg("sendMessage",{chat_id:chatId,text:"Open the Aslal catalog to browse products, services and resources.",reply_markup:{inline_keyboard:[[{text:"Open Aslal Catalog",web_app:{url:site+"/telegram/catalog?"+qs.toString()}}]]}});};
+const catalog=async(chatId:string,workspaceId:string,campaignId?:string|null)=>{const config=await getTelegramChannelConfig(workspaceId);if(!config?.enabled||!config.miniAppEnabled)return reply(chatId,"The Telegram catalog is not enabled for this workspace yet.");const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");const base=(config.miniAppUrl||site+"/telegram/catalog").replace(/\/$/,"");const qs=new URLSearchParams();if(config.requireWorkspace)qs.set("workspaceId",workspaceId);if(config.captureStartParameter&&campaignId)qs.set("campaignId",campaignId);const url=base+(qs.toString()?(base.includes("?")?"&":"?")+qs.toString():"");return tg("sendMessage",{chat_id:chatId,text:"Open the Aslal catalog to browse products, services and resources.",reply_markup:{inline_keyboard:[[{text:config.menuButtonText||"Open Catalog",web_app:{url}}]]}});};
 
 async function partnerForChat(chatId:string){
   const [rows]=await db.query<Partner[]>("SELECT id,name,partner_number,workspace_id,status,verification_status,type FROM partners WHERE telegram_chat_id=? LIMIT 1",[chatId]);
@@ -163,7 +164,9 @@ async function handle(update:TelegramUpdate){
     }
     const p=await partnerForChat(chatId);
     if(p)return catalog(chatId,p.workspace_id);
-    return catalog(chatId,"00000000-0000-0000-0000-000000000001");
+    const defaultWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"").trim();
+    if(defaultWorkspaceId)return catalog(chatId,defaultWorkspaceId);
+    return reply(chatId,"Welcome to Aslal. Use the workspace connection link provided by Aslal to open the correct catalog.");
   }
 
   const staff=await staffForChat(chatId);
