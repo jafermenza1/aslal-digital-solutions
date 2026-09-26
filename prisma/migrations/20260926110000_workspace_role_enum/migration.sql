@@ -1,5 +1,10 @@
 -- Align the workspace membership role column with the Gate 1 Prisma contract.
--- Gate 1 migration already normalizes NULL/blank roles to MEMBER.
+-- Legacy workspace-boundary migration used INTERNAL for the protected Aslal workspace.
+-- Preserve those memberships without granting an elevated workspace role.
+UPDATE workspace_users
+SET role = 'MEMBER'
+WHERE role IS NULL OR TRIM(role) = '' OR role = 'INTERNAL';
+
 ALTER TABLE workspace_users
   MODIFY COLUMN role ENUM(
     'OWNER',
