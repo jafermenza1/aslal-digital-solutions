@@ -1605,3 +1605,24 @@ Mainline now defines and enforces the Q1 attribution window:
 8. Retain request, database and audit evidence for the controlled run.
 
 Q1 remains **NOT ACCEPTED** until these behavioral tests are executed and retained.
+
+
+## Step 6 implementation progress — 2026-09-26
+
+**Step:** Client audit/reporting and campaign distribution.
+**Status:** IMPLEMENTED FOUNDATION — BEHAVIORAL ACCEPTANCE PENDING.
+
+Mainline now provides a workspace-scoped weekly pipeline audit endpoint at /api/admin/reports/weekly-pipeline. It defaults to a rolling seven-day window, accepts explicit from/to bounds, returns JSON for an audit view, and supports format=csv for a repeatable export. The endpoint requires dashboard.view authorization for the requested workspace and joins lead first-touch data, current attribution, partner/campaign lineage, published campaign-asset count, opportunity state/value and order evidence without crossing workspace boundaries.
+
+The CLIENT CRM now exposes the seven-day CSV export. Campaign distribution remains restricted to published assets in the existing Telegram partner workbench path; campaign assets and referral links remain workspace-bound.
+
+### Step 6 acceptance still required
+
+1. Run the weekly audit for each anchor workspace and retain the JSON/CSV output.
+2. Verify repeated runs for the same date range produce the same source records absent intervening data changes.
+3. Verify client users cannot export another workspace by changing workspaceId.
+4. Verify campaign → published asset → referral link → visitor/lead lineage for a controlled campaign.
+5. Verify draft/archived assets never appear in partner-facing campaign materials.
+6. Retain audit/export and partner-material evidence.
+
+Q1 remains NOT ACCEPTED until Step 6 behavioral evidence is retained.
