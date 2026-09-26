@@ -28,7 +28,7 @@ export async function POST(request:Request){
   const requestId=randomUUID();
   await db.query("INSERT INTO resource_requests (id,resource_id,lead_id,visitor_id,channel,contact_value,status,score_points,follow_up_due_at) VALUES (?,?,?,?,?,?,?,?,DATE_ADD(NOW(),INTERVAL 5 MINUTE))",[requestId,resourceId,leadId,visitorId,channel,contact,"REQUESTED",scorePoints]);
   await db.execute("INSERT INTO events (visitor_id,event_name,page_path,product_slug,metadata) VALUES (?,?,?,?,?)",[visitorId,"RESOURCE_DOWNLOAD",`/resources/${resource.slug}`,resource.slug,JSON.stringify({resourceId,category:resource.category,channel,requestId})]);
-  if(leadId){try{await recalculateLeadScore(leadId);await runLeadCreatedAutomation(leadId);}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
+  let leadScore:number|null=null;\n  if(leadId){try{const score=await recalculateLeadScore(leadId);leadScore=score.score;await runLeadCreatedAutomation(leadId);}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
   let deliveryMessage="Your resource is ready.";
   const downloadUrl=new URL(resource.download_url,origin).toString();
   if(channel==="WHATSAPP"){
@@ -45,6 +45,6 @@ export async function POST(request:Request){
       if(r.ok){await db.query("UPDATE resource_requests SET status='DELIVERED' WHERE id=?",[requestId]);deliveryMessage="The resource link was sent to Telegram.";}else deliveryMessage="The request was recorded. Telegram delivery is not available for this contact, so download it below.";
     } else deliveryMessage="The request was recorded. Connect your Telegram chat to receive automated delivery.";
   }
-  return NextResponse.json({ok:true,requestId,leadId,downloadUrl,deliveryMessage});
+  return NextResponse.json({ok:true,requestId,leadId,leadScore,downloadUrl,deliveryMessage});
  }catch(error){console.error("RESOURCE_REQUEST_ERROR",error);return NextResponse.json({error:"Unable to process the resource request right now."},{status:500});}
 }
