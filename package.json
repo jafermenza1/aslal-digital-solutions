@@ -17,6 +17,7 @@
     "q1:test-boundary": "node script/q1-workspace-boundary-negative-tests.mjs"
   },
   "dependencies": {
+    "dotenv": "17.2.2",
     "@prisma/client": "6.19.0",
     "imapflow": "1.1.0",
     "mailparser": "3.9.0",
