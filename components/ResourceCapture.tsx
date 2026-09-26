@@ -4,6 +4,7 @@ import { browserAttribution } from "@/lib/attribution";
 
 export function ResourceCapture({resourceId,resourceSlug,downloadUrl,cta}:{resourceId:string;resourceSlug:string;downloadUrl:string|null;cta:string}){
  const [name,setName]=useState(""),[contact,setContact]=useState(""),[channel,setChannel]=useState<"WEB"|"WHATSAPP"|"TELEGRAM">("WEB"),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[link,setLink]=useState<string|null>(null),[score,setScore]=useState<number|null>(null);
+ // eslint-disable-next-line react-hooks/set-state-in-effect
  useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem("aslal_resource_profile")||"null");if(saved?.name)setName(String(saved.name));if(saved?.contact)setContact(String(saved.contact));}catch{ /* ignore invalid local profile */}},[]);
  async function submit(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
   const attribution=browserAttribution();
