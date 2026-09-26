@@ -1,9 +1,40 @@
 # Growth OS Execution State
 
 **Current baseline:** 2026-09-23  
-**Current mainline:** `main` @ `06634b1e11e549ba75a5a28db7af54502b8c66f1`
+**Current mainline:** `main` @ `7d546c410c9c2f39b7d865f713d075ac3523b3d8`
 **Latest verified CI:** workflow run `36011102581` for `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd` — SUCCESS (typecheck, lint, production build, Emerald packaging)
 **Latest verified deployment:** Emerald workflow run `36011395603` for `2a9f40fd95a41c9f4fba42cfe7bd3555ccdf20bd` — SUCCESS
+
+## Current acceptance-readiness audit — 2026-09-26
+
+**Audit result:** Gate 1 implementation is present on current `main`, but Gate 1 is **not accepted**. The earlier repository audit that reported missing workspace UI and missing Finance/Auditor/Client roles was based on an older mainline snapshot; subsequent Gate 1 commits have now implemented those prerequisites. The remaining work is behavioral verification, not re-planning those already-landed foundations.
+
+### Gate 1 implementation now present on main
+
+- Explicit account roles: `FINANCE`, `AUDITOR`, `CLIENT`.
+- Workspace administration UI and lifecycle API.
+- Atomic workspace creation with creator OWNER membership.
+- Workspace member inspection and assignment with explicit workspace roles.
+- User creation requires an authorized workspace and creates the user + workspace membership transactionally.
+- Active-workspace context and workspace authorization are implemented.
+- Partner and referral-link creation now binds both records to the selected workspace.
+- Agent and influencer types use the same workspace-bound partner creation path.
+
+### Gate 1 evidence still required
+
+- Create real Workspace A and Workspace B through the UI.
+- Create Finance, Auditor and Client users and verify login/permissions in the intended workspace.
+- Create Sales B and assign it to Workspace B; prove Workspace A/B isolation with authenticated sessions.
+- Create Agent and Influencer records in both workspaces and verify referral-link ownership.
+- Execute the negative cross-workspace scenarios.
+- Run local `npm run typecheck` and `npm run lint` under the current no-Actions policy.
+- Do not mark Gate 1 accepted from code existence alone.
+
+### Future gate sequence
+
+**Gate 1 — Workspace Administration and Access → Gate 2 — Sales Follow-up/SLA → Gate 3 — Quote/Negotiation Acceptance → Gate 4 — Order/Payment/Reconciliation → Gate 5 — Revenue/Campaign Attribution → Gate 6 — Partner/Influencer Commerce → Gate 7 — Trust/Retention → Gate 8 — Full End-to-End Acceptance → Gate 9 — RBAC/Multi-Tenancy Scale Proof → Gate 10 — Capacity Scaling → Gate 11 — AI only after reliable transaction data.**
+
+The acceptance document for the end-to-end journey remains the controlling behavioral test plan; each gate must produce evidence before the next gate is treated as accepted.
 
 ## Authority chain
 
