@@ -113,9 +113,9 @@ export async function POST(request: NextRequest) {
       ? new Date(referralTouch.created_at.getTime() + 30 * 24 * 60 * 60 * 1000)
       : null;
     const referralCode = referralTouch && referralExpiry && referralExpiry > new Date() ? referralTouch.code : null;
-    const source = referralCode ? "partner" : requestedSource || visitor?.first_source || "website";
-    const medium = referralCode ? "referral" : requestedMedium || visitor?.first_medium || null;
-    const campaign = referralCode ? (visitor?.first_campaign || null) : requestedCampaign || visitor?.first_campaign || null;
+    const source = referralCode ? "partner" : visitor?.first_source || requestedSource || "website";
+    const medium = referralCode ? "referral" : visitor?.first_medium || requestedMedium || null;
+    const campaign = referralCode ? (visitor?.first_campaign || requestedCampaign || null) : visitor?.first_campaign || requestedCampaign || null;
     const leadId = randomUUID();
     const nextActionDueAt = new Date(Date.now() + 30 * 60 * 1000);
     let personId = "";
