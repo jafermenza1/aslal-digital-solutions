@@ -6,7 +6,7 @@ import type { RowDataPacket } from "mysql2/promise";
 const STATUS = new Set(["PENDING", "APPROVED", "PAID", "FAILED", "VOID"]);
 
 export async function GET() {
-  const access = await authorizeWorkspacePermission("partners.manage");
+  const access = await authorizeWorkspacePermission("payouts.manage");
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [rows] = await db.query<RowDataPacket[]>(`
@@ -41,7 +41,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const access = await authorizeWorkspacePermission("partners.manage");
+  const access = await authorizeWorkspacePermission("payouts.manage");
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const actor = access.user;
 
