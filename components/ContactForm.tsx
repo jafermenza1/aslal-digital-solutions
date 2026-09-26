@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { browserAttribution } from "@/lib/attribution";
 
 type ContactFormProps = {
   initialBusiness?: string;
@@ -57,6 +58,8 @@ export function ContactForm({
     setSubmitting(true); setStatus("idle"); setMessage("");
     try {
       const body = Object.fromEntries(new FormData(form).entries());
+      const attribution = browserAttribution();
+      if (attribution) body.attribution = JSON.stringify(attribution);
       if (typeof body.phone === "string") body.phone = normalizeEthiopianPhone(body.phone);
       const response = await fetch("/api/leads", { method:"POST", headers:{ "Content-Type":"application/json", Accept:"application/json" }, credentials:"same-origin", body:JSON.stringify(body) });
       const data = await response.json().catch(() => null);
