@@ -99,6 +99,9 @@ export async function POST(request: Request) {
     }, { status: 201 });
   } catch (error) {
     console.error("PARTNER_CREATE_ERROR", error);
-    return NextResponse.json({ error: "Could not create partner." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "";
+    if (/duplicate|unique/i.test(message)) return NextResponse.json({ error: "A partner or referral identifier already exists. Choose a different referral code or try again." }, { status: 409 });
+    if (/foreign key|constraint/i.test(message)) return NextResponse.json({ error: "Partner creation was blocked by a workspace or related-record constraint. Confirm the selected workspace is active and try again." }, { status: 409 });
+    return NextResponse.json({ error: "Could not create partner. The server recorded the failure; retry after confirming the selected workspace." }, { status: 500 });
   }
 }
