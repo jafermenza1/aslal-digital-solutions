@@ -1,0 +1,72 @@
+import { prisma } from "@/lib/prisma";
+
+export const DEFAULT_TELEGRAM_CHANNEL_CONFIG = {
+  enabled: true,
+  miniAppEnabled: false,
+  miniAppUrl: null,
+  menuButtonEnabled: true,
+  menuButtonText: "Open Catalog",
+  defaultPage: "catalog",
+  localeMode: "telegram",
+  requireWorkspace: true,
+  requireAuth: false,
+  showProducts: true,
+  showResources: true,
+  showCategories: true,
+  showSearch: true,
+  showFeatured: true,
+  showSpecifications: true,
+  showGallery: true,
+  showRelatedItems: true,
+  showAvailability: false,
+  showPrice: true,
+  showStock: false,
+  primaryCta: "VIEW_DETAILS",
+  secondaryCta: null,
+  allowInquiry: true,
+  allowAddToOrder: true,
+  allowDirectOrder: false,
+  allowCheckout: false,
+  requireCustomerIdentity: true,
+  requirePhone: false,
+  requireDeliveryInformation: false,
+  requireSalesApproval: true,
+  orderConfirmationMode: "PENDING",
+  paymentEnabled: false,
+  allowedPaymentMethods: ["MANUAL"],
+  defaultPaymentMethod: null,
+  currency: "ETB",
+  requirePaymentBeforeOrder: false,
+  allowPayLater: true,
+  paymentExpiryMinutes: 30,
+  receiptEnabled: true,
+  captureStartParameter: true,
+  preserveCampaignAttribution: true,
+  preservePartnerAttribution: true,
+  preserveReferralAttribution: true,
+  attributionExpiryHours: 720,
+  createCustomerOnCommerceAction: true,
+  createLeadOnInquiry: true,
+  title: null,
+  logoUrl: null,
+  themeMode: "system",
+  primaryColor: null,
+  secondaryColor: null,
+  showWorkspaceBranding: true,
+} as const;
+
+export async function getTelegramChannelConfig(workspaceId: string) {
+  return prisma.telegramChannelConfig.findUnique({ where: { workspaceId } });
+}
+
+export async function getOrCreateTelegramChannelConfig(workspaceId: string) {
+  return prisma.telegramChannelConfig.upsert({
+    where: { workspaceId },
+    create: {
+      id: crypto.randomUUID(),
+      workspaceId,
+      allowedPaymentMethods: DEFAULT_TELEGRAM_CHANNEL_CONFIG.allowedPaymentMethods,
+    },
+    update: {},
+  });
+}
