@@ -21,6 +21,8 @@ export const BUSINESS_EVENT_DESCRIPTIONS: Record<BusinessEvent, string> = {
   QUOTE_START: "A quote flow was started.",
   QUOTE_COMPLETE: "A quote flow was completed.",
   DOWNLOAD: "A tracked download occurred.",
+  RESOURCE_DOWNLOAD: "A resource download or delivery was requested.",
+  RESOURCE_TOOL_USE: "A resource tool was used.",
   WHATSAPP_CLICK: "WhatsApp contact CTA was clicked.",
   TELEGRAM_CLICK: "Telegram contact CTA was clicked.",
   MESSENGER_CLICK: "Messenger contact CTA was clicked.",
