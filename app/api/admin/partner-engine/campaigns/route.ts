@@ -12,7 +12,7 @@ type CampaignRow = RowDataPacket & { id:string; name:string; description:string|
 export async function GET(request:Request) {
   const access=await authorizeWorkspacePermission("partners.manage",new URL(request.url).searchParams.get("workspaceId"));
   if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied"},{status:403});
-  const [rows, products] = await Promise.all([
+  const [rows, products, resources] = await Promise.all([
     db.query<CampaignRow[]>(`SELECT c.*, p.name product_name, r.title resource_title,
       (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id) partner_count,
       (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id AND cp.status IN ('APPROVED','ACTIVE','COMPLETED')) active_partner_count
