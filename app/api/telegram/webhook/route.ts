@@ -291,6 +291,7 @@ async function handle(update:TelegramUpdate){
       if(input==="/help")return publicMenu(chatId,publicWorkspaceId);
       if(input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
       if(input==="/catalog")return catalog(chatId,publicWorkspaceId);
+      if(input==="/support")return handoffPublic(chatId,publicWorkspaceId,m.from||{});
       if(await keywordResponse(chatId,publicWorkspaceId,input))return;
       if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,m.from||{},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,m.from||{});}
       if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,m.from||{},String(stateData.currentStep||""));
