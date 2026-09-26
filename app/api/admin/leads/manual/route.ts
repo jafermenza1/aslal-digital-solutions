@@ -4,7 +4,6 @@ import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { runLeadCreatedAutomation } from "@/lib/automation";
 import { LeadCaptureMode } from "@prisma/client";
-import { siteConfig } from "@/lib/config";
 import { randomUUID } from "node:crypto";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
