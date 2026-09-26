@@ -43,7 +43,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R23 | Negotiation | IMPLEMENTED-UNVERIFIED | NegotiationEvent history and immutable quote revisions preserve offer changes, actors and snapshots; controlled reconstruction evidence remains. |
 | R24 | Order | IMPLEMENTED-UNVERIFIED | First-class Order/OrderItem domain, accepted-quote conversion, committed order status, payment state, source/campaign/referral/partner/sales-owner attribution, and sales workspace now exist; production migration and controlled acceptance remain. |
 | R25 | Payment | IMPLEMENTED-UNVERIFIED | Provider-neutral Payment domain, idempotency key, explicit payment states, reconciliation states, failure/reversal/refund context, order payment-state propagation, and operator workspace now exist; provider/webhook and production reconciliation acceptance remain. |
-| R26 | Revenue attribution | PARTIAL | Deal values exist; collected/recognized revenue must be linked to payment/order evidence. |
+| R26 | Revenue attribution | IMPLEMENTED-UNVERIFIED | Confirmed/reconciled payment creates workspace-scoped recognized/commissionable revenue; controlled financial journey and correction evidence remain required. |
 
 ## Campaign and partner ecosystem
 
@@ -52,7 +52,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R27 | Campaign | IMPLEMENTED-UNVERIFIED | First-class PartnerCampaign lifecycle, budgets, partner budget, reward model, dates, status and product linkage now exist; production campaign acceptance remains. |
 | R28 | Campaign asset/content | PARTIAL | Campaign partner matching and referral distribution exist, but a first-class creative/asset/post/QR/offline-placement entity remains incomplete. |
 | R29 | Partner/referral journey | IMPLEMENTED-UNVERIFIED | Partner identity → campaign → application/invitation → referral attribution → order → payment → reconciled revenue is now traceable; controlled production reconstruction remains. |
-| R30 | Commission lifecycle | PARTIAL | Existing commission status operations plus Phase F payout ledger/dispute controls exist; confirmed-payment-derived calculation remains gated on Order/Payment. |
+| R30 | Commission lifecycle | IMPLEMENTED-UNVERIFIED | Confirmed/reconciled payment derives commission, dedicated commission approval permission exists, payout settlement controls PAID; behavioral approval/payout evidence remains. |
 | R31 | Influencer/agent workspace | IMPLEMENTED-UNVERIFIED | Partner portal now exposes profile, campaign opportunities, application, earnings/payout history and disputes; controlled partner acceptance and mobile evidence remain. |
 | R32 | Supplier/product partner model | PARTIAL | Product provider/relationship exists and campaigns can link to products; explicit product eligibility, supplier workspace and commercial relationship controls remain. |
 
@@ -64,10 +64,10 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R34 | Reviews/testimonials | MISSING | Need permissioned request, provenance and publication controls. |
 | R35 | Retention | MISSING | Need onboarding, repeat purchase, renewal, cross-sell and reactivation. |
 | R36 | Customer referral | PARTIAL | Referral foundation exists; customer advocacy must be distinct from partner attribution. |
-| R37 | RBAC | PARTIAL | Authentication exists; full role matrix remains. |
-| R38 | Multi-tenancy | MISSING | No accepted Workspace/Tenant isolation model. |
+| R37 | RBAC | PARTIAL | Explicit Finance/Auditor/Client roles, editable permissions and workspace roles exist; full legacy-route enforcement and behavioral isolation evidence remain. |
+| R38 | Multi-tenancy | PARTIAL / SCALE GATED | Workspace model, membership and many workspace-scoped commercial queries exist; shared SaaS tenant acceptance and trusted public workspace routing remain open. |
 | R39 | Privacy lifecycle | PARTIAL | Communication preferences exist; retention/export/deletion/anonymization remains. |
-| R40 | Audit | PARTIAL | Lead/stage/admin and automation execution history now exist; financial, attribution and permission coverage remains. |
+| R40 | Audit | PARTIAL | Lead/admin/automation and dispute audit exist; payment/revenue/commission/payout and attribution override coverage is being closed and still requires evidence. |
 | R41 | Mobile/low-bandwidth | PARTIAL | Shared permission-aware shell, mobile navigation, compact cards and responsive template/catalog surfaces are implemented; controlled critical-path/device/network testing remains. |
 | R42 | Production integrity | IMPLEMENTED-UNVERIFIED | Endpoint/workflow exists; configure secrets and record a successful run. |
 
@@ -75,7 +75,7 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 
 | ID | Requirement | Current status | Evidence/remaining proof |
 |---|---|---|---|
-| R43 | Complete demand-to-revenue journey | MISSING | Need acquisition → engagement → lead → quote → order → payment → customer → revenue → attribution → retention proof. |
+| R43 | Complete demand-to-revenue journey | IMPLEMENTED-UNVERIFIED | Connected lead → customer → quote → order → payment → reconciliation → revenue → commission/payout chain exists; full behavioral reconstruction and retention remain unverified. |
 | R44 | Business ROI reporting | PARTIAL | Revenue records now provide a confirmed paid-revenue source; reporting still needs campaign-asset attribution and production acceptance. |
 | R45 | AI-assisted intelligence | MISSING / DEFERRED | Begin only after reliable transaction/attribution data and human-control gates exist. |
 | R46 | Product/service catalog | IMPLEMENTED-UNVERIFIED | Admin catalog manager, database-backed public /products, rich detail pages, optional imagery, product-ID contact attribution and gold-hover catalog links are implemented; CI/deployment and production acceptance remain. |
@@ -92,3 +92,12 @@ Phase 5 implementation is now on mainline. Status remains IMPLEMENTED-UNVERIFIED
 Statuses can move only when the evidence required by the row is present.
 
 No requirement may be upgraded because of marketing pressure, feature availability, or a successful build alone.
+
+
+## Q1 E2E gap reconciliation — 2026-09-26
+
+The current mainline was audited against the controlled Q1 journey before acceptance execution. Code-level financial controls were tightened: Finance has dedicated payment, commission and payout permissions; payment submission can no longer directly create CONFIRMED/REVERSED/REFUNDED records; lead acquisition attribution now has lock metadata and audited override controls; Arabic locale/RTL foundation was added.
+
+Open reconciliation items remain: dispute-driven commercial attribution reassignment, trusted public workspace routing for multi-anchor public capture, duplicate-customer acceptance rules, complete financial/attribution/permission audit coverage, representative 100-partner fixture, and controlled mobile/localization/behavioral evidence.
+
+See `docs/qa/Q1-E2E-GAP-RECONCILIATION.md`. Statuses remain evidence-gated.
