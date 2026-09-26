@@ -91,7 +91,7 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
   const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
   const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
   await db.query("UPDATE telegram_public_sessions SET state='SUPPORT_REQUESTED',support_requested_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[workspaceId,String(user?.id||chatId)]);
-  if(cfg.handoffChatId)await reply(String(cfg.handoffChatId),"🔔 New public Telegram support request\nLead: "+leadId+"\nUser: "+([user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user")+"\nPhone: "+(data.phone||"not provided")+"\nAnswers: "+JSON.stringify(data));
+  if(cfg.handoffChatId){const sent=await tg("sendMessage",{chat_id:String(cfg.handoffChatId),text:"🔔 New public Telegram support request\nLead: "+leadId+"\nUser: "+([user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user")+"\nPhone: "+(data.phone||"not provided")+"\nAnswers: "+JSON.stringify(data)});const sentId=sent?.result?.message_id;await savePublicState(workspaceId,String(user?.id||chatId),"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:sentId,publicChatId:chatId,leadId});}
   return reply(chatId,"A support request has been created. A member of our team will continue with you here.");
 }
 async function pricingResponse(chatId:string,workspaceId:string){
