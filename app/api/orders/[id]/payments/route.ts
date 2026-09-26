@@ -17,13 +17,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const provider = String(body.provider || "").trim();
     const amount = Number(body.amount);
     const currency = String(body.currency || "").trim().toUpperCase();
-    const status = String(body.status || "INITIATED").toUpperCase();
+    const status = String(body.status || "PENDING").toUpperCase();
 
     if (!idempotencyKey) return NextResponse.json({ error: "idempotencyKey is required" }, { status: 400 });
     if (!provider) return NextResponse.json({ error: "provider is required" }, { status: 400 });
     if (!Number.isFinite(amount) || amount <= 0) return NextResponse.json({ error: "Payment amount must be greater than zero" }, { status: 400 });
     if (!currency) return NextResponse.json({ error: "currency is required" }, { status: 400 });
     if (!statuses.includes(status as typeof statuses[number])) return NextResponse.json({ error: "Invalid payment status" }, { status: 400 });
+    if (["CONFIRMED", "REVERSED", "REFUNDED"].includes(status)) {
+      return NextResponse.json({ error: "Payment submission must remain pending until an authorized finance reconciliation confirms it." }, { status: 409 });
+    }
 
     const existing = await prisma.payment.findUnique({ where: { idempotencyKey } });
     if (existing) {
