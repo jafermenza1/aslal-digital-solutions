@@ -40,95 +40,73 @@ export default async function Home(){
   return <main className="landing-page">
     <AslalInteractiveHero content={content}/>
 
-    <section className="landing-section light-section" aria-labelledby="difference-title">
-      <div className="container-aslal grid gap-14 lg:grid-cols-[.82fr_1.18fr] lg:items-center">
+    <section className="landing-section light-section" aria-labelledby="proof-title">
+      <div className="container-aslal grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
         <div className="section-heading">
-          <span style={cs("home.difference.eyebrow",10)}>{cv("home.difference.eyebrow","01 — THE DIFFERENCE")}</span>
-          <h2 id="difference-title" style={cs("home.difference.title",48)}>{cv("home.difference.title","Your website should do more than exist.")}</h2>
-          <p style={cs("home.difference.body",18)}>{cv("home.difference.body","A digital presence should understand interest, create a conversation, capture demand and help your team move the opportunity forward.")}</p>
-          <Link href="/growth-builder" className="inline-flex items-center gap-2 mt-6 font-black text-[#0F3E8A] hover:text-[#E2B02A] transition-colors">Find the bottleneck <ArrowRight size={17}/></Link>
+          <span style={cs("home.proof.eyebrow",10)}>{cv("home.proof.eyebrow","01 — HOW ASLAL HELPS")}</span>
+          <h2 id="proof-title" style={cs("home.proof.title",48)}>{cv("home.proof.title","Turn digital activity into a managed commercial journey.")}</h2>
+          <p style={cs("home.proof.body",18)}>{cv("home.proof.body","Aslal combines websites, marketing, customer systems, automation and sales execution so your team can move from attention to qualified demand and measurable next action.")}</p>
+          <Link href="/growth-builder" className="inline-flex items-center gap-2 mt-6 font-black text-[#0F3E8A] hover:text-[#E2B02A]">Find your growth path <ArrowRight size={17}/></Link>
         </div>
-        <div className="rounded-[2rem] bg-[#0F3E8A] p-5 sm:p-7 shadow-2xl">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/[.06] p-6 text-white">
-              <span className="text-xs font-black uppercase tracking-[.18em] text-white/45">Traditional website</span>
-              <div className="mt-7 space-y-3 font-bold"><div>Visitor arrives</div><div className="text-white/30">↓</div><div>Reads</div><div className="text-white/30">↓</div><div>Leaves</div></div>
-            </div>
-            <div className="rounded-2xl border border-[#E2B02A]/35 bg-[#E2B02A]/10 p-6 text-white">
-              <span className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Aslal growth system</span>
-              <div className="mt-7 space-y-3 font-bold"><div>Visitor arrives</div><div className="text-white/30">↓</div><div>Interest is understood</div><div className="text-white/30">↓</div><div>Conversation starts</div><div className="text-white/30">↓</div><div>Lead → follow-up → customer</div></div>
-            </div>
+        <div className="rounded-[2rem] bg-[#0F3E8A] p-6 sm:p-8 shadow-2xl">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ["01","Attract","Content, campaigns, SEO and digital presence"],
+              ["02","Capture","Forms, conversations and identifiable demand"],
+              ["03","Qualify","Ownership, qualification and next actions"],
+              ["04","Follow up","Tasks, automation and human conversations"],
+              ["05","Convert","Quotes, orders and payment workflows"],
+              ["06","Measure","Pipeline, revenue and operational reporting"],
+            ].map(([n,t,d])=><div key={n} className="rounded-2xl border border-white/10 bg-white/[.06] p-5"><span className="font-mono text-xs text-[#E2B02A]">{n}</span><h3 className="mt-3 font-black text-white">{t}</h3><p className="mt-2 text-sm leading-6 text-white/55">{d}</p></div>)}
           </div>
         </div>
       </div>
     </section>
 
-    <section className="landing-section capability-section" aria-labelledby="solutions-title">
+    <section className="landing-section capability-section" aria-labelledby="offers-title">
       <div className="container-aslal">
         <div className="section-heading section-heading-light">
-          <span style={cs("home.solutions.eyebrow",10)}>{cv("home.solutions.eyebrow","02 — WHAT WE BUILD")}</span>
-          <h2 id="solutions-title" style={cs("home.solutions.title",48)}>{cv("home.solutions.title","Digital systems connected around growth.")}</h2>
-          <p style={cs("home.solutions.body",18)}>{cv("home.solutions.body","Instead of disconnected services, Aslal connects presence, demand capture, sales systems, automation and measurement into one practical operating layer.")}</p>
+          <span style={cs("home.offers.eyebrow",10)}>{cv("home.offers.eyebrow","02 — WHAT YOU CAN BUY")}</span>
+          <h2 id="offers-title" style={cs("home.offers.title",48)}>{cv("home.offers.title","Start with a service, package or product. Grow into a system.")}</h2>
+          <p style={cs("home.offers.body",18)}>{cv("home.offers.body","Choose a focused capability when you know what you need, or use the Growth System Builder when you want Aslal to map the right starting scope.")}</p>
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {capabilities.map(({icon:Icon,title,text,href},i)=><Link key={title} href={href} className="group rounded-[1.7rem] border border-white/10 bg-white/[.035] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#E2B02A]/70 hover:bg-[#E2B02A]/[.07]">
-            <div className="mb-6 flex items-center justify-between"><div className="grid h-12 w-12 place-items-center rounded-xl border border-[#E2B02A]/25 bg-[#E2B02A]/10 text-[#E2B02A] transition group-hover:bg-[#E2B02A] group-hover:text-[#1E293B]"><Icon size={22}/></div><span className="font-mono text-xs text-white/35">0{i+1}</span></div>
-            <h3 className="text-xl font-black text-white group-hover:text-[#E2B02A] transition-colors">{title}</h3>
-            <p className="mt-3 text-sm leading-6 text-white/58">{text}</p>
-            <span className="mt-6 inline-flex items-center gap-2 text-sm font-black text-[#E2B02A]">Explore <ArrowRight size={16} className="transition-transform group-hover:translate-x-1"/></span>
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
+          {[
+            ["Marketing Packages","Starter, Growth and Market Leader packages for consistent demand generation and managed growth.","/products/marketing-growth"],
+            ["Products & Solutions","Software, web, CRM, commerce and implementation offers with dedicated explanation pages.","/products"],
+            ["Aslal Services","Custom digital, automation, branding, SEO and customer-system capabilities.","/services"],
+          ].map(([title,text,href])=><Link key={title} href={href} className="group rounded-[1.7rem] border border-white/10 bg-white/[.035] p-7 hover:-translate-y-1 hover:border-[#E2B02A]/70 hover:bg-[#E2B02A]/[.07] transition">
+            <h3 className="text-2xl font-black text-white group-hover:text-[#E2B02A]">{title}</h3><p className="mt-3 text-sm leading-6 text-white/58">{text}</p><span className="mt-7 inline-flex items-center gap-2 font-black text-[#E2B02A]">Explore <ArrowRight size={16}/></span>
           </Link>)}
         </div>
       </div>
     </section>
 
-    <section className="landing-section light-section" aria-labelledby="products-title">
-      <div className="container-aslal">
+    <section className="landing-section light-section" aria-labelledby="portfolio-title">
+      <div className="container-aslal grid gap-12 lg:grid-cols-[1fr_.8fr] lg:items-center">
         <div className="section-heading">
-          <span style={cs("home.products.eyebrow",10)}>{cv("home.products.eyebrow","03 — PRODUCTS & SERVICES")}</span>
-          <h2 id="products-title" style={cs("home.products.title",48)}>{cv("home.products.title","Proven products. Local implementation. Custom fit.")}</h2>
-          <p style={cs("home.products.body",18)}>{cv("home.products.body","Choose a starting point, explore the full solution and send a request directly into the Aslal sales workflow.")}</p>
+          <span style={cs("home.portfolio.eyebrow",10)}>{cv("home.portfolio.eyebrow","03 — PORTFOLIO & AUTOMATION LAB")}</span>
+          <h2 id="portfolio-title" style={cs("home.portfolio.title",48)}>{cv("home.portfolio.title","See the systems, work and live experiences behind the offer.")}</h2>
+          <p style={cs("home.portfolio.body",18)}>{cv("home.portfolio.body","Explore verified work, implementation examples and interactive automation experiences without separating them from the commercial journey.")}</p>
+          <div className="mt-7 flex flex-wrap gap-3"><Link href="/portfolio" className="site-cta">View Portfolio <ArrowRight size={16}/></Link><Link href="/automation-lab" className="hero-secondary border-slate-300 text-[#0F3E8A]">Open Automation Lab <ArrowRight size={16}/></Link></div>
         </div>
-        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {products.map(([name,tag,desc,href],i)=><article key={name} className="group rounded-[1.7rem] border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#E2B02A] hover:shadow-xl">
-            <div className="flex items-center justify-between"><span className="text-xs font-black uppercase tracking-[.15em] text-[#0F3E8A]">{tag}</span><span className="grid h-9 w-9 place-items-center rounded-lg bg-[#0F3E8A]/5 text-[#0F3E8A] group-hover:bg-[#E2B02A] group-hover:text-[#1E293B] transition"><CreditCard size={17}/></span></div>
-            <h3 className="mt-5 text-xl font-black text-[#1E293B] group-hover:text-[#0F3E8A]">{name}</h3>
-            <p className="mt-3 text-sm leading-6 text-slate-600">{desc}</p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href={href} className="inline-flex items-center gap-2 font-black text-[#0F3E8A] group-hover:text-[#E2B02A]">Explore <ArrowRight size={16}/></Link>
-              <Link href={`/contact?product=${encodeURIComponent(name)}&goal=Request%20a%20quote`} className="rounded-full bg-[#E2B02A] px-4 py-2 text-xs font-black text-[#1E293B] transition hover:bg-[#f0c63f]">Request Quote</Link>
-            </div>
-          </article>)}
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm">
+          <div className="space-y-4">
+            {["Verified case studies and implementation proof","Interactive WhatsApp and Telegram sales experiences","Clear path from interest to Aslal consultation"].map((x,i)=><div key={x} className="flex gap-4 rounded-2xl bg-[#F8FAFC] p-5"><span className="font-mono text-xs font-black text-[#0F3E8A]">0{i+1}</span><p className="font-bold text-[#1E293B]">{x}</p></div>)}
+          </div>
         </div>
-        <div className="mt-9 flex justify-center"><Link href="/products" className="hero-secondary border-slate-300 text-[#0F3E8A] hover:border-[#E2B02A] hover:text-[#E2B02A]">View All Solutions <ArrowRight size={16}/></Link></div>
       </div>
     </section>
 
-    <section className="landing-section capability-section" aria-labelledby="flow-title">
+    <section className="landing-section capability-section" aria-labelledby="fit-title">
       <div className="container-aslal grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
         <div className="section-heading section-heading-light">
-          <span style={cs("home.growth.eyebrow",10)}>{cv("home.growth.eyebrow","04 — THE GROWTH FLOW")}</span>
-          <h2 id="flow-title" style={cs("home.growth.title",48)}>{cv("home.growth.title","From attention to revenue, without losing the thread.")}</h2>
-          <p style={cs("home.growth.body",18)}>{cv("home.growth.body","Content, commerce, customer systems, automation, brand and search work better when they share the same commercial objective.")}</p>
-          <Link href="/growth-builder" className="site-cta mt-7">Build My Growth System <ArrowRight size={16}/></Link>
+          <span style={cs("home.fit.eyebrow",10)}>{cv("home.fit.eyebrow","04 — THE ASLAL MODEL")}</span>
+          <h2 id="fit-title" style={cs("home.fit.title",48)}>{cv("home.fit.title","One commercial thread from first touch to customer value.")}</h2>
+          <p style={cs("home.fit.body",18)}>{cv("home.fit.body","Marketing creates demand. Growth OS captures and qualifies it. Sales follows up. Commerce and finance complete the transaction. Reporting closes the loop.")}</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {outcomes.map(({icon:Icon,title,text},i)=><div key={title} className="rounded-2xl border border-white/10 bg-white/[.04] p-5 transition-all hover:border-[#E2B02A]/70 hover:bg-[#E2B02A]/[.06]">
-            <div className="flex items-center gap-3"><Icon size={20} className="text-[#E2B02A]"/><span className="font-mono text-xs text-white/35">0{i+1}</span></div>
-            <h3 className="mt-4 font-black text-white">{title}</h3><p className="mt-2 text-sm leading-6 text-white/55">{text}</p>
-          </div>)}
-        </div>
-      </div>
-    </section>
-
-    <section className="landing-section light-section" aria-labelledby="local-title">
-      <div className="container-aslal grid gap-12 lg:grid-cols-[1fr_.9fr] lg:items-center">
-        <div>
-          <span className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]" style={cs("home.local.eyebrow",10)}>{cv("home.local.eyebrow","05 — LOCAL BY DESIGN")}</span>
-          <h2 id="local-title" className="mt-4 text-4xl font-black tracking-tight text-[#1E293B] sm:text-5xl" style={cs("home.local.title",48)}>{cv("home.local.title","Built for Ethiopia. Ready to scale.")}</h2>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600" style={cs("home.local.body",18)}>{cv("home.local.body","We design around local payment realities, customer behavior, language, connectivity and operational constraints while keeping the technology modern and extensible.")}</p>
-        </div>
-        <div className="rounded-[2rem] bg-[#0F3E8A] p-6 sm:p-8">
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">{["Local context","Technical precision","Connected execution","Measurable ROI"].map((x,i)=><div key={x} className="rounded-2xl border border-white/10 bg-white/[.06] p-5"><span className="font-mono text-xs text-[#E2B02A]">0{i+1}</span><p className="mt-3 font-black text-white">{x}</p></div>)}</div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {["Demand","Pipeline","Commerce","Measurement"].map((x,i)=><div key={x} className="rounded-2xl border border-white/10 bg-white/[.04] p-6"><span className="font-mono text-xs text-[#E2B02A]">0{i+1}</span><h3 className="mt-4 font-black text-white">{x}</h3><p className="mt-2 text-sm text-white/50">{["Attract and capture interest","Qualify and manage follow-up","Quote, order, payment and reconciliation","Revenue, commission and reporting"][i]}</p></div>)}
         </div>
       </div>
     </section>
@@ -136,7 +114,7 @@ export default async function Home(){
     <section className="landing-section builder-section" aria-labelledby="builder-title">
       <div className="container-aslal">
         <div className="builder-inner">
-          <div><span style={cs("home.builder.eyebrow",10)}>{cv("home.builder.eyebrow","06 — START WITH THE BOTTLENECK")}</span><h2 id="builder-title" style={cs("home.builder.title",56)}>{cv("home.builder.title","Not sure exactly what you need?")}</h2><p style={cs("home.builder.body",18)}>{cv("home.builder.body","Tell us what is holding your business back. The Growth System Builder turns the problem into a practical starting point.")}</p></div>
+          <div><span style={cs("home.builder.eyebrow",10)}>{cv("home.builder.eyebrow","05 — START WITH THE BOTTLENECK")}</span><h2 id="builder-title" style={cs("home.builder.title",56)}>{cv("home.builder.title","Tell us what is holding growth back.")}</h2><p style={cs("home.builder.body",18)}>{cv("home.builder.body","Use the Growth System Builder to describe your business, goal and channels. Your request enters the Aslal sales workflow for qualification and follow-up.")}</p></div>
           <Link href="/growth-builder">{cv("home.builder.cta","Build My Growth System")} <ArrowRight size={18}/></Link>
         </div>
       </div>
