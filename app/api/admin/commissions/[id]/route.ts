@@ -22,7 +22,7 @@ type CommissionStatusRow = RowDataPacket & {
 };
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-  const access = await authorizeWorkspacePermission("partners.manage");
+  const access = await authorizeWorkspacePermission("commissions.manage");
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { workspace } = access;
 
