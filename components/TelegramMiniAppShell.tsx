@@ -11,7 +11,7 @@ export function TelegramMiniAppShell({children}:{children:React.ReactNode}){
  },[]);
  useEffect(()=>{document.documentElement.dataset.telegramTheme=dark?"dark":"light";document.body.style.background=dark?"#071F47":"#F8FAFC";return()=>{document.body.style.background=""}},[dark]);
  function toggle(){const next=!dark;setDark(next);localStorage.setItem("aslal_telegram_theme",next?"dark":"light");}
- return <div className={dark?"min-h-screen bg-[#071F47] text-[#F8FAFC]":"min-h-screen bg-[#F8FAFC] text-[#1E293B]"}>
+ return <div className={(dark?"dark ":"")+(dark?"min-h-screen bg-[#071F47] text-[#F8FAFC]":"min-h-screen bg-[#F8FAFC] text-[#1E293B]")}>
    <div className="mx-auto min-h-screen w-full max-w-[760px]">
     <div className="sticky top-0 z-40 flex items-center justify-between border-b border-black/5 bg-inherit px-4 py-3 backdrop-blur">
       <div className="flex items-center gap-2"><img src="/favicon.svg" alt="Aslal" className="h-8 w-8"/><span className="text-sm font-black tracking-tight">ASLAL</span></div>
