@@ -51,10 +51,6 @@ export async function POST(request:Request){
  const telegramInitData=clean(body.telegramInitData,8000);
  const telegramUsername=clean(body.telegramUsername,190).replace(/^@/,"");
  let chatId=suppliedChatId;
- if(telegramInitData){
-   const identity=await syncTelegramIdentity({workspaceId,initData:telegramInitData,event:"ORDER_STARTED",productSlug:slug,metadata:{campaignId:clean(body.campaignId,36)||null}});
-   chatId=String(identity.user.id);
- }
  const campaignId=clean(body.campaignId,36);
  if(!workspaceId||!slug)return error("This order link is incomplete. Please return to the catalog and try again.");
  if(!validName(name))return error("Please enter your full name using letters only (2–160 characters).");
@@ -63,6 +59,10 @@ export async function POST(request:Request){
 
  const workspace=await prisma.workspace.findFirst({where:{id:workspaceId,active:true},select:{id:true,name:true}});
  if(!workspace)return error("This order catalog is no longer available. Please return to the catalog.",404);
+ if(telegramInitData){
+   const identity=await syncTelegramIdentity({workspaceId,initData:telegramInitData,event:"ORDER_STARTED",productSlug:slug,metadata:{campaignId:campaignId||null}});
+   chatId=String(identity.user.id);
+ }
 
  const destination=chatId?await prisma.telegramDestination.findFirst({where:{workspaceId,chatId,active:true},select:{id:true,partnerId:true,referralCode:true,campaignId:true,salesOwnerEmail:true}}):null;
  const requestedCampaign=campaignId||destination?.campaignId||null;
