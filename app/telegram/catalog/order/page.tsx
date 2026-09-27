@@ -1,11 +1,15 @@
 "use client";
-import {FormEvent,useMemo,useState} from "react";
+import {FormEvent,useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 function normalizePhone(value:string){return value.trim().replace(/[\s().-]/g,"");}
 function validPhone(value:string){const digits=normalizePhone(value);return /^(?:\+251|251)(?:9|7)\d{8}$/.test(digits)||/^(?:09|07)\d{8}$/.test(digits);}
 function validName(value:string){return value.trim().length>=2&&value.trim().length<=160&&/\p{L}/u.test(value)&&!/[\d<>]/.test(value);}
 export default function TelegramCatalogOrder(){
- const router=useRouter(); const q=useMemo(()=>typeof window!=="undefined"?new URLSearchParams(window.location.search):new URLSearchParams(),[]);const workspaceId=q.get("workspaceId")||"";const slug=q.get("slug")||"";const campaignId=q.get("campaignId")||"";
+ const router=useRouter();
+ const [workspaceId,setWorkspaceId]=useState("");
+ const [slug,setSlug]=useState("");
+ const [campaignId,setCampaignId]=useState("");
+ useEffect(()=>{const params=new URLSearchParams(window.location.search);setWorkspaceId(params.get("workspaceId")||sessionStorage.getItem("aslal_telegram_workspace_id")||"");setSlug(params.get("slug")||sessionStorage.getItem("aslal_telegram_order_slug")||"");setCampaignId(params.get("campaignId")||sessionStorage.getItem("aslal_telegram_campaign_id")||"");},[]);
  const [name,setName]=useState("");const [phone,setPhone]=useState("");const [loading,setLoading]=useState(false);const [submitted,setSubmitted]=useState(false);const [result,setResult]=useState<{type:"success"|"error";text:string;orderNumber?:string;nextStep?:string}>({type:"error",text:""});
  const nameError=name&&!validName(name)?"Enter your full name using letters only (2–160 characters).":"";const phoneError=phone&&!validPhone(phone)?"Enter a valid Ethiopian mobile number, e.g. +251 911 276682.":"";
  async function submit(e:FormEvent){e.preventDefault();setResult({type:"error",text:""});if(!workspaceId||!slug){setResult({type:"error",text:"This checkout link is incomplete. Please return to the catalog."});return;}if(!validName(name)){setResult({type:"error",text:"Please enter your full name before submitting the order."});return;}if(!validPhone(phone)){setResult({type:"error",text:"Please enter a valid Ethiopian mobile number before submitting the order."});return;}setLoading(true);try{const tg=(window as any).Telegram?.WebApp;const chatId=tg?.initDataUnsafe?.user?.id?String(tg.initDataUnsafe.user.id):"";const r=await fetch("/api/telegram/catalog/order",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({workspaceId,slug,campaignId,name,phone,chatId})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"We could not submit your order. Please try again.");setResult({type:"success",text:d.message||"Order received.",orderNumber:d.orderNumber,nextStep:d.nextStep});setSubmitted(true);}catch(e){setResult({type:"error",text:e instanceof Error?e.message:"We could not submit your order. Please try again."});}finally{setLoading(false);}}
