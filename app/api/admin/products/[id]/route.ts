@@ -33,7 +33,8 @@ function validBody(body:any,current:any){
   featured:body.featured===undefined?current.featured:Boolean(body.featured),
   active:body.active===undefined?current.active:Boolean(body.active),
  };
- if(!p.name||!p.shortDescription||!Object.values(ProductKind).includes(p.kind)||!Object.values(ProductRelationship).includes(p.relationshipType))return null;
+ if(!p.name||!p.shortDescription||!p.workspaceId||!Object.values(ProductKind).includes(p.kind)||!Object.values(ProductRelationship).includes(p.relationshipType))return null;
+ if(p.kind===ProductKind.PRODUCT&&(p.stockQuantity===null||!Number.isInteger(p.stockQuantity)))return null;
  return p;
 }
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
@@ -42,7 +43,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const {id}=await params; const current=await prisma.product.findUnique({where:{id}});
  if(!current)return NextResponse.json({error:"Product/service not found."},{status:404});
  const body=await request.json().catch(()=>({})); const data=validBody(body,current);
- if(!data)return NextResponse.json({error:"Name, short description, type and relationship are required."},{status:400});
+ if(!data)return NextResponse.json({error:body.kind===ProductKind.PRODUCT&&(body.stockQuantity===null||body.stockQuantity==="")?"A product requires a stock number. Use 0 when it is currently out of stock.":"Name, short description, workspace, type and relationship are required."},{status:400});
  const access=await authorizeWorkspacePermission("products.manage",data.workspaceId);
  if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
  const product=await prisma.product.update({where:{id},data,include:{workspace:{select:{id:true,name:true,slug:true}}}});
