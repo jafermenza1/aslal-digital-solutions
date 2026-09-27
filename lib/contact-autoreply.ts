@@ -58,7 +58,6 @@ export async function sendContactAutoReply(leadId: string) {
     htmlBody: html,
     textBody: text,
     templateKey: template.templateKey,
-    messageType: "TRANSACTIONAL",
     createdBy: "system:contact-autoreply",
   });
 
