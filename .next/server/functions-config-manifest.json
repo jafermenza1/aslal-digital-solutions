@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/admin/telegram/broadcast": {},
+    "/api/admin/telegram/config": {},
+    "/api/admin/telegram/connect": {},
+    "/api/admin/telegram/destinations": {},
+    "/api/cron/email-inbox": {},
+    "/api/cron/resource-followups": {},
+    "/api/cron/sales-automation": {},
+    "/api/cron/telegram-followups": {},
+    "/api/og/products": {},
+    "/api/telegram/webhook": {}
+  }
+}
