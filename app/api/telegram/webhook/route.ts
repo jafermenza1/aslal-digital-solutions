@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getTelegramChannelConfig } from "@/lib/telegram-channel-config";
-import { syncTelegramIdentity } from "@/lib/telegram-identity";
+import { syncTelegramIdentity, type TelegramUser } from "@/lib/telegram-identity";
+import { prisma } from "@/lib/prisma";
 import type { RowDataPacket } from "mysql2/promise";
 
 export const runtime = "nodejs";
@@ -10,11 +11,11 @@ export const dynamic = "force-dynamic";
 type TelegramMessage = {
   message_id?: number;
   chat?: { id?: number | string; type?: string; title?: string; username?: string };
-  from?: { id?: number; first_name?: string; last_name?: string; username?: string };
+  from?: TelegramUser;
   text?: string;
   reply_to_message?: TelegramMessage;
 };
-type TelegramCallbackQuery = { id:string; data?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string}; message?:TelegramMessage };
+type TelegramCallbackQuery = { id:string; data?:string; from?:TelegramUser; message?:TelegramMessage };
 type TelegramInlineQuery = { id:string; query?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string} };
 type TelegramUpdate = { message?:TelegramMessage; callback_query?:TelegramCallbackQuery; inline_query?:TelegramInlineQuery };
 type QualificationOption = { label:string; value:string; next?:string };
@@ -211,7 +212,7 @@ async function notifyAssignedStaff(workspaceId:string,ownerEmail:string|null,bod
 
 async function createPrivateLead(workspaceId:string,d: {id:string;lead_id:string|null;person_id:string|null;product_id:string|null;campaign_id:string|null;partner_id:string|null;referral_code:string|null;source:string|null;medium:string|null},m:TelegramMessage){
   if(d.lead_id)return d.lead_id;
-  const from=m.from||{};
+  const from=m.from||{id:chatId};
   const name=[from.first_name,from.last_name].filter(Boolean).join(" ")||from.username||"Telegram contact";
   const personId=crypto.randomUUID();
   const leadId=crypto.randomUUID();
@@ -295,16 +296,16 @@ async function handle(update:TelegramUpdate){
     const p=await partnerForChat(chatId);
     if(p)return catalog(chatId,p.workspace_id);
     const defaultWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"").trim();
-    if(defaultWorkspaceId){const cfg=await getTelegramChannelConfig(defaultWorkspaceId);if(cfg?.publicEnabled&&cfg.allowAnonymousUsers)return publicMenu(chatId,defaultWorkspaceId,m.from||{});return catalog(chatId,defaultWorkspaceId);}
+    if(defaultWorkspaceId){const cfg=await getTelegramChannelConfig(defaultWorkspaceId);if(cfg?.publicEnabled&&cfg.allowAnonymousUsers)return publicMenu(chatId,defaultWorkspaceId,m.from||{id:chatId});return catalog(chatId,defaultWorkspaceId);}
     return reply(chatId,"Welcome to Aslal. Use the workspace connection link provided by Aslal to open the correct catalog.");
   }
 
   const publicWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
   if(chatType==="private" && publicWorkspaceId){
     const cfg=await getTelegramChannelConfig(publicWorkspaceId);
-    if(cfg?.enabled&&cfg.publicEnabled&&cfg.allowAnonymousUsers){ await syncTelegramIdentity({workspaceId:publicWorkspaceId,user:m.from||{},chatId,event:input.startsWith("/start")?"START":"MESSAGE",startParam:input.startsWith("/start")?input.split(/\s+/,2)[1]||null:null}).catch(()=>null); }
+    if(cfg?.enabled&&cfg.publicEnabled&&cfg.allowAnonymousUsers){ await syncTelegramIdentity({workspaceId:publicWorkspaceId,user:m.from||{id:chatId},chatId,event:input.startsWith("/start")?"START":"MESSAGE",startParam:input.startsWith("/start")?input.split(/\s+/,2)[1]||null:null}).catch(()=>null); }
     if(cfg?.publicEnabled&&cfg.allowAnonymousUsers){
-      const session=await publicSession(publicWorkspaceId,m.from||{},chatId);
+      const session=await publicSession(publicWorkspaceId,m.from||{id:chatId},chatId);
       const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
       if(session.state==="QUALIFYING" && input && !input.startsWith("/")){
         const flow=Array.isArray(cfg.qualificationFlow)?cfg.qualificationFlow as unknown as QualificationStep[]:[]; const step=flow.find((x)=>x?.id===stateData.currentStep);
@@ -312,18 +313,18 @@ async function handle(update:TelegramUpdate){
         const nextData={...stateData,[String(step?.id||"answer")]:input};
         const next=step?.next;
         await savePublicState(publicWorkspaceId,String(m.from?.id||chatId),next?"QUALIFYING":"QUALIFIED",{...nextData,currentStep:next||null});
-        if(next)return qualification(chatId,publicWorkspaceId,m.from||{},String(next));
-        await ensurePublicLead(publicWorkspaceId,m.from||{},chatId,nextData);
+        if(next)return qualification(chatId,publicWorkspaceId,m.from||{id:chatId},String(next));
+        await ensurePublicLead(publicWorkspaceId,m.from||{id:chatId},chatId,nextData);
         return tg("sendMessage",{chat_id:chatId,text:"Thanks. Your answers have been saved.",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+publicWorkspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+publicWorkspaceId}]]}});
       }
-      if(input==="/help")return publicMenu(chatId,publicWorkspaceId,m.from||{});
+      if(input==="/help")return publicMenu(chatId,publicWorkspaceId,m.from||{id:chatId});
       if(input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
       if(input==="/catalog")return catalog(chatId,publicWorkspaceId);
-      if(input==="/support")return handoffPublic(chatId,publicWorkspaceId,m.from||{});
+      if(input==="/support")return handoffPublic(chatId,publicWorkspaceId,m.from||{id:chatId});
       if(await keywordResponse(chatId,publicWorkspaceId,input))return;
-      if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,m.from||{},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,m.from||{});}
-      if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,m.from||{},String(stateData.currentStep||""));
-      return publicMenu(chatId,publicWorkspaceId,m.from||{});
+      if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,m.from||{id:chatId},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,m.from||{id:chatId});}
+      if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,m.from||{id:chatId},String(stateData.currentStep||""));
+      return publicMenu(chatId,publicWorkspaceId,m.from||{id:chatId});
     }
   }
 
@@ -352,7 +353,7 @@ async function handle(update:TelegramUpdate){
     const [destinations]=await db.query<(RowDataPacket&{id:string;workspace_id:string;lead_id:string|null;person_id:string|null;product_id:string|null;campaign_id:string|null;partner_id:string|null;referral_code:string|null;source:string|null;medium:string|null;active:number;opt_in:number})[]>("SELECT id,workspace_id,lead_id,person_id,product_id,campaign_id,partner_id,referral_code,source,medium,active,opt_in FROM telegram_destinations WHERE chat_id=? AND type='PRIVATE' LIMIT 1",[chatId]);
     const d=destinations[0];
     if(!d||!d.active||!d.opt_in)return reply(chatId,"This Telegram chat is not connected to an Aslal client conversation yet. Use the client link provided by Aslal.");
-    await syncTelegramIdentity({workspaceId:d.workspace_id,user:m.from||{},chatId,event:"MESSAGE"}).catch(()=>null);
+    await syncTelegramIdentity({workspaceId:d.workspace_id,user:m.from||{id:chatId},chatId,event:"MESSAGE"}).catch(()=>null);
     return handleClientInbound(d.workspace_id,d,m,chatId);
   }
 
