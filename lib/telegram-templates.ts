@@ -23,7 +23,7 @@ export const CORE_TELEGRAM_TEMPLATES=[
 export async function ensureCoreTelegramTemplates(workspaceId:string){
  for(const template of CORE_TELEGRAM_TEMPLATES){
   await prisma.telegramTemplate.upsert({
-   where:{templateKey:template.templateKey},
+   where:{workspaceId_templateKey:{workspaceId,templateKey:template.templateKey}},
    update:{name:template.name,messageType:template.messageType,contentTemplate:template.contentTemplate,replyMarkup:template.replyMarkup,active:true},
    create:{id:randomUUID(),workspaceId,templateKey:template.templateKey,name:template.name,messageType:template.messageType,contentTemplate:template.contentTemplate,replyMarkup:template.replyMarkup,active:true,updatedBy:"system"}
   });
