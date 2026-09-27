@@ -1,4 +1,6 @@
 import { processEmailQueue, queueLeadTemplateEmail } from "@/lib/email-queue";
+import { processTelegramQueue, queueLeadTelegramTemplate } from "@/lib/telegram-queue";
+import { ensureCoreTelegramTemplates } from "@/lib/telegram-templates";
 import { Prisma, TaskPriority, WorkflowActionStatus, WorkflowActionType, WorkflowExecutionStatus, WorkflowTriggerType } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
@@ -162,7 +164,7 @@ async function overdue(limit:number){
  let triggered=0;for(const row of rows)triggered+=(await runTrigger({triggerType:WorkflowTriggerType.LEAD_OVERDUE,targetType:"LEAD",targetId:row.id})).length;
  return {overdueLeads:rows.length,triggered};
 }
-export async function runScheduledAutomation(o?:{leadLimit?:number;executionLimit?:number;emailLimit?:number}){await ensureCoreWorkflows();return {overdue:await overdue(Math.max(1,Math.min(200,o?.leadLimit??100))),executions:await processDue(Math.max(1,Math.min(200,o?.executionLimit??100))),emailQueue:await processEmailQueue(Math.max(1,Math.min(100,o?.emailLimit??25)))};}
+export async function runScheduledAutomation(o?:{leadLimit?:number;executionLimit?:number;emailLimit?:number;telegramLimit?:number}){await ensureCoreWorkflows();const workspaces=await prisma.workspace.findMany({where:{active:true},select:{id:true}});for(const workspace of workspaces)await ensureCoreTelegramTemplates(workspace.id);return {overdue:await overdue(Math.max(1,Math.min(200,o?.leadLimit??100))),executions:await processDue(Math.max(1,Math.min(200,o?.executionLimit??100))),emailQueue:await processEmailQueue(Math.max(1,Math.min(100,o?.emailLimit??25))),telegramQueue:await processTelegramQueue(Math.max(1,Math.min(100,o?.telegramLimit??25)))};}
 export async function runLeadCreatedAutomation(id:string){
   const current=await lead(id);
   if(!current)return [];
@@ -191,7 +193,9 @@ export async function runLeadCreatedAutomation(id:string){
   }
 
   const emailAutomation = await queueLeadTemplateEmail({ leadId:id, templateKey:"sales_followup", delayMinutes:1440, createdBy:"automation:lead-created" });
-  return { workflow: await runTrigger({triggerType:WorkflowTriggerType.LEAD_CREATED,targetType:"LEAD",targetId:id,idempotencyKey:"lead-created:"+id}), emailAutomation };
+  const telegramAcknowledgement = await queueLeadTelegramTemplate({ leadId:id, templateKey:"lead_acknowledgement", createdBy:"automation:lead-created" });
+  const telegramFollowup = await queueLeadTelegramTemplate({ leadId:id, templateKey:"sales_followup", delayMinutes:1440, createdBy:"automation:lead-created" });
+  return { workflow: await runTrigger({triggerType:WorkflowTriggerType.LEAD_CREATED,targetType:"LEAD",targetId:id,idempotencyKey:"lead-created:"+id}), emailAutomation, telegramAcknowledgement, telegramFollowup };
 }
 export async function cancelLeadAutomation(id:string,reason:string){
  const rows=await prisma.workflowExecution.findMany({where:{targetType:"LEAD",targetId:id,status:{in:[WorkflowExecutionStatus.PENDING,WorkflowExecutionStatus.RUNNING]}},select:{id:true}});
@@ -201,7 +205,7 @@ export async function cancelLeadAutomation(id:string,reason:string){
   prisma.workflowActionExecution.updateMany({where:{executionId:{in:ids},status:{in:[WorkflowActionStatus.PENDING,WorkflowActionStatus.RUNNING]}},data:{status:WorkflowActionStatus.SKIPPED,error:msg,completedAt:new Date()}})
  ]);return {cancelled:ids.length};
 }
-export async function handleConversationInbound(leadId:string|null|undefined){if(!leadId)return {cancelled:0,emailCancelled:0};const cancelled=await cancelLeadAutomation(leadId,"Customer reply received; eligible follow-up automation cancelled.");const emailCancelled=await prisma.emailOutbox.updateMany({where:{leadId,status:{in:["DRAFT","QUEUED","FAILED"]},messageType:"MARKETING"},data:{status:"DISCARDED",discardedAt:new Date(),nextAttemptAt:null,failureReason:"Customer reply received; marketing follow-up stopped."}});return {cancelled:cancelled.cancelled,emailCancelled:emailCancelled.count};}
+export async function handleConversationInbound(leadId:string|null|undefined){if(!leadId)return {cancelled:0,emailCancelled:0};const cancelled=await cancelLeadAutomation(leadId,"Customer reply received; eligible follow-up automation cancelled.");const emailCancelled=await prisma.emailOutbox.updateMany({where:{leadId,status:{in:["DRAFT","QUEUED","FAILED"]},messageType:"MARKETING"},data:{status:"DISCARDED",discardedAt:new Date(),nextAttemptAt:null,failureReason:"Customer reply received; marketing follow-up stopped."}});const telegramCancelled=await prisma.telegramOutbox.updateMany({where:{leadId,status:{in:["DRAFT","QUEUED","FAILED"]},messageType:"MARKETING"},data:{status:"DISCARDED",discardedAt:new Date(),nextAttemptAt:null,failureReason:"Customer reply received; Telegram marketing follow-up stopped."}});return {cancelled:cancelled.cancelled,emailCancelled:emailCancelled.count,telegramCancelled:telegramCancelled.count};}
 export function handleLeadStatusChange(i:{leadId:string;fromStatus:string;toStatus:string;actor:string}){return ["WON","LOST"].includes(i.toStatus)?cancelLeadAutomation(i.leadId,`Lead moved from ${i.fromStatus} to ${i.toStatus} by ${i.actor}; prospecting automation cancelled.`):Promise.resolve({cancelled:0});}
 export async function getAutomationSnapshot(limit=30, workspaceId?: string){
  await ensureCoreWorkflows();const cutoff=new Date(Date.now()-24*60*60000);
