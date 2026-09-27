@@ -14,7 +14,7 @@ const landingCopy: Record<Locale, {
   pain:[string,string,string][];
   mathTitle:string; mathBody:string; visitors:string; aov:string; current:string; lift:string; estimate:string; claim:string;
   resourcesTitle:string; resourcesBody:string; resourcesCta:string; portfolio:string; automationLab:string;
-  resource1:[string,string,string]; resource2:[string,string,string];
+  resource1:[string,string,string,string]; resource2:[string,string,string,string];
   modelEyebrow:string; modelTitle:string; modelBody:string; model:[string,string][];
   ctaTitle:string; ctaBody:string; audit:string; telegram:string; whatsapp:string; email:string;
   offersEyebrow:string; offersTitle:string; offersBody:string;
