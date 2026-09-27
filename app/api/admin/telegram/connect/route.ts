@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   if (!username) return NextResponse.json({ error: "TELEGRAM_BOT_USERNAME is not configured." }, { status: 503 });
 
   const token = randomBytes(32).toString("base64url");
-  await db.query("UPDATE users SET telegram_link_token=?,telegram_chat_id=NULL,telegram_linked_at=NULL WHERE id=?", [token, access.user.id]);
+  await db.query("UPDATE users SET telegram_link_token=?,telegram_chat_id=NULL,telegram_username=NULL,telegram_linked_at=NULL WHERE id=?", [token, access.user.id]);
 
   return NextResponse.json({
     botUsername: username,
