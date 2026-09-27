@@ -85,7 +85,7 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
   const orderBy = sort === "newest" ? [{ createdAt: "desc" as const }] : sort === "deal" ? [{ dealValue: "desc" as const }, { score: "desc" as const }] : [{ score: "desc" as const }, { updatedAt: "desc" as const }];
 
   const [leads, total, stageCounts, stageValues, sources, products, executionGaps, databaseClock] = await Promise.all([
-    prisma.lead.findMany({ where, orderBy, skip: (page - 1) * pageSize, take: pageSize, include: { productInterests: { include: { product: true }, orderBy: { interestScore: "desc" }, take: 3 }, tasks: { where: { status: { in: ["OPEN", "IN_PROGRESS"] } }, orderBy: { dueAt: "asc" }, take: 1 } } }),
+    prisma.lead.findMany({ where, orderBy, skip: (page - 1) * pageSize, take: pageSize, include: { productInterests: { include: { product: { select: { id: true, name: true } } }, orderBy: { interestScore: "desc" }, take: 3 }, tasks: { where: { status: { in: ["OPEN", "IN_PROGRESS"] } }, orderBy: { dueAt: "asc" }, take: 1 } } }),
     prisma.lead.count({ where }),
     prisma.lead.groupBy({ by: ["status"], where: { workspaceId }, _count: { _all: true } }),
     prisma.lead.groupBy({ by: ["status"], where: { workspaceId }, _sum: { dealValue: true } }),
