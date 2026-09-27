@@ -10,8 +10,9 @@ export async function sendContactAutoReply(leadId: string) {
     include: { person: { include: { communicationPreference: true } }, productInterests: { include: { product: true }, orderBy: { interestScore: "desc" }, take: 1 } },
   });
   if (!lead?.email) return { sent:false, skipped:"no-email" };
-  if (!lead.person?.communicationPreference?.emailAllowed || lead.person.communicationPreference.globalOptOut) {
-    return { sent:false, skipped:"email-not-permitted" };
+  // This is a transactional acknowledgement, not marketing. A supplied email is enough to send it; only an explicit global opt-out blocks delivery.
+  if (lead.person?.communicationPreference?.globalOptOut) {
+    return { sent:false, skipped:"global-opt-out" };
   }
 
   const template = await ensureContactTemplate();
@@ -49,6 +50,7 @@ export async function sendContactAutoReply(leadId: string) {
   try {
     const result=await sendEmail({recipient:lead.email,body:text,html,subject});
     const providerMessageId=typeof result.messageId==="string"?result.messageId:null;
+    if(!result.accepted?.length){throw new Error(result.rejected?.join(", ")||"SMTP did not accept the transactional email.");}
     await prisma.$transaction([
       prisma.message.update({where:{id:message.id},data:{status:"SENT",sentAt:new Date(),externalMessageId:providerMessageId,metadata:{source:"contact-autoreply",templateKey:template.templateKey,html,providerMessageId}}}),
       prisma.conversation.update({where:{id:conversation.id},data:{lastMessageAt:new Date()}}),
