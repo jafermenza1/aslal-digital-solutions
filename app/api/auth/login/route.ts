@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { safeEqual, signSession } from "@/lib/security";
+import { safeEqual, signSession, verifySession, SESSION_IDLE_MS } from "@/lib/security";
 import { hashPassword, verifyPassword } from "@/lib/users";
 
 const attempts = new Map<string, { count:number; resetAt:number }>();
@@ -24,6 +24,7 @@ function clearAttempts(key:string){ attempts.delete(key); }
 
 export async function POST(request:NextRequest) {
   const key=getClientKey(request);
+  const existingSession=verifySession(request.cookies.get("aslal_session")?.value);
   if(isRateLimited(key)) return NextResponse.json({error:"Too many login attempts. Please try again later."},{status:429});
 
   try {
@@ -34,6 +35,7 @@ export async function POST(request:NextRequest) {
     const configuredPassword=String(process.env.ADMIN_PASSWORD||"");
 
     if(!email||!password) return NextResponse.json({error:"Email and password are required."},{status:400});
+    if(existingSession && existingSession.email !== email) return NextResponse.json({error:"Another Aslal account is already signed in in this browser. Sign out first before switching accounts."},{status:409});
 
     let valid=false;
     try {
@@ -64,7 +66,7 @@ export async function POST(request:NextRequest) {
       httpOnly:true,
       sameSite:"lax",
       secure:process.env.NODE_ENV==="production",
-      maxAge:60*60*12,
+      maxAge:SESSION_IDLE_MS/1000,
       path:"/",
     });
     return response;
