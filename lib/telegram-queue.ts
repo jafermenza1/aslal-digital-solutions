@@ -63,6 +63,7 @@ export async function dispatchTelegram(id:string){
  if(!(await claim(id)))return {status:"SKIPPED" as const};
  const row=await prisma.telegramOutbox.findUnique({where:{id}});
  if(!row)return {status:"MISSING" as const};
+ if(row.messageType===TelegramMessageType.MARKETING&&row.leadId){const handoff=await prisma.conversation.findFirst({where:{leadId:row.leadId,channel:"TELEGRAM",status:"HUMAN_HANDOFF"},select:{id:true}});if(handoff){await prisma.telegramOutbox.update({where:{id},data:{status:TelegramOutboxStatus.DISCARDED,discardedAt:new Date(),nextAttemptAt:null,failureReason:"Telegram customer reply/human handoff stopped this marketing follow-up."}});return {status:"DISCARDED" as const,reason:"human-handoff"};}}
  const attempt=row.attemptCount+1;
  try{
   const result=await sendOutbox(row); const telegramMessageId=String(result.result?.message_id??"");
