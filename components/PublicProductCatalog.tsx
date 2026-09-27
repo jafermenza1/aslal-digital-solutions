@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -69,7 +70,7 @@ export function PublicProductCatalog({ products }: { products: CatalogItem[] }) 
             <Link href={`/products/${p.slug}`} className="block">
               <div className="relative h-52 overflow-hidden bg-gradient-to-br from-[#163f87] to-[#071F47]">
                 {p.imageUrl ? (
-                  <img src={p.imageUrl} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <Image src={p.imageUrl} alt="" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-105" unoptimized />
                 ) : (
                   <div className="flex h-full items-end p-7">
                     <span className="rounded-full bg-[#E2B02A] px-3 py-1 text-[10px] font-black uppercase tracking-[.16em] text-[#1E293B]">{p.kind}</span>
