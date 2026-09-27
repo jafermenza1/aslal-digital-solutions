@@ -5,6 +5,8 @@ import { authorizePermission } from "@/lib/authorization";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { ProductKind, ProductRelationship } from "@prisma/client";
 
+async function telegramSend(chatId:string,text:string){const token=process.env.TELEGRAM_BOT_TOKEN;if(!token||!chatId)return false;try{const r=await fetch("https://api.telegram.org/bot"+token+"/sendMessage",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({chat_id:chatId,text,disable_web_page_preview:true})});return r.ok;}catch{return false;}}
+
 const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):"";
 function validBody(body:any,current:any){
  const p={
@@ -44,6 +46,10 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const access=await authorizeWorkspacePermission("products.manage",data.workspaceId);
  if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
  const product=await prisma.product.update({where:{id},data,include:{workspace:{select:{id:true,name:true,slug:true}}}});
+ if((current.stockQuantity||0)<=0&&(product.stockQuantity||0)>0){
+  const waiting=await prisma.lead.findMany({where:{workspaceId:product.workspaceId,leadCategory:"TELEGRAM_PRODUCT_RESTOCK",telegramChatId:{not:null},productInterests:{some:{productId:product.id}}},select:{id: true,telegramChatId:true}});
+  for(const lead of waiting){if(lead.telegramChatId&&await telegramSend(lead.telegramChatId,"🔔 "+product.name+" is back in stock. You can return to the Aslal Telegram catalog to request it now.")){await prisma.lead.update({where:{id:lead.id},data:{leadCategory:"TELEGRAM_PRODUCT_RESTOCK_NOTIFIED",message:"Customer notified by Telegram that "+product.name+" is back in stock."}});}}
+ }
  revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
 }
