@@ -21,7 +21,7 @@ async function telegramSend(chatId:string,text:string){
 export async function POST(request:Request){
  try{
   const body=await request.json().catch(()=>({}));
-  const workspaceId=clean(body.workspaceId,36),slug=clean(body.slug,160),name=clean(body.name,160),phoneInput=clean(body.phone,40);
+  const workspaceId=clean(body.workspaceId,36),slug=clean(body.slug,160),name=clean(body.name,160),phoneInput=clean(body.phone,40),chatId=clean(body.chatId,80);
   if(!workspaceId||!slug)return error("This product link is incomplete. Please return to the catalog.");
   if(!validName(name))return error("Please enter your full name using letters only.");
   const phone=normalizePhone(phoneInput);
@@ -35,8 +35,9 @@ export async function POST(request:Request){
   const lead=await prisma.lead.create({data:{
    id:randomUUID(),workspaceId,name,phone,status:"NEW",source:"telegram",medium:"telegram",
    message:"Telegram product restock notification request for "+product.name,
-   leadCategory:"TELEGRAM_PRODUCT_RESTOCK",captureMode:"MANUAL"
+   leadCategory:"TELEGRAM_PRODUCT_RESTOCK",captureMode:"MANUAL",telegramChatId:chatId||null
   }});
+  await prisma.leadProductInterest.create({data:{id:randomUUID(),leadId:lead.id,productId:product.id,source:"telegram",interestScore:1}});
 
   const textMessage="🔔 Product restock request\n\nCustomer: "+name+"\nPhone: "+phone+"\nProduct: "+product.name+"\nLead: "+lead.id+"\n\nAction: notify the customer when this product is restocked.";
   const cfg=await prisma.telegramChannelConfig.findFirst({where:{workspaceId,enabled:true},select:{handoffChatId:true}});
