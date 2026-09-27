@@ -25,11 +25,14 @@ export async function POST(request:Request){
   const workspaceId=clean(body.workspaceId,36),slug=clean(body.slug,160),name=clean(body.name,160),phoneInput=clean(body.phone,40),suppliedChatId=clean(body.chatId,80),telegramInitData=clean(body.telegramInitData,8000);
   let chatId=suppliedChatId;
   let identity:any=null;
-  if(telegramInitData){identity=await syncTelegramIdentity({workspaceId,initData:telegramInitData,event:"RESTOCK_STARTED",productSlug:slug});chatId=String(identity.user.id);}
   if(!workspaceId||!slug)return error("This product link is incomplete. Please return to the catalog.");
   if(!validName(name))return error("Please enter your full name using letters only.");
   const phone=normalizePhone(phoneInput);
   if(!phone)return error("Please enter a valid mobile number with country code.");
+
+  const workspace=await prisma.workspace.findFirst({where:{id:workspaceId,active:true},select:{id:true}});
+  if(!workspace)return error("This product link is no longer available.",404);
+  if(telegramInitData){identity=await syncTelegramIdentity({workspaceId,initData:telegramInitData,event:"RESTOCK_STARTED",productSlug:slug});chatId=String(identity.user.id);}
 
   const product=await prisma.product.findFirst({where:{workspaceId,slug,active:true},select:{id:true,name:true,stockQuantity:true,kind:true}});
   if(!product)return error("This product is no longer available.",404);
