@@ -22,7 +22,10 @@ export default function TelegramCatalogPage(){
    fetch("/api/telegram/catalog"+query)
      .then(r=>r.ok?r.json():r.json().then(d=>Promise.reject(new Error(d.error||"Catalog unavailable"))))
      .then(d=>{
-       setWorkspaceId(String(d.workspaceId||""));
+       const resolvedWorkspaceId=String(d.workspaceId||"");
+       setWorkspaceId(resolvedWorkspaceId);
+       if(resolvedWorkspaceId)sessionStorage.setItem("aslal_telegram_workspace_id",resolvedWorkspaceId);
+       if(campaign)sessionStorage.setItem("aslal_telegram_campaign_id",campaign);
        setItems({products:d.products||[],resources:d.resources||[]});
      })
      .catch(e=>setError(e instanceof Error?e.message:"Catalog unavailable"))
@@ -39,6 +42,7 @@ export default function TelegramCatalogPage(){
  },[]);
 
  const openOrder=(item:Item)=>{
+   if(workspaceId)sessionStorage.setItem("aslal_telegram_workspace_id",workspaceId);sessionStorage.setItem("aslal_telegram_order_slug",item.slug);
    const q=new URLSearchParams({workspaceId,slug:item.slug});
    if(campaignId)q.set("campaignId",campaignId);
    router.push("/telegram/catalog/order?"+q.toString());
