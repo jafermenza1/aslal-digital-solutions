@@ -25,6 +25,7 @@ function clearAttempts(key:string){ attempts.delete(key); }
 export async function POST(request:NextRequest) {
   const key=getClientKey(request);
   const existingSession=verifySession(request.cookies.get("aslal_session")?.value);
+  const mobileClient = request.headers.get("x-aslal-client") === "mobile";
   if(isRateLimited(key)) return NextResponse.json({error:"Too many login attempts. Please try again later."},{status:429});
 
   try {
@@ -61,8 +62,9 @@ export async function POST(request:NextRequest) {
     }
 
     clearAttempts(key);
-    const response=NextResponse.json({ok:true});
-    response.cookies.set("aslal_session",signSession(email),{
+    const sessionToken = signSession(email);
+    const response = NextResponse.json(mobileClient ? {ok:true, sessionToken} : {ok:true});
+    response.cookies.set("aslal_session",sessionToken,{
       httpOnly:true,
       sameSite:"lax",
       secure:process.env.NODE_ENV==="production",
