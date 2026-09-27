@@ -14,7 +14,6 @@ CREATE TABLE `telegram_templates` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `telegram_templates_template_key_key` (`template_key`),
   UNIQUE KEY `uq_telegram_template_workspace_key` (`workspace_id`,`template_key`),
   KEY `idx_telegram_template_workspace_active` (`workspace_id`,`active`,`message_type`),
   CONSTRAINT `fk_telegram_templates_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspaces` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
