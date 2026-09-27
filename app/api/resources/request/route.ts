@@ -41,7 +41,7 @@ export async function POST(request:Request){
   let leadScore:number|null=null;
   if(leadId){try{const score=await recalculateLeadScore(leadId);leadScore=score.score;await runLeadCreatedAutomation(leadId);if(leadScore>=60){const [leadRows]=await db.query<(RowDataPacket&{workspace_id:string;owner_email:string|null;name:string})[]>("SELECT workspace_id,owner_email,name FROM leads WHERE id=? LIMIT 1",[leadId]);const lead=leadRows[0];if(lead?.workspace_id)await notifyWorkspaceSales(lead.workspace_id,lead.owner_email,["🚨 High-intent resource lead",`Lead: ${lead.name}`,`Resource: ${resource.title}`,`Intent score: ${leadScore}/100`,`Next action: review resource activity and contact promptly.`].join("\n")).catch(()=>undefined);}}catch(error){console.error("RESOURCE_LEAD_SCORING_ERROR",error);}}
   let deliveryMessage="Your resource is ready.";
-  const downloadUrl=new URL(resource.download_url,origin).toString();
+  const downloadUrl=new URL(`/api/resources/download/${encodeURIComponent(resource.slug)}`,origin).toString();
   if(channel==="WHATSAPP"){
     const token=process.env.WHATSAPP_ACCESS_TOKEN, phoneId=process.env.WHATSAPP_PHONE_NUMBER_ID;
     if(token&&phoneId&&phone){
