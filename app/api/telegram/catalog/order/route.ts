@@ -137,7 +137,7 @@ Lead: ${leadId||"linked"}
 Sales owner: ${ownerEmail||"Unassigned"}
 Telegram: ${telegramUsername?"@"+telegramUsername:chatId||"not available"}
 
-Action: open the Aslal dashboard and continue the sales workflow. ${isService?"This is a service request; no stock check is required and payment is NOT confirmed.":"This is a product request; stock was available when submitted and payment is NOT confirmed."}
+Action: open the Aslal dashboard and continue the sales workflow. ${isService?"This is a service request; no stock check is required and payment is NOT confirmed.":"This is a product request; stock was available when submitted and payment is NOT confirmed."}`
 
 const notifications=await notifyOrderParties(workspaceId,ownerEmail,chatId,customerText,staffText);
  return NextResponse.json({ok:true,orderId,orderNumber,leadId,notifications,nextStep:isService?"Sales will confirm the service scope, availability and next step.":"Sales will confirm the product availability and next step.",message:"Order request received and saved. Please keep your order number for reference."});
