@@ -1397,6 +1397,38 @@ model TelegramChannelConfig {
   @@map("telegram_channel_configs")
 }
 
+model TelegramIdentity {
+  id               String   @id @db.Char(36)
+  workspaceId      String   @map("workspace_id") @db.Char(36)
+  telegramUserId   String   @map("telegram_user_id") @db.VarChar(80)
+  telegramChatId   String?  @map("telegram_chat_id") @db.VarChar(80)
+  telegramUsername String?  @map("telegram_username") @db.VarChar(190)
+  firstName        String?  @map("first_name") @db.VarChar(160)
+  lastName         String?  @map("last_name") @db.VarChar(160)
+  languageCode     String?  @map("language_code") @db.VarChar(20)
+  photoUrl         String?  @map("photo_url") @db.VarChar(1000)
+  visitorId        String?  @map("visitor_id") @db.Char(36)
+  personId         String?  @map("person_id") @db.Char(36)
+  leadId           String?  @map("lead_id") @db.Char(36)
+  customerId       String?  @map("customer_id") @db.Char(36)
+  userId           String?  @map("user_id") @db.Char(36)
+  partnerId        String?  @map("partner_id") @db.Char(36)
+  lastStartParam   String?  @map("last_start_param") @db.VarChar(255)
+  lastEvent        String?  @map("last_event") @db.VarChar(80)
+  firstSeenAt      DateTime @default(now()) @map("first_seen_at") @db.DateTime(0)
+  lastSeenAt       DateTime @default(now()) @map("last_seen_at") @db.DateTime(0)
+  lastAuthAt       DateTime? @map("last_auth_at") @db.DateTime(0)
+  createdAt        DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@unique([workspaceId, telegramUserId], map: "uq_telegram_identity_workspace_user")
+  @@index([workspaceId, telegramChatId], map: "idx_telegram_identity_workspace_chat")
+  @@index([workspaceId, leadId], map: "idx_telegram_identity_workspace_lead")
+  @@index([workspaceId, customerId], map: "idx_telegram_identity_workspace_customer")
+  @@index([telegramUsername], map: "idx_telegram_identity_username")
+  @@map("telegram_identities")
+}
+
 model TelegramDestination {
   id                    String   @id @db.Char(36)
   workspaceId            String   @map("workspace_id") @db.Char(36)
