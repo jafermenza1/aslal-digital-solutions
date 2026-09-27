@@ -36,6 +36,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const email = body.email === undefined ? target.email : String(body.email || "").trim().toLowerCase().slice(0, 190);
   const role = body.role === undefined ? target.role : String(body.role) as UserRole;
   const active = body.active === undefined ? target.active : Boolean(body.active);
+  const telegramChatId = body.telegramChatId === undefined ? target.telegramChatId : (String(body.telegramChatId || "").trim().slice(0,80) || null);
+  const telegramUsername = body.telegramUsername === undefined ? target.telegramUsername : (String(body.telegramUsername || "").trim().replace(/^@/,"").slice(0,190) || null);
   const reason = String(body.reason || "").trim().slice(0, 2000);
 
   if (!reason) return NextResponse.json({ error: "A reason is required for access changes." }, { status: 400 });
@@ -47,6 +49,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (actor.id === target.id && role !== target.role) return NextResponse.json({ error: "You cannot change your own role." }, { status: 400 });
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id:true } });
+  if (telegramChatId) {
+    const telegramOwner = await prisma.user.findFirst({ where: { telegramChatId, id: { not: target.id } }, select: { id:true } });
+    if (telegramOwner) return NextResponse.json({ error: "That Telegram account is already linked to another user." }, { status: 409 });
+  }
   if (existing && existing.id !== target.id) return NextResponse.json({ error: "That email is already assigned to another user." }, { status: 409 });
 
   const password = typeof body.password === "string" && body.password ? body.password : null;
@@ -67,6 +73,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           active,
           permissions,
           ...(password ? { passwordHash: hashPassword(password) } : {}),
+          telegramChatId,
+          telegramUsername,
+          ...(telegramChatId ? { telegramLinkedAt: target.telegramChatId === telegramChatId ? target.telegramLinkedAt : new Date() } : { telegramLinkedAt: null }),
         },
       });
       await tx.userAudit.create({
@@ -76,7 +85,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           actor: actor.email,
           action: "UPDATE",
           reason,
-          details: { role, active, passwordChanged: Boolean(password), permissions },
+          details: { role, active, passwordChanged: Boolean(password), permissions, telegramLinked: Boolean(telegramChatId), telegramChanged: telegramChatId !== target.telegramChatId },
         },
       });
       return saved;
