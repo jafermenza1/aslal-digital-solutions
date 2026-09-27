@@ -18,4 +18,16 @@ function copy(source, destination) {
 
 copy(publicDir, path.join(standalone, "public"));
 copy(staticDir, path.join(standalone, ".next", "static"));
-console.log("Standalone deployment bundle prepared.");
+
+// pdfkit loads its standard fonts lazily at runtime. Next standalone tracing
+// can omit those data files, so ship the complete package in the standalone
+// bundle rather than relying on the source node_modules directory.
+const pdfkitSource = path.join(root, "node_modules", "pdfkit");
+const pdfkitDestination = path.join(standalone, "node_modules", "pdfkit");
+if (!fs.existsSync(pdfkitSource)) {
+  console.error("pdfkit is missing from node_modules.");
+  process.exit(1);
+}
+copy(pdfkitSource, pdfkitDestination);
+
+console.log("Standalone deployment bundle prepared (including pdfkit runtime assets).");
