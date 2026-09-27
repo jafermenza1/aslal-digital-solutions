@@ -1,68 +1,43 @@
 "use client";
-
-import {useEffect,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
+import {ArrowRight,ChevronDown,Search,ShoppingBag,SlidersHorizontal,X} from "lucide-react";
 import {useRouter} from "next/navigation";
 
 type Item={id:string;name?:string;title?:string;slug:string;description?:string|null;preview?:string;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null};
 
+const money=(v:string|null|undefined)=>v||"Price on request";
+
 export default function TelegramCatalogPage(){
- const [items,setItems]=useState<{products:Item[];resources:Item[]}>({products:[],resources:[]});
- const [loading,setLoading]=useState(true);
- const [error,setError]=useState("");
- const [selected,setSelected]=useState<Item|null>(null);
  const router=useRouter();
- const [workspaceId,setWorkspaceId]=useState("");
- const [campaignId]=useState(()=>new URLSearchParams(window.location.search).get("campaignId")||"");
-
+ const [items,setItems]=useState<{products:Item[];resources:Item[]}>({products:[],resources:[]});
+ const [loading,setLoading]=useState(true),[error,setError]=useState(""),[query,setQuery]=useState(""),[category,setCategory]=useState("All"),[sort,setSort]=useState("featured"),[selected,setSelected]=useState<Item|null>(null),[workspaceId,setWorkspaceId]=useState(""),[campaignId,setCampaignId]=useState("");
  useEffect(()=>{
-   const params=new URLSearchParams(window.location.search);
-   const explicitWorkspaceId=params.get("workspaceId")||"";
-   const campaign=params.get("campaignId")||"";
-   const query=explicitWorkspaceId?"?workspaceId="+encodeURIComponent(explicitWorkspaceId)+(campaign?"&campaignId="+encodeURIComponent(campaign):""):(campaign?"?campaignId="+encodeURIComponent(campaign):"");
-   fetch("/api/telegram/catalog"+query)
-     .then(r=>r.ok?r.json():r.json().then(d=>Promise.reject(new Error(d.error||"Catalog unavailable"))))
-     .then(d=>{
-       const resolvedWorkspaceId=String(d.workspaceId||"");
-       setWorkspaceId(resolvedWorkspaceId);
-       if(resolvedWorkspaceId)sessionStorage.setItem("aslal_telegram_workspace_id",resolvedWorkspaceId);
-       if(campaign)sessionStorage.setItem("aslal_telegram_campaign_id",campaign);
-       setItems({products:d.products||[],resources:d.resources||[]});
-     })
-     .catch(e=>setError(e instanceof Error?e.message:"Catalog unavailable"))
-     .finally(()=>setLoading(false));
+  const p=new URLSearchParams(window.location.search),explicit=p.get("workspaceId")||"",campaign=p.get("campaignId")||"";
+  setCampaignId(campaign);
+  const queryString=explicit?"?workspaceId="+encodeURIComponent(explicit)+(campaign?"&campaignId="+encodeURIComponent(campaign):""):(campaign?"?campaignId="+encodeURIComponent(campaign):"");
+  fetch("/api/telegram/catalog"+queryString).then(r=>r.ok?r.json():r.json().then(d=>Promise.reject(new Error(d.error||"Catalog unavailable")))).then(d=>{
+   const w=String(d.workspaceId||"");setWorkspaceId(w);if(w)sessionStorage.setItem("aslal_telegram_workspace_id",w);if(campaign)sessionStorage.setItem("aslal_telegram_campaign_id",campaign);setItems({products:d.products||[],resources:d.resources||[]});
+  }).catch(e=>setError(e instanceof Error?e.message:"Catalog unavailable")).finally(()=>setLoading(false));
+  const s=document.createElement("script");s.src="https://telegram.org/js/telegram-web-app.js";s.async=true;s.onload=()=>{const tg=(window as any).Telegram?.WebApp;if(tg){tg.ready();tg.expand();}};document.head.appendChild(s);return()=>s.remove();
  },[]);
-
- useEffect(()=>{
-   const script=document.createElement("script");
-   script.src="https://telegram.org/js/telegram-web-app.js";
-   script.async=true;
-   script.onload=()=>{const tg=(window as any).Telegram?.WebApp;if(tg){tg.ready();tg.expand();}};
-   document.head.appendChild(script);
-   return()=>{script.remove();};
- },[]);
-
- const openOrder=(item:Item)=>{
-   if(workspaceId)sessionStorage.setItem("aslal_telegram_workspace_id",workspaceId);sessionStorage.setItem("aslal_telegram_order_slug",item.slug);
-   const q=new URLSearchParams({workspaceId,slug:item.slug});
-   if(campaignId)q.set("campaignId",campaignId);
-   router.push("/telegram/catalog/order?"+q.toString());
- };
-
- if(loading)return <main className="min-h-screen bg-[#f7faf8] p-5 text-slate-700">Loading Aslal catalog…</main>;
- if(error)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">{error}</main>;
- if(!workspaceId)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">The catalog could not resolve its workspace context.</main>;
-
- return <main className="min-h-screen bg-[#f7faf8] p-4 pb-8 text-slate-900">
-  <header className="mb-5"><div className="text-xs font-black uppercase tracking-[.18em] text-[#0a5a44]">ASLAL CATALOG</div><h1 className="mt-1 text-2xl font-black">Products, services & resources</h1><p className="mt-1 text-sm text-slate-500">Explore the offer, review the details, then start an order or request.</p></header>
-  <section className="grid gap-3">
-   {[...items.products,...items.resources].map(item=><article key={item.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    {item.imageUrl&&<img src={item.imageUrl} alt="" className="h-40 w-full object-cover"/>}{item.media?.filter(u=>/\.(mp4|webm|mov|gif)$/i.test(u)).slice(0,1).map(u=>/\.gif$/i.test(u)?<img key={u} src={u} alt="" className="h-40 w-full object-cover"/>:<video key={u} src={u} controls playsInline muted className="h-40 w-full object-cover"/>) }
-    <div className="p-4"><div className="text-[10px] font-black uppercase tracking-wider text-[#0a5a44]">{item.kind||item.category}</div><h2 className="mt-1 text-lg font-black">{item.name||item.title}</h2><p className="mt-1 text-sm text-slate-600">{item.tagline||item.shortDescription||item.preview||item.description}</p>
-     {item.startingPrice&&<div className="mt-3 font-black">{item.startingPrice} ETB</div>}
-     <div className="mt-3 flex gap-2"><button onClick={()=>setSelected(item)} className="min-h-11 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold">Details</button><button onClick={()=>openOrder(item)} className="min-h-11 flex-1 rounded-xl bg-[#0a5a44] px-3 py-2 text-sm font-black text-white">{item.ctaLabel||item.cta||"Order / Request"}</button></div>
-    </div>
-   </article>)}
+ const products=useMemo(()=>items.products.map(p=>({...p,category:p.kind||"Products"})),[items.products]);
+ const categories=useMemo(()=>["All",...Array.from(new Set(products.map(x=>x.category||"Products")))], [products]);
+ const visible=useMemo(()=>products.filter(x=>(category==="All"||x.category===category)&&((x.name||"")+" "+(x.shortDescription||x.description||"")).toLowerCase().includes(query.toLowerCase())).sort((a,b)=>sort==="price"?(parseFloat((a.startingPrice||"").replace(/[^0-9.]/g,""))||999999)-(parseFloat((b.startingPrice||"").replace(/[^0-9.]/g,""))||999999):sort==="name"?(a.name||"").localeCompare(b.name||""):Number(Boolean(b.featured))-Number(Boolean(a.featured))),[products,category,query,sort]);
+ const openOrder=(item:Item)=>{sessionStorage.setItem("aslal_telegram_order_slug",item.slug);const q=new URLSearchParams({workspaceId,slug:item.slug});if(campaignId)q.set("campaignId",campaignId);router.push("/telegram/catalog/order?"+q.toString())};
+ if(loading)return <main className="space-y-5 animate-pulse"><div className="h-28 rounded-3xl bg-black/5 dark:bg-white/5"/><div className="h-12 rounded-2xl bg-black/5 dark:bg-white/5"/><div className="grid grid-cols-2 gap-3">{[1,2,3,4].map(x=><div key={x} className="h-64 rounded-3xl bg-black/5 dark:bg-white/5")}</div></div></main>;
+ if(error)return <main className="rounded-3xl border border-red-300 bg-red-50 p-5 text-red-700">{error}</main>;
+ return <main>
+  <section className="rounded-[2rem] bg-[#0F3E8A] p-5 text-white shadow-xl sm:p-7">
+   <div className="text-[10px] font-black uppercase tracking-[.2em] text-[#E2B02A]">ASLAL SHOP</div>
+   <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">What do you want to order?</h1>
+   <p className="mt-2 max-w-xl text-sm leading-6 text-white/75">Browse products and services, open an item, then send an order request. Payment comes later after confirmation.</p>
+   <div className="mt-5 flex items-center gap-2 rounded-2xl bg-white p-2 text-[#1E293B]"><Search size={19}/><input aria-label="Search products" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search products and services…" className="min-w-0 flex-1 bg-transparent p-2 outline-none"/></div>
   </section>
-  {selected&&<div className="fixed inset-0 z-50 grid place-items-end bg-black/40 p-3" onClick={()=>setSelected(null)}><section className="max-h-[85vh] w-full max-w-lg overflow-auto rounded-3xl bg-white p-5" onClick={e=>e.stopPropagation()}><div className="flex items-start justify-between gap-4"><div><div className="text-xs font-black uppercase text-[#0a5a44]">{selected.kind||selected.category}</div><h2 className="mt-1 text-2xl font-black">{selected.name||selected.title}</h2></div><button onClick={()=>setSelected(null)} className="min-h-11 min-w-11 rounded-full border">×</button></div><p className="mt-4 leading-7 text-slate-600">{selected.description||selected.shortDescription||selected.preview}</p>{selected.specifications&&<div className="mt-5"><h3 className="font-black">Specifications</h3><dl className="mt-2 grid grid-cols-2 gap-2 text-sm">{Object.entries(selected.specifications).map(([k,v])=><div key={k} className="rounded-xl bg-slate-50 p-3"><dt className="font-bold text-slate-500">{k}</dt><dd className="mt-1">{String(v)}</dd></div>)}</dl></div>}<button onClick={()=>openOrder(selected)} className="mt-5 min-h-12 w-full rounded-xl bg-[#0a5a44] px-4 py-3 font-black text-white">{selected.ctaLabel||selected.cta||"Start order / request"}</button></section></div>}
+  <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">{categories.map(c=><button key={c} type="button" onClick={()=>setCategory(c)} className={"shrink-0 rounded-full px-4 py-2 text-sm font-black "+(category===c?"bg-[#E2B02A] text-[#071F47]":"bg-black/5 dark:bg-white/10")}>{c}</button>)}<label className="ml-auto flex shrink-0 items-center gap-1 rounded-full bg-black/5 px-3 py-2 text-sm dark:bg-white/10"><SlidersHorizontal size={15}/><select value={sort} onChange={e=>setSort(e.target.value)} className="bg-transparent font-bold outline-none"><option value="featured">Featured</option><option value="name">Name</option><option value="price">Price</option></select></label></div>
+  {visible.length===0?<div className="mt-10 rounded-3xl border border-dashed border-black/10 p-8 text-center dark:border-white/10">No matching products.</div>:<section className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{visible.map(item=><article key={item.id} className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-[#0b2a57]">
+    <div className="aspect-square bg-black/5 dark:bg-white/5">{item.imageUrl?<img src={item.imageUrl} alt="" className="h-full w-full object-cover"/>:<div className="grid h-full place-items-center p-6 text-center"><div className="text-4xl font-black text-[#0F3E8A] dark:text-[#E2B02A]">{(item.name||item.title||"A").slice(0,1)}</div></div>}</div>
+    <div className="p-3"><div className="text-[9px] font-black uppercase tracking-wider text-[#0F3E8A] dark:text-[#E2B02A]">{item.category}</div><h2 className="mt-1 line-clamp-2 text-sm font-black">{item.name}</h2><div className="mt-2 text-sm font-black">{money(item.startingPrice)}</div><button type="button" onClick={()=>setSelected(item)} className="mt-3 flex min-h-10 w-full items-center justify-center gap-1 rounded-xl bg-[#0F3E8A] px-2 py-2 text-xs font-black text-white hover:bg-[#E2B02A] hover:text-[#071F47]">View item <ArrowRight size={14}/></button></div>
+  </article>)}</section>}
+  {selected&&<div className="fixed inset-0 z-50 grid items-end bg-black/60 p-3 sm:items-center"><section className="mx-auto max-h-[90vh] w-full max-w-lg overflow-auto rounded-[2rem] bg-[#F8FAFC] p-5 text-[#1E293B] dark:bg-[#071F47] dark:text-white"><div className="flex justify-between gap-4"><div><div className="text-[10px] font-black uppercase tracking-widest text-[#0F3E8A] dark:text-[#E2B02A]">{selected.category}</div><h2 className="mt-1 text-2xl font-black">{selected.name}</h2></div><button type="button" onClick={()=>setSelected(null)} className="grid h-10 w-10 place-items-center rounded-full bg-black/5"><X size={18}/></button></div>{selected.imageUrl&&<img src={selected.imageUrl} alt="" className="mt-4 max-h-64 w-full rounded-2xl object-cover"/>}<p className="mt-4 text-sm leading-6 opacity-75">{selected.description||selected.shortDescription}</p>{selected.specifications&&<dl className="mt-4 grid grid-cols-2 gap-2 text-xs">{Object.entries(selected.specifications).map(([k,v])=><div key={k} className="rounded-xl bg-black/5 p-3 dark:bg-white/5"><dt className="font-bold opacity-60">{k}</dt><dd className="mt-1 font-semibold">{String(v)}</dd></div>)}</dl>}<div className="mt-5 flex items-center justify-between"><span className="text-lg font-black">{money(selected.startingPrice)}</span><button type="button" onClick={()=>openOrder(selected)} className="rounded-xl bg-[#E2B02A] px-5 py-3 font-black text-[#071F47] hover:bg-[#0F3E8A] hover:text-white">Order this item</button></div></section></div>}
  </main>;
 }
