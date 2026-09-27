@@ -299,6 +299,40 @@ enum EmailEventType {
   UNSUBSCRIBED
 }
 
+enum TelegramOutboxStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+  DISCARDED
+}
+
+enum TelegramMessageType {
+  TRANSACTIONAL
+  MARKETING
+  SALES
+  PARTNER
+  SUPPORT
+  SYSTEM
+}
+
+enum TelegramSendMode {
+  BOT
+  BUSINESS
+}
+
+enum TelegramDeliveryEventType {
+  SENT
+  FAILED
+  CALLBACK
+  REPLY
+  HANDOFF
+  EDITED
+  DELETED
+  BUTTON_CLICKED
+}
+
 enum CommunicationChannel {
   EMAIL
   SMS
@@ -1444,6 +1478,8 @@ model Workspace {
   resourceAttributions ResourceAttribution[]
   resources Resource[]
   emailOutbox EmailOutbox[]
+  telegramOutbox TelegramOutbox[]
+  telegramTemplates TelegramTemplate[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
   @@map("workspaces")
@@ -1684,6 +1720,96 @@ model PartnerPayoutItem {
   @@map("partner_payout_items")
 }
 
+
+model TelegramTemplate {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  templateKey String @unique @map("template_key") @db.VarChar(120)
+  name String @db.VarChar(190)
+  messageType TelegramMessageType @default(TRANSACTIONAL) @map("message_type")
+  contentTemplate String @map("content_template") @db.Text
+  mediaType String? @map("media_type") @db.VarChar(30)
+  mediaUrlTemplate String? @map("media_url_template") @db.VarChar(1000)
+  replyMarkup Json? @map("reply_markup")
+  active Boolean @default(true)
+  allowBusinessMode Boolean @default(true) @map("allow_business_mode")
+  updatedBy String? @map("updated_by") @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@unique([workspaceId,templateKey], map:"uq_telegram_template_workspace_key")
+  @@index([workspaceId,active,messageType], map:"idx_telegram_template_workspace_active")
+  @@map("telegram_templates")
+}
+
+model TelegramOutbox {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  leadId String? @map("lead_id") @db.Char(36)
+  personId String? @map("person_id") @db.Char(36)
+  customerId String? @map("customer_id") @db.Char(36)
+  opportunityId String? @map("opportunity_id") @db.Char(36)
+  conversationId String? @map("conversation_id") @db.Char(36)
+  messageId String? @map("message_id") @db.Char(36)
+  templateKey String? @map("template_key") @db.VarChar(120)
+  messageType TelegramMessageType @default(TRANSACTIONAL) @map("message_type")
+  sendMode TelegramSendMode @default(BOT) @map("send_mode")
+  businessConnectionId String? @map("business_connection_id") @db.VarChar(190)
+  chatId String @map("chat_id") @db.VarChar(80)
+  messageThreadId Int? @map("message_thread_id")
+  content String @db.Text
+  mediaType String? @map("media_type") @db.VarChar(30)
+  mediaUrl String? @map("media_url") @db.VarChar(1000)
+  replyMarkup Json? @map("reply_markup")
+  metadata Json?
+  originalContent String @map("original_content") @db.Text
+  originalReplyMarkup Json? @map("original_reply_markup")
+  status TelegramOutboxStatus @default(QUEUED)
+  telegramMessageId String? @map("telegram_message_id") @db.VarChar(80)
+  telegramResponse Json? @map("telegram_response")
+  failureReason String? @map("failure_reason") @db.Text
+  attemptCount Int @default(0) @map("attempt_count")
+  maxAttempts Int @default(3) @map("max_attempts")
+  nextAttemptAt DateTime? @map("next_attempt_at") @db.DateTime(0)
+  lastAttemptAt DateTime? @map("last_attempt_at") @db.DateTime(0)
+  sentAt DateTime? @map("sent_at") @db.DateTime(0)
+  discardedAt DateTime? @map("discarded_at") @db.DateTime(0)
+  createdBy String? @map("created_by") @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@index([workspaceId,status,nextAttemptAt], map:"idx_telegram_outbox_workspace_status_next")
+  @@index([workspaceId,createdAt], map:"idx_telegram_outbox_workspace_created")
+  @@index([chatId,status], map:"idx_telegram_outbox_chat_status")
+  @@index([leadId,createdAt], map:"idx_telegram_outbox_lead_created")
+  @@map("telegram_outbox")
+}
+
+model TelegramDeliveryAttempt {
+  id String @id @db.Char(36)
+  outboxId String @map("outbox_id") @db.Char(36)
+  attemptNumber Int @map("attempt_number")
+  status TelegramOutboxStatus
+  response Json?
+  error String? @db.Text
+  attemptedAt DateTime @default(now()) @map("attempted_at") @db.DateTime(0)
+  outbox TelegramOutbox @relation(fields:[outboxId], references:[id], onDelete:Cascade)
+  @@unique([outboxId,attemptNumber], map:"uq_telegram_attempt_outbox_number")
+  @@index([outboxId,attemptedAt], map:"idx_telegram_attempt_outbox_attempted")
+  @@map("telegram_delivery_attempts")
+}
+
+model TelegramDeliveryEvent {
+  id String @id @db.Char(36)
+  outboxId String @map("outbox_id") @db.Char(36)
+  eventType TelegramDeliveryEventType @map("event_type")
+  metadata Json?
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.DateTime(0)
+  outbox TelegramOutbox @relation(fields:[outboxId], references:[id], onDelete:Cascade)
+  @@index([outboxId,occurredAt], map:"idx_telegram_event_outbox_occurred")
+  @@index([eventType,occurredAt], map:"idx_telegram_event_type_occurred")
+  @@map("telegram_delivery_events")
+}
 
 model EmailOutbox {
   id                String            @id @db.Char(36)
