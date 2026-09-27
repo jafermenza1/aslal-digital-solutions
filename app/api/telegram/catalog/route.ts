@@ -34,8 +34,8 @@ export async function GET(request:Request) {
     select:{id:true,workspaceId:true,slug:true,title:true,category:true,description:true,preview:true,cta:true,intent:true,downloadUrl:true,mediaUrls:true,specifications:true,relationshipType:true,providerName:true}
   });
   const cfgByWorkspace=new Map(selectedConfigs.map(c=>[c.workspaceId,c]));
-  const visibleProducts=products.filter(p=>cfgByWorkspace.get(p.workspaceId)?.showProducts);
-  const visibleResources=resources.filter(r=>cfgByWorkspace.get(r.workspaceId)?.showResources);
+  const visibleProducts=products.filter(p=>p.workspaceId!==null&&cfgByWorkspace.get(p.workspaceId)?.showProducts);
+  const visibleResources=resources.filter(r=>r.workspaceId!==null&&cfgByWorkspace.get(r.workspaceId)?.showResources);
   const workspaces=activeWorkspaces.filter(w=>publicWorkspaceIds.has(w.id));
   return NextResponse.json({
     workspaceId:requestedWorkspaceId||null,
