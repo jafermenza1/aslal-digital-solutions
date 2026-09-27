@@ -69,7 +69,7 @@ export async function POST(request:Request){
  const itemName=product?.name||resource?.title||slug;
  const rawPrice=product?.startingPrice?.match(/[0-9][0-9,]*(?:\.[0-9]+)?/)?.[0]?.replace(/,/g,"")||"0";
  const total=Number(rawPrice)||0;
- if(total<=0)return error("This item is available by order request. Our team will confirm the scope and price before payment.",409);
+
 
  let orderNumber="";
  let orderId="";
