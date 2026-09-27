@@ -45,10 +45,25 @@ async function publicSession(workspaceId:string,user:any,chatId:string){
   await db.query(`INSERT INTO telegram_public_sessions (id,workspace_id,telegram_user_id,chat_id,username,first_name,last_name,state,last_inbound_at) VALUES (?,?,?,?,?,?,?,'WELCOME',NOW())`,[id,workspaceId,uid,chatId,user?.username||null,user?.first_name||null,user?.last_name||null]);
   return {id,state:"WELCOME",state_data:null,lead_id:null,person_id:null};
 }
-async function publicMenu(chatId:string,workspaceId:string){
+async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const cfg=await getTelegramChannelConfig(workspaceId);
   if(!cfg?.publicEnabled||!cfg.allowAnonymousUsers)return reply(chatId,"Public Telegram access is currently unavailable.");
-  return tg("sendMessage",{chat_id:chatId,text:"Welcome to Aslal. No account or registration is required. Choose what you need:",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"🎯 Qualify me",callback_data:"public:qualify:"+workspaceId}],[{text:"💰 Pricing",callback_data:"public:pricing:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]]}});
+  const telegramUserId=String(user?.id||chatId);
+  const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId}}}).catch(()=>null);
+  const hasContext=Boolean(identity?.leadId||identity?.customerId);
+  const recentViews=identity?.visitorId ? await prisma.event.findMany({where:{visitorId:identity.visitorId,eventName:"TELEGRAM_PRODUCT_VIEW"},orderBy:{createdAt:"desc"},take:3,select:{productSlug:true}}).catch(()=>[]) : [];
+  const viewText=recentViews.length?"\n\nWe remember your recent catalog interest: "+recentViews.map(v=>v.productSlug).filter(Boolean).join(", ")+".":"";
+  const welcome=hasContext?"Welcome back to Aslal. I found your existing customer/lead context, so you can continue without starting over.":"Welcome to Aslal. No account or registration is required. Your Telegram identity and catalog activity can be remembered for this workspace.";
+  return tg("sendMessage",{chat_id:chatId,text:welcome+viewText,reply_markup:{inline_keyboard:[...(hasContext?[[{text:"↩️ Continue conversation",callback_data:"public:continue:"+workspaceId}]]:[]),[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"🎯 Qualify me",callback_data:"public:qualify:"+workspaceId}],[{text:"💰 Pricing",callback_data:"public:pricing:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]]}});
+}
+async function continuePublic(chatId:string,workspaceId:string,user:any){
+  const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId:String(user?.id||chatId)}}});
+  if(!identity?.leadId&&!identity?.customerId)return publicMenu(chatId,workspaceId,user);
+  const lead=identity.leadId?await prisma.lead.findFirst({where:{id:identity.leadId,workspaceId},select:{name:true,status:true,ownerEmail:true}}):null;
+  const customer=identity.customerId?await prisma.customer.findFirst({where:{id:identity.customerId,workspaceId},select:{name:true,status:true}}):null;
+  const activeConversation=await prisma.conversation.findFirst({where:{workspaceId,channel:"TELEGRAM",externalThreadId:chatId,status:{not:"CLOSED"}},orderBy:{updatedAt:"desc"},select:{status:true,lastMessageAt:true}}).catch(()=>null);
+  const orders=customer?await prisma.order.findMany({where:{workspaceId,customerId:customer.id},orderBy:{createdAt:"desc"},take:3,select:{orderNumber:true,status:true,total:true,currency:true}}):[];
+  return reply(chatId,["↩️ Your Aslal context is ready.",lead?"Lead: "+lead.name+" — "+lead.status:"",customer?"Customer: "+customer.name+" — "+customer.status:"",activeConversation?"Conversation: "+activeConversation.status:"",orders.length?"Recent orders:\n"+orders.map(o=>o.orderNumber+" — "+o.status+" — "+Number(o.total).toLocaleString("en-ET")+" "+o.currency).join("\n"):"","Reply here to continue with the existing context, or choose Catalog for more products and services."].filter(Boolean).join("\n"));
 }
 async function savePublicState(workspaceId:string,userId:string,state:string,stateData:any){
   await db.query("UPDATE telegram_public_sessions SET state=?,state_data=?,last_inbound_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[state,JSON.stringify(stateData||{}),workspaceId,userId]);
@@ -236,6 +251,7 @@ async function handle(update:TelegramUpdate){
     if(parts[0]==="public"&&parts[1]==="catalog")return catalog(chatId,workspaceId);
     if(parts[0]==="public"&&parts[1]==="pricing")return pricingResponse(chatId,workspaceId);
     if(parts[0]==="public"&&parts[1]==="agent")return handoffPublic(chatId,workspaceId,user);
+    if(parts[0]==="public"&&parts[1]==="continue")return continuePublic(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="qualify")return qualification(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="answer"){
       const stepId=parts[3],value=parts.slice(4).join(":"); const session=await publicSession(workspaceId,user,chatId); const prior=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{}); const stateData={...prior,[stepId]:value};
@@ -275,7 +291,7 @@ async function handle(update:TelegramUpdate){
     const p=await partnerForChat(chatId);
     if(p)return catalog(chatId,p.workspace_id);
     const defaultWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"").trim();
-    if(defaultWorkspaceId){const cfg=await getTelegramChannelConfig(defaultWorkspaceId);if(cfg?.publicEnabled&&cfg.allowAnonymousUsers)return publicMenu(chatId,defaultWorkspaceId);return catalog(chatId,defaultWorkspaceId);}
+    if(defaultWorkspaceId){const cfg=await getTelegramChannelConfig(defaultWorkspaceId);if(cfg?.publicEnabled&&cfg.allowAnonymousUsers)return publicMenu(chatId,defaultWorkspaceId,m.from||{});return catalog(chatId,defaultWorkspaceId);}
     return reply(chatId,"Welcome to Aslal. Use the workspace connection link provided by Aslal to open the correct catalog.");
   }
 
@@ -296,7 +312,7 @@ async function handle(update:TelegramUpdate){
         await ensurePublicLead(publicWorkspaceId,m.from||{},chatId,nextData);
         return tg("sendMessage",{chat_id:chatId,text:"Thanks. Your answers have been saved.",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+publicWorkspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+publicWorkspaceId}]]}});
       }
-      if(input==="/help")return publicMenu(chatId,publicWorkspaceId);
+      if(input==="/help")return publicMenu(chatId,publicWorkspaceId,m.from||{});
       if(input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
       if(input==="/catalog")return catalog(chatId,publicWorkspaceId);
       if(input==="/support")return handoffPublic(chatId,publicWorkspaceId,m.from||{});
