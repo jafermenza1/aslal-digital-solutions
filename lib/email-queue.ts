@@ -81,6 +81,7 @@ async function claim(id: string) {
     where: {
       id,
       status: { in: [EmailOutboxStatus.QUEUED, EmailOutboxStatus.FAILED] },
+      attemptCount: { lt: 3 },
       OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: new Date() } }],
     },
     data: { status: EmailOutboxStatus.SENDING, lastAttemptAt: new Date() },
@@ -165,6 +166,7 @@ export async function processEmailQueue(limit = 25) {
   const rows = await prisma.emailOutbox.findMany({
     where: {
       status: { in: [EmailOutboxStatus.QUEUED, EmailOutboxStatus.FAILED] },
+      attemptCount: { lt: 3 },
       OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: now } }],
     },
     orderBy: [{ nextAttemptAt: "asc" }, { createdAt: "asc" }],
@@ -180,7 +182,7 @@ export async function retryEmail(id: string) {
   const row = await prisma.emailOutbox.findUnique({ where: { id }, select: { status: true } });
   if (!row) throw new Error("Email message not found.");
   if (![EmailOutboxStatus.FAILED, EmailOutboxStatus.DRAFT].includes(row.status)) throw new Error("Only failed or draft messages can be sent.");
-  await prisma.emailOutbox.update({ where: { id }, data: { status: EmailOutboxStatus.QUEUED, nextAttemptAt: new Date(), failureReason: null } });
+  await prisma.emailOutbox.update({ where: { id }, data: { status: EmailOutboxStatus.QUEUED, attemptCount: 0, nextAttemptAt: new Date(), failureReason: null } });
   return dispatchEmail(id);
 }
 
