@@ -9,6 +9,7 @@ export default async function ProductsAdminPage() {
   const user = await requirePermission("products.manage");
   const [products,workspaces] = await Promise.all([prisma.product.findMany({
     orderBy: [{ active:"desc" }, { sortOrder:"asc" }, { name:"asc" }],
+    include: { workspace: { select: { id: true, name: true, slug: true } } },
   }),prisma.workspace.findMany({where:{active:true},select:{id:true,name:true,slug:true},orderBy:{name:"asc"}})]);
   return <main className="dashboard-page min-h-screen py-10">
     <div className="container-aslal">
