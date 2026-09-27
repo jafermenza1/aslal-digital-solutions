@@ -95,10 +95,10 @@ export async function POST(request:Request){
   let lead=await tx.lead.findFirst({where:{workspaceId,phone}});
   if(!lead){
    leadId=randomUUID();
-   lead=await tx.lead.create({data:{id:leadId,workspaceId,personId,name,phone,status:"NEW",source:"telegram",medium:"telegram",campaign:effectiveCampaignId,ownerEmail,message:"Telegram catalog order. Telegram username: "+(telegramUsername?"@"+telegramUsername:"not provided")+"; Telegram chat ID: "+(chatId||"not provided"),leadCategory:"TELEGRAM_CATALOG_ORDER",captureMode:"MANUAL"}});
+   lead=await tx.lead.create({data:{id:leadId,workspaceId,personId,name,phone,status:"NEW",source:"telegram",medium:"telegram",campaign:effectiveCampaignId,ownerEmail,telegramUsername:telegramUsername||null,telegramChatId:chatId||null,message:"Telegram catalog order. Telegram username: "+(telegramUsername?"@"+telegramUsername:"not provided")+"; Telegram chat ID: "+(chatId||"not provided"),leadCategory:"TELEGRAM_CATALOG_ORDER",captureMode:"MANUAL"}});
   }else{
    leadId=lead.id;
-   if(ownerEmail&&lead.ownerEmail!==ownerEmail)lead=await tx.lead.update({where:{id:lead.id},data:{ownerEmail}});
+   if(ownerEmail&&lead.ownerEmail!==ownerEmail)lead=await tx.lead.update({where:{id:lead.id},data:{ownerEmail}});\n   await tx.lead.update({where:{id:lead.id},data:{telegramUsername:telegramUsername||lead.telegramUsername,telegramChatId:chatId||lead.telegramChatId,message:"Telegram catalog order. Telegram username: "+(telegramUsername?"@"+telegramUsername:"not provided")+"; Telegram chat ID: "+(chatId||"not provided")}});
   }
   if(product)await tx.leadProductInterest.upsert({where:{leadId_productId:{leadId:lead.id,productId:product.id}},create:{id:randomUUID(),leadId:lead.id,productId:product.id,source:"telegram",interestScore:1},update:{interestScore:{increment:1}}});
 
