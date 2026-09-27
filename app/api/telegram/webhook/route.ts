@@ -221,7 +221,7 @@ async function createPrivateLead(workspaceId:string,d: {id:string;lead_id:string
   const owner=ownerRows[0]?.email||null;
   await db.query("INSERT INTO persons (id,name) VALUES (?,?)",[personId,name.slice(0,160)]);
   await db.query("INSERT INTO communication_preferences (id,person_id,telegram_allowed) VALUES (?,?,1)",[crypto.randomUUID(),personId]);
-  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,status,source,medium,campaign,referral_code,owner_email,lead_category,capture_mode) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),"NEW",d.source||"telegram",d.medium||"telegram",d.campaign_id?d.campaign_id:null,d.referral_code||null,owner,"TELEGRAM_INBOUND","MANUAL"]);
+  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,phone,telegram_username,telegram_chat_id,status,source,medium,campaign,referral_code,owner_email,lead_category,capture_mode) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),phone||null,from.username||null,String(from.id||m.chat?.id||""),"NEW",d.source||"telegram",d.medium||"telegram",d.campaign_id?d.campaign_id:null,d.referral_code||null,owner,"TELEGRAM_INBOUND","MANUAL"]);
   if(d.product_id) await db.query("INSERT INTO lead_product_interest (id,lead_id,product_id,source,interest_score) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE interest_score=interest_score+1,last_seen_at=NOW()",[crypto.randomUUID(),leadId,d.product_id,"telegram"]);
   await db.query("UPDATE telegram_destinations SET lead_id=?,person_id=?,last_inbound_at=NOW(),follow_up_enabled=0,next_follow_up_at=NULL WHERE id=? AND workspace_id=?",[leadId,personId,d.id,workspaceId]);
   return leadId;
@@ -302,6 +302,22 @@ async function handle(update:TelegramUpdate){
   }
 
   const publicWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
+  if(chatType==="private" && publicWorkspaceId && m.contact?.phone_number){
+    const contactUserId=String(m.contact.user_id||m.from?.id||chatId);
+    const contactPhone=clean(m.contact.phone_number);
+    const cfg=await getTelegramChannelConfig(publicWorkspaceId);
+    if(cfg?.enabled&&cfg.publicEnabled&&cfg.allowAnonymousUsers&&contactPhone){
+      const telegramUser: TelegramUser=m.from||{id:contactUserId};
+      await syncTelegramIdentity({workspaceId:publicWorkspaceId,user:telegramUser,chatId,event:"CONTACT_SHARED"}).catch(()=>null);
+      const session=await publicSession(publicWorkspaceId,telegramUser,chatId);
+      const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+      const leadId=await ensurePublicLead(publicWorkspaceId,telegramUser,chatId,{...stateData,phone:contactPhone});
+      await db.query("UPDATE leads SET phone=?,telegram_username=?,telegram_chat_id=?,next_action=?,next_action_due_at=DATE_ADD(NOW(),INTERVAL 30 MINUTE),message=CONCAT(COALESCE(message,''),'\\n[Telegram contact shared] ',?) WHERE id=? AND workspace_id=?",[contactPhone,telegramUser.username||null,contactUserId,"Verify Telegram identity and reachable contact address before human handoff.",contactPhone,leadId,publicWorkspaceId]);
+      await savePublicState(publicWorkspaceId,contactUserId,"CONTACT_RECEIVED",{...stateData,phone:contactPhone,contactVerified:false});
+      return reply(chatId,"Thanks — your phone number is now attached to your Aslal lead. A sales team member can verify the contact and continue with you.");
+    }
+  }
+
   if(chatType==="private" && publicWorkspaceId){
     const cfg=await getTelegramChannelConfig(publicWorkspaceId);
     if(cfg?.enabled&&cfg.publicEnabled&&cfg.allowAnonymousUsers){ await syncTelegramIdentity({workspaceId:publicWorkspaceId,user:m.from||{id:chatId},chatId,event:input.startsWith("/start")?"START":"MESSAGE",startParam:input.startsWith("/start")?input.split(/\s+/,2)[1]||null:null}).catch(()=>null); }
