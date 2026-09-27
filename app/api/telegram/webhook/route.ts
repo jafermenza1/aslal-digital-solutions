@@ -59,7 +59,7 @@ async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const loginEnabled=String(process.env.TELEGRAM_LOGIN_ENABLED||"").toLowerCase()==="true";
   const rows:any[]=[...(hasContext?[[{text:"↩️ Continue conversation",callback_data:"public:continue:"+workspaceId}]]:[]),[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"🎯 Qualify me",callback_data:"public:qualify:"+workspaceId}],[{text:"💰 Pricing",callback_data:"public:pricing:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]];
   if(loginEnabled) rows.push([{text:"🔐 Log in with Telegram",login_url:{url:site+"/api/auth/telegram/callback?workspaceId="+encodeURIComponent(workspaceId),request_write_access:true}}]);
-  return tg("sendMessage",{chat_id:chatId,text:welcome+viewText,reply_markup:{inline_keyboard:rows}});
+  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText,reply_markup:{inline_keyboard:rows}});\n  return tg("sendMessage",{chat_id:chatId,text:"When you are ready for a reachable sales handoff, share your phone number with Aslal.",reply_markup:{keyboard:[[{text:"📱 Share phone number",request_contact:true}]],resize_keyboard:true,one_time_keyboard:true}});
 }
 async function continuePublic(chatId:string,workspaceId:string,user:any){
   const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId:String(user?.id||chatId)}}});
@@ -90,8 +90,9 @@ async function ensurePublicLead(workspaceId:string,user:any,chatId:string,stateD
   const [owners]=await db.query<(RowDataPacket&{email:string})[]>(`SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1`,[workspaceId]);
   await db.query("INSERT INTO persons (id,name) VALUES (?,?)",[personId,name.slice(0,160)]);
   await db.query("INSERT INTO communication_preferences (id,person_id,telegram_allowed) VALUES (?,?,1)",[crypto.randomUUID(),personId]);
-  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,phone,status,source,medium,lead_category,capture_mode,message,owner_email) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),stateData.phone||null,"NEW","telegram","telegram","PUBLIC_TELEGRAM","MANUAL",JSON.stringify(stateData),assignedOwner||owners[0]?.email||null]);
+  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,phone,telegram_username,telegram_chat_id,status,source,medium,lead_category,capture_mode,message,owner_email) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),stateData.phone||null,user?.username||null,String(user?.id||chatId),"NEW","telegram","telegram","PUBLIC_TELEGRAM","MANUAL",JSON.stringify(stateData),assignedOwner||owners[0]?.email||null]);
   await db.query("UPDATE telegram_public_sessions SET lead_id=?,person_id=? WHERE workspace_id=? AND telegram_user_id=?",[leadId,personId,workspaceId,String(user?.id||chatId)]);
+  await db.query("UPDATE leads SET next_action=?,next_action_due_at=DATE_ADD(NOW(),INTERVAL 30 MINUTE) WHERE id=? AND workspace_id=? AND phone IS NULL",[stateData.phone?"Verify Telegram identity and reachable contact address before human handoff.":"Obtain a reachable phone/contact address and verify Telegram identity before human handoff.",leadId,workspaceId]);
   return leadId;
 }
 async function routePublicMessageToHandoff(chatId:string,workspaceId:string,user:any,m:TelegramMessage){
