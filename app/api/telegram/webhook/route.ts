@@ -14,6 +14,7 @@ type TelegramMessage = {
   from?: TelegramUser;
   text?: string;
   reply_to_message?: TelegramMessage;
+  contact?: { phone_number?: string; first_name?: string; last_name?: string; user_id?: number };
 };
 type TelegramCallbackQuery = { id:string; data?:string; from?:TelegramUser; message?:TelegramMessage };
 type TelegramInlineQuery = { id:string; query?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string} };
