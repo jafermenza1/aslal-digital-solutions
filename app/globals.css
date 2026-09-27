@@ -330,3 +330,16 @@ html[data-theme="dark"] .dashboard-content{
   color:currentColor!important;
   stroke:currentColor!important;
 }
+
+
+/* Global Aslal contrast guardrails — keep literal utility colors readable across public pages and embedded mini-app surfaces. */
+.site-shell .bg-white{background-color:#fff!important;color:#1E293B!important}
+.site-shell .bg-white a,.site-shell .bg-white button,.site-shell .bg-white input,.site-shell .bg-white select,.site-shell .bg-white textarea{color:#1E293B!important}
+.site-shell [class*="bg-[#0F3E8A]"],.site-shell [class*="bg-[#071F47]"]{color:#fff!important}
+.site-shell [class*="bg-[#0F3E8A]"] a,.site-shell [class*="bg-[#0F3E8A]"] button,.site-shell [class*="bg-[#071F47]"] a,.site-shell [class*="bg-[#071F47]"] button{color:#fff!important}
+.site-shell [class*="bg-[#E2B02A]"]{color:#071F47!important}
+.site-shell [class*="bg-[#E2B02A]"] a,.site-shell [class*="bg-[#E2B02A]"] button{color:#071F47!important}
+.site-shell input,.site-shell textarea,.site-shell select{background-color:var(--ice);color:var(--slate);border-color:rgba(15,62,138,.22)}
+.site-shell input::placeholder,.site-shell textarea::placeholder{color:#64748b;opacity:1}
+html[data-telegram-theme="dark"] .site-shell input,html[data-telegram-theme="dark"] .site-shell textarea,html[data-telegram-theme="dark"] .site-shell select{background:#0b2a57;color:#F8FAFC;border-color:rgba(255,255,255,.16)}
+html[data-telegram-theme="dark"] .site-shell input::placeholder,html[data-telegram-theme="dark"] .site-shell textarea::placeholder{color:#b8c8d8}
