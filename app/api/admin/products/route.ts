@@ -36,7 +36,7 @@ function payload(body:any){
  const active=body.active!==false;
  return {workspaceId,category,stockQuantity,name,slug,kind,providerName,relationshipType,shortDescription,description,tagline,features,benefits,idealFor,deliverables,imageUrl,galleryUrls,mediaUrls,specifications,startingPrice,ctaLabel,ctaNote,sortOrder,featured,active};
 }
-function valid(p:any){return p.name&&p.slug&&p.shortDescription&&Object.values(ProductKind).includes(p.kind)&&Object.values(ProductRelationship).includes(p.relationshipType);}
+function valid(p:any){return p.name&&p.slug&&p.shortDescription&&Object.values(ProductKind).includes(p.kind)&&Object.values(ProductRelationship).includes(p.relationshipType)&&p.workspaceId&&((p.kind===ProductKind.PRODUCT&&p.stockQuantity!==null&&Number.isInteger(p.stockQuantity))||p.kind===ProductKind.SERVICE);}
 export async function GET(request:Request){
  const actor=await authorizePermission("products.manage");
  if(!actor)return NextResponse.json({error:"Catalog administration is not permitted."},{status:403});
@@ -51,7 +51,7 @@ export async function POST(request:Request){
  const body=await request.json().catch(()=>({})); const p=payload(body);
  const access=await authorizeWorkspacePermission("products.manage",p.workspaceId);
  if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
- if(!valid(p))return NextResponse.json({error:"Name, slug, short description, valid type and relationship are required."},{status:400});
+ if(!valid(p))return NextResponse.json({error:p.kind===ProductKind.PRODUCT&&p.stockQuantity===null?"A product requires a stock number. Use 0 when it is currently out of stock.": "Name, slug, short description, workspace, valid type and relationship are required."},{status:400});
  let finalSlug=p.slug;
  let suffix=2;
  while(await prisma.product.findUnique({where:{slug:finalSlug},select:{id:true}})){finalSlug=`${p.slug}-${suffix++}`.slice(0,160);}
