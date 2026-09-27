@@ -267,6 +267,38 @@ enum InvoiceStatus {
   VOID
 }
 
+
+
+enum EmailOutboxStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+  DISCARDED
+}
+
+enum EmailMessageType {
+  TRANSACTIONAL
+  MARKETING
+}
+
+enum EmailAttemptStatus {
+  SENT
+  FAILED
+}
+
+enum EmailEventType {
+  SENT
+  DELIVERED
+  BOUNCED
+  FAILED
+  OPENED
+  CLICKED
+  REPLIED
+  UNSUBSCRIBED
+}
+
 enum CommunicationChannel {
   EMAIL
   SMS
@@ -1411,6 +1443,7 @@ model Workspace {
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
   resources Resource[]
+  emailOutbox EmailOutbox[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
   @@map("workspaces")
@@ -1649,4 +1682,101 @@ model PartnerPayoutItem {
   @@unique([payoutId, commissionId], map: "uq_payout_commission")
   @@index([commissionId], map: "idx_payout_item_commission")
   @@map("partner_payout_items")
+}
+
+
+model EmailOutbox {
+  id                String            @id @db.Char(36)
+  workspaceId       String            @map("workspace_id") @db.Char(36)
+  leadId            String?           @map("lead_id") @db.Char(36)
+  personId          String?           @map("person_id") @db.Char(36)
+  customerId        String?           @map("customer_id") @db.Char(36)
+  opportunityId     String?           @map("opportunity_id") @db.Char(36)
+  messageId         String?           @map("message_id") @db.Char(36)
+  status            EmailOutboxStatus @default(QUEUED)
+  messageType       EmailMessageType  @default(TRANSACTIONAL) @map("message_type")
+  templateKey       String?           @map("template_key") @db.VarChar(120)
+  recipientAddress  String            @map("recipient_address") @db.VarChar(190)
+  senderAddress     String?           @map("sender_address") @db.VarChar(190)
+  replyToAddress    String?           @map("reply_to_address") @db.VarChar(190)
+  subject           String            @db.VarChar(250)
+  htmlBody          String            @map("html_body") @db.Text
+  textBody          String            @map("text_body") @db.Text
+  originalSubject   String            @map("original_subject") @db.VarChar(250)
+  originalHtmlBody  String            @map("original_html_body") @db.Text
+  originalTextBody  String            @map("original_text_body") @db.Text
+  failureReason     String?           @map("failure_reason") @db.Text
+  provider          String?           @db.VarChar(60)
+  providerMessageId String?           @map("provider_message_id") @db.VarChar(255)
+  providerResponse  Json?             @map("provider_response")
+  attemptCount      Int               @default(0) @map("attempt_count")
+  maxAttempts       Int               @default(3) @map("max_attempts")
+  nextAttemptAt     DateTime?         @map("next_attempt_at") @db.DateTime(0)
+  lastAttemptAt     DateTime?         @map("last_attempt_at") @db.DateTime(0)
+  sentAt            DateTime?         @map("sent_at") @db.DateTime(0)
+  discardedAt       DateTime?         @map("discarded_at") @db.DateTime(0)
+  createdBy         String?           @map("created_by") @db.VarChar(190)
+  createdAt         DateTime          @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  attempts          EmailDeliveryAttempt[]
+  events            EmailEvent[]
+  @@index([workspaceId,status,nextAttemptAt], map:"idx_email_outbox_workspace_status_next")
+  @@index([workspaceId,createdAt], map:"idx_email_outbox_workspace_created")
+  @@index([recipientAddress,status], map:"idx_email_outbox_recipient_status")
+  @@index([leadId,createdAt], map:"idx_email_outbox_lead_created")
+  @@index([templateKey,status], map:"idx_email_outbox_template_status")
+  @@map("email_outbox")
+}
+
+model EmailDeliveryAttempt {
+  id                String              @id @db.Char(36)
+  outboxId          String              @map("outbox_id") @db.Char(36)
+  attemptNumber     Int                 @map("attempt_number")
+  status            EmailAttemptStatus
+  provider          String?             @db.VarChar(60)
+  providerMessageId String?             @map("provider_message_id") @db.VarChar(255)
+  error             String?             @db.Text
+  response          Json?
+  attemptedAt       DateTime            @default(now()) @map("attempted_at") @db.DateTime(0)
+  outbox            EmailOutbox         @relation(fields:[outboxId], references:[id], onDelete:Cascade)
+  @@unique([outboxId,attemptNumber], map:"uq_email_attempt_outbox_number")
+  @@index([outboxId,attemptedAt], map:"idx_email_attempt_outbox_attempted")
+  @@map("email_delivery_attempts")
+}
+
+model EmailEvent {
+  id              String         @id @db.Char(36)
+  outboxId        String         @map("outbox_id") @db.Char(36)
+  eventType       EmailEventType  @map("event_type")
+  providerEventId String?        @map("provider_event_id") @db.VarChar(255)
+  metadata        Json?
+  occurredAt      DateTime       @default(now()) @map("occurred_at") @db.DateTime(0)
+  outbox           EmailOutbox   @relation(fields:[outboxId], references:[id], onDelete:Cascade)
+  @@index([outboxId,occurredAt], map:"idx_email_event_outbox_occurred")
+  @@index([eventType,occurredAt], map:"idx_email_event_type_occurred")
+  @@index([providerEventId], map:"idx_email_event_provider")
+  @@map("email_events")
+}
+
+model EmailAutomationRule {
+  id             String            @id @db.Char(36)
+  workspaceId    String?           @map("workspace_id") @db.Char(36)
+  systemKey      String            @unique @map("system_key") @db.VarChar(120)
+  name           String            @db.VarChar(190)
+  description    String?           @db.Text
+  triggerEvent   String            @map("trigger_event") @db.VarChar(80)
+  templateKey    String            @map("template_key") @db.VarChar(120)
+  messageType    EmailMessageType  @default(TRANSACTIONAL) @map("message_type")
+  delayMinutes   Int               @default(0) @map("delay_minutes")
+  active         Boolean           @default(true)
+  conditions     Json?
+  stopConditions Json?             @map("stop_conditions")
+  createdBy      String?           @map("created_by") @db.VarChar(190)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace      Workspace?        @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
+  @@index([workspaceId,triggerEvent,active], map:"idx_email_rule_workspace_trigger")
+  @@index([triggerEvent,active], map:"idx_email_rule_trigger_active")
+  @@map("email_automation_rules")
 }
