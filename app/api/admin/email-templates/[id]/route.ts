@@ -13,7 +13,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const subjectTemplate = String(body.subjectTemplate ?? current.subjectTemplate).trim().slice(0, 250);
   const htmlTemplate = String(body.htmlTemplate ?? current.htmlTemplate).slice(0, 60000);
   const textTemplate = String(body.textTemplate ?? current.textTemplate).slice(0, 20000);
-  const active = body.active === undefined ? current.active : Boolean(body.active);\n  const transactional = body.transactional === undefined ? current.transactional : Boolean(body.transactional);
+  const active = body.active === undefined ? current.active : Boolean(body.active);
+  const transactional = body.transactional === undefined ? current.transactional : Boolean(body.transactional);
   const reason = String(body.reason || "").trim().slice(0, 2000);
   if (!name || !subjectTemplate || !htmlTemplate || !textTemplate || !reason) return NextResponse.json({ error: "Name, subject, templates and reason are required." }, { status: 400 });
   if (/[\r\n]/.test(subjectTemplate)) return NextResponse.json({ error: "Email subject cannot contain line breaks." }, { status: 400 });
