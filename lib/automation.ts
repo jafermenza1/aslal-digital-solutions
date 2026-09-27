@@ -1,3 +1,4 @@
+import { processEmailQueue } from "@/lib/email-queue";
 import { Prisma, TaskPriority, WorkflowActionStatus, WorkflowActionType, WorkflowExecutionStatus, WorkflowTriggerType } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
@@ -161,7 +162,7 @@ async function overdue(limit:number){
  let triggered=0;for(const row of rows)triggered+=(await runTrigger({triggerType:WorkflowTriggerType.LEAD_OVERDUE,targetType:"LEAD",targetId:row.id})).length;
  return {overdueLeads:rows.length,triggered};
 }
-export async function runScheduledAutomation(o?:{leadLimit?:number;executionLimit?:number}){await ensureCoreWorkflows();return {overdue:await overdue(Math.max(1,Math.min(200,o?.leadLimit??100))),executions:await processDue(Math.max(1,Math.min(200,o?.executionLimit??100)))};}
+export async function runScheduledAutomation(o?:{leadLimit?:number;executionLimit?:number;emailLimit?:number}){await ensureCoreWorkflows();return {overdue:await overdue(Math.max(1,Math.min(200,o?.leadLimit??100))),executions:await processDue(Math.max(1,Math.min(200,o?.executionLimit??100))),emailQueue:await processEmailQueue(Math.max(1,Math.min(100,o?.emailLimit??25)))};}
 export async function runLeadCreatedAutomation(id:string){
   const current=await lead(id);
   if(!current)return [];
