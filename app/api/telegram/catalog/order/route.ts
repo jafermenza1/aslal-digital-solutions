@@ -117,14 +117,14 @@ export async function POST(request:Request){
   }
  });
 
- const customerText=`✅ Aslal order request received
+ const customerText=`${isService?"✅ Aslal service request received":"✅ Aslal product order request received"
 
 Order: ${orderNumber}
 Item: ${itemName}
 Amount: ${total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed"}
 
-Your order request is saved. No payment is required at this stage. Our team will contact you here to confirm the details and next step.`;
- const staffText=`🛒 New Telegram catalog order
+${isService?"Your service request is saved. No payment is required at this stage. Our team will contact you here to confirm the scope, availability and next step.":"Your product order request is saved. Our team will confirm availability and the next step."}`;
+ const staffText=`${isService?"🛎️ New Telegram service request":"🛒 New Telegram product order request"
 
 Order: ${orderNumber}
 Customer: ${name}
@@ -135,10 +135,10 @@ Lead: ${leadId||"linked"}
 Sales owner: ${ownerEmail||"Unassigned"}
 Telegram: ${telegramUsername?"@"+telegramUsername:chatId||"not available"}
 
-Action: open the Aslal dashboard and continue the sales/payment workflow. Payment is NOT confirmed.`;
+Action: open the Aslal dashboard and continue the sales workflow. ${isService?"This is a service request; no stock check is required and payment is NOT confirmed.":"This is a product request; stock was available when submitted and payment is NOT confirmed."}`;
 
  const notifications=await notifyOrderParties(workspaceId,ownerEmail,chatId,customerText,staffText);
- return NextResponse.json({ok:true,orderId,orderNumber,leadId,notifications,nextStep:"Your order request is saved. Sales will confirm the details and price, then guide you to the appropriate next step.",message:"Order request received and saved. Please keep your order number for reference."});
+ return NextResponse.json({ok:true,orderId,orderNumber,leadId,notifications,nextStep:isService?"Sales will confirm the service scope, availability and next step.":"Sales will confirm the product availability and next step.",message:"Order request received and saved. Please keep your order number for reference."});
  }catch(e){
   console.error("Telegram catalog order failed",e);
   return error("We could not save your order request right now. Please try again.",500);
