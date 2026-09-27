@@ -82,7 +82,7 @@ export default async function Home() {
   const content = await getPageContent("/");
   return (
     <main className="landing-page bg-[#F8FAFC] text-[#1E293B]">
-      <AslalInteractiveHero content={heroContent}/>
+      <AslalInteractiveHero content={content}/>
 
       <section className="landing-section bg-white" aria-labelledby="pain-title">
         <div className="container-aslal">
