@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import {
-  ArrowRight, AlertCircle, BarChart3, BookOpen, Bot, CheckCircle2, CreditCard,
-  Mail, MessageCircle, Send, ShoppingCart, Sparkles, TrendingUp, Workflow, Zap
+  ArrowRight, BarChart3, Bot, CheckCircle2, CreditCard,
+  Mail, MessageCircle, Send, ShoppingCart, Sparkles, TrendingUp, Workflow
 } from "lucide-react";
 import { AslalInteractiveHero } from "@/components/AslalInteractiveHero";
 import { HomeRoiEstimator } from "@/components/HomeRoiEstimator";
@@ -80,8 +80,6 @@ export default async function Home() {
   const locale = normalizeLocale(cookieStore.get(localeCookie)?.value);
   const t = landingCopy[locale];
   const content = await getPageContent("/");
-  const heroContent = content;
-
   return (
     <main className="landing-page bg-[#F8FAFC] text-[#1E293B]">
       <AslalInteractiveHero content={heroContent}/>
