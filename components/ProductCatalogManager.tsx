@@ -4,22 +4,22 @@ import Link from "next/link";
 
 type ProductRow={
  id:string;slug:string;name:string;kind:"PRODUCT"|"SERVICE";providerName:string|null;relationshipType:string;tagline:string|null;
- shortDescription:string;description:string|null;features:string|null;benefits:string|null;idealFor:string|null;deliverables:string|null;
+ category:string;stockQuantity:number|null;workspaceId:string|null;workspaceName:string; shortDescription:string;description:string|null;features:string|null;benefits:string|null;idealFor:string|null;deliverables:string|null;
  imageUrl:string|null;galleryUrls:string|null;startingPrice:string|null;ctaLabel:string|null;ctaNote:string|null;sortOrder:number;featured:boolean;active:boolean;
 };
 
-const blank:Omit<ProductRow,"id">={slug:"",name:"",kind:"SERVICE",providerName:"Aslal Digital Solutions",relationshipType:"OWNED",tagline:"",
+const blank:Omit<ProductRow,"id">={slug:"",name:"",kind:"SERVICE",category:"General",stockQuantity:null,workspaceId:null,workspaceName:"",providerName:"Aslal Digital Solutions",relationshipType:"OWNED",tagline:"",
  shortDescription:"",description:"",features:"",benefits:"",idealFor:"",deliverables:"",imageUrl:"",galleryUrls:"",startingPrice:"",
  ctaLabel:"Request this",ctaNote:"Tell us what you need and the request will enter the Aslal sales workflow.",sortOrder:0,featured:false,active:true};
 
 export function ProductCatalogManager({initial}:{initial:ProductRow[]}) {
- const [rows,setRows]=useState(initial),[draft,setDraft]=useState<ProductRow>({id:"",...blank}),[editing,setEditing]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
+ const [rows,setRows]=useState(initial),[draft,setDraft]=useState<ProductRow>({id:"",...blank,category:"General",stockQuantity:null,workspaceId:initial[0]?.workspaceId||null,workspaceName:initial[0]?.workspaceName||""}),[editing,setEditing]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
  const set=(key:string,value:any)=>setDraft(d=>({...d,[key]:value}));
- const startCreate=()=>{setDraft({id:"",...blank});setEditing(true);setNotice("")};
+ const startCreate=()=>{setDraft({id:"",...blank,workspaceId:initial[0]?.workspaceId||null,workspaceName:initial[0]?.workspaceName||""});setEditing(true);setNotice("")};
  const startEdit=(row:ProductRow)=>{setDraft(row);setEditing(true);setNotice("")};
  const save=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);setNotice("");
   try{
-   const payload={...draft,active:draft.active};
+   const payload={...draft,active:draft.active,stockQuantity:draft.stockQuantity===null?null:Number(draft.stockQuantity)};
    const res=await fetch(draft.id?"/api/admin/products/"+draft.id:"/api/admin/products",{method:draft.id?"PATCH":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
    const data=await res.json().catch(()=>({})); if(!res.ok)throw new Error(data.error||"Could not save.");
    setRows(draft.id?rows.map(x=>x.id===draft.id?data.product:x):[data.product,...rows]); setDraft({id:"",...blank});setEditing(false);setNotice("Catalog item saved. The public page is now using the database record.");
@@ -39,6 +39,9 @@ export function ProductCatalogManager({initial}:{initial:ProductRow[]}) {
       {field("Name","name","e.g. Growth CRM")}
       <label className="grid gap-1 text-sm font-bold text-slate-700">Public URL slug<span className="text-[11px] font-normal text-slate-400">{draft.id?"Stable after publication":"Generated automatically from the name"}</span><input value={draft.slug} onChange={e=>set("slug",e.target.value)} disabled={!!draft.id} placeholder="Auto-generated from name" className="rounded-xl border border-slate-200 px-4 py-3 font-normal disabled:bg-slate-100 disabled:text-slate-400"/></label>
       <label className="grid gap-1 text-sm font-bold text-slate-700">Type<select value={draft.kind} onChange={e=>set("kind",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="SERVICE">Service</option><option value="PRODUCT">Product</option></select></label>
+      <label className="grid gap-1 text-sm font-bold text-slate-700">Workspace<select value={draft.workspaceId||""} onChange={e=>set("workspaceId",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="">Select workspace</option>{initial.filter((x,i,a)=>x.workspaceId&&a.findIndex(y=>y.workspaceId===x.workspaceId)===i).map(x=><option key={x.workspaceId} value={x.workspaceId}>{x.workspaceName}</option>)}</select></label>
+      {field("Category","category","e.g. CRM, Marketing, Software")}
+      <label className="grid gap-1 text-sm font-bold text-slate-700">Stock number<span className="text-[11px] font-normal text-slate-400">Leave blank for service / unlimited</span><input type="number" min="0" value={draft.stockQuantity??""} onChange={e=>set("stockQuantity",e.target.value===""?null:Number(e.target.value))} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"/></label>
       {field("Provider / brand","providerName","Aslal Digital Solutions")}
       <label className="grid gap-1 text-sm font-bold text-slate-700">Relationship<select value={draft.relationshipType} onChange={e=>set("relationshipType",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option>OWNED</option><option>AFFILIATE</option><option>RESELLER</option><option>IMPLEMENTATION_PARTNER</option><option>CUSTOM</option></select></label>
       {field("Tagline","tagline","Short positioning line")}
@@ -63,13 +66,13 @@ export function ProductCatalogManager({initial}:{initial:ProductRow[]}) {
   </section>
   <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
    <div className="overflow-x-auto">
-    <table className="w-full min-w-[1050px] text-left text-sm"><thead className="bg-[#0F3E8A] text-white"><tr>{["Item","Type","Provider / relationship","Status","Price","Order","Public","Actions"].map(h=><th key={h} className="px-4 py-4 text-xs font-black uppercase tracking-wider">{h}</th>)}</tr></thead>
+    <table className="w-full min-w-[1150px] text-left text-sm"><thead className="bg-[#0F3E8A] text-white"><tr>{["Item","Type / workspace / category","Provider / relationship","Status","Price","Stock","Order","Public","Actions"].map(h=><th key={h} className="px-4 py-4 text-xs font-black uppercase tracking-wider">{h}</th>)}</tr></thead>
     <tbody>{rows.map(row=><tr key={row.id} className="border-t border-slate-100 align-top hover:bg-slate-50">
       <td className="px-4 py-4"><div className="font-black text-slate-900">{row.name}</div><div className="mt-1 max-w-[260px] text-xs text-slate-500">{row.shortDescription}</div><div className="mt-1 font-mono text-[10px] text-slate-400">/{row.slug}</div></td>
-      <td className="px-4 py-4"><span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-[#0F3E8A]">{row.kind}</span></td>
+      <td className="px-4 py-4"><div className="text-xs font-bold text-slate-500">{row.workspaceName||"Unassigned"}</div><div className="mt-1 text-xs font-black text-[#0F3E8A]">{row.category}</div><span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-[#0F3E8A]">{row.kind}</span></td>
       <td className="px-4 py-4"><div className="font-semibold">{row.providerName||"—"}</div><div className="text-xs text-slate-400">{row.relationshipType}</div></td>
       <td className="px-4 py-4"><span className={row.active?"rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700":"rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-500"}>{row.active?"LIVE":"HIDDEN"}</span>{row.featured&&<div className="mt-2 text-[10px] font-black uppercase tracking-wider text-[#E2B02A]">Featured</div>}</td>
-      <td className="px-4 py-4 font-semibold">{row.startingPrice||"Quote"}</td>
+      <td className="px-4 py-4 font-semibold">{row.startingPrice||"Quote"}</td><td className="px-4 py-4">{row.stockQuantity===null?"—":row.stockQuantity}</td>
       <td className="px-4 py-4">{row.sortOrder}</td>
       <td className="px-4 py-4"><Link href={"/products/"+row.slug} target="_blank" className="font-bold text-[#0F3E8A] underline">Open ↗</Link></td>
       <td className="px-4 py-4"><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>startEdit(row)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black">Edit</button><button type="button" disabled={busy} onClick={()=>toggle(row)} className="rounded-lg bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white">{row.active?"Hide":"Publish"}</button></div></td>
