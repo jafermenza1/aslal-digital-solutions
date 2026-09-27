@@ -145,6 +145,17 @@ export async function syncTelegramIdentity(input: SyncInput) {
     customerId = customer?.id || null;
   }
 
+  if (lead?.id) {
+    await prisma.lead.update({
+      where: { id: lead.id },
+      data: {
+        telegramChatId: chatId,
+        telegramUsername: user.username || null,
+        ...(user.first_name || user.last_name ? { name: ([user.first_name, user.last_name].filter(Boolean).join(" ") || undefined) } : {}),
+      },
+    }).catch(() => null);
+  }
+
   const identity = await prisma.telegramIdentity.upsert({
     where: { workspaceId_telegramUserId: { workspaceId: input.workspaceId, telegramUserId } },
     update: {
