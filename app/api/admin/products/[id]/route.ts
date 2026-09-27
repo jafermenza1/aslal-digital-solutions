@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { ProductKind, ProductRelationship } from "@prisma/client";
 
 const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):"";
 function validBody(body:any,current:any){
  const p={
+  workspaceId:clean(body.workspaceId??current.workspaceId??"",36),
+  category:clean(body.category??current.category??"General",100)||"General",
+  stockQuantity:body.stockQuantity===null||body.stockQuantity===""?null:Math.max(0,Math.floor(Number(body.stockQuantity??current.stockQuantity)||0)),
   name:clean(body.name??current.name,190),
   providerName:clean(body.providerName??current.providerName??"",190)||null,
   kind:String(body.kind??current.kind) as ProductKind,
@@ -37,6 +41,8 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  if(!current)return NextResponse.json({error:"Product/service not found."},{status:404});
  const body=await request.json().catch(()=>({})); const data=validBody(body,current);
  if(!data)return NextResponse.json({error:"Name, short description, type and relationship are required."},{status:400});
+ const access=await authorizeWorkspacePermission("products.manage",data.workspaceId);
+ if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
  const product=await prisma.product.update({where:{id},data});
  revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
