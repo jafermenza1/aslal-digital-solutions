@@ -35,11 +35,37 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      # Run both source-quality checks even when one fails, so one CI run
+      # reports the complete current type/lint error set instead of stopping at
+      # the first quality gate. The final gate below still blocks the build.
       - name: Typecheck
+        id: typecheck
+        continue-on-error: true
         run: npm run typecheck
 
       - name: Lint
+        id: lint
+        continue-on-error: true
         run: npm run lint
+
+      - name: Quality gate
+        if: always()
+        run: |
+          set -euo pipefail
+          failed=0
+          if [ "${{ steps.typecheck.outcome }}" != "success" ]; then
+            echo "Typecheck failed."
+            failed=1
+          fi
+          if [ "${{ steps.lint.outcome }}" != "success" ]; then
+            echo "Lint failed."
+            failed=1
+          fi
+          if [ "$failed" -ne 0 ]; then
+            echo "Quality checks failed; build will not run."
+            exit 1
+          fi
+          echo "Typecheck and lint passed."
 
       - name: Build Next.js application
         run: npm run build
