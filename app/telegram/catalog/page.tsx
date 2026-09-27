@@ -3,7 +3,7 @@ import {useEffect,useMemo,useState} from "react";
 import {ArrowRight,ChevronDown,Search,ShoppingBag,SlidersHorizontal,X} from "lucide-react";
 import {useRouter} from "next/navigation";
 
-type Item={id:string;name?:string;title?:string;slug:string;description?:string|null;preview?:string;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null};
+type Item={id:string;name?:string;title?:string;slug:string;description?:string|null;preview?:string;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null;featured?:boolean};
 
 const money=(v:string|null|undefined)=>v||"Price on request";
 
