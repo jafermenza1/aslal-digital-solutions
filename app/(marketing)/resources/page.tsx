@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { EventTracker } from "@/components/EventTracker";
+import { ResourceInteractiveTools } from "@/components/ResourceTools";
 import { getPageContent, contentValue } from "@/lib/public-content";
 import { getResources } from "@/lib/resources-server";
 
@@ -42,6 +43,8 @@ export default async function ResourcesPage({ searchParams }: { searchParams: Pr
           </div>
         </div>
       </section>
+
+      <ResourceInteractiveTools roiResourceId={diagnostics.find((resource) => resource.slug === "ecommerce-conversion-payment-roi-calculator")?.id} bottleneckResourceId={diagnostics.find((resource) => resource.slug === "digital-growth-bottleneck-assessor")?.id} />
 
       <section className="bg-[#F8FAFC] pb-20 sm:pb-24">
         <div className="container-aslal">
