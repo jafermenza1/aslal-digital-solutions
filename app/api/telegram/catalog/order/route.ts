@@ -48,13 +48,13 @@ export async function POST(request:Request){
  const chatId=clean(body.chatId,80);
  const telegramUsername=clean(body.telegramUsername,190).replace(/^@/,"");
  const campaignId=clean(body.campaignId,36);
- if(!workspaceId||!slug)return error("This checkout link is incomplete. Please return to the catalog and try again.");
+ if(!workspaceId||!slug)return error("This order link is incomplete. Please return to the catalog and try again.");
  if(!validName(name))return error("Please enter your full name using letters only (2–160 characters).");
  const phone=normalizePhone(phoneInput);
  if(!phone)return error("Please enter a valid mobile number with country code, for example +251 911 276682 or +254 7xx xxx xxx.");
 
  const workspace=await prisma.workspace.findFirst({where:{id:workspaceId,active:true},select:{id:true,name:true}});
- if(!workspace)return error("This checkout is no longer available. Please return to the catalog.",404);
+ if(!workspace)return error("This order catalog is no longer available. Please return to the catalog.",404);
 
  const destination=chatId?await prisma.telegramDestination.findFirst({where:{workspaceId,chatId,active:true},select:{id:true,partnerId:true,referralCode:true,campaignId:true,salesOwnerEmail:true}}):null;
  const requestedCampaign=campaignId||destination?.campaignId||null;
@@ -116,26 +116,26 @@ export async function POST(request:Request){
   }
  });
 
- const customerText="✅ Aslal order request received
+ const customerText=`✅ Aslal order request received
 
-Order: "+orderNumber+"
-Item: "+itemName+"
-Amount: "+(total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed")+"
+Order: ${orderNumber}
+Item: ${itemName}
+Amount: ${total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed"}
 
-Your order request is saved. No payment is required at this stage. Our team will contact you here to confirm the details and next step.";
- const staffText="🛒 New Telegram catalog order
+Your order request is saved. No payment is required at this stage. Our team will contact you here to confirm the details and next step.`;
+ const staffText=`🛒 New Telegram catalog order
 
-Order: "+orderNumber+"
-Customer: "+name+"
-Phone: "+phone+"
-Item: "+itemName+"
-Amount: "+(total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed")+"
-Lead: "+(leadId||"linked")+"
-Sales owner: "+(ownerEmail||"Unassigned")+"
-Telegram: "+(telegramUsername?"@"+telegramUsername:chatId||"not available")+"
+Order: ${orderNumber}
+Customer: ${name}
+Phone: ${phone}
+Item: ${itemName}
+Amount: ${total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed"}
+Lead: ${leadId||"linked"}
+Sales owner: ${ownerEmail||"Unassigned"}
+Telegram: ${telegramUsername?"@"+telegramUsername:chatId||"not available"}
 
-Action: open the Aslal dashboard and continue the sales/payment workflow. Payment is NOT confirmed.";
+Action: open the Aslal dashboard and continue the sales/payment workflow. Payment is NOT confirmed.`;
 
  const notifications=await notifyOrderParties(workspaceId,ownerEmail,chatId,customerText,staffText);
- return NextResponse.json({ok:true,orderId,orderNumber,paymentId,leadId,notifications,nextStep:"Your order request is saved. Sales will confirm the details and price, then guide you to the appropriate next step.",message:"Order request received and saved. Please keep your order number for reference."});
+ return NextResponse.json({ok:true,orderId,orderNumber,leadId,notifications,nextStep:"Your order request is saved. Sales will confirm the details and price, then guide you to the appropriate next step.",message:"Order request received and saved. Please keep your order number for reference."});
 }
