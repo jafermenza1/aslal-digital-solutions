@@ -14,29 +14,35 @@ export async function GET(request:Request) {
   const campaignId=url.searchParams.get("campaignId");
   // Direct public catalog visits use the canonical public workspace mapping.
   // Telegram links with explicit workspaceId retain that workspace context.
-  const workspaceId=requestedWorkspaceId||resolvePublicWorkspaceId(url.hostname);
-  if(!workspaceId) return NextResponse.json({error:"workspaceId is required."},{status:400});
   const { getTelegramChannelConfig } = await import("@/lib/telegram-channel-config");
-  const config=await getTelegramChannelConfig(workspaceId);
-  if(!config?.enabled||!config.publicEnabled||!config.allowAnonymousUsers) return NextResponse.json({error:"Public Telegram catalog is disabled."},{status:403});
+  const activeWorkspaces=await prisma.workspace.findMany({where:{active:true},select:{id:true,name:true,slug:true},orderBy:{name:"asc"}});
+  const configs=await prisma.telegramChannelConfig.findMany({where:{workspaceId:{in:activeWorkspaces.map(w=>w.id)},enabled:true,publicEnabled:true,allowAnonymousUsers:true}});
+  const publicWorkspaceIds=new Set(configs.map(c=>c.workspaceId));
+  const selectedWorkspaceIds=requestedWorkspaceId?[requestedWorkspaceId]:activeWorkspaces.filter(w=>publicWorkspaceIds.has(w.id)).map(w=>w.id);
+  if(requestedWorkspaceId&&!publicWorkspaceIds.has(requestedWorkspaceId)) return NextResponse.json({error:"Public Telegram catalog is disabled for this workspace."},{status:403});
+  if(!selectedWorkspaceIds.length) return NextResponse.json({error:"No active Telegram catalog workspaces are available."},{status:403});
 
-  const [products,resources]=await Promise.all([
-    prisma.product.findMany({
-      where:{active:true,workspaceId,...(config.showProducts?{}:{id:"__hidden__"}),...(campaignId?{campaigns:{some:{id:campaignId,status:{in:["OPEN","ACTIVE"]}}}}:{})},
-      orderBy:[{featured:"desc"},{sortOrder:"asc"},{name:"asc"}],
-      select:{id: true,slug:true,name:true,kind:true,tagline:true,shortDescription:true,description:true,features:true,benefits:true,deliverables:true,imageUrl:true,galleryUrls:true,mediaUrls:true,specifications:true,startingPrice:true,ctaLabel:true,ctaNote:true,relationshipType:true,providerName:true}
-    }),
-    prisma.resource.findMany({
-      where:{active:true,workspaceId,...(config.showResources?{}:{id:"__hidden__"}),...(campaignId?{campaignId}:{})},
-      orderBy:[{publishedAt:"desc"},{title:"asc"}],
-      select:{id:true,slug:true,title:true,category:true,description:true,preview:true,cta:true,intent:true,downloadUrl:true,mediaUrls:true,specifications:true,relationshipType:true,providerName:true}
-    })
-  ]);
-
+  const selectedConfigs=configs.filter(c=>selectedWorkspaceIds.includes(c.workspaceId));
+  const products=await prisma.product.findMany({
+    where:{active:true,workspaceId:{in:selectedWorkspaceIds},...(campaignId?{campaigns:{some:{id:campaignId,status:{in:["OPEN","ACTIVE"]}}}}:{})},
+    orderBy:[{featured:"desc"},{sortOrder:"asc"},{name:"asc"}],
+    select:{id:true,workspaceId:true,slug:true,name:true,category:true,stockQuantity:true,kind:true,tagline:true,shortDescription:true,description:true,features:true,benefits:true,deliverables:true,imageUrl:true,galleryUrls:true,mediaUrls:true,specifications:true,startingPrice:true,ctaLabel:true,ctaNote:true,relationshipType:true,providerName:true}
+  });
+  const resources=await prisma.resource.findMany({
+    where:{active:true,workspaceId:{in:selectedWorkspaceIds},...(campaignId?{campaignId}:{})},
+    orderBy:[{publishedAt:"desc"},{title:"asc"}],
+    select:{id:true,workspaceId:true,slug:true,title:true,category:true,description:true,preview:true,cta:true,intent:true,downloadUrl:true,mediaUrls:true,specifications:true,relationshipType:true,providerName:true}
+  });
+  const cfgByWorkspace=new Map(selectedConfigs.map(c=>[c.workspaceId,c]));
+  const visibleProducts=products.filter(p=>cfgByWorkspace.get(p.workspaceId)?.showProducts);
+  const visibleResources=resources.filter(r=>cfgByWorkspace.get(r.workspaceId)?.showResources);
+  const workspaces=activeWorkspaces.filter(w=>selectedWorkspaceIds.includes(w.id));
   return NextResponse.json({
-    workspaceId,
+    workspaceId:requestedWorkspaceId||null,
     campaignId:campaignId||null,
-    products:products.map(p=>({...p,media:[...parseMedia(p.mediaUrls),...parseMedia(p.galleryUrls)]})),
-    resources:resources.map(r=>({...r,media:parseMedia(r.mediaUrls)})),
-  },{headers:{"Cache-Control":"private, max-age=30"}});
+    workspaces,
+    products:visibleProducts.map(p=>({...p,media:[...parseMedia(p.mediaUrls),...parseMedia(p.galleryUrls)]})),
+    resources:visibleResources.map(r=>({...r,media:parseMedia(r.mediaUrls)})),
+    showStock:selectedConfigs.some(c=>c.showStock),
+  },{headers:{"Cache-Control":"private, max-age":30"}});
 }
