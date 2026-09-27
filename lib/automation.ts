@@ -1,4 +1,4 @@
-import { processEmailQueue } from "@/lib/email-queue";
+import { processEmailQueue, queueLeadTemplateEmail } from "@/lib/email-queue";
 import { Prisma, TaskPriority, WorkflowActionStatus, WorkflowActionType, WorkflowExecutionStatus, WorkflowTriggerType } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
@@ -190,7 +190,8 @@ export async function runLeadCreatedAutomation(id:string){
     }
   }
 
-  return runTrigger({triggerType:WorkflowTriggerType.LEAD_CREATED,targetType:"LEAD",targetId:id,idempotencyKey:"lead-created:"+id});
+  const emailAutomation = await queueLeadTemplateEmail({ leadId:id, templateKey:"sales_followup", delayMinutes:1440, createdBy:"automation:lead-created" });
+  return { workflow: await runTrigger({triggerType:WorkflowTriggerType.LEAD_CREATED,targetType:"LEAD",targetId:id,idempotencyKey:"lead-created:"+id}), emailAutomation };
 }
 export async function cancelLeadAutomation(id:string,reason:string){
  const rows=await prisma.workflowExecution.findMany({where:{targetType:"LEAD",targetId:id,status:{in:[WorkflowExecutionStatus.PENDING,WorkflowExecutionStatus.RUNNING]}},select:{id:true}});
@@ -200,7 +201,7 @@ export async function cancelLeadAutomation(id:string,reason:string){
   prisma.workflowActionExecution.updateMany({where:{executionId:{in:ids},status:{in:[WorkflowActionStatus.PENDING,WorkflowActionStatus.RUNNING]}},data:{status:WorkflowActionStatus.SKIPPED,error:msg,completedAt:new Date()}})
  ]);return {cancelled:ids.length};
 }
-export function handleConversationInbound(leadId:string|null|undefined){return leadId?cancelLeadAutomation(leadId,"Customer reply received; eligible follow-up automation cancelled."):Promise.resolve({cancelled:0});}
+export async function handleConversationInbound(leadId:string|null|undefined){if(!leadId)return {cancelled:0,emailCancelled:0};const cancelled=await cancelLeadAutomation(leadId,"Customer reply received; eligible follow-up automation cancelled.");const emailCancelled=await prisma.emailOutbox.updateMany({where:{leadId,status:{in:["DRAFT","QUEUED","FAILED"]},messageType:"MARKETING"},data:{status:"DISCARDED",discardedAt:new Date(),nextAttemptAt:null,failureReason:"Customer reply received; marketing follow-up stopped."}});return {cancelled:cancelled.cancelled,emailCancelled:emailCancelled.count};}
 export function handleLeadStatusChange(i:{leadId:string;fromStatus:string;toStatus:string;actor:string}){return ["WON","LOST"].includes(i.toStatus)?cancelLeadAutomation(i.leadId,`Lead moved from ${i.fromStatus} to ${i.toStatus} by ${i.actor}; prospecting automation cancelled.`):Promise.resolve({cancelled:0});}
 export async function getAutomationSnapshot(limit=30, workspaceId?: string){
  await ensureCoreWorkflows();const cutoff=new Date(Date.now()-24*60*60000);
