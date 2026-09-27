@@ -1,13 +1,12 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
 import {randomUUID} from "node:crypto";
-import {normalizeEthiopianPhone} from "@/lib/ethiopian-phone";
 import {getTelegramChannelConfig} from "@/lib/telegram-channel-config";
 
 export const dynamic="force-dynamic";
 
 function clean(v:unknown,max:number){return typeof v==="string"?v.trim().slice(0,max):"";}
-function validName(value:string){return value.length>=2&&value.length<=160&&/\p{L}/u.test(value)&&!/[\d<>]/.test(value);}
+function normalizePhone(value:string){const raw=value.trim().replace(/[\s().-]/g,"");if(/^0\d{8,14}$/.test(raw))return "+251"+raw.slice(1);if(/^251\d{8,14}$/.test(raw))return "+"+raw;if(/^\+\d{8,15}$/.test(raw))return raw;return null;}\nfunction validName(value:string){return value.length>=2&&value.length<=160&&/\p{L}/u.test(value)&&!/[\d<>]/.test(value);}
 function error(message:string,status=400){return NextResponse.json({ok:false,error:message},{status});}
 
 async function telegramSend(chatId:string,text:string){
@@ -50,8 +49,8 @@ export async function POST(request:Request){
  const campaignId=clean(body.campaignId,36);
  if(!workspaceId||!slug)return error("This checkout link is incomplete. Please return to the catalog and try again.");
  if(!validName(name))return error("Please enter your full name using letters only (2–160 characters).");
- const phone=normalizeEthiopianPhone(phoneInput);
- if(!phone)return error("Please enter a valid Ethiopian mobile number, for example +251 911 276682.");
+ const phone=normalizePhone(phoneInput);
+ if(!phone)return error("Please enter a valid mobile number with country code, for example +251 911 276682 or +254 7xx xxx xxx.");
 
  const workspace=await prisma.workspace.findFirst({where:{id:workspaceId,active:true},select:{id:true,name:true}});
  if(!workspace)return error("This checkout is no longer available. Please return to the catalog.",404);
@@ -68,7 +67,7 @@ export async function POST(request:Request){
  const itemName=product?.name||resource?.title||slug;
  const rawPrice=product?.startingPrice?.match(/[0-9][0-9,]*(?:\.[0-9]+)?/)?.[0]?.replace(/,/g,"")||"0";
  const total=Number(rawPrice)||0;
- if(total<=0)return error("This item requires a quote. Please use the sales request option so our team can confirm the scope and price.",409);
+ if(total<=0)return error("This item is available by order request. Our team will confirm the scope and price before payment.",409);
 
  let orderNumber="";
  let orderId="";
@@ -89,14 +88,14 @@ export async function POST(request:Request){
   let personId=customer.personId||null;
   if(!personId){
    personId=randomUUID();
-   await tx.person.create({data:{id:personId,name}});
+   await tx.person.create({data:{id:personId,name,phone}});
    await tx.customer.update({where:{id:customer.id},data:{personId}});
   }
 
   let lead=await tx.lead.findFirst({where:{workspaceId,phone}});
   if(!lead){
    leadId=randomUUID();
-   lead=await tx.lead.create({data:{id:leadId,workspaceId,personId,name,phone,status:"NEW",source:"telegram",medium:"telegram",campaign:effectiveCampaignId,ownerEmail,leadCategory:"TELEGRAM_CATALOG_ORDER",captureMode:"MANUAL"}});
+   lead=await tx.lead.create({data:{id:leadId,workspaceId,personId,name,phone,status:"NEW",source:"telegram",medium:"telegram",campaign:effectiveCampaignId,ownerEmail,message:"Telegram catalog order. Telegram username: "+(telegramUsername?"@"+telegramUsername:"not provided")+"; Telegram chat ID: "+(chatId||"not provided"),leadCategory:"TELEGRAM_CATALOG_ORDER",captureMode:"MANUAL"}});
   }else{
    leadId=lead.id;
    if(ownerEmail&&lead.ownerEmail!==ownerEmail)lead=await tx.lead.update({where:{id:lead.id},data:{ownerEmail}});
