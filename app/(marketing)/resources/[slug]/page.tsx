@@ -38,8 +38,8 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
         <p className="mt-6 max-w-3xl text-lg leading-8 text-white/70">{resource.description}</p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href={`/contact?goal=${encodeURIComponent(resource.intent)}`} className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">{resource.cta} →</Link>
-          <a href={whatsapp} target="_blank" rel="noreferrer" onClick={()=>{}} className="rounded-full bg-emerald-500 px-6 py-4 font-black text-white">Send to WhatsApp</a>
-          <a href={telegram} target="_blank" rel="noreferrer" className="rounded-full bg-sky-500 px-6 py-4 font-black text-white">Open in Telegram</a>
+          <a href={whatsapp} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-500 px-6 py-4 font-black text-white transition hover:bg-[#E2B02A] hover:text-[#071F47]">Send to WhatsApp</a>
+          <a href={telegram} target="_blank" rel="noreferrer" className="rounded-full bg-sky-500 px-6 py-4 font-black text-white transition hover:bg-[#E2B02A] hover:text-[#071F47]">Open in Telegram</a>
         </div>
       </div>
     </section>
@@ -65,6 +65,6 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
         </aside>
       </div>
     </section>
-    <section className="bg-[#071F47] py-16 text-white"><div className="container-aslal flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Build the next step</div><h2 className="mt-2 text-3xl font-black">Turn the insight into an implementation plan.</h2></div><Link href="/growth-builder" className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">Build my growth system →</Link></div></section>
+    <section className="bg-[#071F47] py-16 text-white"><div className="container-aslal flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Build the next step</div><h2 className="mt-2 text-3xl font-black">Turn the insight into an implementation plan.</h2></div><Link href="/growth-builder" className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B] transition hover:bg-[#0F3E8A] hover:text-white">Build my growth system →</Link></div></section>
   </main>;
 }
