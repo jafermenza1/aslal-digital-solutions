@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type MouseEvent, type ReactNode } from "react";
 import { browserAttribution } from "@/lib/browser-attribution";
 
 type ToolProps = { resourceId?: string; resourceSlug: string };
@@ -14,9 +14,10 @@ function LeadGate({ resourceId, resourceSlug, toolName, growthGoal, children }: 
   const [company, setCompany] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { try { setUnlocked(localStorage.getItem(key) === "1"); } catch {} }, [key]);
 
-  function gate(event: React.MouseEvent) {
+  function gate(event: MouseEvent) {
     if (unlocked) return;
     const target = event.target as HTMLElement;
     if (target.closest("button, input, select, textarea, a")) {
