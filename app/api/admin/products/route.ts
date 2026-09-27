@@ -55,7 +55,7 @@ export async function POST(request:Request){
  let finalSlug=p.slug;
  let suffix=2;
  while(await prisma.product.findUnique({where:{slug:finalSlug},select:{id:true}})){finalSlug=`${p.slug}-${suffix++}`.slice(0,160);}
- const product=await prisma.product.create({data:{id:randomUUID(),...p,slug:finalSlug}});
+ const product=await prisma.product.create({data:{id:randomUUID(),...p,slug:finalSlug},include:{workspace:{select:{id:true,name:true,slug:true}}}});
  revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
 }
