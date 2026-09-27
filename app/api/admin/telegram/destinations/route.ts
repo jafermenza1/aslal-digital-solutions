@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     "SELECT id,name,kind,short_description,starting_price,cta_label FROM products WHERE active=1 ORDER BY name ASC LIMIT 200",
   );
   const [staff] = await db.query(
-    "SELECT DISTINCT u.email, COALESCE(NULLIF(u.name,''), u.email) AS name, u.role FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN'), name ASC LIMIT 200",
+    "SELECT DISTINCT u.email, COALESCE(NULLIF(u.name,''), u.email) AS name, u.role, u.telegram_chat_id, u.telegram_username FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN'), name ASC LIMIT 200",
     [access.workspace.id],
   );
   const [campaigns] = await db.query(
@@ -93,14 +93,22 @@ export async function PATCH(request: Request) {
   const destinationId = typeof body.destinationId === "string" ? body.destinationId : "";
   if (!destinationId) return NextResponse.json({ error: "destinationId is required." }, { status: 400 });
   const email = typeof body.salesOwnerEmail === "string" && body.salesOwnerEmail.trim() ? body.salesOwnerEmail.trim().toLowerCase().slice(0,190) : null;
-  if (email) {
-    const [staff] = await db.query("SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.email=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1", [access.workspace.id,email]);
+  const salesTelegram = typeof body.salesTelegram === "string" ? body.salesTelegram.trim().replace(/^@/,"").slice(0,190) : "";
+  let resolvedEmail = email;
+  if (salesTelegram) {
+    const [telegramStaff] = await db.query("SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND (u.telegram_chat_id=? OR LOWER(u.telegram_username)=LOWER(?)) AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1", [access.workspace.id, salesTelegram, salesTelegram]);
+    const match = (telegramStaff as Array<{email:string}>)[0];
+    if (!match) return NextResponse.json({ error: "Telegram staff not found in this workspace. Have the sales person connect Telegram first, then assign by @username or Telegram chat number." }, { status: 400 });
+    resolvedEmail = match.email;
+  }
+  if (resolvedEmail) {
+    const [staff] = await db.query("SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.email=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1", [access.workspace.id,resolvedEmail]);
     if (!(staff as unknown[]).length) return NextResponse.json({ error: "Selected sales/contact person is not active in this workspace." }, { status: 400 });
   }
   const [destinations] = await db.query("SELECT id,lead_id FROM telegram_destinations WHERE id=? AND workspace_id=? LIMIT 1", [destinationId,access.workspace.id]);
   const destination = (destinations as Array<{id:string;lead_id:string|null}>)[0];
   if (!destination) return NextResponse.json({ error: "Telegram destination not found in this workspace." }, { status: 404 });
-  await db.query("UPDATE telegram_destinations SET sales_owner_email=? WHERE id=? AND workspace_id=?", [email,destinationId,access.workspace.id]);
-  if (destination.lead_id) await db.query("UPDATE leads SET owner_email=? WHERE id=? AND workspace_id=?", [email,destination.lead_id,access.workspace.id]);
-  return NextResponse.json({ ok:true, salesOwnerEmail:email });
+  await db.query("UPDATE telegram_destinations SET sales_owner_email=? WHERE id=? AND workspace_id=?", [resolvedEmail,destinationId,access.workspace.id]);
+  if (destination.lead_id) await db.query("UPDATE leads SET owner_email=? WHERE id=? AND workspace_id=?", [resolvedEmail,destination.lead_id,access.workspace.id]);
+  return NextResponse.json({ ok:true, salesOwnerEmail:resolvedEmail });
 }
