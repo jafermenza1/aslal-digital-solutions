@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     const requestedMedium = clean(attribution.medium, 100) || null;
     const requestedCampaign = clean(attribution.campaign, 150) || null;
     if (resourceIdInput) {
-      const [resourceRows] = await db.execute<RowDataPacket[]>("SELECT id FROM resources WHERE id = ? AND active = 1 LIMIT 1", [resourceIdInput]);
+      const [resourceRows] = await db.execute<RowDataPacket[]>("SELECT id FROM resources WHERE id = ? AND active = 1 AND (workspace_id = ? OR workspace_id IS NULL) LIMIT 1", [resourceIdInput, workspaceId]);
       if (!resourceRows[0]) return NextResponse.json({ error: "The selected resource is unavailable." }, { status: 400 });
     }
 
