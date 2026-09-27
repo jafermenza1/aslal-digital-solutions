@@ -44,5 +44,5 @@ export async function GET(request:Request) {
     products:visibleProducts.map(p=>({...p,media:[...parseMedia(p.mediaUrls),...parseMedia(p.galleryUrls)]})),
     resources:visibleResources.map(r=>({...r,media:parseMedia(r.mediaUrls)})),
     showStock:selectedConfigs.some(c=>c.showStock),
-  },{headers:{"Cache-Control":"private, max-age":30"}});
+  },{headers:{"Cache-Control":"private, max-age=30"}});
 }
