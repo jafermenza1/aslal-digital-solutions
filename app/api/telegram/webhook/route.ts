@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getTelegramChannelConfig } from "@/lib/telegram-channel-config";
+import { syncTelegramIdentity } from "@/lib/telegram-identity";
 import type { RowDataPacket } from "mysql2/promise";
 
 export const runtime = "nodejs";
@@ -231,6 +232,7 @@ async function handle(update:TelegramUpdate){
     const q=update.callback_query; const data=clean(q.data); const chatId=String(q.message?.chat?.id||""); if(!chatId)return;
     await tg("answerCallbackQuery",{callback_query_id:q.id});
     const parts=data.split(":"); const workspaceId=parts[2]||String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||""); const user=q.from||{};
+    if(workspaceId&&user?.id){ await syncTelegramIdentity({workspaceId,user,chatId,event:"BUTTON_CLICK",metadata:{callbackData:data}}).catch(()=>null); }
     if(parts[0]==="public"&&parts[1]==="catalog")return catalog(chatId,workspaceId);
     if(parts[0]==="public"&&parts[1]==="pricing")return pricingResponse(chatId,workspaceId);
     if(parts[0]==="public"&&parts[1]==="agent")return handoffPublic(chatId,workspaceId,user);
@@ -280,6 +282,7 @@ async function handle(update:TelegramUpdate){
   const publicWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
   if(chatType==="private" && publicWorkspaceId){
     const cfg=await getTelegramChannelConfig(publicWorkspaceId);
+    if(cfg?.enabled&&cfg.publicEnabled&&cfg.allowAnonymousUsers){ await syncTelegramIdentity({workspaceId:publicWorkspaceId,user:m.from||{},chatId,event:input.startsWith("/start")?"START":"MESSAGE",startParam:input.startsWith("/start")?input.split(/\s+/,2)[1]||null:null}).catch(()=>null); }
     if(cfg?.publicEnabled&&cfg.allowAnonymousUsers){
       const session=await publicSession(publicWorkspaceId,m.from||{},chatId);
       const stateData=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
@@ -329,6 +332,7 @@ async function handle(update:TelegramUpdate){
     const [destinations]=await db.query<(RowDataPacket&{id:string;workspace_id:string;lead_id:string|null;person_id:string|null;product_id:string|null;campaign_id:string|null;partner_id:string|null;referral_code:string|null;source:string|null;medium:string|null;active:number;opt_in:number})[]>("SELECT id,workspace_id,lead_id,person_id,product_id,campaign_id,partner_id,referral_code,source,medium,active,opt_in FROM telegram_destinations WHERE chat_id=? AND type='PRIVATE' LIMIT 1",[chatId]);
     const d=destinations[0];
     if(!d||!d.active||!d.opt_in)return reply(chatId,"This Telegram chat is not connected to an Aslal client conversation yet. Use the client link provided by Aslal.");
+    await syncTelegramIdentity({workspaceId:d.workspace_id,user:m.from||{},chatId,event:"MESSAGE"}).catch(()=>null);
     return handleClientInbound(d.workspace_id,d,m,chatId);
   }
 
