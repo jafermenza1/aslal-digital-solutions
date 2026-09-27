@@ -67,7 +67,9 @@ export async function POST(request:Request){
  const resource=product?null:await prisma.resource.findFirst({where:{workspaceId,slug,active:true}});
  if(!product&&!resource)return error("This item is no longer available.",404);
  const itemName=product?.name||resource?.title||slug;
- const rawPrice=product?.startingPrice?.match(/[0-9][0-9,]*(?:\.[0-9]+)?/)?.[0]?.replace(/,/g,"")||"0";
+ const isService=Boolean(product?.kind==="SERVICE"||resource);
+ if(product&&!isService&&(!product.stockQuantity||product.stockQuantity<=0))return NextResponse.json({ok:false,error:"This product is currently out of stock.",code:"OUT_OF_STOCK",restockAvailable:true,productId:product.id,productName:product.name},{status:409});
+ const rawPrice=product?.startingPrice?.match(/[0-9][0-9,]*(?:\\.[0-9]+)?/)?.[0]?.replace(/,/g,"")||"0";
  const total=Number(rawPrice)||0;
 
 
@@ -117,14 +119,14 @@ export async function POST(request:Request){
   }
  });
 
- const customerText=`${isService?"✅ Aslal service request received":"✅ Aslal product order request received"
+ const customerText=`${isService?"✅ Aslal service request received":"🛒 Aslal product order request received"}
 
 Order: ${orderNumber}
 Item: ${itemName}
 Amount: ${total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed"}
 
 ${isService?"Your service request is saved. No payment is required at this stage. Our team will contact you here to confirm the scope, availability and next step.":"Your product order request is saved. Our team will confirm availability and the next step."}`;
- const staffText=`${isService?"🛎️ New Telegram service request":"🛒 New Telegram product order request"
+ const staffText=`${isService?"🛎️ New Telegram service request":"🛒 New Telegram product order request"}
 
 Order: ${orderNumber}
 Customer: ${name}
@@ -135,9 +137,9 @@ Lead: ${leadId||"linked"}
 Sales owner: ${ownerEmail||"Unassigned"}
 Telegram: ${telegramUsername?"@"+telegramUsername:chatId||"not available"}
 
-Action: open the Aslal dashboard and continue the sales workflow. ${isService?"This is a service request; no stock check is required and payment is NOT confirmed.":"This is a product request; stock was available when submitted and payment is NOT confirmed."}`;
+Action: open the Aslal dashboard and continue the sales workflow. ${isService?"This is a service request; no stock check is required and payment is NOT confirmed.":"This is a product request; stock was available when submitted and payment is NOT confirmed."}
 
- const notifications=await notifyOrderParties(workspaceId,ownerEmail,chatId,customerText,staffText);
+const notifications=await notifyOrderParties(workspaceId,ownerEmail,chatId,customerText,staffText);
  return NextResponse.json({ok:true,orderId,orderNumber,leadId,notifications,nextStep:isService?"Sales will confirm the service scope, availability and next step.":"Sales will confirm the product availability and next step.",message:"Order request received and saved. Please keep your order number for reference."});
  }catch(e){
   console.error("Telegram catalog order failed",e);
