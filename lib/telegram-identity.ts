@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual, randomUUID } from "node:crypto";
+import { createHmac, createHash, timingSafeEqual, randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 
 export type TelegramUser = {
@@ -82,7 +82,7 @@ export function validateTelegramLoginData(params: URLSearchParams, maxAgeSeconds
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => key + "=" + value)
     .join("\n");
-  const secretKey = createHmac("sha256", botToken()).update(Buffer.from(botToken())).digest();
+  const secretKey = createHash("sha256").update(botToken()).digest();
   const expected = createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
   if (!safeHexEqual(hash, expected)) throw new Error("Invalid Telegram login data");
   const authDate = Number(params.get("auth_date") || 0);
