@@ -43,7 +43,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  if(!data)return NextResponse.json({error:"Name, short description, type and relationship are required."},{status:400});
  const access=await authorizeWorkspacePermission("products.manage",data.workspaceId);
  if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
- const product=await prisma.product.update({where:{id},data});
+ const product=await prisma.product.update({where:{id},data,include:{workspace:{select:{id:true,name:true,slug:true}}}});
  revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
 }
