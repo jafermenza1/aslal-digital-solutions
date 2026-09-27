@@ -10,6 +10,9 @@ type UserRow = {
   active: boolean;
   permissions: string[];
   lastLoginAt: string | null;
+  telegramChatId?: string | null;
+  telegramUsername?: string | null;
+  telegramLinkedAt?: string | null;
 };
 
 const permissions = [
@@ -45,6 +48,8 @@ type Draft = {
   selected: string[];
   workspaceRole: string;
   reason: string;
+  telegramChatId: string;
+  telegramUsername: string;
 };
 
 function workspaceRoleForAccountRole(role: string) {
@@ -54,7 +59,7 @@ function workspaceRoleForAccountRole(role: string) {
 
 const emptyDraft = (workspaceId = ""): Draft => ({
   id: "", name: "", email: "", password: "", role: "SALES_OPERATOR", active: true,
-  workspaceId, workspaceRole: "SALES", selected: [...roleDefaults.SALES_OPERATOR], reason: "",
+  workspaceId, workspaceRole: "SALES", selected: [...roleDefaults.SALES_OPERATOR], reason: "", telegramChatId: "", telegramUsername: "",
 });
 
 export function UserManagement({ initial, workspaces }: { initial: UserRow[]; workspaces: WorkspaceOption[] }) {
@@ -67,7 +72,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
     setDraft({
       id: user.id, name: user.name, email: user.email, password: "",
       role: user.role, active: user.active, workspaceId: workspaces[0]?.id || "", workspaceRole: workspaceRoleForAccountRole(user.role),
-      selected: user.permissions, reason: "",
+      selected: user.permissions, reason: "", telegramChatId: user.telegramChatId || "", telegramUsername: user.telegramUsername || "",
     });
     setNotice("");
   };
@@ -93,6 +98,8 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
       reason: draft.reason.trim(),
       workspaceId: draft.workspaceId,
       workspaceRole: draft.workspaceRole,
+      telegramChatId: draft.telegramChatId.trim() || undefined,
+      telegramUsername: draft.telegramUsername.trim().replace(/^@/,"") || undefined,
     };
 
     try {
@@ -180,7 +187,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
             <option value="AUDITOR">Auditor</option>
             <option value="CLIENT">Client</option>
           </select>
-          <label className="flex items-center gap-3 text-sm font-bold text-white/70">
+          <label className="grid gap-1 text-sm font-bold text-white/70">Telegram chat ID<input value={draft.telegramChatId} onChange={event => setDraft({ ...draft, telegramChatId: event.target.value })} placeholder="Telegram user/chat ID" className="mt-2 rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" /><span className="text-xs font-normal text-white/40">Optional. Link an existing Telegram account to this user.</span></label><label className="grid gap-1 text-sm font-bold text-white/70">Telegram username<input value={draft.telegramUsername} onChange={event => setDraft({ ...draft, telegramUsername: event.target.value })} placeholder="@username" className="mt-2 rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" /></label><label className="flex items-center gap-3 text-sm font-bold text-white/70">
             <input type="checkbox" checked={draft.active} onChange={event => setDraft({ ...draft, active: event.target.checked })} />
             Active user
           </label>
@@ -232,7 +239,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
               {rows.map(user => (
                 <tr key={user.id} className="border-t border-white/5 align-top">
                   <td className="px-4 py-4"><div className="font-black">{user.name}</div><div className="text-xs text-white/40">{user.email}</div></td>
-                  <td className="px-4 py-4 text-xs font-bold">{user.role}</td>
+                  <td className="px-4 py-4 text-xs font-bold">{user.role}<div className="mt-1 text-[10px] text-white/40">{user.telegramUsername ? "@"+user.telegramUsername : user.telegramChatId ? "Telegram linked" : "Telegram not linked"}</div></td>
                   <td className="px-4 py-4"><span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-black">{user.active ? "ACTIVE" : "OFF"}</span></td>
                   <td className="max-w-[230px] px-4 py-4 text-xs text-white/50">{user.permissions.length} permissions</td>
                   <td className="px-4 py-4 text-xs text-white/45">{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString("en-ET") : "Never"}</td>
@@ -247,7 +254,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
             <article key={user.id} className="rounded-2xl border border-white/10 bg-white/[.03] p-4">
               <div className="font-black">{user.name}</div>
               <div className="text-xs text-white/40">{user.email}</div>
-              <div className="mt-3 text-xs">{user.role} · {user.active ? "ACTIVE" : "OFF"} · {user.permissions.length} permissions</div>
+              <div className="mt-3 text-xs">{user.role} · {user.active ? "ACTIVE" : "OFF"} · {user.permissions.length} permissions</div><div className="mt-1 text-xs text-white/40">{user.telegramUsername ? "@"+user.telegramUsername : user.telegramChatId ? "Telegram linked" : "Telegram not linked"}</div>
               <div className="mt-3 flex gap-2"><button type="button" onClick={() => edit(user)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold">Edit</button><button type="button" onClick={() => toggle(user)} className="rounded-lg bg-white/10 px-3 py-2 text-xs font-bold">{user.active ? "Disable" : "Enable"}</button></div>
             </article>
           ))}
