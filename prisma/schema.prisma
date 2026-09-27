@@ -608,6 +608,8 @@ model Product {
   workspaceId      String?             @map("workspace_id") @db.Char(36)
   slug             String              @unique @db.VarChar(160)
   name             String              @db.VarChar(190)
+  category         String              @default("General") @db.VarChar(100)
+  stockQuantity    Int?
   kind             ProductKind         @default(PRODUCT)
   providerName     String?             @map("provider_name") @db.VarChar(190)
   relationshipType ProductRelationship @default(OWNED) @map("relationship_type")
