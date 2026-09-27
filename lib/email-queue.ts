@@ -190,3 +190,56 @@ export async function discardEmail(id: string) {
     data: { status: EmailOutboxStatus.DISCARDED, discardedAt: new Date(), nextAttemptAt: null },
   });
 }
+
+export async function queueLeadTemplateEmail(input: {
+  leadId: string;
+  templateKey: string;
+  message?: string;
+  contactUrl?: string;
+  createdBy?: string;
+  messageType?: EmailMessageType;
+}) {
+  const lead = await prisma.lead.findUnique({
+    where: { id: input.leadId },
+    include: { person: { include: { communicationPreference: true } }, productInterests: { include: { product: true }, orderBy: { interestScore: "desc" }, take: 1 } },
+  });
+  if (!lead?.email) return { queued: false as const, skipped: "no-email" as const };
+  if (!lead.workspaceId) return { queued: false as const, skipped: "no-workspace" as const };
+  const template = await prisma.emailTemplate.findUnique({ where: { templateKey: input.templateKey } });
+  if (!template?.active) return { queued: false as const, skipped: "template-disabled" as const };
+  const messageType = input.messageType ?? (template.transactional ? EmailMessageType.TRANSACTIONAL : EmailMessageType.MARKETING);
+  const preference = lead.person?.communicationPreference;
+  if (preference?.globalOptOut) return { queued: false as const, skipped: "global-opt-out" as const };
+  if (messageType === EmailMessageType.MARKETING && !preference?.emailAllowed) return { queued: false as const, skipped: "marketing-consent-required" as const };
+  const serviceOrProduct = lead.productInterests[0]?.product.name || lead.leadCategory || "your growth request";
+  const values = {
+    name: lead.name,
+    email: lead.email,
+    companyOrType: lead.company || lead.businessType || "Business request",
+    serviceOrProduct,
+    message: input.message || lead.message || "",
+    leadId: lead.id,
+    contactUrl: input.contactUrl || "",
+    logoUrl: "",
+    location: "",
+    phone: "",
+    unsubscribeUrl: input.contactUrl || "",
+  };
+  const { renderTemplate } = await import("@/lib/email-templates");
+  const subject = renderTemplate(template.subjectTemplate, values).replace(/[\r\n]+/g, " ").trim().slice(0, 250);
+  const htmlBody = renderTemplate(template.htmlTemplate, values, true);
+  const textBody = renderTemplate(template.textTemplate, values);
+  const outbox = await queueEmail({
+    workspaceId: lead.workspaceId,
+    leadId: lead.id,
+    personId: lead.personId,
+    recipientAddress: lead.email,
+    subject,
+    htmlBody,
+    textBody,
+    templateKey: template.templateKey,
+    messageType,
+    createdBy: input.createdBy || "automation",
+  });
+  return { queued: true as const, outboxId: outbox.id };
+}
