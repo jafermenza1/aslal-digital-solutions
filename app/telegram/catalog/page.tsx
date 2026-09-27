@@ -11,19 +11,23 @@ export default function TelegramCatalogPage(){
  const [error,setError]=useState("");
  const [selected,setSelected]=useState<Item|null>(null);
  const router=useRouter();
- const [workspaceId]=useState(()=>new URLSearchParams(window.location.search).get("workspaceId")||"");
+ const [workspaceId,setWorkspaceId]=useState("");
  const [campaignId]=useState(()=>new URLSearchParams(window.location.search).get("campaignId")||"");
 
  useEffect(()=>{
-   const w=workspaceId;
-   const c=campaignId;
-   if(!w)return;
-   fetch("/api/telegram/catalog?workspaceId="+encodeURIComponent(w)+(c?"&campaignId="+encodeURIComponent(c):""))
-     .then(r=>r.ok?r.json():Promise.reject(new Error("Catalog unavailable")))
-     .then(d=>setItems({products:d.products||[],resources:d.resources||[]}))
+   const params=new URLSearchParams(window.location.search);
+   const explicitWorkspaceId=params.get("workspaceId")||"";
+   const campaign=params.get("campaignId")||"";
+   const query=explicitWorkspaceId?"?workspaceId="+encodeURIComponent(explicitWorkspaceId)+(campaign?"&campaignId="+encodeURIComponent(campaign):""):(campaign?"?campaignId="+encodeURIComponent(campaign):"");
+   fetch("/api/telegram/catalog"+query)
+     .then(r=>r.ok?r.json():r.json().then(d=>Promise.reject(new Error(d.error||"Catalog unavailable"))))
+     .then(d=>{
+       setWorkspaceId(String(d.workspaceId||""));
+       setItems({products:d.products||[],resources:d.resources||[]});
+     })
      .catch(e=>setError(e instanceof Error?e.message:"Catalog unavailable"))
      .finally(()=>setLoading(false));
- },[campaignId,workspaceId]);
+ },[]);
 
  useEffect(()=>{
    const script=document.createElement("script");
@@ -40,9 +44,9 @@ export default function TelegramCatalogPage(){
    router.push("/telegram/catalog/order?"+q.toString());
  };
 
- if(!workspaceId)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">This catalog link is missing its workspace context.</main>;
  if(loading)return <main className="min-h-screen bg-[#f7faf8] p-5 text-slate-700">Loading Aslal catalog…</main>;
  if(error)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">{error}</main>;
+ if(!workspaceId)return <main className="min-h-screen bg-[#f7faf8] p-5 text-red-700">The catalog could not resolve its workspace context.</main>;
 
  return <main className="min-h-screen bg-[#f7faf8] p-4 pb-8 text-slate-900">
   <header className="mb-5"><div className="text-xs font-black uppercase tracking-[.18em] text-[#0a5a44]">ASLAL CATALOG</div><h1 className="mt-1 text-2xl font-black">Products, services & resources</h1><p className="mt-1 text-sm text-slate-500">Explore the offer, review the details, then start an order or request.</p></header>
