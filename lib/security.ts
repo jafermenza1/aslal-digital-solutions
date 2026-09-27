@@ -13,7 +13,7 @@ function encodePayload(payload: SessionPayload) { return Buffer.from(JSON.string
 export function signSession(email: string) {
   const payload = encodePayload({ email, issuedAt: Date.now() });
   const signature = createHmac("sha256", getSessionSecret()).update(payload).digest("hex");
-  return `\${payload}.\${signature}`;
+  return `${payload}.${signature}`;
 }
 export function verifySession(value: string | undefined) {
   if (!value) return null;
