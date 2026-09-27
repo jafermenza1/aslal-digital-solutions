@@ -6,7 +6,8 @@ import {getTelegramChannelConfig} from "@/lib/telegram-channel-config";
 export const dynamic="force-dynamic";
 
 function clean(v:unknown,max:number){return typeof v==="string"?v.trim().slice(0,max):"";}
-function normalizePhone(value:string){const raw=value.trim().replace(/[\s().-]/g,"");if(/^0\d{8,14}$/.test(raw))return "+251"+raw.slice(1);if(/^251\d{8,14}$/.test(raw))return "+"+raw;if(/^\+\d{8,15}$/.test(raw))return raw;return null;}\nfunction validName(value:string){return value.length>=2&&value.length<=160&&/\p{L}/u.test(value)&&!/[\d<>]/.test(value);}
+function normalizePhone(value:string){const raw=value.trim().replace(/[\s().-]/g,"");if(/^0\d{8,14}$/.test(raw))return "+251"+raw.slice(1);if(/^251\d{8,14}$/.test(raw))return "+"+raw;if(/^\+\d{8,15}$/.test(raw))return raw;return null;}
+function validName(value:string){return value.length>=2&&value.length<=160&&/\p{L}/u.test(value)&&!/[\d<>]/.test(value);}
 function error(message:string,status=400){return NextResponse.json({ok:false,error:message},{status});}
 
 async function telegramSend(chatId:string,text:string){
@@ -98,12 +99,12 @@ export async function POST(request:Request){
    lead=await tx.lead.create({data:{id:leadId,workspaceId,personId,name,phone,status:"NEW",source:"telegram",medium:"telegram",campaign:effectiveCampaignId,ownerEmail,telegramUsername:telegramUsername||null,telegramChatId:chatId||null,message:"Telegram catalog order. Telegram username: "+(telegramUsername?"@"+telegramUsername:"not provided")+"; Telegram chat ID: "+(chatId||"not provided"),leadCategory:"TELEGRAM_CATALOG_ORDER",captureMode:"MANUAL"}});
   }else{
    leadId=lead.id;
-   if(ownerEmail&&lead.ownerEmail!==ownerEmail)lead=await tx.lead.update({where:{id:lead.id},data:{ownerEmail}});\n   await tx.lead.update({where:{id:lead.id},data:{telegramUsername:telegramUsername||lead.telegramUsername,telegramChatId:chatId||lead.telegramChatId,message:"Telegram catalog order. Telegram username: "+(telegramUsername?"@"+telegramUsername:"not provided")+"; Telegram chat ID: "+(chatId||"not provided")}});
+   if(ownerEmail&&lead.ownerEmail!==ownerEmail)lead=await tx.lead.update({where:{id:lead.id},data:{ownerEmail}});
+   await tx.lead.update({where:{id:lead.id},data:{telegramUsername:telegramUsername||lead.telegramUsername,telegramChatId:chatId||lead.telegramChatId,message:"Telegram catalog order. Telegram username: "+(telegramUsername?"@"+telegramUsername:"not provided")+"; Telegram chat ID: "+(chatId||"not provided")}});
   }
   if(product)await tx.leadProductInterest.upsert({where:{leadId_productId:{leadId:lead.id,productId:product.id}},create:{id:randomUUID(),leadId:lead.id,productId:product.id,source:"telegram",interestScore:1},update:{interestScore:{increment:1}}});
 
   orderId=randomUUID();
-  paymentId=randomUUID();
   orderNumber="ASL-TG-"+Date.now().toString(36).toUpperCase();
   await tx.order.create({data:{id:orderId,workspaceId,orderNumber,status:"DRAFT",currency:"ETB",subtotal:total,total,paymentState:"PENDING",source:"telegram",campaign:effectiveCampaignId,referralCode:referral?.code||null,partnerId:referral?.partnerId||destination?.partnerId||null,referralLinkId:referral?.id||null,salesOwnerEmail:ownerEmail,customerId:customer.id,items:{create:{id:randomUUID(),description:itemName,quantity:1,unitPrice:total,lineTotal:total}}}});
   if(chatId){
@@ -115,8 +116,25 @@ export async function POST(request:Request){
   }
  });
 
- const customerText="✅ Aslal order request received\n\nOrder: "+orderNumber+"\nItem: "+itemName+"\nAmount: "+(total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed")+"\n\nYour order request is saved. No payment is required at this stage. Our team will contact you here to confirm the details and next step.";
- const staffText="🛒 New Telegram catalog order\n\nOrder: "+orderNumber+"\nCustomer: "+name+"\nPhone: "+phone+"\nItem: "+itemName+"\nAmount: "+(total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed")+"\nLead: "+(leadId||"linked")+"\nSales owner: "+(ownerEmail||"Unassigned")+"\nTelegram: "+(telegramUsername?"@"+telegramUsername:chatId||"not available")+"\n\nAction: open the Aslal dashboard and continue the sales/payment workflow. Payment is NOT confirmed.";
+ const customerText="✅ Aslal order request received
+
+Order: "+orderNumber+"
+Item: "+itemName+"
+Amount: "+(total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed")+"
+
+Your order request is saved. No payment is required at this stage. Our team will contact you here to confirm the details and next step.";
+ const staffText="🛒 New Telegram catalog order
+
+Order: "+orderNumber+"
+Customer: "+name+"
+Phone: "+phone+"
+Item: "+itemName+"
+Amount: "+(total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed")+"
+Lead: "+(leadId||"linked")+"
+Sales owner: "+(ownerEmail||"Unassigned")+"
+Telegram: "+(telegramUsername?"@"+telegramUsername:chatId||"not available")+"
+
+Action: open the Aslal dashboard and continue the sales/payment workflow. Payment is NOT confirmed.";
 
  const notifications=await notifyOrderParties(workspaceId,ownerEmail,chatId,customerText,staffText);
  return NextResponse.json({ok:true,orderId,orderNumber,paymentId,leadId,notifications,nextStep:"Your order request is saved. Sales will confirm the details and price, then guide you to the appropriate next step.",message:"Order request received and saved. Please keep your order number for reference."});
