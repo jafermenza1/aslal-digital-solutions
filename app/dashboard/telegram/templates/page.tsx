@@ -1,0 +1,7 @@
+import Link from "next/link";
+import {authorizeWorkspacePermission} from "@/lib/workspaces";
+import {prisma} from "@/lib/prisma";
+import {ensureCoreTelegramTemplates} from "@/lib/telegram-templates";
+import {TelegramTemplateManager} from "@/components/TelegramTemplateManager";
+export const dynamic="force-dynamic";
+export default async function TelegramTemplatesPage({searchParams}:{searchParams:Promise<{workspaceId?:string}>}){const {workspaceId}=await searchParams;const access=await authorizeWorkspacePermission("telegram.view",workspaceId);if(!access)return null;await ensureCoreTelegramTemplates(access.workspace.id);const templates=await prisma.telegramTemplate.findMany({where:{workspaceId:access.workspace.id},orderBy:{name:"asc"}});return <main className="theme-panel-page min-h-screen py-8"><div className="mx-auto max-w-[1400px] px-4 sm:px-7"><header className="flex items-end justify-between gap-4"><div><div className="dashboard-kicker">Telegram / Templates</div><h1 className="mt-2 text-3xl font-black">Contextual Telegram templates</h1><p className="mt-2 max-w-3xl text-sm leading-6 opacity-65">Templates support text, media, inline keyboards, Mini App CTAs, partner workflows, catalog actions and business-account messaging.</p></div><Link href="/dashboard/telegram/automation" className="rounded-xl bg-[#0F3E8A] px-4 py-3 text-sm font-black text-white">Open automation →</Link></header><div className="mt-7"><TelegramTemplateManager initial={templates.map(t=>({...t,replyMarkup:t.replyMarkup??null}))}/></div></div></main>};
