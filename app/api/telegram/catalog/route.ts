@@ -36,7 +36,7 @@ export async function GET(request:Request) {
   const cfgByWorkspace=new Map(selectedConfigs.map(c=>[c.workspaceId,c]));
   const visibleProducts=products.filter(p=>cfgByWorkspace.get(p.workspaceId)?.showProducts);
   const visibleResources=resources.filter(r=>cfgByWorkspace.get(r.workspaceId)?.showResources);
-  const workspaces=activeWorkspaces.filter(w=>selectedWorkspaceIds.includes(w.id));
+  const workspaces=activeWorkspaces.filter(w=>publicWorkspaceIds.has(w.id));
   return NextResponse.json({
     workspaceId:requestedWorkspaceId||null,
     campaignId:campaignId||null,
