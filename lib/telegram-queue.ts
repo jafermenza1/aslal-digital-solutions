@@ -94,7 +94,7 @@ export async function processTelegramQueue(limit=25){
 export async function retryTelegram(id:string){
  const row=await prisma.telegramOutbox.findUnique({where:{id},select:{status:true}});
  if(!row)throw new Error("Telegram message not found.");
- if(![TelegramOutboxStatus.FAILED,TelegramOutboxStatus.DRAFT].includes(row.status))throw new Error("Only failed or draft Telegram messages can be sent.");
+ if(row.status!==TelegramOutboxStatus.FAILED&&row.status!==TelegramOutboxStatus.DRAFT)throw new Error("Only failed or draft Telegram messages can be sent.");
  await prisma.telegramOutbox.update({where:{id},data:{status:TelegramOutboxStatus.QUEUED,attemptCount:0,nextAttemptAt:new Date(),failureReason:null}});
  return dispatchTelegram(id);
 }
