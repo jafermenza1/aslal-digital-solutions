@@ -17,11 +17,14 @@ function permissionOverrides(value: unknown) {
   return { grant: clean(data.grant), revoke: clean(data.revoke) };
 }
 
-function present(user: { id:string; email:string; name:string; role:UserRole; active:boolean; permissions:unknown; lastLoginAt:Date|null }) {
+function present(user: { id:string; email:string; name:string; role:UserRole; active:boolean; permissions:unknown; lastLoginAt:Date|null; telegramChatId?:string|null; telegramUsername?:string|null; telegramLinkedAt?:Date|null }) {
   return {
     ...user,
     permissions: resolvePermissions(user.role, user.permissions).sort(),
     lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+    telegramChatId: user.telegramChatId ?? null,
+    telegramUsername: user.telegramUsername ?? null,
+    telegramLinkedAt: user.telegramLinkedAt?.toISOString() ?? null,
   };
 }
 
@@ -35,7 +38,7 @@ export async function GET() {
   const users = await prisma.user.findMany({
     where: workspace ? { workspaceUsers: { some: { workspaceId: workspace.id } } } : undefined,
     orderBy: [{ active: "desc" }, { name: "asc" }],
-    select: { id:true, email:true, name:true, role:true, active:true, permissions:true, lastLoginAt:true },
+    select: { id:true, email:true, name:true, role:true, active:true, permissions:true, lastLoginAt:true, telegramChatId:true, telegramUsername:true, telegramLinkedAt:true },
   });
   return NextResponse.json({ users: users.map(present) });
 }
