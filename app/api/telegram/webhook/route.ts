@@ -215,6 +215,7 @@ async function createPrivateLead(workspaceId:string,d: {id:string;lead_id:string
   if(d.lead_id)return d.lead_id;
   const from: TelegramUser = m.from ?? {id: m.chat?.id ?? ""};
   const name=[from.first_name,from.last_name].filter(Boolean).join(" ")||from.username||"Telegram contact";
+  const phone=clean(m.contact?.phone_number);
   const personId=crypto.randomUUID();
   const leadId=crypto.randomUUID();
   const [ownerRows]=await db.query<(RowDataPacket&{email:string})[]>("SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN'),u.last_login_at DESC LIMIT 1",[workspaceId]);
@@ -302,7 +303,7 @@ async function handle(update:TelegramUpdate){
   }
 
   const publicWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
-  if(chatType==="private" && publicWorkspaceId && m.contact?.phone_number){
+  if(chatType==="private" && publicWorkspaceId && m.contact?.phone_number && (!m.contact.user_id || String(m.contact.user_id)===String(m.from?.id||""))){
     const contactUserId=String(m.contact.user_id||m.from?.id||chatId);
     const contactPhone=clean(m.contact.phone_number);
     const cfg=await getTelegramChannelConfig(publicWorkspaceId);
