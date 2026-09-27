@@ -1724,7 +1724,7 @@ model PartnerPayoutItem {
 model TelegramTemplate {
   id String @id @db.Char(36)
   workspaceId String @map("workspace_id") @db.Char(36)
-  templateKey String @unique @map("template_key") @db.VarChar(120)
+  templateKey String @map("template_key") @db.VarChar(120)
   name String @db.VarChar(190)
   messageType TelegramMessageType @default(TRANSACTIONAL) @map("message_type")
   contentTemplate String @map("content_template") @db.Text
