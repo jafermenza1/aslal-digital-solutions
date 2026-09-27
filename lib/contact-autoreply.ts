@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "node:crypto";
 import { siteConfig } from "@/lib/config";
-import { sendEmail } from "@/lib/email";
 import { ensureContactTemplate, renderTemplate } from "@/lib/email-templates";
+import { dispatchEmail, queueEmail } from "@/lib/email-queue";
 
 export async function sendContactAutoReply(leadId: string) {
   const lead = await prisma.lead.findUnique({
@@ -10,10 +10,8 @@ export async function sendContactAutoReply(leadId: string) {
     include: { person: { include: { communicationPreference: true } }, productInterests: { include: { product: true }, orderBy: { interestScore: "desc" }, take: 1 } },
   });
   if (!lead?.email) return { sent:false, skipped:"no-email" };
-  // This is a transactional acknowledgement, not marketing. A supplied email is enough to send it; only an explicit global opt-out blocks delivery.
-  if (lead.person?.communicationPreference?.globalOptOut) {
-    return { sent:false, skipped:"global-opt-out" };
-  }
+  if (lead.person?.communicationPreference?.globalOptOut) return { sent:false, skipped:"global-opt-out" };
+  if (!lead.workspaceId) return { sent:false, skipped:"no-workspace" };
 
   const template = await ensureContactTemplate();
   if (!template.active || !template.transactional) return { sent:false, skipped:"template-disabled" };
@@ -30,15 +28,17 @@ export async function sendContactAutoReply(leadId: string) {
     logoUrl: `${siteConfig.url}/brand-logo.svg`,
     location: siteConfig.location,
     phone: siteConfig.phone,
+    unsubscribeUrl: `${siteConfig.url}/contact`,
   };
   const subject = renderTemplate(template.subjectTemplate, values).replace(/[\r\n]+/g," ").trim().slice(0,250);
   const html = renderTemplate(template.htmlTemplate, values, true);
   const text = renderTemplate(template.textTemplate, values);
+
   const conversation = await prisma.conversation.findFirst({
     where: { channel:"EMAIL", leadId:lead.id, status:{not:"CLOSED"} },
     orderBy:{updatedAt:"desc"},
   }) || await prisma.conversation.create({
-    data:{id:randomUUID(),workspaceId:lead.workspaceId || "00000000-0000-0000-0000-000000000001",channel:"EMAIL",status:"OPEN",personId:lead.personId,leadId:lead.id,externalThreadId:`contact:${lead.id}`},
+    data:{id:randomUUID(),workspaceId:lead.workspaceId,channel:"EMAIL",status:"OPEN",personId:lead.personId,leadId:lead.id,externalThreadId:`contact:${lead.id}`},
   });
 
   const message = await prisma.message.create({
@@ -47,21 +47,34 @@ export async function sendContactAutoReply(leadId: string) {
       recipientAddress:lead.email,body:text,metadata:{source:"contact-autoreply",templateKey:template.templateKey,html},
     },
   });
-  try {
-    const result=await sendEmail({recipient:lead.email,body:text,html,subject});
-    const providerMessageId=typeof result.messageId==="string"?result.messageId:null;
-    if(!result.accepted?.length){throw new Error(result.rejected?.join(", ")||"SMTP did not accept the transactional email.");}
+
+  const outbox = await queueEmail({
+    workspaceId: lead.workspaceId,
+    leadId: lead.id,
+    personId: lead.personId,
+    messageId: message.id,
+    recipientAddress: lead.email,
+    subject,
+    htmlBody: html,
+    textBody: text,
+    templateKey: template.templateKey,
+    messageType: "TRANSACTIONAL",
+    createdBy: "system:contact-autoreply",
+  });
+
+  const result = await dispatchEmail(outbox.id);
+  if (result.status === "SENT") {
     await prisma.$transaction([
-      prisma.message.update({where:{id:message.id},data:{status:"SENT",sentAt:new Date(),externalMessageId:providerMessageId,metadata:{source:"contact-autoreply",templateKey:template.templateKey,html,providerMessageId}}}),
+      prisma.message.update({where:{id:message.id},data:{status:"SENT",sentAt:new Date(),externalMessageId:result.providerMessageId,metadata:{source:"contact-autoreply",templateKey:template.templateKey,html,emailOutboxId:outbox.id,providerMessageId:result.providerMessageId}}}),
       prisma.conversation.update({where:{id:conversation.id},data:{lastMessageAt:new Date()}}),
-      prisma.activity.create({data:{type:"MESSAGE_OUTBOUND",subject:"EMAIL contact request auto-reply",details:{messageId:message.id,leadId:lead.id,templateKey:template.templateKey},personId:lead.personId,opportunityId:null,customerId:null}}),
+      prisma.activity.create({data:{type:"MESSAGE_OUTBOUND",subject:"EMAIL contact request auto-reply",details:{messageId:message.id,emailOutboxId:outbox.id,leadId:lead.id,templateKey:template.templateKey},personId:lead.personId,opportunityId:null,customerId:null}}),
     ]);
-    return {sent:true,messageId:message.id};
-  } catch (error) {
-    await prisma.$transaction([
-      prisma.message.update({where:{id:message.id},data:{status:"FAILED",metadata:{source:"contact-autoreply",templateKey:template.templateKey,error:error instanceof Error?error.message:"Provider error"}}}),
-      prisma.activity.create({data:{type:"MESSAGE_OUTBOUND_FAILED",subject:"EMAIL contact request auto-reply failed",details:{messageId:message.id,leadId:lead.id},personId:lead.personId,opportunityId:null,customerId:null}}),
-    ]);
-    return {sent:false,skipped:"provider-error"};
+    return {sent:true,messageId:message.id,emailOutboxId:outbox.id};
   }
+
+  await prisma.$transaction([
+    prisma.message.update({where:{id:message.id},data:{status:"FAILED",metadata:{source:"contact-autoreply",templateKey:template.templateKey,emailOutboxId:outbox.id,failureReason:result.status==="FAILED"?"Provider error":"Email dispatch skipped"}}}),
+    prisma.activity.create({data:{type:"MESSAGE_OUTBOUND_FAILED",subject:"EMAIL contact request auto-reply requires review",details:{messageId:message.id,emailOutboxId:outbox.id,leadId:lead.id,templateKey:template.templateKey,queueStatus:result.status},personId:lead.personId,opportunityId:null,customerId:null}}),
+  ]);
+  return {sent:false,skipped:"provider-error",emailOutboxId:outbox.id};
 }
