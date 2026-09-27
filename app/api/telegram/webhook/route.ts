@@ -59,7 +59,8 @@ async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const loginEnabled=String(process.env.TELEGRAM_LOGIN_ENABLED||"").toLowerCase()==="true";
   const rows:any[]=[...(hasContext?[[{text:"↩️ Continue conversation",callback_data:"public:continue:"+workspaceId}]]:[]),[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"🎯 Qualify me",callback_data:"public:qualify:"+workspaceId}],[{text:"💰 Pricing",callback_data:"public:pricing:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]];
   if(loginEnabled) rows.push([{text:"🔐 Log in with Telegram",login_url:{url:site+"/api/auth/telegram/callback?workspaceId="+encodeURIComponent(workspaceId),request_write_access:true}}]);
-  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText,reply_markup:{inline_keyboard:rows}});\n  return tg("sendMessage",{chat_id:chatId,text:"When you are ready for a reachable sales handoff, share your phone number with Aslal.",reply_markup:{keyboard:[[{text:"📱 Share phone number",request_contact:true}]],resize_keyboard:true,one_time_keyboard:true}});
+  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText,reply_markup:{inline_keyboard:rows}});
+  return tg("sendMessage",{chat_id:chatId,text:"When you are ready for a reachable sales handoff, share your phone number with Aslal.",reply_markup:{keyboard:[[{text:"📱 Share phone number",request_contact:true}]],resize_keyboard:true,one_time_keyboard:true}});
 }
 async function continuePublic(chatId:string,workspaceId:string,user:any){
   const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId:String(user?.id||chatId)}}});
