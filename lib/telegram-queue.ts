@@ -41,7 +41,7 @@ async function sendOutbox(row:any){
 export async function queueTelegram(input:{
  workspaceId:string; chatId:string; content:string; messageType?:TelegramMessageType; sendMode?:TelegramSendMode;
  businessConnectionId?:string|null; messageThreadId?:number|null; mediaType?:string|null; mediaUrl?:string|null;
- replyMarkup?:unknown; leadId?:string|null; personId?:string|null; customerId?:string|null; opportunityId?:string|null;
+ replyMarkup?:unknown; metadata?:unknown; leadId?:string|null; personId?:string|null; customerId?:string|null; opportunityId?:string|null;
  conversationId?:string|null; messageId?:string|null; templateKey?:string|null; createdBy?:string|null; nextAttemptAt?:Date|null;
 }){
  if(!input.chatId.trim())throw new Error("Telegram chat ID is required.");
@@ -49,7 +49,7 @@ export async function queueTelegram(input:{
  return prisma.telegramOutbox.create({data:{
   id:randomUUID(),workspaceId:input.workspaceId,chatId:input.chatId.trim(),content:input.content||"",messageType:input.messageType??TelegramMessageType.TRANSACTIONAL,
   sendMode:input.sendMode??TelegramSendMode.BOT,businessConnectionId:input.businessConnectionId??null,messageThreadId:input.messageThreadId??null,
-  mediaType:input.mediaType??null,mediaUrl:input.mediaUrl??null,replyMarkup:json(input.replyMarkup),originalContent:input.content||"",
+  mediaType:input.mediaType??null,mediaUrl:input.mediaUrl??null,replyMarkup:json(input.replyMarkup),metadata:json(input.metadata),originalContent:input.content||"",
   originalReplyMarkup:json(input.replyMarkup),leadId:input.leadId??null,personId:input.personId??null,customerId:input.customerId??null,
   opportunityId:input.opportunityId??null,conversationId:input.conversationId??null,messageId:input.messageId??null,templateKey:input.templateKey??null,
   createdBy:input.createdBy??"system",nextAttemptAt:input.nextAttemptAt??new Date()
