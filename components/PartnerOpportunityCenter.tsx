@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useCallback,useState } from "react";
+import { useCallback,useEffect,useState } from "react";
 type Campaign={id:string;name:string;description:string|null;status:string;target_description:string|null;location:string|null;product_name:string|null;partner_budget:number|string;currency:string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;application_status:string|null;referral_code:string|null};
 type Dispute={id:string;subject:string;description:string;status:string;resolution:string|null;created_at:string};
 type Payout={id:string;amount:number|string;currency:string;status:string;reference:string|null;created_at:string;paid_at:string|null};
@@ -12,7 +12,7 @@ export default function PartnerOpportunityCenter(){
  const [profile,setProfile]=useState({bio:"",specialties:"",serviceAreas:"",audienceSize:""}),[message,setMessage]=useState(""),[busy,setBusy]=useState(""),[telegramLink,setTelegramLink]=useState("");
  const [portalTab,setPortalTab]=useState<"profile"|"opportunities"|"earnings"|"activity">("profile");\n const [loaded,setLoaded]=useState(false);
  const load=useCallback(async()=>{
-  try{const [a,b,p]=await Promise.all([fetch("/api/partner/opportunities"),fetch("/api/partner/payouts"),fetch("/api/partner/profile")]);const x=await a.json(),y=await b.json(),z=await p.json();if(!a.ok)throw new Error(x.error||"Could not load opportunities.");if(!b.ok)throw new Error(y.error||"Could not load earnings.");setCampaigns(x.campaigns||[]);setPayouts(y.payouts||[]);setCommissions(y.commissions||[]);if(p.ok&&z.partner)setProfile({bio:z.partner.bio||"",specialties:z.partner.specialties||"",serviceAreas:z.partner.service_areas||"",audienceSize:z.partner.audience_size?String(z.partner.audience_size):""});setLoaded(true)}catch(e){setMessage(e instanceof Error?e.message:"Could not load partner workspace.")}
+  try{const [a,b,p]=await Promise.all([fetch("/api/partner/opportunities"),fetch("/api/partner/payouts"),fetch("/api/partner/profile")]);const x=await a.json(),y=await b.json(),z=await p.json();if(!a.ok)throw new Error(x.error||"Could not load opportunities.");if(!b.ok)throw new Error(y.error||"Could not load earnings.");setCampaigns(x.campaigns||[]);setPayouts(y.payouts||[]);setCommissions(y.commissions||[]);if(p.ok&&z.partner)setProfile({bio:z.partner.bio||"",specialties:z.partner.specialties||"",serviceAreas:z.partner.service_areas||"",audienceSize:z.partner.audience_size?String(z.partner.audience_size):""});}catch(e){setMessage(e instanceof Error?e.message:"Could not load partner workspace.")}
   try{const r=await fetch("/api/partner/disputes");const d=await r.json();if(r.ok)setDisputes(d.disputes||[])}catch{}
  },[]);
  useEffect(()=>{void load()},[load]);
