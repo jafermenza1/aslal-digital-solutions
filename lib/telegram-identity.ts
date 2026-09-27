@@ -130,7 +130,7 @@ export async function syncTelegramIdentity(input: SyncInput) {
   }
 
   const [staff, partner, leadByChat, leadByUsername] = await Promise.all([
-    prisma.user.findFirst({ where: { telegramChatId: chatId, active: true }, select: { id: true } }),
+    prisma.user.findFirst({ where: { telegramChatId: chatId, active: true, workspaceUsers: { some: { workspaceId: input.workspaceId } } }, select: { id: true } }),
     prisma.partner.findFirst({ where: { workspaceId: input.workspaceId, telegramChatId: chatId }, select: { id: true } }),
     prisma.lead.findFirst({ where: { workspaceId: input.workspaceId, telegramChatId: chatId }, orderBy: { updatedAt: "desc" }, select: { id: true, personId: true } }),
     user.username ? prisma.lead.findFirst({ where: { workspaceId: input.workspaceId, telegramUsername: user.username }, orderBy: { updatedAt: "desc" }, select: { id: true, personId: true } }) : null,
