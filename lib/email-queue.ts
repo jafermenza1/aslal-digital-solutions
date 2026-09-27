@@ -200,6 +200,7 @@ export async function queueLeadTemplateEmail(input: {
   contactUrl?: string;
   createdBy?: string;
   messageType?: EmailMessageType;
+  delayMinutes?: number;
 }) {
   const lead = await prisma.lead.findUnique({
     where: { id: input.leadId },
@@ -242,6 +243,7 @@ export async function queueLeadTemplateEmail(input: {
     templateKey: template.templateKey,
     messageType,
     createdBy: input.createdBy || "automation",
+    nextAttemptAt: input.delayMinutes && input.delayMinutes > 0 ? new Date(Date.now() + Math.min(7 * 24 * 60, input.delayMinutes) * 60_000) : new Date(),
   });
   return { queued: true as const, outboxId: outbox.id };
 }
