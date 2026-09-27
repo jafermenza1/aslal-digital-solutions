@@ -293,3 +293,40 @@ html[data-theme="light"] .dashboard-content,
 html[data-theme="dark"] .dashboard-content{
   color:var(--app-text);
 }
+
+
+/* Public-site Aslal contrast and interaction contract: never place dark text on brand-blue controls; interactive blue controls use gold hover. */
+.site-shell a[class*="bg-[#0F3E8A]"],
+.site-shell button[class*="bg-[#0F3E8A]"],
+.site-shell a[class*="bg-[#071F47]"],
+.site-shell button[class*="bg-[#071F47]"]{
+  color:#fff!important;
+}
+.site-shell a[class*="bg-[#0F3E8A]"]:hover,
+.site-shell button[class*="bg-[#0F3E8A]"]:hover{
+  background:#E2B02A!important;
+  color:#071F47!important;
+}
+.site-shell a[class*="bg-[#071F47]"]:hover,
+.site-shell button[class*="bg-[#071F47]"]:hover{
+  background:#E2B02A!important;
+  color:#071F47!important;
+}
+.site-shell a[class*="bg-[#E2B02A]"],
+.site-shell button[class*="bg-[#E2B02A]"]{
+  color:#071F47!important;
+}
+.site-shell a[class*="bg-[#E2B02A]"]:hover,
+.site-shell button[class*="bg-[#E2B02A]"]:hover{
+  background:#0F3E8A!important;
+  color:#fff!important;
+}
+.site-shell a[class*="bg-[#0F3E8A]"] svg,
+.site-shell button[class*="bg-[#0F3E8A]"] svg,
+.site-shell a[class*="bg-[#071F47]"] svg,
+.site-shell button[class*="bg-[#071F47]"] svg,
+.site-shell a[class*="bg-[#E2B02A]"] svg,
+.site-shell button[class*="bg-[#E2B02A]"] svg{
+  color:currentColor!important;
+  stroke:currentColor!important;
+}
