@@ -76,7 +76,7 @@ export async function POST(request:Request){
  const itemName=product?.name||resource?.title||slug;
  const isService=Boolean(product?.kind==="SERVICE"||resource);
  if(product&&!isService&&product.stockQuantity===null)return NextResponse.json({ok:false,error:"This product is not currently orderable because its stock number has not been configured. Please contact Aslal sales.",code:"STOCK_NOT_CONFIGURED",restockAvailable:false,productId:product.id,productName:product.name},{status:409});
- if(product&&!isService&&product.stockQuantity<=0)return NextResponse.json({ok:false,error:"This product is currently out of stock.",code:"OUT_OF_STOCK",restockAvailable:true,productId:product.id,productName:product.name},{status:409});
+ if(product&&!isService&&(product.stockQuantity??0)<=0)return NextResponse.json({ok:false,error:"This product is currently out of stock.",code:"OUT_OF_STOCK",restockAvailable:true,productId:product.id,productName:product.name},{status:409});
  const rawPrice=product?.startingPrice?.match(/[0-9][0-9,]*(?:\\.[0-9]+)?/)?.[0]?.replace(/,/g,"")||"0";
  const total=Number(rawPrice)||0;
 
