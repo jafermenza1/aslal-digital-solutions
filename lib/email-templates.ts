@@ -85,5 +85,5 @@ export function renderTemplate(template: string, values: Record<string,string>, 
 }
 
 export function templateVariables() {
-  return ["name","email","companyOrType","serviceOrProduct","message","leadId","contactUrl","logoUrl","location","phone","email"];
+  return ["name","email","companyOrType","serviceOrProduct","message","leadId","contactUrl","logoUrl","location","phone","unsubscribeUrl"];
 }
