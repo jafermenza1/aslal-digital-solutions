@@ -26,6 +26,8 @@ function bodyFor(row:any){
 async function sendOutbox(row:any){
  const base=bodyFor(row);
  const markup=row.replyMarkup?json(row.replyMarkup):undefined;
+ if(row.mediaType==="POLL"){const meta=(row.metadata||{}) as any;return tg("sendPoll",{...base,question:String(meta.question||row.content).slice(0,300),options:Array.isArray(meta.options)?meta.options.slice(0,10).map((x:any)=>({text:String(x).slice(0,100)})):[],is_anonymous:meta.isAnonymous!==false,allows_multiple_answers:meta.allowsMultiple===true,reply_markup:markup});}
+ if(row.mediaType==="MEDIA_GROUP"){const items=(row.metadata as any)?.media;return tg("sendMediaGroup",{...base,media:Array.isArray(items)?items:[]});}
  if(row.mediaType==="PHOTO") return tg("sendPhoto",{...base,photo:row.mediaUrl,caption:row.content,parse_mode:"HTML",reply_markup:markup});
  if(row.mediaType==="VIDEO") return tg("sendVideo",{...base,video:row.mediaUrl,caption:row.content,parse_mode:"HTML",reply_markup:markup});
  if(row.mediaType==="DOCUMENT") return tg("sendDocument",{...base,document:row.mediaUrl,caption:row.content,parse_mode:"HTML",reply_markup:markup});
