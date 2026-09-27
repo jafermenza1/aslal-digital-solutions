@@ -1,0 +1,192 @@
+import { prisma, EmailMessageType, EmailOutboxStatus, EmailAttemptStatus, EmailEventType } from "@/lib/prisma";
+import { randomUUID } from "node:crypto";
+import { sendEmail } from "@/lib/email";
+
+const RETRY_MINUTES = [5, 30, 120, 720, 1440];
+
+function json(value: unknown) {
+  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
+function retryAt(attempt: number) {
+  const minutes = RETRY_MINUTES[Math.min(Math.max(attempt - 1, 0), RETRY_MINUTES.length - 1)];
+  return new Date(Date.now() + minutes * 60_000);
+}
+
+export type QueueEmailInput = {
+  workspaceId: string;
+  recipientAddress: string;
+  subject: string;
+  htmlBody: string;
+  textBody: string;
+  messageType?: EmailMessageType;
+  templateKey?: string | null;
+  leadId?: string | null;
+  personId?: string | null;
+  customerId?: string | null;
+  opportunityId?: string | null;
+  messageId?: string | null;
+  senderAddress?: string | null;
+  replyToAddress?: string | null;
+  createdBy?: string | null;
+  nextAttemptAt?: Date | null;
+};
+
+export async function queueEmail(input: QueueEmailInput) {
+  const id = randomUUID();
+  const messageType = input.messageType ?? EmailMessageType.TRANSACTIONAL;
+  if (!input.recipientAddress.trim()) throw new Error("Email recipient is required.");
+  const row = await prisma.emailOutbox.create({
+    data: {
+      id,
+      workspaceId: input.workspaceId,
+      leadId: input.leadId ?? null,
+      personId: input.personId ?? null,
+      customerId: input.customerId ?? null,
+      opportunityId: input.opportunityId ?? null,
+      messageId: input.messageId ?? null,
+      status: EmailOutboxStatus.QUEUED,
+      messageType,
+      templateKey: input.templateKey ?? null,
+      recipientAddress: input.recipientAddress.trim().toLowerCase(),
+      senderAddress: input.senderAddress ?? null,
+      replyToAddress: input.replyToAddress ?? null,
+      subject: input.subject.replace(/[\r\n]+/g, " ").trim().slice(0, 250),
+      htmlBody: input.htmlBody,
+      textBody: input.textBody,
+      originalSubject: input.subject.replace(/[\r\n]+/g, " ").trim().slice(0, 250),
+      originalHtmlBody: input.htmlBody,
+      originalTextBody: input.textBody,
+      createdBy: input.createdBy ?? "system",
+      nextAttemptAt: input.nextAttemptAt ?? new Date(),
+    },
+  });
+  return row;
+}
+
+export async function recordEmailEvent(outboxId: string, eventType: EmailEventType, metadata?: unknown, providerEventId?: string | null) {
+  return prisma.emailEvent.create({
+    data: {
+      id: randomUUID(),
+      outboxId,
+      eventType,
+      providerEventId: providerEventId ?? null,
+      metadata: json(metadata),
+    },
+  });
+}
+
+async function claim(id: string) {
+  const result = await prisma.emailOutbox.updateMany({
+    where: {
+      id,
+      status: { in: [EmailOutboxStatus.QUEUED, EmailOutboxStatus.FAILED] },
+      OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: new Date() } }],
+    },
+    data: { status: EmailOutboxStatus.SENDING, lastAttemptAt: new Date() },
+  });
+  return result.count === 1;
+}
+
+export async function dispatchEmail(id: string) {
+  if (!(await claim(id))) return { status: "SKIPPED" as const };
+  const row = await prisma.emailOutbox.findUnique({ where: { id } });
+  if (!row) return { status: "MISSING" as const };
+
+  const attemptNumber = row.attemptCount + 1;
+  try {
+    const result = await sendEmail({
+      recipient: row.recipientAddress,
+      body: row.textBody,
+      html: row.htmlBody,
+      subject: row.subject,
+      inReplyTo: null,
+      references: [],
+    });
+    if (!result.accepted?.length) throw new Error(result.rejected?.join(", ") || "SMTP did not accept the message.");
+    const providerMessageId = typeof result.messageId === "string" ? result.messageId : null;
+    await prisma.$transaction([
+      prisma.emailDeliveryAttempt.create({
+        data: {
+          id: randomUUID(),
+          outboxId: row.id,
+          attemptNumber,
+          status: EmailAttemptStatus.SENT,
+          provider: result.provider,
+          providerMessageId,
+          response: json({ accepted: result.accepted, rejected: result.rejected, response: result.response }),
+        },
+      }),
+      prisma.emailOutbox.update({
+        where: { id: row.id },
+        data: {
+          status: EmailOutboxStatus.SENT,
+          attemptCount: attemptNumber,
+          provider: result.provider,
+          providerMessageId,
+          providerResponse: json({ accepted: result.accepted, rejected: result.rejected, response: result.response }),
+          failureReason: null,
+          nextAttemptAt: null,
+          sentAt: new Date(),
+        },
+      }),
+      prisma.emailEvent.create({
+        data: { id: randomUUID(), outboxId: row.id, eventType: EmailEventType.SENT, providerEventId: providerMessageId, metadata: json({ provider: result.provider }) },
+      }),
+    ]);
+    return { status: "SENT" as const, messageId: row.id, providerMessageId };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Email provider error.";
+    const exhausted = attemptNumber >= Math.max(1, row.maxAttempts);
+    const next = exhausted ? null : retryAt(attemptNumber);
+    await prisma.$transaction([
+      prisma.emailDeliveryAttempt.create({
+        data: { id: randomUUID(), outboxId: row.id, attemptNumber, status: EmailAttemptStatus.FAILED, provider: "smtp", error: message },
+      }),
+      prisma.emailOutbox.update({
+        where: { id: row.id },
+        data: {
+          status: EmailOutboxStatus.FAILED,
+          attemptCount: attemptNumber,
+          failureReason: message,
+          nextAttemptAt: next,
+        },
+      }),
+      prisma.emailEvent.create({
+        data: { id: randomUUID(), outboxId: row.id, eventType: EmailEventType.FAILED, metadata: json({ error: message, attemptNumber, exhausted }) },
+      }),
+    ]);
+    return { status: "FAILED" as const, messageId: row.id, exhausted, nextAttemptAt: next };
+  }
+}
+
+export async function processEmailQueue(limit = 25) {
+  const now = new Date();
+  const rows = await prisma.emailOutbox.findMany({
+    where: {
+      status: { in: [EmailOutboxStatus.QUEUED, EmailOutboxStatus.FAILED] },
+      OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: now } }],
+    },
+    orderBy: [{ nextAttemptAt: "asc" }, { createdAt: "asc" }],
+    take: Math.max(1, Math.min(100, limit)),
+    select: { id: true },
+  });
+  const results = [];
+  for (const row of rows) results.push(await dispatchEmail(row.id));
+  return results;
+}
+
+export async function retryEmail(id: string) {
+  const row = await prisma.emailOutbox.findUnique({ where: { id }, select: { status: true } });
+  if (!row) throw new Error("Email message not found.");
+  if (![EmailOutboxStatus.FAILED, EmailOutboxStatus.DRAFT].includes(row.status)) throw new Error("Only failed or draft messages can be sent.");
+  await prisma.emailOutbox.update({ where: { id }, data: { status: EmailOutboxStatus.QUEUED, nextAttemptAt: new Date(), failureReason: null } });
+  return dispatchEmail(id);
+}
+
+export async function discardEmail(id: string) {
+  return prisma.emailOutbox.updateMany({
+    where: { id, status: { in: [EmailOutboxStatus.DRAFT, EmailOutboxStatus.QUEUED, EmailOutboxStatus.FAILED] } },
+    data: { status: EmailOutboxStatus.DISCARDED, discardedAt: new Date(), nextAttemptAt: null },
+  });
+}
