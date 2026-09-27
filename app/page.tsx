@@ -178,6 +178,10 @@ export default async function Home() {
               <span className="relative mt-7 inline-flex items-center gap-2 font-black text-[#0F3E8A] group-hover:text-[#E2B02A]">Open resource <ArrowRight size={16}/></span>
             </Link>)}
           </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/portfolio" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-[#0F3E8A] transition hover:border-[#E2B02A] hover:text-[#E2B02A]">{t.portfolio}<ArrowRight size={15}/></Link>
+            <Link href="/automation-lab" className="inline-flex items-center gap-2 rounded-xl bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#E2B02A] hover:text-[#1E293B]">{t.automationLab}<ArrowRight size={15}/></Link>
+          </div>
         </div>
       </section>
 
