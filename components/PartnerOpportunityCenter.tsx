@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useCallback, useEffect,useState } from "react";
 type Campaign={id:string;name:string;description:string|null;status:string;target_description:string|null;location:string|null;product_name:string|null;partner_budget:number|string;currency:string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;application_status:string|null;referral_code:string|null};
 type Dispute={id:string;subject:string;description:string;status:string;resolution:string|null;created_at:string};
