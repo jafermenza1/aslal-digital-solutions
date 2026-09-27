@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Only one build is allowed to publish the deploy branch at a time.
+# If several main commits arrive together, the newest run replaces the older run.
+concurrency:
+  group: aslal-production-build
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -63,4 +69,19 @@ jobs:
           fi
 
           git commit -m "build: attach production build output"
-          git push origin HEAD:deploy --force
+
+          # A deploy build may finish while another run has updated deploy.
+          # Refresh the remote ref and retry so transient ref-lock races do not
+          # fail an otherwise valid production build.
+          for attempt in 1 2 3; do
+            git fetch origin deploy
+            if git push origin HEAD:deploy --force; then
+              echo "Deploy branch published successfully."
+              exit 0
+            fi
+            echo "Deploy branch changed during push; retrying ($attempt/3)..."
+            sleep 3
+          done
+
+          echo "Unable to publish deploy branch after 3 attempts."
+          exit 1
