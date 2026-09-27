@@ -40,6 +40,7 @@ async function notifyOrderParties(workspaceId:string,ownerEmail:string|null,cust
 }
 
 export async function POST(request:Request){
+ try{
  const body=await request.json().catch(()=>({}));
  const workspaceId=clean(body.workspaceId,36);
  const slug=clean(body.slug,160);
@@ -138,4 +139,8 @@ Action: open the Aslal dashboard and continue the sales/payment workflow. Paymen
 
  const notifications=await notifyOrderParties(workspaceId,ownerEmail,chatId,customerText,staffText);
  return NextResponse.json({ok:true,orderId,orderNumber,leadId,notifications,nextStep:"Your order request is saved. Sales will confirm the details and price, then guide you to the appropriate next step.",message:"Order request received and saved. Please keep your order number for reference."});
+ }catch(e){
+  console.error("Telegram catalog order failed",e);
+  return error("We could not save your order request right now. Please try again.",500);
+ }
 }
