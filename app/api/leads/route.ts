@@ -185,6 +185,7 @@ export async function POST(request: NextRequest) {
           referralCode ? new Date() : null,
           referralCode ? "website" : null,
           referralExpiry,
+          leadCategoryInput || "Website contact",
         ]
       );
 
@@ -218,6 +219,14 @@ export async function POST(request: NextRequest) {
       throw error;
     } finally {
       connection.release();
+    }
+
+    if (resourceIdInput) {
+      try {
+        await recordLeadAttribution({ leadId, workspaceId, attribution, referralCode, resourceId: resourceIdInput });
+      } catch (error) {
+        console.error("LEAD_RESOURCE_ATTRIBUTION_ERROR", error);
+      }
     }
 
     try {
