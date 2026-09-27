@@ -1,10 +1,10 @@
 "use client";
-import { useCallback, useState, useSyncExternalStore } from "react";
+import { useCallback,useEffect,useState } from "react";
 type Item={id:string;slug:string;category:string;title:string;description:string;preview:string;cta:string;intent:string;download_url:string|null;active:number;published_at:string;updated_at:string;workspace_id:string|null;relationship_type:string;provider_name:string|null;campaign_id:string|null};
 const categories=["guide","tool","template"];
 export default function ResourceManager(){
  const [items,setItems]=useState<Item[]>([]),[category,setCategory]=useState(""),[days,setDays]=useState("3650"),[selected,setSelected]=useState(""),[notice,setNotice]=useState("");\n const [loaded,setLoaded]=useState(false);
- const load=useCallback(async()=>{const q=new URLSearchParams({days});if(category)q.set("category",category);const r=await fetch("/api/admin/resources?"+q);const d=await r.json();if(r.ok){setItems(d.items);setSelected(s=>s||d.items[0]?.id||"");setLoaded(true)}else setNotice(d.error||"Could not load resources.")},[category,days]);
+ const load=useCallback(async()=>{const q=new URLSearchParams({days});if(category)q.set("category",category);const r=await fetch("/api/admin/resources?"+q);const d=await r.json();if(r.ok){setItems(d.items);setSelected(s=>s||d.items[0]?.id||"")}else setNotice(d.error||"Could not load resources.")},[category,days]);
  useEffect(()=>{void load()},[load]);
  const current=useMemo(()=>items.find(x=>x.id===selected)||items[0],[items,selected]);
  function setField(key:keyof Item,value:string|number){if(!current)return;setItems(v=>v.map(x=>x.id===current.id?{...x,[key]:value}:x))}
