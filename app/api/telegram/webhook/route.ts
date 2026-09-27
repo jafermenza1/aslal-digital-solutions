@@ -255,7 +255,7 @@ async function handle(update:TelegramUpdate){
       const raw=token.slice(6);
       const [rows]=await db.query<(RowDataPacket&{id:string;name:string})[]>("SELECT id,name FROM users WHERE telegram_link_token=? AND active=1 LIMIT 1",[raw]);
       if(!rows[0])return reply(chatId,"This staff Telegram connection link is invalid or already used.");
-      await db.query("UPDATE users SET telegram_chat_id=?,telegram_link_token=NULL,telegram_linked_at=NOW() WHERE id=?",[chatId,rows[0].id]);
+      await db.query("UPDATE users SET telegram_chat_id=?,telegram_username=?,telegram_link_token=NULL,telegram_linked_at=NOW() WHERE id=?",[chatId,clean(m.from?.username).replace(/^@/,"").slice(0,190)||null,rows[0].id]);
       return reply(chatId,"Internal sales Telegram is connected for "+rows[0].name+". You will receive assigned-lead alerts and escalation reminders here.");
     }
     if(token.startsWith("client_")){
