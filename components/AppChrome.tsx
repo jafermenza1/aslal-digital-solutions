@@ -11,7 +11,8 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/") ||
     pathname === "/portal" ||
-    pathname.startsWith("/portal/");
+    pathname.startsWith("/portal/") ||
+    pathname.startsWith("/telegram/catalog");
 
   if (appSurface) return <>{children}</>;
 
