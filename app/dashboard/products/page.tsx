@@ -26,7 +26,7 @@ export default async function ProductsAdminPage() {
         </div>
       </div>
       <div className="mt-8"><ProductCatalogManager initial={products.map(p=>({
-        id:p.id,slug:p.slug,name:p.name,kind:p.kind,providerName:p.providerName,relationshipType:p.relationshipType,
+        id:p.id,slug:p.slug,name:p.name,kind:p.kind,category:p.category,stockQuantity:p.stockQuantity,workspaceId:p.workspaceId,workspaceName:p.workspace?.name||"Unassigned",providerName:p.providerName,relationshipType:p.relationshipType,
         tagline:p.tagline,shortDescription:p.shortDescription,description:p.description,features:p.features,benefits:p.benefits,
         idealFor:p.idealFor,deliverables:p.deliverables,imageUrl:p.imageUrl,galleryUrls:p.galleryUrls,startingPrice:p.startingPrice,
         ctaLabel:p.ctaLabel,ctaNote:p.ctaNote,sortOrder:p.sortOrder,featured:p.featured,active:p.active
