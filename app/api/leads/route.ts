@@ -76,11 +76,18 @@ export async function POST(request: NextRequest) {
     const emailConsent = body.emailConsent === true || body.emailConsent === "true" || body.emailConsent === "on";
     const growthGoal = clean(body.growthGoal, 200);
     const growthChannels = clean(body.growthChannels, 500);
+    const resourceIdInput = clean(body.resourceId, 36);
+    const leadCategoryInput = clean(body.leadCategory, 100);
     let attribution: AttributionInput = {};
     if (typeof body.attribution === "string") { try { attribution = JSON.parse(body.attribution) as AttributionInput; } catch {} }
     const requestedSource = clean(attribution.source, 100) || null;
     const requestedMedium = clean(attribution.medium, 100) || null;
     const requestedCampaign = clean(attribution.campaign, 150) || null;
+    if (resourceIdInput) {
+      const [resourceRows] = await db.execute<RowDataPacket[]>("SELECT id FROM resources WHERE id = ? AND active = 1 LIMIT 1", [resourceIdInput]);
+      if (!resourceRows[0]) return NextResponse.json({ error: "The selected resource is unavailable." }, { status: 400 });
+    }
+
     const enrichedMessage = [
       message,
       growthGoal ? `Growth Builder goal: ${growthGoal}` : "",
@@ -156,7 +163,7 @@ export async function POST(request: NextRequest) {
       await connection.execute(
         `INSERT INTO leads
           (id, workspace_id, visitor_id, person_id, name, email, phone, company, business_type, message, status, score, source, medium, campaign, owner_email, next_action, next_action_due_at, referral_code, attribution_locked_at, attribution_locked_by, attribution_override_reason, attribution_expires_at, capture_mode, lead_category)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, 'WEB', 'Website contact')`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 25, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, 'WEB', ?)`,
         [
           leadId,
           workspaceId,
