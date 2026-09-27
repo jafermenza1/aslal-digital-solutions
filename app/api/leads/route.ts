@@ -225,11 +225,11 @@ export async function POST(request: NextRequest) {
       console.error("LEAD_AUTOMATION_ERROR", error);
     }
 
-    let autoReply: "SENT" | "SKIPPED" = "SKIPPED";
+    let autoReply: "SENT" | "SKIPPED" | "FAILED" = "SKIPPED";
     if (email && emailConsent) {
       try {
         const reply = await sendContactAutoReply(leadId);
-        autoReply = reply.sent ? "SENT" : "SKIPPED";
+        autoReply = reply.sent ? "SENT" : reply.skipped === "provider-error" ? "FAILED" : "SKIPPED";
       } catch (error) {
         console.error("CONTACT_AUTO_REPLY_ERROR", error);
       }
