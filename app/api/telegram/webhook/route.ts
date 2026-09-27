@@ -65,7 +65,7 @@ async function continuePublic(chatId:string,workspaceId:string,user:any){
   const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId:String(user?.id||chatId)}}});
   if(!identity?.leadId&&!identity?.customerId)return publicMenu(chatId,workspaceId,user);
   const lead=identity.leadId?await prisma.lead.findFirst({where:{id:identity.leadId,workspaceId},select:{name:true,status:true,ownerEmail:true}}):null;
-  const customer=identity.customerId?await prisma.customer.findFirst({where:{id:identity.customerId,workspaceId},select:{name:true,status:true}}):null;
+  const customer=identity.customerId?await prisma.customer.findFirst({where:{id:identity.customerId,workspaceId},select:{id:true,name:true,status:true}}):null;
   const activeConversation=await prisma.conversation.findFirst({where:{workspaceId,channel:"TELEGRAM",externalThreadId:chatId,status:{not:"CLOSED"}},orderBy:{updatedAt:"desc"},select:{status:true,lastMessageAt:true}}).catch(()=>null);
   const orders=customer?await prisma.order.findMany({where:{workspaceId,customerId:customer.id},orderBy:{createdAt:"desc"},take:3,select:{orderNumber:true,status:true,total:true,currency:true}}):[];
   return reply(chatId,["↩️ Your Aslal context is ready.",lead?"Lead: "+lead.name+" — "+lead.status:"",customer?"Customer: "+customer.name+" — "+customer.status:"",activeConversation?"Conversation: "+activeConversation.status:"",orders.length?"Recent orders:\n"+orders.map(o=>o.orderNumber+" — "+o.status+" — "+Number(o.total).toLocaleString("en-ET")+" "+o.currency).join("\n"):"","Reply here to continue with the existing context, or choose Catalog for more products and services."].filter(Boolean).join("\n"));
@@ -212,7 +212,7 @@ async function notifyAssignedStaff(workspaceId:string,ownerEmail:string|null,bod
 
 async function createPrivateLead(workspaceId:string,d: {id:string;lead_id:string|null;person_id:string|null;product_id:string|null;campaign_id:string|null;partner_id:string|null;referral_code:string|null;source:string|null;medium:string|null},m:TelegramMessage){
   if(d.lead_id)return d.lead_id;
-  const from=m.from||{id:chatId};
+  const from: TelegramUser = m.from ?? {id: m.chat?.id ?? ""};
   const name=[from.first_name,from.last_name].filter(Boolean).join(" ")||from.username||"Telegram contact";
   const personId=crypto.randomUUID();
   const leadId=crypto.randomUUID();
@@ -251,7 +251,7 @@ async function handle(update:TelegramUpdate){
   if(update.callback_query){
     const q=update.callback_query; const data=clean(q.data); const chatId=String(q.message?.chat?.id||""); if(!chatId)return;
     await tg("answerCallbackQuery",{callback_query_id:q.id});
-    const parts=data.split(":"); const workspaceId=parts[2]||String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||""); const user=q.from||{};
+    const parts=data.split(":"); const workspaceId=parts[2]||String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||""); const user: TelegramUser=q.from ?? {id: chatId};
     if(workspaceId&&user?.id){ await syncTelegramIdentity({workspaceId,user,chatId,event:"BUTTON_CLICK",metadata:{callbackData:data}}).catch(()=>null); }
     if(parts[0]==="public"&&parts[1]==="catalog")return catalog(chatId,workspaceId);
     if(parts[0]==="public"&&parts[1]==="pricing")return pricingResponse(chatId,workspaceId);
