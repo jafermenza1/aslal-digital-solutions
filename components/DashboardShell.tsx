@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname,useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
 import { DashboardNav } from "@/components/DashboardNav";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -19,8 +19,8 @@ function titleFor(pathname:string,t:ReturnType<typeof getAppUi>){const entries:[
 ["/dashboard/insights",t.nav.insights],["/dashboard/journey",t.nav.journey],["/dashboard/operations",t.nav.operations],["/dashboard/partners",t.nav.partners],["/dashboard/partner",t.nav.partnerPortal],["/dashboard/products",t.nav.products],["/dashboard/users",t.nav.users],["/dashboard/telegram",t.nav.telegramSales],["/dashboard",t.nav.overview]
 ];return entries.find(([href])=>pathname===href||pathname.startsWith(href+"/"))?.[1]||t.nav.overview;}
 
-export function DashboardShell({user,locale,children}:{user:User;locale:Locale;children:React.ReactNode}){const pathname=usePathname();const t=getAppUi(locale);const title=titleFor(pathname,t);
- React.useEffect(()=>{let lastActivity=Date.now();let stopped=false;const mark=()=>{lastActivity=Date.now();};const events=["pointerdown","keydown","touchstart","scroll"];events.forEach(event=>window.addEventListener(event,mark,{passive:true}));const timer=window.setInterval(async()=>{if(stopped||Date.now()-lastActivity>4*60*1000)return;try{const response=await fetch("/api/auth/heartbeat",{method:"POST",cache:"no-store",credentials:"same-origin"});if(response.status===401)window.location.assign("/login?error=session-expired");}catch{}},2*60*1000);return()=>{stopped=true;window.clearInterval(timer);events.forEach(event=>window.removeEventListener(event,mark));};},[]);
+export function DashboardShell({user,locale,children}:{user:User;locale:Locale;children:React.ReactNode}){const pathname=usePathname();const router=useRouter();const t=getAppUi(locale);const title=titleFor(pathname,t);
+ React.useEffect(()=>{let lastActivity=Date.now();let stopped=false;const mark=()=>{lastActivity=Date.now();};const events=["pointerdown","keydown","touchstart","scroll"];events.forEach(event=>window.addEventListener(event,mark,{passive:true}));const timer=window.setInterval(async()=>{if(stopped||Date.now()-lastActivity>4*60*1000)return;try{const response=await fetch("/api/auth/heartbeat",{method:"POST",cache:"no-store",credentials:"same-origin"});if(response.status===401)router.push("/login?error=session-expired");}catch{}},2*60*1000);return()=>{stopped=true;window.clearInterval(timer);events.forEach(event=>window.removeEventListener(event,mark));};},[]);
 return <div className="dashboard-app">
  <aside className="dashboard-sidebar">
   <div className="dashboard-sidebar-top"><BrandLogo href="/dashboard"/><div className="dashboard-role">{roleLabels[user.role]||user.role}</div></div>
