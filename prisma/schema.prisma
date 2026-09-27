@@ -1438,6 +1438,7 @@ model User {
   updatedAt       DateTime @updatedAt @map("updated_at") @db.DateTime(0)
   partnerId       String?  @unique @map("partner_id") @db.Char(36)
   telegramChatId  String?  @unique @map("telegram_chat_id") @db.VarChar(80)
+  telegramUsername String? @map("telegram_username") @db.VarChar(190)
   telegramLinkToken String? @unique @map("telegram_link_token") @db.VarChar(100)
   telegramLinkedAt DateTime? @map("telegram_linked_at") @db.DateTime(0)
   partner         Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
