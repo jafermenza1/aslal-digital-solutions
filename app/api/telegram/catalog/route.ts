@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resolvePublicWorkspaceId } from "@/lib/workspaces";
 
 export const dynamic = "force-dynamic";
 
@@ -9,8 +10,11 @@ function parseMedia(value:string|null): string[] {
 
 export async function GET(request:Request) {
   const url=new URL(request.url);
-  const workspaceId=url.searchParams.get("workspaceId");
+  const requestedWorkspaceId=url.searchParams.get("workspaceId")?.trim()||"";
   const campaignId=url.searchParams.get("campaignId");
+  // Direct public catalog visits use the canonical public workspace mapping.
+  // Telegram links with explicit workspaceId retain that workspace context.
+  const workspaceId=requestedWorkspaceId||resolvePublicWorkspaceId(url.hostname);
   if(!workspaceId) return NextResponse.json({error:"workspaceId is required."},{status:400});
   const { getTelegramChannelConfig } = await import("@/lib/telegram-channel-config");
   const config=await getTelegramChannelConfig(workspaceId);
