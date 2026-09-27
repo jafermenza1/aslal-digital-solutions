@@ -51,11 +51,9 @@ export async function POST(request:Request){
  const telegramInitData=clean(body.telegramInitData,8000);
  const telegramUsername=clean(body.telegramUsername,190).replace(/^@/,"");
  let chatId=suppliedChatId;
- let verifiedTelegramUserId="";
  if(telegramInitData){
    const identity=await syncTelegramIdentity({workspaceId,initData:telegramInitData,event:"ORDER_STARTED",productSlug:slug,metadata:{campaignId:clean(body.campaignId,36)||null}});
-   verifiedTelegramUserId=String(identity.user.id);
-   chatId=verifiedTelegramUserId;
+   chatId=String(identity.user.id);
  }
  const campaignId=clean(body.campaignId,36);
  if(!workspaceId||!slug)return error("This order link is incomplete. Please return to the catalog and try again.");
