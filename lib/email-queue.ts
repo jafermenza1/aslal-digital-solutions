@@ -181,7 +181,7 @@ export async function processEmailQueue(limit = 25) {
 export async function retryEmail(id: string) {
   const row = await prisma.emailOutbox.findUnique({ where: { id }, select: { status: true } });
   if (!row) throw new Error("Email message not found.");
-  if (![EmailOutboxStatus.FAILED, EmailOutboxStatus.DRAFT].includes(row.status)) throw new Error("Only failed or draft messages can be sent.");
+  if (row.status !== EmailOutboxStatus.FAILED && row.status !== EmailOutboxStatus.DRAFT) throw new Error("Only failed or draft messages can be sent.");
   await prisma.emailOutbox.update({ where: { id }, data: { status: EmailOutboxStatus.QUEUED, attemptCount: 0, nextAttemptAt: new Date(), failureReason: null } });
   return dispatchEmail(id);
 }
