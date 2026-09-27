@@ -36,9 +36,11 @@ export async function POST(request:Request){
     `INSERT INTO workspaces (id,name,slug,client_type,active,created_at,updated_at) VALUES (?,?,?,?,1,NOW(),NOW())`,
     [id,name,slug,clientType]
    );
+   // UUID() generates the membership primary key; only the three
+   // remaining placeholders need application values.
    await connection.query(
     `INSERT INTO workspace_users (id,workspace_id,user_id,role,created_at) VALUES (UUID(),?,?,?,NOW())`,
-    [randomUUID(),id,user.id,"OWNER"]
+    [id,user.id,"OWNER"]
    );
    await connection.commit();
   }catch(error){
