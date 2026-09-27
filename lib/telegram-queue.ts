@@ -121,3 +121,18 @@ export async function queueTelegramTemplate(input:{
  const outbox=await queueTelegram({workspaceId:input.workspaceId,chatId:input.chatId,content,messageType:template.messageType,sendMode:input.sendMode,businessConnectionId:input.businessConnectionId,mediaType:template.mediaType,mediaUrl,replyMarkup:template.replyMarkup,leadId:input.leadId,personId:input.personId,customerId:input.customerId,opportunityId:input.opportunityId,conversationId:input.conversationId,templateKey:template.templateKey,createdBy:input.createdBy,nextAttemptAt:input.delayMinutes&&input.delayMinutes>0?new Date(Date.now()+Math.min(10080,input.delayMinutes)*60_000):new Date()});
  return {queued:true as const,outboxId:outbox.id};
 }
+
+
+export async function queueLeadTelegramTemplate(input:{
+ leadId:string; templateKey:string; message?:string; createdBy?:string; delayMinutes?:number;
+}){
+ const lead=await prisma.lead.findUnique({where:{id:input.leadId},include:{person:{include:{communicationPreference:true}}}});
+ if(!lead?.telegramChatId)return {queued:false as const,skipped:"no-telegram" as const};
+ if(!lead.workspaceId)return {queued:false as const,skipped:"no-workspace" as const};
+ const templates=await import("@/lib/telegram-templates");
+ await templates.ensureCoreTelegramTemplates(lead.workspaceId);
+ return queueTelegramTemplate({
+  workspaceId:lead.workspaceId,chatId:lead.telegramChatId,templateKey:input.templateKey,leadId:lead.id,personId:lead.personId,
+  variables:{message:input.message||lead.message||""},createdBy:input.createdBy||"automation",delayMinutes:input.delayMinutes
+ });
+}
