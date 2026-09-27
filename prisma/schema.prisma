@@ -1810,6 +1810,8 @@ model TelegramOutbox {
   createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
   workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  attempts TelegramDeliveryAttempt[]
+  events TelegramDeliveryEvent[]
   @@index([workspaceId,status,nextAttemptAt], map:"idx_telegram_outbox_workspace_status_next")
   @@index([workspaceId,createdAt], map:"idx_telegram_outbox_workspace_created")
   @@index([chatId,status], map:"idx_telegram_outbox_chat_status")
