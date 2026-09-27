@@ -324,6 +324,8 @@ model Lead {
   name              String             @db.VarChar(160)
   email             String?            @db.VarChar(190)
   phone             String?            @db.VarChar(40)
+  telegramUsername  String?            @map("telegram_username") @db.VarChar(190)
+  telegramChatId    String?            @map("telegram_chat_id") @db.VarChar(80)
   company           String?            @db.VarChar(190)
   businessType      String?            @map("business_type") @db.VarChar(100)
   message           String?            @db.Text
@@ -365,6 +367,7 @@ model Lead {
   @@index([referralCode], map: "idx_leads_referral")
   @@index([personId], map: "idx_leads_person")
   @@index([ownerEmail, status], map: "idx_leads_owner_status")
+  @@index([telegramUsername], map: "idx_leads_telegram_username")
   @@index([nextActionDueAt, status], map: "idx_leads_next_action_due_status")
   @@index([isTest, createdAt], map: "idx_leads_test_created")
   @@index([captureMode, createdAt], map: "idx_leads_capture_mode_created")
