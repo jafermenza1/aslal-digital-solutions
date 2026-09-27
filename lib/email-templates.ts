@@ -73,7 +73,23 @@ export const CORE_EMAIL_TEMPLATES = [
   { templateKey:"reengagement", name:"Re-engagement", subjectTemplate:"Still working on your growth plan?", htmlTemplate:brandedHtml("Still interested?","If the timing is right, we can continue from the last recorded request instead of starting over.","Continue","{{contactUrl}}","{{location}} · {{phone}} · {{email}} · Manage preferences: {{unsubscribeUrl}}"), textTemplate:"Hello {{name}},\n\nIf you would like to continue your growth request, we can pick up from the existing record.\n\n{{message}}\n\n{{contactUrl}}\n\nManage preferences: {{unsubscribeUrl}}", transactional:false, active:true },
 ];
 
-export async function ensureCoreEmailTemplates() {\n  for (const template of CORE_EMAIL_TEMPLATES) {\n    await prisma.emailTemplate.upsert({ where: { templateKey: template.templateKey }, update: {}, create: { id: randomUUID(), ...template, updatedBy: "system" } });\n  }\n  return prisma.emailTemplate.findMany({ where: { templateKey: { in: CORE_EMAIL_TEMPLATES.map(item => item.templateKey) } } });\n}\n\nexport async function ensureContactTemplate() {\n  await ensureCoreEmailTemplates();\n  return prisma.emailTemplate.findUniqueOrThrow({ where: { templateKey: CONTACT_AUTOREPLY_KEY } });\n}
+export async function ensureCoreEmailTemplates() {
+  for (const template of CORE_EMAIL_TEMPLATES) {
+    await prisma.emailTemplate.upsert({
+      where: { templateKey: template.templateKey },
+      update: {},
+      create: { id: randomUUID(), ...template, updatedBy: "system" },
+    });
+  }
+  return prisma.emailTemplate.findMany({
+    where: { templateKey: { in: CORE_EMAIL_TEMPLATES.map(item => item.templateKey) } },
+  });
+}
+
+export async function ensureContactTemplate() {
+  await ensureCoreEmailTemplates();
+  return prisma.emailTemplate.findUniqueOrThrow({ where: { templateKey: CONTACT_AUTOREPLY_KEY } });
+}
 
 function escapeHtml(value: string) {
   return value.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
