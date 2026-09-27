@@ -20,7 +20,7 @@ export function ProductCatalogManager({initial,workspaces}:{initial:ProductRow[]
  const startEdit=(row:ProductRow)=>{setDraft(row);setEditing(true);setNotice("")};
  const save=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);setNotice("");
   try{
-   const payload={...draft,active:draft.active,stockQuantity:draft.stockQuantity===null?null:Number(draft.stockQuantity)};
+   const payload={...draft,active:draft.active,stockQuantity:draft.kind==="PRODUCT"?(draft.stockQuantity===null?null:Number(draft.stockQuantity)):null};
    const res=await fetch(draft.id?"/api/admin/products/"+draft.id:"/api/admin/products",{method:draft.id?"PATCH":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
    const data=await res.json().catch(()=>({})); if(!res.ok)throw new Error(data.error||"Could not save.");
    setRows(draft.id?rows.map(x=>x.id===draft.id?data.product:x):[data.product,...rows]); setDraft({id:"",...blank});setEditing(false);setNotice("Catalog item saved. The public page is now using the database record.");
@@ -42,7 +42,7 @@ export function ProductCatalogManager({initial,workspaces}:{initial:ProductRow[]
       <label className="grid gap-1 text-sm font-bold text-slate-700">Type<select value={draft.kind} onChange={e=>set("kind",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="SERVICE">Service</option><option value="PRODUCT">Product</option></select></label>
       <label className="grid gap-1 text-sm font-bold text-slate-700">Workspace<select value={draft.workspaceId||""} onChange={e=>set("workspaceId",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="">Select workspace</option>{workspaces.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
       {field("Category","category","e.g. CRM, Marketing, Software")}
-      <label className="grid gap-1 text-sm font-bold text-slate-700">Stock number<span className="text-[11px] font-normal text-slate-400">Leave blank for service / unlimited</span><input type="number" min="0" value={draft.stockQuantity??""} onChange={e=>set("stockQuantity",e.target.value===""?null:Number(e.target.value))} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"/></label>
+      <label className="grid gap-1 text-sm font-bold text-slate-700">Stock number{draft.kind==="PRODUCT"?<span className="text-[11px] font-normal text-slate-400">Required for products; use 0 when out of stock</span>:<span className="text-[11px] font-normal text-slate-400">Not used for services</span>}<input type="number" min="0" value={draft.kind==="SERVICE"?"":draft.stockQuantity??""} onChange={e=>set("stockQuantity",e.target.value===""?null:Number(e.target.value))} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"/></label>
       {field("Provider / brand","providerName","Aslal Digital Solutions")}
       <label className="grid gap-1 text-sm font-bold text-slate-700">Relationship<select value={draft.relationshipType} onChange={e=>set("relationshipType",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option>OWNED</option><option>AFFILIATE</option><option>RESELLER</option><option>IMPLEMENTATION_PARTNER</option><option>CUSTOM</option></select></label>
       {field("Tagline","tagline","Short positioning line")}
