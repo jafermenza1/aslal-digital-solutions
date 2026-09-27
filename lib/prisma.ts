@@ -1,6 +1,6 @@
-import { PrismaClient, LeadStatus, CommunicationChannel } from "@prisma/client";
+import { PrismaClient, LeadStatus, CommunicationChannel, EmailMessageType, EmailOutboxStatus, EmailAttemptStatus, EmailEventType } from "@prisma/client";
 
-export { LeadStatus, CommunicationChannel };
+export { LeadStatus, CommunicationChannel, EmailMessageType, EmailOutboxStatus, EmailAttemptStatus, EmailEventType };
 
 const globalForPrisma = globalThis as unknown as { aslalPrisma?: PrismaClient };
 
