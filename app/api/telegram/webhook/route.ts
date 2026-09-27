@@ -54,7 +54,11 @@ async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const recentViews=identity?.visitorId ? await prisma.event.findMany({where:{visitorId:identity.visitorId,eventName:"TELEGRAM_PRODUCT_VIEW"},orderBy:{createdAt:"desc"},take:3,select:{productSlug:true}}).catch(()=>[]) : [];
   const viewText=recentViews.length?"\n\nWe remember your recent catalog interest: "+recentViews.map(v=>v.productSlug).filter(Boolean).join(", ")+".":"";
   const welcome=hasContext?"Welcome back to Aslal. I found your existing customer/lead context, so you can continue without starting over.":"Welcome to Aslal. No account or registration is required. Your Telegram identity and catalog activity can be remembered for this workspace.";
-  return tg("sendMessage",{chat_id:chatId,text:welcome+viewText,reply_markup:{inline_keyboard:[...(hasContext?[[{text:"↩️ Continue conversation",callback_data:"public:continue:"+workspaceId}]]:[]),[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"🎯 Qualify me",callback_data:"public:qualify:"+workspaceId}],[{text:"💰 Pricing",callback_data:"public:pricing:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]]}});
+  const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
+  const loginEnabled=String(process.env.TELEGRAM_LOGIN_ENABLED||"").toLowerCase()==="true";
+  const rows:any[]=[...(hasContext?[[{text:"↩️ Continue conversation",callback_data:"public:continue:"+workspaceId}]]:[]),[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"🎯 Qualify me",callback_data:"public:qualify:"+workspaceId}],[{text:"💰 Pricing",callback_data:"public:pricing:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]];
+  if(loginEnabled) rows.push([{text:"🔐 Log in with Telegram",login_url:{url:site+"/api/auth/telegram/callback?workspaceId="+encodeURIComponent(workspaceId),request_write_access:true}}]);
+  return tg("sendMessage",{chat_id:chatId,text:welcome+viewText,reply_markup:{inline_keyboard:rows}});
 }
 async function continuePublic(chatId:string,workspaceId:string,user:any){
   const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId:String(user?.id||chatId)}}});
