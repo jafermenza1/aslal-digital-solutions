@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
 import {randomUUID} from "node:crypto";
+import {syncTelegramIdentity} from "@/lib/telegram-identity";
 
 export const dynamic="force-dynamic";
 
@@ -21,7 +22,10 @@ async function telegramSend(chatId:string,text:string){
 export async function POST(request:Request){
  try{
   const body=await request.json().catch(()=>({}));
-  const workspaceId=clean(body.workspaceId,36),slug=clean(body.slug,160),name=clean(body.name,160),phoneInput=clean(body.phone,40),chatId=clean(body.chatId,80);
+  const workspaceId=clean(body.workspaceId,36),slug=clean(body.slug,160),name=clean(body.name,160),phoneInput=clean(body.phone,40),suppliedChatId=clean(body.chatId,80),telegramInitData=clean(body.telegramInitData,8000);
+  let chatId=suppliedChatId;
+  let identity:any=null;
+  if(telegramInitData){identity=await syncTelegramIdentity({workspaceId,initData:telegramInitData,event:"RESTOCK_STARTED",productSlug:slug});chatId=String(identity.user.id);}
   if(!workspaceId||!slug)return error("This product link is incomplete. Please return to the catalog.");
   if(!validName(name))return error("Please enter your full name using letters only.");
   const phone=normalizePhone(phoneInput);
@@ -32,7 +36,7 @@ export async function POST(request:Request){
   if(product.kind==="SERVICE")return error("This item is a service. Please use the service request form.",409);
   if(product.stockQuantity&&product.stockQuantity>0)return error("This product is already back in stock. You can place an order now.",409);
 
-  const lead=await prisma.lead.create({data:{
+  const lead=identity?.leadId?await prisma.lead.update({where:{id:identity.leadId},data:{name,phone,telegramChatId:chatId||null,message:"Telegram product restock notification request for "+product.name}}):await prisma.lead.create({data:{
    id:randomUUID(),workspaceId,name,phone,status:"NEW",source:"telegram",medium:"telegram",
    message:"Telegram product restock notification request for "+product.name,
    leadCategory:"TELEGRAM_PRODUCT_RESTOCK",captureMode:"MANUAL",telegramChatId:chatId||null
