@@ -74,6 +74,33 @@ type SyncInput = {
   auth?: boolean;
 };
 
+export function validateTelegramLoginData(params: URLSearchParams, maxAgeSeconds = 86400) {
+  const hash = params.get("hash") || "";
+  if (!hash) throw new Error("Telegram login hash is missing");
+  const dataCheckString = Array.from(params.entries())
+    .filter(([key]) => key !== "hash")
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => key + "=" + value)
+    .join("\n");
+  const secretKey = createHmac("sha256", botToken()).update(Buffer.from(botToken())).digest();
+  const expected = createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
+  if (!safeHexEqual(hash, expected)) throw new Error("Invalid Telegram login data");
+  const authDate = Number(params.get("auth_date") || 0);
+  if (!Number.isFinite(authDate) || authDate <= 0 || Math.abs(Date.now() / 1000 - authDate) > maxAgeSeconds) throw new Error("Telegram login data has expired");
+  const id = params.get("id") || "";
+  if (!id) throw new Error("Telegram user ID is missing");
+  return {
+    user: {
+      id,
+      first_name: params.get("first_name") || undefined,
+      last_name: params.get("last_name") || undefined,
+      username: params.get("username") || undefined,
+      photo_url: params.get("photo_url") || undefined,
+    } satisfies TelegramUser,
+    authDate,
+  };
+}
+
 export async function syncTelegramIdentity(input: SyncInput) {
   const validated = input.initData ? validateTelegramInitData(input.initData) : null;
   const user = validated?.user || input.user;
