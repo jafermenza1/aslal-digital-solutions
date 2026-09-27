@@ -84,13 +84,13 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
   const where = buildQuery(search, status, source, referral, product, minScore, workspaceId);
   const orderBy = sort === "newest" ? [{ createdAt: "desc" as const }] : sort === "deal" ? [{ dealValue: "desc" as const }, { score: "desc" as const }] : [{ score: "desc" as const }, { updatedAt: "desc" as const }];
 
-  const [leads, total, stageCounts, stageValues, sources, products, executionGaps, databaseClock] = await Promise.all([
-    prisma.lead.findMany({ where, orderBy, skip: (page - 1) * pageSize, take: pageSize, include: { productInterests: { include: { product: { select: { id: true, name: true } } }, orderBy: { interestScore: "desc" }, take: 3 }, tasks: { where: { status: { in: ["OPEN", "IN_PROGRESS"] } }, orderBy: { dueAt: "asc" }, take: 1 } } }),
+  const [leads, total, stageCounts, stageValues, sources, products, executionGaps] = await Promise.all([
+    prisma.lead.findMany({ where, orderBy, skip: (page - 1) * pageSize, take: pageSize, include: { productInterests: { include: { product: { select: { id: true, name: true } } }, orderBy: { interestScore: "desc" }, take: 3 } } }),
     prisma.lead.count({ where }),
     prisma.lead.groupBy({ by: ["status"], where: { workspaceId }, _count: { _all: true } }),
     prisma.lead.groupBy({ by: ["status"], where: { workspaceId }, _sum: { dealValue: true } }),
     prisma.lead.findMany({ distinct: ["source"], where: { workspaceId, source: { not: null } }, select: { source: true }, orderBy: { source: "asc" } }),
-    prisma.product.findMany({ where: { active: true }, select: { id:true, slug: true, name: true }, orderBy: { name: "asc" } }),
+    prisma.product.findMany({ where: { active: true, workspaceId }, select: { id:true, slug: true, name: true }, orderBy: { name: "asc" } }),
     prisma.lead.count({
       where: {
         workspaceId,
@@ -98,9 +98,8 @@ export default async function LeadsDashboard({ searchParams }: { searchParams: P
         OR: [{ ownerEmail: null }, { nextAction: null }, { nextActionDueAt: null }],
       },
     }),
-    prisma.$queryRaw<Array<{ now: Date }>>`SELECT NOW() AS now`,
   ]);
-  const now = databaseClock[0]?.now ?? new Date(0);
+  const now = new Date();
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const countFor = (stage: LeadStatus) => stageCounts.find(item => item.status === stage)?._count._all ?? 0;
   const valueFor = (stage: LeadStatus) => Number(stageValues.find(item => item.status === stage)?._sum.dealValue ?? 0);
