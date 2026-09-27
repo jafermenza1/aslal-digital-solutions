@@ -71,7 +71,7 @@ export async function POST(request:Request){
 
  let orderNumber="";
  let orderId="";
- let paymentId="";
+ let paymentId:string|null=null;
  let ownerEmail=destination?.salesOwnerEmail||null;
  let leadId:string|null=null;
  let customerId="";
@@ -106,7 +106,7 @@ export async function POST(request:Request){
   paymentId=randomUUID();
   orderNumber="ASL-TG-"+Date.now().toString(36).toUpperCase();
   await tx.order.create({data:{id:orderId,workspaceId,orderNumber,status:"DRAFT",currency:"ETB",subtotal:total,total,paymentState:"PENDING",source:"telegram",campaign:effectiveCampaignId,referralCode:referral?.code||null,partnerId:referral?.partnerId||destination?.partnerId||null,referralLinkId:referral?.id||null,salesOwnerEmail:ownerEmail,customerId:customer.id,items:{create:{id:randomUUID(),description:itemName,quantity:1,unitPrice:total,lineTotal:total}}}});
-  await tx.payment.create({data:{id:paymentId,workspaceId,orderId,customerId:customer.id,provider:"TELEGRAM_PENDING",idempotencyKey:"telegram:"+chatId+":"+orderId,amount:total,currency:"ETB",method:"TELEGRAM",status:"PENDING",metadata:{telegramChatId:chatId,telegramUsername,workspaceId,slug,campaignId:effectiveCampaignId,partnerId:referral?.partnerId||destination?.partnerId||null,referralCode:referral?.code||null,customerName:name,customerPhone:phone}}});
+  if(total>0){ paymentId=randomUUID(); await tx.payment.create({data:{id:paymentId,workspaceId,orderId,customerId:customer.id,provider:"TELEGRAM_ORDER_REQUEST",idempotencyKey:"telegram:"+chatId+":"+orderId,amount:total,currency:"ETB",method:"TELEGRAM",status:"PENDING",metadata:{telegramChatId:chatId,telegramUsername,workspaceId,slug,campaignId:effectiveCampaignId,partnerId:referral?.partnerId||destination?.partnerId||null,referralCode:referral?.code||null,customerName:name,customerPhone:phone}}}); }
 
   if(chatId){
    if(destination){
@@ -117,9 +117,9 @@ export async function POST(request:Request){
   }
  });
 
- const customerText="✅ Aslal order received\n\nOrder: "+orderNumber+"\nItem: "+itemName+"\nAmount: "+total.toLocaleString("en-ET")+" ETB\n\nYour request is saved. Payment is still pending. Our team will confirm the order and send the available payment instructions here.";
- const staffText="🛒 New Telegram catalog order\n\nOrder: "+orderNumber+"\nCustomer: "+name+"\nPhone: "+phone+"\nItem: "+itemName+"\nAmount: "+total.toLocaleString("en-ET")+" ETB\nLead: "+(leadId||"linked")+"\nSales owner: "+(ownerEmail||"Unassigned")+"\nTelegram: "+(telegramUsername?"@"+telegramUsername:chatId||"not available")+"\n\nAction: open the Aslal dashboard and continue the sales/payment workflow. Payment is NOT confirmed.";
+ const customerText="✅ Aslal order request received\n\nOrder: "+orderNumber+"\nItem: "+itemName+"\nAmount: "+(total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed")+"\n\nYour order request is saved. No payment is required at this stage. Our team will contact you here to confirm the details and next step.";
+ const staffText="🛒 New Telegram catalog order\n\nOrder: "+orderNumber+"\nCustomer: "+name+"\nPhone: "+phone+"\nItem: "+itemName+"\nAmount: "+(total>0?total.toLocaleString("en-ET")+" ETB":"To be confirmed")+"\nLead: "+(leadId||"linked")+"\nSales owner: "+(ownerEmail||"Unassigned")+"\nTelegram: "+(telegramUsername?"@"+telegramUsername:chatId||"not available")+"\n\nAction: open the Aslal dashboard and continue the sales/payment workflow. Payment is NOT confirmed.";
 
  const notifications=await notifyOrderParties(workspaceId,ownerEmail,chatId,customerText,staffText);
- return NextResponse.json({ok:true,orderId,orderNumber,paymentId,leadId,notifications,nextStep:"Your order is saved. Aslal will confirm the details and send the available payment instructions. Payment remains pending until verified.",message:"Order received and saved. Please keep your order number for reference."});
+ return NextResponse.json({ok:true,orderId,orderNumber,paymentId,leadId,notifications,nextStep:"Your order request is saved. Sales will confirm the details and price, then guide you to the appropriate next step.",message:"Order request received and saved. Please keep your order number for reference."});
 }
