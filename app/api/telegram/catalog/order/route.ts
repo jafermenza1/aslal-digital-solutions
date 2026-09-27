@@ -106,8 +106,6 @@ export async function POST(request:Request){
   paymentId=randomUUID();
   orderNumber="ASL-TG-"+Date.now().toString(36).toUpperCase();
   await tx.order.create({data:{id:orderId,workspaceId,orderNumber,status:"DRAFT",currency:"ETB",subtotal:total,total,paymentState:"PENDING",source:"telegram",campaign:effectiveCampaignId,referralCode:referral?.code||null,partnerId:referral?.partnerId||destination?.partnerId||null,referralLinkId:referral?.id||null,salesOwnerEmail:ownerEmail,customerId:customer.id,items:{create:{id:randomUUID(),description:itemName,quantity:1,unitPrice:total,lineTotal:total}}}});
-  if(total>0){ paymentId=randomUUID(); await tx.payment.create({data:{id:paymentId,workspaceId,orderId,customerId:customer.id,provider:"TELEGRAM_ORDER_REQUEST",idempotencyKey:"telegram:"+chatId+":"+orderId,amount:total,currency:"ETB",method:"TELEGRAM",status:"PENDING",metadata:{telegramChatId:chatId,telegramUsername,workspaceId,slug,campaignId:effectiveCampaignId,partnerId:referral?.partnerId||destination?.partnerId||null,referralCode:referral?.code||null,customerName:name,customerPhone:phone}}}); }
-
   if(chatId){
    if(destination){
     await tx.telegramDestination.update({where:{id:destination.id},data:{leadId:leadId,personId:personId,productId:product?.id||null,campaignId:effectiveCampaignId,source:"telegram",medium:"telegram",label:name}});
