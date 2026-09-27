@@ -12,10 +12,11 @@ const blank:Omit<ProductRow,"id">={slug:"",name:"",kind:"SERVICE",category:"Gene
  shortDescription:"",description:"",features:"",benefits:"",idealFor:"",deliverables:"",imageUrl:"",galleryUrls:"",startingPrice:"",
  ctaLabel:"Request this",ctaNote:"Tell us what you need and the request will enter the Aslal sales workflow.",sortOrder:0,featured:false,active:true};
 
-export function ProductCatalogManager({initial}:{initial:ProductRow[]}) {
- const [rows,setRows]=useState(initial),[draft,setDraft]=useState<ProductRow>({id:"",...blank,category:"General",stockQuantity:null,workspaceId:initial[0]?.workspaceId||null,workspaceName:initial[0]?.workspaceName||""}),[editing,setEditing]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
+type Workspace={id:string;name:string;slug:string};
+export function ProductCatalogManager({initial,workspaces}:{initial:ProductRow[];workspaces:Workspace[]}) {
+ const [rows,setRows]=useState(initial),[draft,setDraft]=useState<ProductRow>({id:"",...blank,category:"General",stockQuantity:null,workspaceId:workspaces[0]?.id||null,workspaceName:workspaces[0]?.name||""}),[editing,setEditing]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
  const set=(key:string,value:any)=>setDraft(d=>({...d,[key]:value}));
- const startCreate=()=>{setDraft({id:"",...blank,workspaceId:initial[0]?.workspaceId||null,workspaceName:initial[0]?.workspaceName||""});setEditing(true);setNotice("")};
+ const startCreate=()=>{setDraft({id:"",...blank,workspaceId:workspaces[0]?.id||null,workspaceName:workspaces[0]?.name||""});setEditing(true);setNotice("")};
  const startEdit=(row:ProductRow)=>{setDraft(row);setEditing(true);setNotice("")};
  const save=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);setNotice("");
   try{
@@ -39,7 +40,7 @@ export function ProductCatalogManager({initial}:{initial:ProductRow[]}) {
       {field("Name","name","e.g. Growth CRM")}
       <label className="grid gap-1 text-sm font-bold text-slate-700">Public URL slug<span className="text-[11px] font-normal text-slate-400">{draft.id?"Stable after publication":"Generated automatically from the name"}</span><input value={draft.slug} onChange={e=>set("slug",e.target.value)} disabled={!!draft.id} placeholder="Auto-generated from name" className="rounded-xl border border-slate-200 px-4 py-3 font-normal disabled:bg-slate-100 disabled:text-slate-400"/></label>
       <label className="grid gap-1 text-sm font-bold text-slate-700">Type<select value={draft.kind} onChange={e=>set("kind",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="SERVICE">Service</option><option value="PRODUCT">Product</option></select></label>
-      <label className="grid gap-1 text-sm font-bold text-slate-700">Workspace<select value={draft.workspaceId||""} onChange={e=>set("workspaceId",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="">Select workspace</option>{initial.filter((x,i,a)=>x.workspaceId&&a.findIndex(y=>y.workspaceId===x.workspaceId)===i).map(x=><option key={x.workspaceId} value={x.workspaceId}>{x.workspaceName}</option>)}</select></label>
+      <label className="grid gap-1 text-sm font-bold text-slate-700">Workspace<select value={draft.workspaceId||""} onChange={e=>set("workspaceId",e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"><option value="">Select workspace</option>{workspaces.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
       {field("Category","category","e.g. CRM, Marketing, Software")}
       <label className="grid gap-1 text-sm font-bold text-slate-700">Stock number<span className="text-[11px] font-normal text-slate-400">Leave blank for service / unlimited</span><input type="number" min="0" value={draft.stockQuantity??""} onChange={e=>set("stockQuantity",e.target.value===""?null:Number(e.target.value))} className="rounded-xl border border-slate-200 px-4 py-3 font-normal"/></label>
       {field("Provider / brand","providerName","Aslal Digital Solutions")}
