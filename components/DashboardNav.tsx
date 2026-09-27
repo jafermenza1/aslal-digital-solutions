@@ -31,6 +31,7 @@ const ITEMS:Item[]=[
 {key:"customers",href:"/dashboard/customers",permission:"customers.view",icon:"users",group:"work"},
 {key:"conversations",href:"/dashboard/conversations",permission:"conversations.view",icon:"message",group:"work"},
 {key:"emailTemplates",href:"/dashboard/email-templates",permission:"email_templates.manage",icon:"mail",group:"work",nested:true},
+{key:"emailTemplates",href:"/dashboard/email",permission:"email.view",icon:"mail",group:"work",nested:true,label:"Email Operations"},
 {key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"intelligence"},
 {key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"intelligence"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"intelligence"},
