@@ -183,7 +183,7 @@ async function keywordResponse(chatId:string,workspaceId:string,textValue:string
   return false;
 }
 async function inlineCatalog(update:TelegramInlineQuery){
-  const q=clean(update.query),workspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
+  const q=clean(update.query),workspaceId=await resolveTelegramDefaultWorkspaceId();
   if(!workspaceId)return tg("answerInlineQuery",{inline_query_id:update.id,results:[],cache_time:5,is_personal:true});
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.inlineModeEnabled||!cfg.inlineCatalogEnabled)return tg("answerInlineQuery",{inline_query_id:update.id,results:[],cache_time:5,is_personal:true});
   const [rows]=await db.query<(RowDataPacket&{id:string;name:string;slug:string;tagline:string|null;short_description:string|null;starting_price:string|null;image_url:string|null})[]>(`SELECT id,name,slug,tagline,short_description,starting_price,image_url FROM products WHERE workspace_id=? AND active=1 AND (name LIKE ? OR slug LIKE ? OR tagline LIKE ?) ORDER BY featured DESC,sort_order ASC,name ASC LIMIT 20`,[workspaceId,"%"+q+"%","%"+q+"%","%"+q+"%"]);
@@ -427,7 +427,7 @@ async function handle(update:TelegramUpdate){
     return handleClientInbound(d.workspace_id,d,m,chatId);
   }
 
-  const publicHandoffChatId=String((await getTelegramChannelConfig(await resolveTelegramDefaultWorkspaceId()))?.handoffChatId||"");
+  const resolvedWorkspaceId=await resolveTelegramDefaultWorkspaceId(); const publicHandoffChatId=String((await getTelegramChannelConfig(resolvedWorkspaceId))?.handoffChatId||"");
   if((chatType==="group"||chatType==="supergroup") && publicHandoffChatId===chatId && m.reply_to_message?.message_id){
     if(await routeAdminReplyToPublic(m))return;
   }
