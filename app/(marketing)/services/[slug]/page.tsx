@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { getMarketingService, marketingServices } from "@/lib/marketing-services";
 import { ShareActions } from "@/components/ShareActions";
 import { SearchStructuredData, SearchAnswerBlock } from "@/components/SearchStructuredData";
-import { getSearchProfile } from "@/lib/search-profiles";
+import { getSearchProfile,effectiveSearchProfile } from "@/lib/search-profiles";
 
 export const revalidate = 60;
 
