@@ -3,17 +3,26 @@ import * as SecureStore from "expo-secure-store";
 const API_BASE_URL = "https://aslaldigital.com";
 const SESSION_KEY = "aslal.session";
 const WORKSPACE_KEY = "aslal.workspace";
+const DEVICE_KEY = "aslal.device";
 
 async function getSession() {
   return SecureStore.getItemAsync(SESSION_KEY);
+}
+
+export async function setWorkspace(workspaceId: string) {
+  await SecureStore.setItemAsync(WORKSPACE_KEY, workspaceId);
 }
 
 async function getWorkspace() {
   return SecureStore.getItemAsync(WORKSPACE_KEY);
 }
 
-export async function setWorkspace(workspaceId: string) {
-  await SecureStore.setItemAsync(WORKSPACE_KEY, workspaceId);
+export async function getDeviceId() {
+  const existing = await SecureStore.getItemAsync(DEVICE_KEY);
+  if (existing) return existing;
+  const deviceId = `mobile-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  await SecureStore.setItemAsync(DEVICE_KEY, deviceId);
+  return deviceId;
 }
 
 export async function clearSession() {
@@ -33,11 +42,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (workspace) cookies.push(`aslal_workspace_id=${workspace}`);
   if (cookies.length) headers.set("Cookie", cookies.join("; "));
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-  });
-
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = typeof body?.error === "string" ? body.error : `Request failed (${response.status})`;
@@ -89,15 +94,6 @@ export async function bootstrap() {
   return request<Bootstrap>("/api/mobile/bootstrap");
 }
 
-export async function overview() {
-  return request<{
-    visitors: number;
-    leads: number;
-    hotLeads: number;
-    events: Array<{ event_name: string; count: number }>;
-  }>("/api/admin/overview");
-}
-
 export async function refreshSession() {
   const response = await request<{ ok: true; sessionToken?: string }>("/api/auth/heartbeat", {
     method: "POST",
@@ -105,4 +101,11 @@ export async function refreshSession() {
   });
   if (response.sessionToken) await SecureStore.setItemAsync(SESSION_KEY, response.sessionToken);
   return response;
+}
+
+export async function ping() {
+  return request<{ ok: boolean }>("/api/auth/heartbeat", {
+    method: "POST",
+    headers: { "x-aslal-client": "mobile" },
+  });
 }
