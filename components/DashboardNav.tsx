@@ -46,7 +46,7 @@ const ITEMS:Item[]=[
 {key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"administration",label:"Users & Access"},
 {key:"users",href:"/dashboard/workspaces",permission:"users.manage",icon:"users",group:"administration",label:"Workspaces"},
 {key:"emailTemplates",href:"/dashboard/email-templates",permission:"email_templates.manage",icon:"mail",group:"administration",nested:true,label:"Email Templates"},
-{key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"administration",nested:true,label:"Website Content"},
+{key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"administration",nested:true,label:"Website Content & Brand"},
 {key:"publicContent",href:"/dashboard/resources",permission:"content.manage",icon:"store",group:"administration",nested:true,label:"Resources"},
 {key:"publicContent",href:"/dashboard/team",permission:"content.manage",icon:"users",group:"administration",nested:true,label:"Team"},
 {key:"publicContent",href:"/dashboard/social-profiles",permission:"content.manage",icon:"message",group:"administration",nested:true,label:"Social Profiles"},
