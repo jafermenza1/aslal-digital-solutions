@@ -1,5 +1,5 @@
 # Aslal Digital Solutions — Growth OS
-
+switched to jafermenza on sept 28-2026
 **Product:** Aslal Growth OS  
 **Organization:** Aslal Digital Solutions  
 **Primary market:** Ethiopia, with diaspora/international use where commercially relevant  
