@@ -50,10 +50,10 @@ async function publicSession(workspaceId:string,user:any,chatId:string){
 async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const cfg=await getTelegramChannelConfig(workspaceId);
   if(!cfg?.publicEnabled||!cfg.allowAnonymousUsers)return reply(chatId,"Public Telegram access is currently unavailable.");
+  const actionLabel=(item:string)=>item.toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
   const configuredMenu=Array.isArray(cfg.publicMenu)?cfg.publicMenu.map((item:any)=>String(item||"").trim()).filter(Boolean):[];
   const menuItems=[...(configuredMenu.length?configuredMenu:["Catalog","Qualify me","Pricing","Talk to Agent","Share phone number","Close menu"])];
   if(!menuItems.some(item=>actionLabel(item)==="close menu"))menuItems.push("Close menu");
-  const actionLabel=(item:string)=>item.toLowerCase().replace(/[^p{L}\p{N}]+/gu," ").trim();
   const keyboard:any[][]=[];
   const actionButtons:Record<string,{text:string;request_contact?:boolean}>={
     catalog:{text:"🛍 Catalog"},
