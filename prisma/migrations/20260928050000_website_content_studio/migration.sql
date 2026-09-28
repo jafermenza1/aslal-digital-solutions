@@ -10,6 +10,8 @@ CREATE TABLE website_settings (
   PRIMARY KEY (id), UNIQUE KEY uq_website_settings_workspace (workspace_id), KEY idx_website_settings_workspace (workspace_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+ALTER TABLE public_content ADD COLUMN format VARCHAR(20) NOT NULL DEFAULT 'plain', ADD COLUMN rich_html LONGTEXT NULL;
+
 CREATE TABLE translation_entries (
   id CHAR(36) NOT NULL, workspace_id CHAR(36) NOT NULL, surface VARCHAR(20) NOT NULL, locale VARCHAR(20) NOT NULL,
   translation_key VARCHAR(250) NOT NULL, label VARCHAR(250) NOT NULL, original_text TEXT NOT NULL, translated_text TEXT NULL,
