@@ -199,6 +199,7 @@ export async function syncTelegramIdentity(input: SyncInput) {
   });
 
   if (input.event) {
+    await prisma.visitor.update({ where: { id: visitorId }, data: { lastSeenAt: new Date() } }).catch(() => null);
     await prisma.event.create({
       data: {
         visitorId,
