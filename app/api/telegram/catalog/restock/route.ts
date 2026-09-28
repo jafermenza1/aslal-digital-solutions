@@ -22,7 +22,8 @@ async function telegramSend(chatId:string,text:string){
 export async function POST(request:Request){
  try{
   const body=await request.json().catch(()=>({}));
-  const workspaceId=clean(body.workspaceId,36),slug=clean(body.slug,160),name=clean(body.name,160),phoneInput=clean(body.phone,40),suppliedChatId=clean(body.chatId,80),telegramInitData=clean(body.telegramInitData,8000);\n  const restockConsent=body.restockConsent===true;
+  const workspaceId=clean(body.workspaceId,36),slug=clean(body.slug,160),name=clean(body.name,160),phoneInput=clean(body.phone,40),suppliedChatId=clean(body.chatId,80),telegramInitData=clean(body.telegramInitData,8000);
+  const restockConsent=body.restockConsent===true;
   let chatId=suppliedChatId;
   let identity:any=null;
   if(!workspaceId||!slug)return error("This product link is incomplete. Please return to the catalog.");
