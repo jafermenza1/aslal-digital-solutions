@@ -4,7 +4,7 @@ import { RESOURCES } from "@/lib/resources";
 import type { RowDataPacket } from "mysql2/promise";
 
 export type DbResource = {
-  id:string; slug:string; category:string; title:string; description:string; preview:string;
+  id:string; workspace_id:string|null; slug:string; category:string; title:string; description:string; preview:string;
   cta:string; intent:string; download_url:string|null; active:number; published_at:Date; updated_at:Date;
 };
 
@@ -24,7 +24,7 @@ export async function getResources(filters?:{category?:string;days?:number}) {
   const category=filters?.category;
   const days=Math.min(3650,Math.max(1,Number(filters?.days||3650)));
   const [rows]=await db.query<(RowDataPacket&DbResource)[]>(
-    `SELECT id,slug,category,title,description,preview,cta,intent,download_url,active,published_at,updated_at
+    `SELECT id,workspace_id,slug,category,title,description,preview,cta,intent,download_url,active,published_at,updated_at
      FROM resources
      WHERE active=1 AND published_at >= DATE_SUB(NOW(), INTERVAL ? DAY) ${category?"AND category = ?":""}
      ORDER BY published_at DESC`,
