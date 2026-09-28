@@ -211,3 +211,15 @@ Offline foundation is accepted when:
 - conflicts are visible;
 - payment confirmation cannot be faked offline;
 - the user can inspect sync state.
+
+## Current implementation status — 2026-09-28
+
+The first production-safe slice is now implemented without a new Prisma migration:
+
+- POST /api/mobile/sync accepts only authenticated, workspace-scoped lead.create operations.
+- The client-generated lead ID is the idempotency key; replaying the same operation returns the existing lead instead of creating a second lead.
+- GET /api/mobile/sync?workspaceId=...&cursor=... returns workspace-scoped lead changes for local cache refresh.
+- The mobile app persists the outbox and a lead cache in Expo SQLite.
+- Payment confirmation, reconciliation, recognized revenue, commission and payout mutations remain outside the mobile offline mutation path.
+
+This is intentionally a narrow sync slice. It is not a claim that every mobile domain has offline synchronization yet.
