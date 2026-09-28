@@ -16,7 +16,23 @@ type UserRow = {
   telegramLinkedAt?: string | null;
 };
 
-const permissions = [...PERMISSIONS];\n\nconst roleDefaults: Record<string, string[]> = {\n  SUPER_ADMIN: defaultPermissionsForRole("SUPER_ADMIN" as any),\n  ADMIN: defaultPermissionsForRole("ADMIN" as any),\n  BUSINESS_OWNER: defaultPermissionsForRole("BUSINESS_OWNER" as any),\n  SALES_MANAGER: defaultPermissionsForRole("SALES_MANAGER" as any),\n  SALES_OPERATOR: defaultPermissionsForRole("SALES_OPERATOR" as any),\n  MARKETING_OPERATOR: defaultPermissionsForRole("MARKETING_OPERATOR" as any),\n  PARTNER_MANAGER: defaultPermissionsForRole("PARTNER_MANAGER" as any),\n  PARTNER: defaultPermissionsForRole("PARTNER" as any),\n  FINANCE: defaultPermissionsForRole("FINANCE" as any),\n  AUDITOR: defaultPermissionsForRole("AUDITOR" as any),\n  CLIENT: defaultPermissionsForRole("CLIENT" as any),\n};\n\ntype WorkspaceOption = { id: string; name: string; role?: string };
+const permissions = [...PERMISSIONS];
+
+const roleDefaults: Record<string, string[]> = {
+  SUPER_ADMIN: defaultPermissionsForRole("SUPER_ADMIN" as any),
+  ADMIN: defaultPermissionsForRole("ADMIN" as any),
+  BUSINESS_OWNER: defaultPermissionsForRole("BUSINESS_OWNER" as any),
+  SALES_MANAGER: defaultPermissionsForRole("SALES_MANAGER" as any),
+  SALES_OPERATOR: defaultPermissionsForRole("SALES_OPERATOR" as any),
+  MARKETING_OPERATOR: defaultPermissionsForRole("MARKETING_OPERATOR" as any),
+  PARTNER_MANAGER: defaultPermissionsForRole("PARTNER_MANAGER" as any),
+  PARTNER: defaultPermissionsForRole("PARTNER" as any),
+  FINANCE: defaultPermissionsForRole("FINANCE" as any),
+  AUDITOR: defaultPermissionsForRole("AUDITOR" as any),
+  CLIENT: defaultPermissionsForRole("CLIENT" as any),
+};
+
+type WorkspaceOption = { id: string; name: string; role?: string };
 
 type Draft = {
   id: string;
