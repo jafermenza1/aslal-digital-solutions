@@ -17,13 +17,15 @@ import {
   getLeads,
   login,
   ping,
+  pullSync,
+  pushSyncOperations,
   refreshSession,
   setWorkspace,
   type Bootstrap,
   type MobileLead,
   type Workspace,
 } from "./src/api";
-import { getMobileDatabase, listPendingOperations } from "./src/offline";
+import { cacheLeads, getMobileDatabase, listPendingOperations, setOperationStatus } from "./src/offline";
 import {
   resolveMobileRole,
   tabsForRole,
@@ -122,11 +124,48 @@ export default function App() {
     }
   }
 
+  async function syncWorkspace() {
+    if (!selectedWorkspace) return;
+    const pending = await listPendingOperations(selectedWorkspace.id);
+    if (pending.length) {
+      const operations = pending.map((item) => ({
+        operationId: item.operation_id,
+        workspaceId: item.workspace_id,
+        entity: item.entity,
+        action: item.action,
+        payload: JSON.parse(item.payload_json),
+        clientCreatedAt: item.client_created_at,
+      }));
+      const result = await pushSyncOperations(operations);
+      for (const item of result.results) {
+        await setOperationStatus(
+          item.operationId,
+          item.status === "ACCEPTED" ? "ACCEPTED" : item.status === "REJECTED" ? "FAILED" : "FAILED",
+          item.reason,
+        );
+      }
+    }
+    const pulled = await pullSync();
+    await cacheLeads(selectedWorkspace.id, pulled.changes);
+    setPendingCount((await listPendingOperations(selectedWorkspace.id)).length);
+  }
+
   async function handleRefresh() {
     setError("");
     setSyncState("SYNCING");
-    try { await refreshSession(); await ping(); await loadSession(); }
-    catch (e) { setSyncState("OFFLINE"); setError(e instanceof Error ? e.message : "Connection unavailable."); }
+    try {
+      await refreshSession();
+      await ping();
+      await syncWorkspace();
+      if (activeTab === "leads") {
+        const result = await getLeads();
+        setLeads(result.leads);
+      }
+      setSyncState("LIVE");
+    } catch (e) {
+      setSyncState("OFFLINE");
+      setError(e instanceof Error ? e.message : "Connection unavailable.");
+    }
   }
 
   async function handleLogout() {
