@@ -1,0 +1,1 @@
+ALTER TABLE website_settings ADD COLUMN service_packages_json LONGTEXT NULL;
