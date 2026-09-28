@@ -3,6 +3,8 @@ import Link from "next/link";
 import { AboutTeam } from "@/components/AboutTeam";
 import { getPageContent, contentValue } from "@/lib/public-content";
 import { getTeamMembers } from "@/lib/team-members";
+import { getWebsiteSettings } from "@/lib/website-settings";
+import { resolvePublicWorkspaceId } from "@/lib/workspaces";
 
 export const revalidate=60;
 export const metadata={title:"About Aslal | Digital Growth Systems for Ethiopia",description:"Meet Aslal Digital Solutions: an Ethiopia-first team connecting marketing, technology, CRM and automation around measurable business growth."};
@@ -15,7 +17,7 @@ const pillars=[
 ];
 
 export default async function AboutPage(){
- const [content,team]=await Promise.all([getPageContent("/about"),getTeamMembers()]);
+ const [content,team,settings]=await Promise.all([getPageContent("/about"),getTeamMembers(),getWebsiteSettings(resolvePublicWorkspaceId())]);
  return <main className="bg-[#F8FAFC] text-[#1E293B]">
   <section className="hero-glow py-20 sm:py-28"><div className="container-aslal relative z-10 grid gap-12 lg:grid-cols-[1.15fr_.85fr] lg:items-end">
    <div><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">About Aslal</div>
@@ -25,6 +27,7 @@ export default async function AboutPage(){
    </div>
    <div className="rounded-[2rem] border border-white/10 bg-white/[.07] p-7 backdrop-blur"><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Our focus</div><div className="mt-5 grid grid-cols-2 gap-3">{[["Demand","Attract"],["Conversation","Convert"],["Workflow","Follow up"],["Revenue","Measure"]].map(([a,b])=><div key={a} className="rounded-2xl border border-white/10 bg-white/[.05] p-4"><div className="text-sm font-black text-white">{a}</div><div className="mt-1 text-xs text-white/55">{b}</div></div>)}</div></div>
   </div></section>
+  <section className="bg-white py-16"><div className="container-aslal"><div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-center"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Find Aslal</div><h2 className="mt-3 text-3xl font-black">{settings.location?.name||"Aslal Digital Solutions"}</h2><p className="mt-3 leading-7 text-slate-600">{settings.location?.address||"Addis Ababa, Ethiopia"}</p><Link href="/contact" className="mt-6 inline-flex rounded-full bg-[#0F3E8A] px-5 py-3 font-bold text-white">Contact us →</Link></div>{settings.location?.mapEnabled!==false&&<iframe title="Aslal office location" className="h-72 w-full rounded-3xl border border-slate-200" loading="lazy" src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(settings.location?.longitude||38.7525)-0.01}%2C${Number(settings.location?.latitude||9.0192)-0.01}%2C${Number(settings.location?.longitude||38.7525)+0.01}%2C${Number(settings.location?.latitude||9.0192)+0.01}&layer=mapnik&marker=${settings.location?.latitude||9.0192}%2C${settings.location?.longitude||38.7525}`}/>}</div></div></section>
   <section className="bg-white py-16"><div className="container-aslal"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{pillars.map(([n,t,d])=><article key={n} className="rounded-[1.5rem] border border-slate-200 bg-[#F8FAFC] p-6"><span className="text-xs font-black tracking-[.18em] text-[#0F3E8A]">{n}</span><h2 className="mt-8 text-xl font-black text-[#132238]">{t}</h2><p className="mt-3 text-sm leading-6 text-[#475569]">{d}</p></article>)}</div></div></section>
   <section className="bg-[#F8FAFC] py-20"><div className="container-aslal grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
    <div><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Why we exist</div><h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl text-[#132238]">Less fragmentation. More useful action.</h2></div>
