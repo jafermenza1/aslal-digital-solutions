@@ -67,6 +67,7 @@ async function publicMenu(chatId:string,workspaceId:string,user?:any){
   if(hasContext) keyboard.splice(0,0,[{text:"↩️ Continue conversation"}]);
   if(loginEnabled) keyboard.push([{text:"🔐 Log in with Telegram"}]);
   await tg("sendMessage",{chat_id:chatId,text:welcome+viewText+"\\n\\nChoose an option below:",reply_markup:{keyboard,resize_keyboard:true,is_persistent:true,input_field_placeholder:"Choose an Aslal option"}});
+  if(loginEnabled) await tg("sendMessage",{chat_id:chatId,text:"Website login:",reply_markup:{inline_keyboard:[[{text:"🔐 Log in with Telegram",login_url:{url:site+"/api/auth/telegram/callback?workspaceId="+encodeURIComponent(workspaceId),request_write_access:true}}]]}});
   return;
 }
 async function continuePublic(chatId:string,workspaceId:string,user:any){
