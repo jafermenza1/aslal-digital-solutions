@@ -54,14 +54,20 @@ async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId}}}).catch(()=>null);
   const hasContext=Boolean(identity?.leadId||identity?.customerId);
   const recentViews=identity?.visitorId ? await prisma.event.findMany({where:{visitorId:identity.visitorId,eventName:"TELEGRAM_PRODUCT_VIEW"},orderBy:{createdAt:"desc"},take:3,select:{productSlug:true}}).catch(()=>[]) : [];
-  const viewText=recentViews.length?"\n\nWe remember your recent catalog interest: "+recentViews.map(v=>v.productSlug).filter(Boolean).join(", ")+".":"";
+  const viewText=recentViews.length?"\\n\\nWe remember your recent catalog interest: "+recentViews.map(v=>v.productSlug).filter(Boolean).join(", ")+".":"";
   const welcome=hasContext?"Welcome back to Aslal. I found your existing customer/lead context, so you can continue without starting over.":"Welcome to Aslal. No account or registration is required. Your Telegram identity and catalog activity can be remembered for this workspace.";
-  const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
+  const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\\/$/,"");
   const loginEnabled=String(process.env.TELEGRAM_LOGIN_ENABLED||"").toLowerCase()==="true";
-  const rows:any[]=[...(hasContext?[[{text:"↩️ Continue conversation",callback_data:"public:continue:"+workspaceId}]]:[]),[{text:"🛍 Catalog",callback_data:"public:catalog:"+workspaceId},{text:"🎯 Qualify me",callback_data:"public:qualify:"+workspaceId}],[{text:"💰 Pricing",callback_data:"public:pricing:"+workspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+workspaceId}]];
-  if(loginEnabled) rows.push([{text:"🔐 Log in with Telegram",login_url:{url:site+"/api/auth/telegram/callback?workspaceId="+encodeURIComponent(workspaceId),request_write_access:true}}]);
-  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText,reply_markup:{inline_keyboard:rows}});
-  return tg("sendMessage",{chat_id:chatId,text:"When you are ready for a reachable sales handoff, share your phone number with Aslal.",reply_markup:{keyboard:[[{text:"📱 Share phone number",request_contact:true}]],resize_keyboard:true,one_time_keyboard:true}});
+  const keyboard:any[][]=[
+    [{text:"🛍 Catalog"},{text:"🎯 Qualify me"}],
+    [{text:"💰 Pricing"},{text:"👤 Talk to Agent"}],
+    [{text:"📱 Share phone number",request_contact:true}],
+    [{text:"❌ Close menu"}],
+  ];
+  if(hasContext) keyboard.splice(0,0,[{text:"↩️ Continue conversation"}]);
+  if(loginEnabled) keyboard.push([{text:"🔐 Log in with Telegram"}]);
+  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText+"\\n\\nChoose an option below:",reply_markup:{keyboard,resize_keyboard:true,is_persistent:true,input_field_placeholder:"Choose an Aslal option"}});
+  return;
 }
 async function continuePublic(chatId:string,workspaceId:string,user:any){
   const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId:String(user?.id||chatId)}}});
@@ -337,10 +343,13 @@ async function handle(update:TelegramUpdate){
         await ensurePublicLead(publicWorkspaceId,m.from||{id:chatId},chatId,nextData);
         return tg("sendMessage",{chat_id:chatId,text:"Thanks. Your answers have been saved.",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+publicWorkspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+publicWorkspaceId}]]}});
       }
-      if(input==="/help")return publicMenu(chatId,publicWorkspaceId,m.from||{id:chatId});
-      if(input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
-      if(input==="/catalog")return catalog(chatId,publicWorkspaceId);
-      if(input==="/support")return handoffPublic(chatId,publicWorkspaceId,m.from||{id:chatId});
+      if(input==="/help"||input==="❌ Close menu")return input==="❌ Close menu"?tg("sendMessage",{chat_id:chatId,text:"Aslal menu closed. Send /start or /help any time to reopen it.",reply_markup:{remove_keyboard:true}}):publicMenu(chatId,publicWorkspaceId,m.from||{id:chatId});
+      if(input==="/pricing"||input==="💰 Pricing")return pricingResponse(chatId,publicWorkspaceId);
+      if(input==="/catalog"||input==="🛍 Catalog")return catalog(chatId,publicWorkspaceId);
+      if(input==="/support"||input==="👤 Talk to Agent")return handoffPublic(chatId,publicWorkspaceId,m.from||{id:chatId});
+      if(input==="🎯 Qualify me")return qualification(chatId,publicWorkspaceId,m.from||{id:chatId});
+      if(input==="↩️ Continue conversation")return continuePublic(chatId,publicWorkspaceId,m.from||{id:chatId});
+      if(input==="📱 Share phone number"&&m.contact?.phone_number)return;
       if(await keywordResponse(chatId,publicWorkspaceId,input))return;
       if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,m.from||{id:chatId},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,m.from||{id:chatId});}
       if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,m.from||{id:chatId},String(stateData.currentStep||""));
