@@ -4,7 +4,7 @@ import {useEffect,useMemo,useState} from "react";
 import {ArrowRight,Search,SlidersHorizontal,X} from "lucide-react";
 import {useRouter} from "next/navigation";
 type Workspace={id:string;name:string;slug:string};
-type Item={id:string;workspaceId:string;name?:string;title?:string;slug:string;description?:string|null;preview?:string;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null;featured?:boolean;stockQuantity?:number|null};
+type Item={id:string;workspaceId:string;name?:string;title?:string;slug:string;description?:string|null;preview?:string;shortDescription?:string;tagline?:string|null;imageUrl?:string|null;media:string[];startingPrice?:string|null;ctaLabel?:string|null;cta?:string;kind?:string;category?:string;specifications?:Record<string,unknown>|null;relationshipType:string;providerName?:string|null;featured?:boolean;stockQuantity?:number|null;search?:{directAnswer?:string;localContext?:string}};
 const money=(v:string|null|undefined)=>v||"Price on request";
 function initialQueryValue(key:string,storageKey:string){if(typeof window==="undefined")return "";const p=new URLSearchParams(window.location.search);return p.get(key)||sessionStorage.getItem(storageKey)||"";}
 export default function TelegramCatalogPage(){

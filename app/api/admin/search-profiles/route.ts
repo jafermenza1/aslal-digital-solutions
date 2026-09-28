@@ -2,6 +2,8 @@ import {NextResponse} from "next/server";
 import {authorizePermission} from "@/lib/authorization";
 import {getWorkspaceForUser} from "@/lib/workspaces";
 import {getSearchProfile,listSearchProfiles,upsertSearchProfile} from "@/lib/search-profiles";
+import {marketingServices} from "@/lib/marketing-services";
+import {prisma} from "@/lib/prisma";
 export const dynamic="force-dynamic";
 async function auth(){const user=await authorizePermission("content.manage");if(!user)return null;const workspace=await getWorkspaceForUser(user);return workspace?{user,workspace}:null;}
 export async function GET(request:Request){const a=await auth();if(!a)return NextResponse.json({error:"Unauthorized"},{status:401});const u=new URL(request.url),locale=u.searchParams.get("locale")||"en",type=u.searchParams.get("targetType"),id=u.searchParams.get("targetId");if(type&&id)return NextResponse.json({profile:await getSearchProfile(a.workspace.id,type,id,locale)});const services=marketingServices.map(x=>({id:x.slug,name:x.name,slug:x.slug}));const pages=["/","/services","/products","/portfolio","/automation-lab","/about","/resources","/contact","/growth-builder","/privacy","/terms"].map(path=>({id:path,path}));const [products,resources]=await Promise.all([prisma.product.findMany({where:{workspaceId:a.workspace.id,active:true},select:{id:true,name:true,slug:true,kind:true,category:true}}),prisma.resource.findMany({where:{workspaceId:a.workspace.id,active:true},select:{id:true,title:true,slug:true,category:true}})]);return NextResponse.json({profiles:await listSearchProfiles(a.workspace.id,locale),products,resources,services,pages,locale});}

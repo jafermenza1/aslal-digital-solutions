@@ -16,7 +16,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const service = getMarketingService(slug);
   if (!service) return { title: "Service | Aslal Digital Solutions" };
-  const profile=await getSearchProfile("internal","SERVICE",slug,"en").catch(()=>null);\n  const title = profile?.seoTitle||`${service.name} | Aslal Digital Solutions`;
+  const profile=await getSearchProfile("internal","SERVICE",slug,"en").catch(()=>null);
+  const title = profile?.seoTitle||`${service.name} | Aslal Digital Solutions`;
   const description = profile?.metaDescription||`${service.description} ${service.cta}. Explore the service and request the next step from Aslal.`;
   const url = `https://aslaldigital.com/services/${encodeURIComponent(slug)}`;
   const image = "https://aslaldigital.com/og/products.png";
@@ -33,7 +34,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       images: [{ url: image, width: 1200, height: 630, alt: `${service.name} — Aslal Digital Solutions` }],
       locale: "en_US",
     },
-    twitter: { card: "summary_large_image", title, description, images: [image] },\n    robots: profile?.noindex ? {index:false,follow:false} : undefined,
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+    robots: profile?.noindex ? {index:false,follow:false} : undefined,
   };
 }
 
@@ -41,6 +43,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const service = getMarketingService(slug);
   if (!service) notFound();
+  const profile=await getSearchProfile("internal","SERVICE",slug,"en").catch(()=>null);
   const url = `https://aslaldigital.com/services/${service.slug}`;
   const requestUrl = `/contact?service=${encodeURIComponent(service.slug)}&goal=${encodeURIComponent(service.cta)}`;
 

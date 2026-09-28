@@ -80,15 +80,16 @@ async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const welcome=hasContext?"Welcome back to Aslal. I found your existing customer/lead context, so you can continue without starting over.":"Welcome to Aslal. No account or registration is required. Your Telegram identity and catalog activity can be remembered for this workspace.";
   const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
   const loginEnabled=String(process.env.TELEGRAM_LOGIN_ENABLED||"").toLowerCase()==="true";
-  const keyboard:any[][]=[
+  const defaultKeyboard:any[][]=[
     [{text:"🛍 Catalog"},{text:"🎯 Qualify me"}],
     [{text:"💰 Pricing"},{text:"👤 Talk to Agent"}],
     [{text:"📱 Share phone number",request_contact:true}],
     [{text:"❌ Close menu"}],
   ];
-  if(hasContext) keyboard.splice(0,0,[{text:"↩️ Continue conversation"}]);
-  if(loginEnabled) keyboard.push([{text:"🔐 Log in with Telegram"}]);
-  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText+"\\n\\nChoose an option below:",reply_markup:{keyboard,resize_keyboard:true,is_persistent:true,input_field_placeholder:"Choose an Aslal option"}});
+  const replyKeyboard=configuredMenu.length?keyboard:defaultKeyboard;
+  if(hasContext) replyKeyboard.splice(0,0,[{text:"↩️ Continue conversation"}]);
+  if(loginEnabled) replyKeyboard.push([{text:"🔐 Log in with Telegram"}]);
+  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText+"\\n\\nChoose an option below:",reply_markup:{keyboard:replyKeyboard,resize_keyboard:true,is_persistent:true,input_field_placeholder:"Choose an Aslal option"}});
   if(loginEnabled) await tg("sendMessage",{chat_id:chatId,text:"Website login:",reply_markup:{inline_keyboard:[[{text:"🔐 Log in with Telegram",login_url:{url:site+"/api/auth/telegram/callback?workspaceId="+encodeURIComponent(workspaceId),request_write_access:true}}]]}});
   return;
 }

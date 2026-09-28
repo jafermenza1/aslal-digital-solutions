@@ -17,6 +17,7 @@ export async function generateMetadata({params}:{params:Promise<{slug:string}>})
   const {slug}=await params;
   const resource=await getResourceBySlug(slug);
   if(!resource) return {};
+  const profile=await getSearchProfile(String((resource as any).workspace_id||(resource as any).workspaceId||"internal"),"RESOURCE",String(resource.id),"en").catch(()=>null);
   const title=`${resource.title} | Aslal Resources`;
   const description=`${resource.description} Get a practical preview, use the tool or template, and take the next step with Aslal Digital Solutions.`;
   const url=`https://aslaldigital.com/resources/${resource.slug}`;
@@ -28,7 +29,8 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
   const {slug}=await params;
   const resource=await getResourceBySlug(slug);
   if(!resource) notFound();
-  const isTool=resource.category==="tool";\n  const profile=await getSearchProfile(String((resource as any).workspace_id||(resource as any).workspaceId||"internal"),"RESOURCE",String(resource.id),"en").catch(()=>null);
+  const isTool=resource.category==="tool";
+  const profile=await getSearchProfile(String((resource as any).workspace_id||(resource as any).workspaceId||"internal"),"RESOURCE",String(resource.id),"en").catch(()=>null);
   const whatsapp=`https://wa.me/251911276682?text=${encodeURIComponent(`Hi Aslal, I am interested in: ${resource.title}`)}`;
   const telegram=`https://t.me/share/url?url=${encodeURIComponent(`https://aslaldigital.com/resources/${resource.slug}`)}&text=${encodeURIComponent(`Hi Aslal, I am interested in: ${resource.title}`)}`;
   return <main>
