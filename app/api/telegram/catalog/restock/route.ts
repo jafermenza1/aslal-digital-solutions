@@ -27,7 +27,8 @@ export async function POST(request:Request){
   let chatId=suppliedChatId;
   let identity:any=null;
   if(!workspaceId||!slug)return error("This product link is incomplete. Please return to the catalog.");
-  if(!validName(name))return error("Please enter your full name using letters only.");\n  if(!restockConsent)return error("Please consent to receive a Telegram alert when this product is back in stock.");
+  if(!validName(name))return error("Please enter your full name using letters only.");
+  if(!restockConsent)return error("Please consent to receive a Telegram alert when this product is back in stock.");
   const phone=normalizePhone(phoneInput);
   if(!phone)return error("Please enter a valid mobile number with country code.");
 
