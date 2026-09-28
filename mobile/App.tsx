@@ -13,7 +13,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { bootstrap, clearSession, getDeviceId, login, ping, refreshSession, setWorkspace, type Bootstrap, type Workspace } from "./src/api";
+import { bootstrap, clearSession, login, ping, refreshSession, setWorkspace, type Bootstrap, type Workspace } from "./src/api";
 import { getMobileDatabase, listPendingOperations } from "./src/offline";
 import { resolveMobileRole, tabsForRole, type MobileRole, type MobileTab, type SyncState } from "./src/contracts";
 
