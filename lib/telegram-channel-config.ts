@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
 
 export const DEFAULT_TELEGRAM_CHANNEL_CONFIG = {
   enabled: true,
@@ -84,4 +85,21 @@ export async function getOrCreateTelegramChannelConfig(workspaceId: string) {
     },
     update: {},
   });
+}
+
+
+export async function resolveTelegramDefaultWorkspaceId() {
+  const configured = String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID || "").trim();
+  if (configured) {
+    const [rows] = await db.query<Array<{id:string}>>(
+      "SELECT id FROM workspaces WHERE id=? AND active=1 LIMIT 1",
+      [configured],
+    );
+    if (rows[0]?.id) return rows[0].id;
+  }
+
+  const [rows] = await db.query<Array<{id:string}>>(
+    "SELECT w.id FROM workspaces w INNER JOIN telegram_channel_configs c ON c.workspace_id=w.id WHERE w.active=1 AND c.enabled=1 AND c.public_enabled=1 AND c.allow_anonymous_users=1 ORDER BY CASE WHEN LOWER(w.slug)='aslal' OR LOWER(w.name)='aslal' THEN 0 ELSE 1 END, w.created_at ASC LIMIT 1",
+  );
+  return rows[0]?.id || "";
 }
