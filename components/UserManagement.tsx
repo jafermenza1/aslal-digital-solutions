@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PERMISSIONS, defaultPermissionsForRole } from "@/lib/permissions";
 
 type UserRow = {
   id: string;
@@ -15,27 +16,7 @@ type UserRow = {
   telegramLinkedAt?: string | null;
 };
 
-const permissions = [
-  "dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view",
-  "conversations.view","conversations.send","conversations.manage","products.manage","content.manage",
-  "email_templates.manage","users.manage","partners.manage","partners.credentials","partner.portal.view","insights.view","operations.view","commerce.view","commerce.manage",
-];
-
-const roleDefaults: Record<string, string[]> = {
-  SUPER_ADMIN: permissions,
-  ADMIN: permissions,
-  BUSINESS_OWNER: ["dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view","conversations.view","conversations.send","conversations.manage","products.manage","content.manage","email_templates.manage","users.manage","partners.manage","insights.view","operations.view","commerce.view","commerce.manage"],
-  SALES_MANAGER: ["dashboard.view","leads.view","leads.create","leads.edit","customers.view","conversations.view","conversations.send","conversations.manage","insights.view","operations.view"],
-  SALES_OPERATOR: ["dashboard.view","leads.view","leads.create","leads.edit","customers.view","conversations.view","conversations.send"],
-  MARKETING_OPERATOR: ["dashboard.view","leads.view","customers.view","products.manage","email_templates.manage","insights.view"],
-  PARTNER: ["dashboard.view","partner.portal.view"],
-  PARTNER_MANAGER: ["dashboard.view","leads.view","customers.view","partners.manage","insights.view"],
-  FINANCE: ["dashboard.view","customers.view","insights.view","commerce.view"],
-  AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view","commerce.view"],
-  CLIENT: ["dashboard.view","customers.view","insights.view","commerce.view"],
-};
-
-type WorkspaceOption = { id: string; name: string; role?: string };
+const permissions = [...PERMISSIONS];\n\nconst roleDefaults: Record<string, string[]> = {\n  SUPER_ADMIN: defaultPermissionsForRole("SUPER_ADMIN" as any),\n  ADMIN: defaultPermissionsForRole("ADMIN" as any),\n  BUSINESS_OWNER: defaultPermissionsForRole("BUSINESS_OWNER" as any),\n  SALES_MANAGER: defaultPermissionsForRole("SALES_MANAGER" as any),\n  SALES_OPERATOR: defaultPermissionsForRole("SALES_OPERATOR" as any),\n  MARKETING_OPERATOR: defaultPermissionsForRole("MARKETING_OPERATOR" as any),\n  PARTNER_MANAGER: defaultPermissionsForRole("PARTNER_MANAGER" as any),\n  PARTNER: defaultPermissionsForRole("PARTNER" as any),\n  FINANCE: defaultPermissionsForRole("FINANCE" as any),\n  AUDITOR: defaultPermissionsForRole("AUDITOR" as any),\n  CLIENT: defaultPermissionsForRole("CLIENT" as any),\n};\n\ntype WorkspaceOption = { id: string; name: string; role?: string };
 
 type Draft = {
   id: string;
