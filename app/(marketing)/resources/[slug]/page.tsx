@@ -6,6 +6,8 @@ import { ResourceTool } from "@/components/ResourceTools";
 import { RESOURCES } from "@/lib/resources";
 import { getResourceBySlug } from "@/lib/resources-server";
 import { ResourceCapture } from "@/components/ResourceCapture";
+import { SearchStructuredData, SearchAnswerBlock } from "@/components/SearchStructuredData";
+import { getSearchProfile } from "@/lib/search-profiles";
 
 export const revalidate = 3600;
 
@@ -26,7 +28,7 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
   const {slug}=await params;
   const resource=await getResourceBySlug(slug);
   if(!resource) notFound();
-  const isTool=resource.category==="tool";
+  const isTool=resource.category==="tool";\n  const profile=await getSearchProfile(String((resource as any).workspace_id||(resource as any).workspaceId||"internal"),"RESOURCE",String(resource.id),"en").catch(()=>null);
   const whatsapp=`https://wa.me/251911276682?text=${encodeURIComponent(`Hi Aslal, I am interested in: ${resource.title}`)}`;
   const telegram=`https://t.me/share/url?url=${encodeURIComponent(`https://aslaldigital.com/resources/${resource.slug}`)}&text=${encodeURIComponent(`Hi Aslal, I am interested in: ${resource.title}`)}`;
   return <main>
@@ -65,6 +67,6 @@ export default async function ResourceDetailPage({params}:{params:Promise<{slug:
         </aside>
       </div>
     </section>
-    <section className="bg-[#071F47] py-16 text-white"><div className="container-aslal flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Build the next step</div><h2 className="mt-2 text-3xl font-black">Turn the insight into an implementation plan.</h2></div><Link href="/growth-builder" className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B] transition hover:bg-[#0F3E8A] hover:text-white">Build my growth system →</Link></div></section>
+    <div className="container-aslal pb-16"><SearchAnswerBlock profile={profile}/></div><section className="bg-[#071F47] py-16 text-white"><div className="container-aslal flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Build the next step</div><h2 className="mt-2 text-3xl font-black">Turn the insight into an implementation plan.</h2></div><Link href="/growth-builder" className="rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B] transition hover:bg-[#0F3E8A] hover:text-white">Build my growth system →</Link></div></section>
   </main>;
 }
