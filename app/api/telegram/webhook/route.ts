@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getTelegramChannelConfig } from "@/lib/telegram-channel-config";
+import { getTelegramChannelConfig, resolveTelegramDefaultWorkspaceId } from "@/lib/telegram-channel-config";
 import { syncTelegramIdentity, type TelegramUser } from "@/lib/telegram-identity";
 import { prisma } from "@/lib/prisma";
 import type { RowDataPacket } from "mysql2/promise";
@@ -50,6 +50,27 @@ async function publicSession(workspaceId:string,user:any,chatId:string){
 async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const cfg=await getTelegramChannelConfig(workspaceId);
   if(!cfg?.publicEnabled||!cfg.allowAnonymousUsers)return reply(chatId,"Public Telegram access is currently unavailable.");
+  const configuredMenu=Array.isArray(cfg.publicMenu)?cfg.publicMenu.map((item:any)=>String(item||"").trim()).filter(Boolean):[];
+  const menuItems=configuredMenu.length?configuredMenu:["Catalog","Qualify me","Pricing","Talk to Agent","Share phone number","Close menu"];
+  const actionLabel=(item:string)=>item.toLowerCase().replace(/[^p{L}\p{N}]+/gu," ").trim();
+  const keyboard:any[][]=[];
+  const actionButtons:Record<string,{text:string;request_contact?:boolean}>={
+    catalog:{text:"🛍 Catalog"},
+    "qualify me":{text:"🎯 Qualify me"},
+    pricing:{text:"💰 Pricing"},
+    "talk to agent":{text:"👤 Talk to Agent"},
+    "share phone number":{text:"📱 Share phone number",request_contact:true},
+    "close menu":{text:"❌ Close menu"},
+    "continue conversation":{text:"↩️ Continue conversation"},
+  };
+  for(let i=0;i<menuItems.length;i+=2){
+    const row=menuItems.slice(i,i+2).map((label:string)=>{
+      const key=actionLabel(label);
+      const known=actionButtons[key];
+      return known?{...known,text:key==="catalog"?"🛍 "+label:key==="qualify me"?"🎯 "+label:key==="pricing"?"💰 "+label:key==="talk to agent"?"👤 "+label:key==="share phone number"?"📱 "+label:key==="close menu"?"❌ "+label:key==="continue conversation"?"↩️ "+label:label}:null;
+    }).filter(Boolean);
+    if(row.length)keyboard.push(row);
+  }
   const telegramUserId=String(user?.id||chatId);
   const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId}}}).catch(()=>null);
   const hasContext=Boolean(identity?.leadId||identity?.customerId);
@@ -325,12 +346,12 @@ async function handle(update:TelegramUpdate){
     }
     const p=await partnerForChat(chatId);
     if(p)return catalog(chatId,p.workspace_id);
-    const defaultWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"").trim();
+    const defaultWorkspaceId=await resolveTelegramDefaultWorkspaceId();
     if(defaultWorkspaceId){const cfg=await getTelegramChannelConfig(defaultWorkspaceId);if(cfg?.publicEnabled&&cfg.allowAnonymousUsers)return publicMenu(chatId,defaultWorkspaceId,m.from||{id:chatId});return catalog(chatId,defaultWorkspaceId);}
-    return reply(chatId,"Welcome to Aslal. Use the workspace connection link provided by Aslal to open the correct catalog.");
+    return reply(chatId,"Welcome to Aslal. Telegram is not connected to an active workspace yet. Please contact Aslal support.");
   }
 
-  const publicWorkspaceId=String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"");
+  const publicWorkspaceId=await resolveTelegramDefaultWorkspaceId();
   if(chatType==="private" && publicWorkspaceId && m.contact?.phone_number && (!m.contact.user_id || String(m.contact.user_id)===String(m.from?.id||""))){
     const contactUserId=String(m.contact.user_id||m.from?.id||chatId);
     const contactPhone=clean(m.contact.phone_number);
@@ -406,7 +427,7 @@ async function handle(update:TelegramUpdate){
     return handleClientInbound(d.workspace_id,d,m,chatId);
   }
 
-  const publicHandoffChatId=String((await getTelegramChannelConfig(String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||"")))?.handoffChatId||"");
+  const publicHandoffChatId=String((await getTelegramChannelConfig(await resolveTelegramDefaultWorkspaceId()))?.handoffChatId||"");
   if((chatType==="group"||chatType==="supergroup") && publicHandoffChatId===chatId && m.reply_to_message?.message_id){
     if(await routeAdminReplyToPublic(m))return;
   }
