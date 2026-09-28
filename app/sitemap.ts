@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     where: { active: true },
     select: { slug: true, updatedAt: true },
   });
-  const staticPaths = ["/", "/services", "/products", "/portfolio", "/automation-lab", "/contact"];
+  const staticPaths = ["/", "/services", "/products", "/portfolio", "/automation-lab", "/about", "/resources", "/contact", "/growth-builder"];
   return [
     ...staticPaths.map(path => ({ url: `${base}${path}` })),
     ...resources.map(resource => ({ url: `${base}/resources/${resource.slug}`, lastModified: resource.updated_at })),
