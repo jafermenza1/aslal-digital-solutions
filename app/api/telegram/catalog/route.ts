@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSearchProfile, split } from "@/lib/search-profiles";
 import { prisma } from "@/lib/prisma";
 import { resolvePublicWorkspaceId } from "@/lib/workspaces";
 
@@ -41,8 +42,8 @@ export async function GET(request:Request) {
     workspaceId:requestedWorkspaceId||null,
     campaignId:campaignId||null,
     workspaces,
-    products:visibleProducts.map(p=>({...p,media:[...parseMedia(p.mediaUrls),...parseMedia(p.galleryUrls)]})),
-    resources:visibleResources.map(r=>({...r,media:parseMedia(r.mediaUrls)})),
+    products:await Promise.all(visibleProducts.map(async p=>({...p,media:[...parseMedia(p.mediaUrls),...parseMedia(p.galleryUrls)],search:await getSearchProfile(String(p.workspaceId),"PRODUCT",p.id,"en")}))),
+    resources:await Promise.all(visibleResources.map(async r=>({...r,media:parseMedia(r.mediaUrls),search:await getSearchProfile(String(r.workspaceId),"RESOURCE",r.id,"en")}))),
     showStock:selectedConfigs.some(c=>c.showStock),
   },{headers:{"Cache-Control":"private, max-age=30"}});
 }
