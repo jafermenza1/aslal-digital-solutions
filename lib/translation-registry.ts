@@ -11,6 +11,8 @@ function flatten(value:any,prefix="",out:{key:string;original:string;label:strin
 }
 
 export async function ensureTranslationDictionary(workspaceId=INTERNAL_WORKSPACE_ID){
+  const [existing]=await db.query<any[]>("SELECT id FROM translation_entries WHERE workspace_id=? LIMIT 1",[workspaceId]);
+  if(existing[0]) return;
   const entries:any[]=[];
   for(const [locale,value] of Object.entries(copy)) for(const item of flatten(value)) entries.push(["SITE",locale,item.key,item.label,item.original]);
   for(const [locale,value] of Object.entries(appUi)) for(const item of flatten(value)) entries.push(["APP",locale,item.key,item.label,item.original]);
