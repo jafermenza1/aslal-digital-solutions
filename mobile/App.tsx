@@ -67,7 +67,7 @@ export default function App() {
     try {
       const session = await bootstrap();
       setBoot(session);
-      const workspace = session.workspaces[0] ?? null;
+      const workspace = session.workspaces.find((item) => item.id === selectedWorkspace?.id) ?? session.workspaces[0] ?? null;
       if (workspace) {
         await setWorkspace(workspace.id);
         setSelectedWorkspace(workspace);
