@@ -7,7 +7,7 @@ export type WebsiteSettings = {
   id:string; workspaceId:string; siteName:string;
   logoLightUrl:string|null; logoDarkUrl:string|null;
   faviconLightUrl:string|null; faviconDarkUrl:string|null;
-  headerEnabled:boolean; footerEnabled:boolean; header:any; footer:any; theme:any; servicePackages:any; servicePackages:any;
+  headerEnabled:boolean; footerEnabled:boolean; header:any; footer:any; theme:any; servicePackages:any;
 };
 
 export const DEFAULT_HEADER = { nav:[
