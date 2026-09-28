@@ -1,0 +1,4 @@
+import {siteConfig} from "@/lib/config";
+import {getWebsiteSettings} from "@/lib/website-settings";
+import {resolvePublicWorkspaceId} from "@/lib/workspaces";
+export async function SiteStructuredData(){const s=await getWebsiteSettings(resolvePublicWorkspaceId());const sameAs=Array.isArray(s.footer?.socialProfiles)?s.footer.socialProfiles:undefined;const node={"@context":"https://schema.org","@type":"Organization","name":s.siteName||siteConfig.name,"url":siteConfig.url,"logo":s.logoLightUrl?siteConfig.url+s.logoLightUrl:siteConfig.url+"/brand-logo.svg","email":siteConfig.email,"telephone":siteConfig.phone,"address":{"@type":"PostalAddress","addressLocality":"Addis Ababa","addressCountry":"ET"},"areaServed":{"@type":"Country","name":"Ethiopia"},sameAs};return <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(node)}}/>;}
