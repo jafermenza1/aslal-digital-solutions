@@ -15,7 +15,7 @@ export default async function ServicesPage() {
       <p className="mt-6 max-w-2xl text-lg leading-8 text-white/75" style={contentStyle(content,"hero.body",18)}><RichContent content={content} keyName="hero.body" fallback="Explore a capability, understand the outcome, then request the right next step." /></p>
     </div></div></section>
     <section className="py-24"><div className="container-aslal">
-      <SectionTitle eyebrow={contentValue(content,"list.eyebrow","What we build")} title={contentValue(content,"list.title","Technology and marketing connected around outcomes.")}/>
+      <SectionTitle eyebrow={contentValue(content,"list.eyebrow","What we build")} title={contentValue(content,"list.title","Technology and marketing connected around outcomes.")}/><Link href="/services/packages" className="mt-6 inline-flex rounded-full bg-[#E2B02A] px-6 py-3 font-black text-[#1E293B]">Explore Aslal Growth Packages →</Link>
       <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{marketingServices.map((item,i)=><article key={item.slug} className="interactive-card rounded-3xl border border-slate-200 bg-white p-7">
         <div className="relative z-10 text-xs font-black text-[#E2B02A]">{String(i+1).padStart(2,"0")}</div>
         <h2 className="relative z-10 mt-7 text-2xl font-black">{item.name}</h2>
