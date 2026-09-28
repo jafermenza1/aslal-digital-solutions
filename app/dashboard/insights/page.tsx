@@ -21,6 +21,7 @@ type ReferralRow = RowDataPacket & { referral_code: string; clicks: number; lead
 type ActivityRow = RowDataPacket & { id: string; event_name: string; page_path: string | null; product_slug: string | null; created_at: Date };
 type FollowUpRow = RowDataPacket & { id: string; lead_id: string; name: string; title: string; priority: string; due_at: Date | null; score: number };
 type ClockRow = RowDataPacket & { now: Date };
+type IntelligenceSourceRow = RowDataPacket & {source_key:string;status:string;enabled:number;last_synced_at:Date|null;last_error:string|null};
 type SearchRow = RowDataPacket & { query_text:string; searches:number; unique_visitors:number; last_seen:Date };
 
 export default async function InsightsPage({ searchParams }: { searchParams: Promise<{ tab?: string; workspaceId?: string }> }) {
@@ -31,7 +32,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
   const requestedTab = params.tab || "products";
   const tab = ["products","acquisition","referrals","activity","follow-up","searches"].includes(requestedTab) ? requestedTab : "products";
 
-  const [productRows, sourceRows, referralRows, activityRows, followUpRows, clockRows, searchRows] = await Promise.all([
+  const [productRows, sourceRows, referralRows, activityRows, followUpRows, clockRows, searchRows, intelligenceRows] = await Promise.all([
     db.query<ProductDemandRow[]>(
       `SELECT
         p.slug AS product_slug,
@@ -131,6 +132,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
        LIMIT 10`, [workspaceId]
     ),
     db.query<ClockRow[]>(`SELECT NOW() AS now`),
+    db.query<IntelligenceSourceRow[]>(`SELECT source_key,status,enabled,last_synced_at,last_error FROM intelligence_sources WHERE workspace_id=? ORDER BY source_key`,[workspaceId]),
     db.query<SearchRow[]>(`SELECT query_text,COUNT(*) AS searches,COUNT(DISTINCT visitor_id) AS unique_visitors,MAX(created_at) AS last_seen FROM catalog_search_events WHERE workspace_id=? GROUP BY query_text ORDER BY searches DESC,last_seen DESC LIMIT 100`,[workspaceId]),
   ]);
 
@@ -140,6 +142,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
   const activity = activityRows[0];
   const followUps = followUpRows[0];
   const searches = searchRows[0];
+  const intelligence = intelligenceRows[0];
   // Use one database clock value for the whole render so overdue classification is deterministic.
   const now = new Date(clockRows[0][0]?.now ?? 0).getTime();
 
@@ -163,7 +166,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
     </nav>
 
     
-    {tab==="searches" && <Panel title="Catalog search intelligence"><div className="mb-4 text-sm text-slate-500">First-party searches captured from the Aslal web/Telegram catalog. Use these terms as evidence for content, products, FAQs and campaigns; this is not a feed of private Google/Facebook/TikTok searches.</div><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-[.12em] text-slate-500"><th className="px-3 py-3">Search phrase</th><th className="px-3 py-3">Searches</th><th className="px-3 py-3">Unique visitors</th><th className="px-3 py-3">Last seen</th></tr></thead><tbody>{searches.map(x=><tr key={x.query_text} className="border-b border-slate-100"><td className="px-3 py-4 font-black text-[#0F3E8A]">{x.query_text}</td><td className="px-3 py-4">{x.searches}</td><td className="px-3 py-4">{x.unique_visitors}</td><td className="px-3 py-4 text-slate-500">{new Date(x.last_seen).toLocaleString()}</td></tr>)}{searches.length===0&&<tr><td colSpan={4} className="px-3 py-10 text-center text-slate-500">No catalog searches recorded yet.</td></tr>}</tbody></table></div></Panel>}
+    
+    {tab==="searches" && <Panel title="Search intelligence sources"><div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{intelligence.map(x=><div key={x.source_key} className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-4"><div className="text-xs font-black uppercase tracking-[.12em] text-[#0F3E8A]">{x.source_key.replaceAll("_"," ")}</div><div className="mt-2 text-sm font-black">{x.status}</div><div className="mt-1 text-xs text-slate-500">{x.last_synced_at?new Date(x.last_synced_at).toLocaleString():"Not synced"}</div></div>)}</div><div className="mb-5 flex flex-wrap gap-3"><form action="/api/admin/intelligence/sync" method="post"><button className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white">Sync connected external sources</button></form></div><div className="mb-4 text-sm text-slate-500">Owned catalog searches are first-party demand evidence. Google Search Console can supply your verified site's Ethiopian queries when authorized; YouTube can supply search terms that generated traffic to your own videos. TikTok Research access is eligibility-controlled, so it remains disconnected until legitimate access is configured. Google Search Console supports query and country dimensions. citeturn1search0</div><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-[.12em] text-slate-500"><th className="px-3 py-3">Catalog search phrase</th><th className="px-3 py-3">Searches</th><th className="px-3 py-3">Unique visitors</th><th className="px-3 py-3">Last seen</th></tr></thead><tbody>{searches.map(x=><tr key={x.query_text} className="border-b border-slate-100"><td className="px-3 py-4 font-black text-[#0F3E8A]">{x.query_text}</td><td className="px-3 py-4">{x.searches}</td><td className="px-3 py-4">{x.unique_visitors}</td><td className="px-3 py-4 text-slate-500">{new Date(x.last_seen).toLocaleString()}</td></tr>)}</tbody></table></div></Panel>}
     {tab==="products" && <Panel title="Product demand"><div className="mb-4 text-sm text-slate-500">Active products ranked by leads, then views. Revenue shown here is attributed from WON leads, not collected payment.</div><div className="overflow-x-auto"><table className="w-full min-w-[920px] text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-[.12em] text-slate-500"><th className="px-3 py-3">Product</th><th className="px-3 py-3">Views</th><th className="px-3 py-3">Unique</th><th className="px-3 py-3">Repeat</th><th className="px-3 py-3">Leads</th><th className="px-3 py-3">Qualified</th><th className="px-3 py-3">Demos</th><th className="px-3 py-3">Won</th><th className="px-3 py-3">Attributed</th></tr></thead><tbody>{products.map(p=><tr key={p.product_slug} className="border-b border-slate-100 last:border-0"><td className="px-3 py-4"><div className="font-black text-slate-800">{p.product_name}</div><div className="text-xs text-slate-500">{p.product_slug}</div></td><td className="px-3 py-4 font-bold">{p.views}</td><td className="px-3 py-4 font-bold">{p.unique_visitors}</td><td className="px-3 py-4 font-bold">{p.repeat_visitors}</td><td className="px-3 py-4 font-black text-[#0F3E8A]">{p.leads_generated}</td><td className="px-3 py-4 font-bold">{p.qualified_leads}</td><td className="px-3 py-4 font-bold">{p.demo_interactions}</td><td className="px-3 py-4 font-black">{p.won_deals}</td><td className="px-3 py-4 font-black">{Number(p.attributed_revenue ?? 0).toLocaleString("en-US",{maximumFractionDigits:2})} ETB</td></tr>)}{products.length===0&&<tr><td colSpan={9} className="px-3 py-10 text-center text-slate-500">No product demand recorded yet.</td></tr>}</tbody></table></div></Panel>}
 
     {tab==="acquisition" && <Panel title="Acquisition → sales"><div className="space-y-2">{sources.map(x=><div key={x.source} className="grid gap-2 rounded-xl bg-[#F8FAFC] px-4 py-4 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center"><span className="font-bold">{x.source}</span><span className="text-xs text-slate-500">{x.visitors} visitors</span><span className="font-black text-[#0F3E8A]">{x.leads} leads</span><span className="text-xs font-bold">{x.won_deals} won</span></div>)}{sources.length===0&&<Empty text="Acquisition data will appear as visitors arrive."/>}</div></Panel>}
