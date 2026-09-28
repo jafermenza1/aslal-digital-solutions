@@ -21,7 +21,7 @@ export async function generateMetadata({params}:{params:Promise<{slug:string}>})
   const description=`${resource.description} Get a practical preview, use the tool or template, and take the next step with Aslal Digital Solutions.`;
   const url=`https://aslaldigital.com/resources/${resource.slug}`;
   const image="https://aslaldigital.com/og/resources.png";
-  return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"article",siteName:"Aslal Digital Solutions",images:[{url,width:1200,height:630,alt:resource.title}],locale:"en_US"},twitter:{card:"summary_large_image",title,description,images:[image]}};
+  return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"article",siteName:"Aslal Digital Solutions",images:[{url,width:1200,height:630,alt:resource.title}],locale:"en_US"},twitter:{card:"summary_large_image",title,description,images:[image]},robots:profile?.noindex?{index:false,follow:false}:undefined};
 }
 
 export default async function ResourceDetailPage({params}:{params:Promise<{slug:string}>}){
