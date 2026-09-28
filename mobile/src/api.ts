@@ -55,8 +55,8 @@ export type Workspace = {
   id: string;
   name: string;
   slug: string;
-  client_type: string | null;
-  active: number;
+  clientType: string | null;
+  active: boolean;
 };
 
 export type Bootstrap = {
@@ -108,4 +108,33 @@ export async function ping() {
     method: "POST",
     headers: { "x-aslal-client": "mobile" },
   });
+}
+
+export type MobileLead = {
+  id: string; name: string; email: string | null; phone: string | null; company: string | null;
+  businessType: string | null; status: string; score: number; source: string | null; campaign: string | null;
+  referralCode: string | null; ownerEmail: string | null; nextAction: string | null; nextActionDueAt: string | null;
+  dealValue: string | number | null; captureMode: string; createdAt: string; updatedAt: string;
+  tasks: Array<{ id: string; title: string; status: string; priority: string; dueAt: string | null; assignedTo: string | null }>;
+};
+
+export async function getLeads(options: { status?: string; q?: string; page?: number } = {}) {
+  const workspace = await getWorkspace();
+  if (!workspace) throw new Error("Choose a workspace first.");
+  const params = new URLSearchParams({ workspaceId: workspace });
+  if (options.status) params.set("status", options.status);
+  if (options.q) params.set("q", options.q);
+  if (options.page) params.set("page", String(options.page));
+  return request<{ workspaceId: string; page: number; pageSize: number; total: number; leads: MobileLead[] }>(`/api/mobile/leads?${params.toString()}`);
+}
+
+export async function getLead(id: string) {
+  const workspace = await getWorkspace();
+  if (!workspace) throw new Error("Choose a workspace first.");
+  return request<{ lead: MobileLead & {
+    message: string | null; telegramUsername: string | null; medium: string | null; leadCategory: string | null; wonAt: string | null;
+    stageHistory: Array<{ fromStage: string | null; toStage: string; changedBy: string | null; note: string | null; createdAt: string }>;
+    productInterests: Array<{ id: string; interestScore: number; product: { id: string; slug: string; name: string; kind: string } }>;
+    conversations: Array<{ id: string; channel: string; status: string; assignedTo: string | null; lastMessageAt: string | null; updatedAt: string }>;
+  }> }>(`/api/mobile/leads/${encodeURIComponent(id)}?workspaceId=${encodeURIComponent(workspace)}`);
 }
