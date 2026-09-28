@@ -1,0 +1,7 @@
+import {getWebsiteSettings} from "@/lib/website-settings";
+import {resolvePublicWorkspaceId} from "@/lib/workspaces";
+import {ServicePackageBuilder} from "@/components/ServicePackageBuilder";
+import type {Metadata} from "next";
+export const dynamic="force-dynamic";
+export const metadata:Metadata={title:"Aslal Growth Packages | Marketing, Sales & Automation Services",description:"Choose an Aslal growth service package or customize social media, content, lead generation, influencer, affiliate, Telegram and CRM services for your Ethiopian business."};
+export default async function ServicePackagesPage(){const settings=await getWebsiteSettings(resolvePublicWorkspaceId());return <main><section className="hero-glow bg-[#0F3E8A] py-24 text-white"><div className="container-aslal"><div className="max-w-4xl"><div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">ASLAL GROWTH PACKAGES</div><h1 className="mt-4 text-5xl font-black tracking-[-.05em] sm:text-7xl">Build the growth system your business actually needs.</h1><p className="mt-6 max-w-3xl text-lg leading-8 text-white/70">Three practical service tiers combine marketing, lead generation, partner growth and Aslal app workflows. Then customize any tier feature-by-feature and request a quotation.</p></div></div></section><section className="py-20"><div className="container-aslal"><ServicePackageBuilder packages={settings.servicePackages}/></div></section></main>}
