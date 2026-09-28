@@ -7,7 +7,7 @@ import { RESOURCES } from "@/lib/resources";
 import { getResourceBySlug } from "@/lib/resources-server";
 import { ResourceCapture } from "@/components/ResourceCapture";
 import { SearchStructuredData, SearchAnswerBlock } from "@/components/SearchStructuredData";
-import { getSearchProfile } from "@/lib/search-profiles";
+import { getSearchProfile,effectiveSearchProfile } from "@/lib/search-profiles";
 
 export const revalidate = 3600;
 
