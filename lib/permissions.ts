@@ -42,7 +42,7 @@ const sets: Record<UserRole, Permission[]> = {
   ],
   SALES_MANAGER: [
     "dashboard.view","leads.view","leads.create","leads.edit","customers.view",
-    "conversations.view","conversations.send","conversations.manage","telegram.view","telegram.manage","insights.view","operations.view","commerce.view"
+    "conversations.view","conversations.send","conversations.manage","email.view","telegram.view","telegram.manage","insights.view","operations.view","commerce.view"
   ],
   SALES_OPERATOR: [
     "dashboard.view","leads.view","leads.create","leads.edit","customers.view",
