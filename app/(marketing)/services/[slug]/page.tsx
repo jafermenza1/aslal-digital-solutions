@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getMarketingService, marketingServices } from "@/lib/marketing-services";
 import { ShareActions } from "@/components/ShareActions";
+import { SearchStructuredData, SearchAnswerBlock } from "@/components/SearchStructuredData";
+import { getSearchProfile } from "@/lib/search-profiles";
 
 export const revalidate = 60;
 
@@ -14,8 +16,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const service = getMarketingService(slug);
   if (!service) return { title: "Service | Aslal Digital Solutions" };
-  const title = `${service.name} | Aslal Digital Solutions`;
-  const description = `${service.description} ${service.cta}. Explore the service and request the next step from Aslal.`;
+  const profile=await getSearchProfile("internal","SERVICE",slug,"en").catch(()=>null);\n  const title = profile?.seoTitle||`${service.name} | Aslal Digital Solutions`;
+  const description = profile?.metaDescription||`${service.description} ${service.cta}. Explore the service and request the next step from Aslal.`;
   const url = `https://aslaldigital.com/services/${encodeURIComponent(slug)}`;
   const image = "https://aslaldigital.com/og/products.png";
   return {
@@ -31,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       images: [{ url: image, width: 1200, height: 630, alt: `${service.name} — Aslal Digital Solutions` }],
       locale: "en_US",
     },
-    twitter: { card: "summary_large_image", title, description, images: [image] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },\n    robots: profile?.noindex ? {index:false,follow:false} : undefined,
   };
 }
 
@@ -65,6 +67,6 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
         <div className="mt-10 rounded-[2rem] bg-[#F8FAFC] p-7 sm:p-9"><h2 className="text-3xl font-black">Ready to explore this service?</h2><p className="mt-3 leading-7 text-slate-600">Your request can enter the existing Aslal sales workflow for qualification, ownership and follow-up.</p><Link href={requestUrl} className="mt-6 inline-flex rounded-full bg-[#E2B02A] px-6 py-3 font-black text-[#1E293B] hover:bg-[#ebd05d]">{service.cta} →</Link></div>
       </div>
     </div></section>
-    <section className="border-t border-slate-200 py-8"><div className="container-aslal flex flex-wrap items-center justify-between gap-4"><ShareActions title={`${service.name} | Aslal Digital Solutions`} url={url}/><Link href="/products" className="text-sm font-bold text-[#0F3E8A]">Explore products & packages →</Link></div></section>
+    <div className="container-aslal pb-12"><SearchAnswerBlock profile={profile}/></div><section className="border-t border-slate-200 py-8"><div className="container-aslal flex flex-wrap items-center justify-between gap-4"><ShareActions title={`${service.name} | Aslal Digital Solutions`} url={url}/><Link href="/products" className="text-sm font-bold text-[#0F3E8A]">Explore products & packages →</Link></div></section>
   </main>;
 }
