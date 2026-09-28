@@ -26,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       stageHistory: {
         orderBy: { createdAt: "desc" },
         take: 50,
-        select: { id: true, fromStage: true, toStage: true, changedBy: true, note: true, createdAt: true },
+        select: { fromStage: true, toStage: true, changedBy: true, note: true, createdAt: true },
       },
       productInterests: {
         orderBy: { interestScore: "desc" },
