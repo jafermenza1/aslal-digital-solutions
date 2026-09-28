@@ -23,8 +23,8 @@ async function pushLeadCreate(access: Awaited<ReturnType<typeof authorizeWorkspa
   if (!access) return { status: 403, body: { status: "REJECTED", reason: "Unauthorized" } };
   const operationId = clean(op.operationId, 64);
   const payload = (op.payload && typeof op.payload === "object") ? op.payload as Record<string, unknown> : {};
-  const leadId = clean(payload.id, 36) || operationId;
-  if (!operationId || !leadId) return { status: 400, body: { status: "REJECTED", reason: "operationId and lead id are required" } };
+  const leadId = clean(payload.id, 36);
+  if (!operationId || !leadId || leadId !== operationId) return { status: 400, body: { status: "REJECTED", reason: "operationId must equal the client lead id" } };
 
   const existing = await prisma.lead.findFirst({ where: { id: leadId, workspaceId: access.workspace.id }, select: { id: true } });
   if (existing) return { status: 200, body: { status: "ACCEPTED", operationId, entityId: existing.id, idempotent: true } };
