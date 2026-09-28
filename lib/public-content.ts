@@ -82,14 +82,19 @@ export const PUBLIC_CONTENT: PublicContentDefinition[] = [
 {pagePath:"/terms",key:"body",label:"Terms body",defaultValue:"Use of this website and our digital services is subject to applicable Ethiopian law and any service agreement issued for a specific engagement. Website content is provided for general information and may change as our services evolve.",fontSize:18},
 ];
 
-type ContentRow=RowDataPacket&{page_path:string;content_key:string;label:string;value:string;font_family:string;font_size:number;active:number};
+type ContentRow=RowDataPacket&{page_path:string;content_key:string;label:string;value:string;rich_html:string|null;font_family:string;font_size:number;active:number};
 
 export const getPageContent=cache(async(pagePath:string)=>{
- const [rows]=await db.query<ContentRow[]>("SELECT page_path,content_key,label,value,font_family,font_size,active FROM public_content WHERE page_path=? AND active=1",[pagePath]);
- const map:Record<string,{value:string;fontFamily:string;fontSize:number}>={};
- for(const row of rows) map[row.content_key]={value:row.value,fontFamily:row.font_family,fontSize:Number(row.font_size)};
+ const [rows]=await db.query<ContentRow[]>("SELECT page_path,content_key,label,value,rich_html,font_family,font_size,active FROM public_content WHERE page_path=? AND active=1",[pagePath]);
+ const map:Record<string,{value:string;richHtml?:string;fontFamily:string;fontSize:number}>={};
+ for(const row of rows) map[row.content_key]={value:row.value,richHtml:row.rich_html||"",fontFamily:row.font_family,fontSize:Number(row.font_size)};
  return map;
 });
 export function contentValue(map:Record<string,{value:string;fontFamily:string;fontSize:number}>,key:string,fallback:string){return map[key]?.value||fallback;}
 export function contentStyle(map:Record<string,{value:string;fontFamily:string;fontSize:number}>,key:string,fallbackSize=16){const item=map[key];return item?{fontFamily:item.fontFamily==="inherit"?undefined:item.fontFamily,fontSize:item.fontSize+"px"}:{fontSize:fallbackSize+"px"};}
 export async function ensurePublicContent(){for(const item of PUBLIC_CONTENT) await db.query("INSERT INTO public_content (id,page_path,content_key,label,value,font_family,font_size) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE label=VALUES(label)",[randomUUID(),item.pagePath,item.key,item.label,item.defaultValue,item.fontFamily||"inherit",item.fontSize||16]);}
+export function contentHtml(map:Record<string,{value:string;richHtml?:string;fontFamily:string;fontSize:number}>,key:string,fallback:string){
+ const item=map[key]; if(item?.richHtml?.trim()) return item.richHtml;
+ return escapeHtml(item?.value||fallback).replace(/\r?\n/g,"<br />");
+}
+function escapeHtml(value:string){return value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
