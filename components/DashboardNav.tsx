@@ -24,33 +24,41 @@ store:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10h16l
 } as const;
 
 const ITEMS:Item[]=[
-{key:"overview",href:"/dashboard",permission:"dashboard.view",icon:"home",group:"work"},
-{key:"quotes",href:"/dashboard/quotes",permission:"leads.view",icon:"quotes",group:"work"},
-{key:"quotes",href:"/dashboard/orders",permission:"leads.view",icon:"box",group:"work",label:"Orders"},
-{key:"leads",href:"/dashboard/leads",permission:"leads.view",icon:"leads",group:"work"},
-{key:"customers",href:"/dashboard/customers",permission:"customers.view",icon:"users",group:"work"},
-{key:"conversations",href:"/dashboard/conversations",permission:"conversations.view",icon:"message",group:"work"},
-{key:"emailTemplates",href:"/dashboard/email-templates",permission:"email_templates.manage",icon:"mail",group:"work",nested:true},
-{key:"emailTemplates",href:"/dashboard/email",permission:"email.view",icon:"mail",group:"work",nested:true,label:"Email Operations"},
-{key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"intelligence"},
-{key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"intelligence"},
-{key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"intelligence"},
-{key:"operations",href:"/dashboard/finance",permission:"commissions.manage",icon:"ops",group:"intelligence",label:"Finance"},
-{key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"management"},
-{key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"management",label:"Partner Marketplace",match:"/dashboard/partners?tab=engine"},
-{key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"management"},
-{key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"management"},
-{key:"users",href:"/dashboard/workspaces",permission:"users.manage",icon:"users",group:"management",label:"Workspaces"},
-{key:"telegramSales",href:"/dashboard/telegram",permission:"telegram.view",icon:"message",group:"management",label:"Telegram Sales"},
-{key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"management",nested:true},{key:"publicContent",href:"/dashboard/resources",permission:"content.manage",icon:"store",group:"management",nested:true,label:"Resources"},{key:"publicContent",href:"/dashboard/team",permission:"content.manage",icon:"users",group:"management",nested:true,label:"Team"},{key:"publicContent",href:"/dashboard/social-profiles",permission:"content.manage",icon:"message",group:"management",nested:true,label:"Social Profiles"},
+{key:"overview",href:"/dashboard",permission:"dashboard.view",icon:"home",group:"command"},
+{key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"command"},
+{key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"command"},
+
+{key:"leads",href:"/dashboard/leads",permission:"leads.view",icon:"leads",group:"revenue"},
+{key:"customers",href:"/dashboard/customers",permission:"customers.view",icon:"users",group:"revenue"},
+{key:"quotes",href:"/dashboard/quotes",permission:"leads.view",icon:"quotes",group:"revenue"},
+{key:"quotes",href:"/dashboard/orders",permission:"leads.view",icon:"box",group:"revenue",label:"Orders"},
+{key:"conversations",href:"/dashboard/conversations",permission:"conversations.view",icon:"message",group:"revenue"},
+{key:"emailTemplates",href:"/dashboard/email",permission:"email.view",icon:"mail",group:"revenue",label:"Email Operations"},
+{key:"telegramSales",href:"/dashboard/telegram",permission:"telegram.view",icon:"message",group:"revenue",label:"Telegram Sales"},
+
+{key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"growth",label:"Partners & Commissions"},
+{key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Marketplace"},
+
+{key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
+{key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"commerce"},
+{key:"operations",href:"/dashboard/finance",permission:"commissions.manage",icon:"ops",group:"commerce",label:"Finance & Payouts"},
+
+{key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"administration",label:"Users & Access"},
+{key:"users",href:"/dashboard/workspaces",permission:"users.manage",icon:"users",group:"administration",label:"Workspaces"},
+{key:"emailTemplates",href:"/dashboard/email-templates",permission:"email_templates.manage",icon:"mail",group:"administration",nested:true,label:"Email Templates"},
+{key:"publicContent",href:"/dashboard/public-content",permission:"content.manage",icon:"store",group:"administration",nested:true,label:"Website Content"},
+{key:"publicContent",href:"/dashboard/resources",permission:"content.manage",icon:"store",group:"administration",nested:true,label:"Resources"},
+{key:"publicContent",href:"/dashboard/team",permission:"content.manage",icon:"users",group:"administration",nested:true,label:"Team"},
+{key:"publicContent",href:"/dashboard/social-profiles",permission:"content.manage",icon:"message",group:"administration",nested:true,label:"Social Profiles"},
+
 {key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"},
 {key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"}
 ];
 
 export function DashboardNav({locale,permissions,mobile=false}:{locale:Locale;permissions:string[];mobile?:boolean}) {
  const pathname=usePathname(); const t=getAppUi(locale); const allowed=ITEMS.filter(item=>permissions.includes(item.permission));
- const groups=Array.from(new Set(allowed.map(item=>item.group))); const activeGroup=allowed.find(item=>isActive(pathname,item.href))?.group;
- const [openGroups,setOpenGroups]=useState<Record<string,boolean>>(()=>Object.fromEntries(groups.map(group=>[group,group===activeGroup||group==="work"])));
+ const groups=Array.from(new Set(allowed.map(item=>item.group))); const activeGroup=allowed.find(item=>isActive(pathname,item.href,item.match))?.group;
+ const [openGroups,setOpenGroups]=useState<Record<string,boolean>>(()=>Object.fromEntries(groups.map(group=>[group,group===activeGroup||group==="revenue"||group==="command"])));
  const toggle=(group:string)=>setOpenGroups(current=>({...current,[group]:!current[group]}));
  if(mobile)return <nav className="dashboard-mobile-nav space-y-2">{groups.map(group=>{const items=allowed.filter(item=>item.group===group);const open=openGroups[group]??false;return <section key={group} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[.03]"><button type="button" onClick={()=>toggle(group)} aria-expanded={open} className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-black uppercase tracking-[.14em] text-white/55"><span>{t.groups[group]}</span><span aria-hidden="true">{open?"−":"+"}</span></button>{open&&<div className="space-y-1 border-t border-white/10 p-2">{items.map(item=><NavItem key={item.href} item={item} active={isActive(pathname,item.href,item.match)} label={item.label || t.nav[item.key]} mobile/>)}</div>}</section>})}</nav>;
  return <nav className="dashboard-sidebar-nav space-y-2">{groups.map(group=>{const items=allowed.filter(item=>item.group===group);const open=openGroups[group]??false;return <section key={group} className="overflow-hidden rounded-2xl border border-white/5 bg-white/[.02]"><button type="button" onClick={()=>toggle(group)} aria-expanded={open} className="flex w-full items-center justify-between px-3 py-3 text-left text-[10px] font-black uppercase tracking-[.18em] text-white/45 hover:bg-white/[.04] hover:text-white/70"><span>{t.groups[group]}</span><span aria-hidden="true">{open?"−":"+"}</span></button>{open&&<div className="space-y-1 border-t border-white/5 p-1.5">{items.map(item=><NavItem key={item.href} item={item} active={isActive(pathname,item.href)} label={t.nav[item.key]}/>)}</div>}</section>})}</nav>;
