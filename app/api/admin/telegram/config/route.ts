@@ -30,7 +30,7 @@ const jsonFields = ["qualificationFlow","keywordRules","publicMenu","paymentProv
 
 export async function GET(request: Request) {
   const workspaceId = new URL(request.url).searchParams.get("workspaceId");
-  const access = await authorizeWorkspacePermission("leads.view", workspaceId);
+  const access = await authorizeWorkspacePermission("telegram.view", workspaceId);
   if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied." }, { status: 403 });
   return NextResponse.json({ config: await getOrCreateTelegramChannelConfig(access.workspace.id) });
 }
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
   const workspaceId = typeof body.workspaceId === "string" ? body.workspaceId : null;
-  const access = await authorizeWorkspacePermission("leads.edit", workspaceId);
+  const access = await authorizeWorkspacePermission("telegram.manage", workspaceId);
   if (!access) return NextResponse.json({ error: "Unauthorized or workspace access denied." }, { status: 403 });
 
   const current = await getOrCreateTelegramChannelConfig(access.workspace.id);
