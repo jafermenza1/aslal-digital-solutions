@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, BookOpen, Calculator, ClipboardList, FileSpreadsheet, MessageCircle, Send, Zap } from "lucide-react";
 import { EventTracker } from "@/components/EventTracker";
+import { RichContent } from "@/components/RichContent";
 import { getPageContent, contentValue } from "@/lib/public-content";
 import { getResources } from "@/lib/resources-server";
 
@@ -35,7 +36,7 @@ export default async function ResourcesPage({ searchParams }: { searchParams: Pr
           <div className="mx-auto max-w-3xl text-center">
             <div className="text-xs font-black uppercase tracking-[.22em] text-[#0F3E8A]">{contentValue(content, "hero.eyebrow", "Resources")}</div>
             <h1 className="mt-5 text-4xl font-black leading-tight tracking-[-.04em] text-[#1E293B] sm:text-5xl lg:text-6xl">{contentValue(content, "hero.title", "Field-Tested Blueprints & Tools for B2B Digital Systems")}</h1>
-            <p className="mt-6 text-lg leading-8 text-slate-600">{contentValue(content, "hero.body", "Stop relying on guesswork. Access practical implementation guides, interactive calculators and automation frameworks built to connect digital marketing with sales execution.")}</p>
+            <p className="mt-6 text-lg leading-8 text-slate-600"><RichContent content={content} keyName="hero.body" fallback="Stop relying on guesswork. Access practical implementation guides, interactive calculators and automation frameworks built to connect digital marketing with sales execution." /></p>
           </div>
           <div className="mt-10 flex flex-wrap justify-center gap-2">
             <Link href="/resources?days=3650" className={!category ? "rounded-full bg-[#0F3E8A] px-4 py-2 text-sm font-black text-white transition hover:bg-[#E2B02A] hover:text-[#071F47]" : "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-[#E2B02A] hover:bg-[#E2B02A] hover:text-[#071F47]"}>All</Link>
