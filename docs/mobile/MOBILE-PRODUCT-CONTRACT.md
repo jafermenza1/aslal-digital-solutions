@@ -161,3 +161,7 @@ The foundation is complete when:
 - financial actions remain server-authoritative;
 - synchronization can be added without redesigning every feature;
 - the APK UX can be locked from these contracts rather than from the website layout.
+
+## Current implementation status — 2026-09-28
+
+The mobile foundation now includes authenticated workspace bootstrap, role-aware navigation, a real workspace-scoped lead inbox/journey, offline lead capture, persistent SQLite outbox/cache, and the first authenticated sync push/pull slice. APK visual UX remains intentionally unlocked until local typecheck/Expo Doctor and the first native preview build pass.
