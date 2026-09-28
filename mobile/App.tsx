@@ -13,6 +13,7 @@ import {
 import {
   bootstrap,
   clearSession,
+  getDeviceId,
   getLead,
   getLeads,
   login,
@@ -25,7 +26,7 @@ import {
   type MobileLead,
   type Workspace,
 } from "./src/api";
-import { cacheLeads, getMobileDatabase, listPendingOperations, setOperationStatus } from "./src/offline";
+import { cacheLeads, getMobileDatabase, listPendingOperations, queueOperation, setOperationStatus } from "./src/offline";
 import {
   resolveMobileRole,
   tabsForRole,
@@ -54,6 +55,7 @@ export default function App() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [dataLoading, setDataLoading] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
 
   const mobileRole = useMemo<MobileRole | null>(
     () => boot ? resolveMobileRole(boot.user.role, boot.user.permissions) : null,
@@ -122,6 +124,22 @@ export default function App() {
     } finally {
       setDataLoading(false);
     }
+  }
+
+  async function queueLeadCapture(input: { name: string; email: string; phone: string; company: string; message: string }) {
+    if (!selectedWorkspace) throw new Error("Choose a workspace first.");
+    const id = makeClientId();
+    await queueOperation({
+      operationId: id,
+      deviceId: await getDeviceId(),
+      workspaceId: selectedWorkspace.id,
+      entity: "lead",
+      action: "create",
+      payload: { id, ...input, source: "mobile", medium: "offline", captureMode: "OFFLINE" },
+    });
+    setPendingCount((await listPendingOperations(selectedWorkspace.id)).length);
+    setCaptureOpen(false);
+    setError("");
   }
 
   async function syncWorkspace() {
@@ -227,7 +245,7 @@ export default function App() {
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {mobileRole ? <RoleHeader role={mobileRole} workspace={selectedWorkspace} /> : null}
         {activeTab === "leads"
-          ? <LeadSurface leads={leads} selectedLead={selectedLead} selectedLeadId={selectedLeadId} loading={dataLoading} onOpenLead={(id) => void openLead(id)} onBack={() => setSelectedLead(null)} />
+          ? <LeadSurface leads={leads} selectedLead={selectedLead} selectedLeadId={selectedLeadId} loading={dataLoading} captureOpen={captureOpen} onCaptureOpen={() => setCaptureOpen(true)} onCaptureClose={() => setCaptureOpen(false)} onQueueLead={(input) => void queueLeadCapture(input)} onOpenLead={(id) => void openLead(id)} onBack={() => { setSelectedLead(null); setSelectedLeadId(null); }} />
           : <MobileSurface role={mobileRole ?? "SALES"} tab={activeTab} pendingCount={pendingCount} onRefresh={() => void handleRefresh()} />}
       </ScrollView>
       <View style={styles.bottomNav}>
@@ -250,11 +268,15 @@ function RoleHeader({ role, workspace }: { role: MobileRole; workspace: Workspac
   </View>;
 }
 
-function LeadSurface({ leads, selectedLead, selectedLeadId, loading, onOpenLead, onBack }: {
+function LeadSurface({ leads, selectedLead, selectedLeadId, loading, captureOpen, onCaptureOpen, onCaptureClose, onQueueLead, onOpenLead, onBack }: {
   leads: MobileLead[];
   selectedLead: any;
   selectedLeadId: string | null;
   loading: boolean;
+  captureOpen: boolean;
+  onCaptureOpen: () => void;
+  onCaptureClose: () => void;
+  onQueueLead: (input: { name: string; email: string; phone: string; company: string; message: string }) => void;
   onOpenLead: (id: string) => void;
   onBack: () => void;
 }) {
@@ -289,7 +311,8 @@ function LeadSurface({ leads, selectedLead, selectedLeadId, loading, onOpenLead,
   );
 
   return <View style={styles.stack}>
-    <View style={styles.card}><Text style={styles.sectionLabel}>MY LEADS / WORKSPACE</Text><Text style={styles.cardTitle}>Act on people, not tables.</Text><Text style={styles.body}>Priority, stage, owner and next action are kept visible. Tap a lead to open its journey.</Text></View>
+    <View style={styles.card}><Text style={styles.sectionLabel}>MY LEADS / WORKSPACE</Text><Text style={styles.cardTitle}>Act on people, not tables.</Text><Text style={styles.body}>Priority, stage, owner and next action are kept visible. Tap a lead to open its journey.</Text><Pressable style={styles.secondaryButton} onPress={onCaptureOpen}><Text style={styles.secondaryText}>Capture lead offline</Text></Pressable></View>
+    {captureOpen ? <QuickLeadCapture onCancel={onCaptureClose} onSave={onQueueLead} /> : null}
     {loading ? <ActivityIndicator color={DEEP_BLUE} /> : leads.length ? leads.map((lead) => (
       <Pressable key={lead.id} style={styles.leadCard} onPress={() => onOpenLead(lead.id)}>
         <View style={styles.leadTop}><Text style={styles.cardTitleSmall}>{lead.name}</Text><Text style={styles.stage}>{lead.status}</Text></View>
@@ -297,6 +320,29 @@ function LeadSurface({ leads, selectedLead, selectedLeadId, loading, onOpenLead,
         <Text style={styles.muted}>Score {lead.score} · {lead.nextAction || "No next action"}{lead.nextActionDueAt ? " · " + formatDate(lead.nextActionDueAt) : ""}</Text>
       </Pressable>
     )) : <Text style={styles.muted}>No leads available in this workspace.</Text>}
+  </View>;
+}
+
+function QuickLeadCapture({ onCancel, onSave }: { onCancel: () => void; onSave: (input: { name: string; email: string; phone: string; company: string; message: string }) => void }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
+  const [message, setMessage] = useState("");
+
+  return <View style={styles.card}>
+    <Text style={styles.sectionLabel}>OFFLINE CAPTURE</Text>
+    <Text style={styles.cardTitle}>Save the lead now</Text>
+    <TextInput placeholder="Name *" placeholderTextColor="#64748B" style={styles.input} value={name} onChangeText={setName} />
+    <TextInput placeholder="Email" placeholderTextColor="#64748B" style={styles.input} value={email} onChangeText={setEmail} autoCapitalize="none" />
+    <TextInput placeholder="Phone" placeholderTextColor="#64748B" style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+    <TextInput placeholder="Company" placeholderTextColor="#64748B" style={styles.input} value={company} onChangeText={setCompany} />
+    <TextInput placeholder="Need / context *" placeholderTextColor="#64748B" style={[styles.input, { minHeight: 90, textAlignVertical: "top" }]} value={message} onChangeText={setMessage} multiline />
+    <Text style={styles.muted}>Saved on this device and queued for the selected workspace. It is not accepted as server data until sync succeeds.</Text>
+    <Pressable style={styles.primaryButton} onPress={() => { if (name.trim() && message.trim() && (email.trim() || phone.trim())) onSave({ name: name.trim(), email: email.trim(), phone: phone.trim(), company: company.trim(), message: message.trim() }); }}>
+      <Text style={styles.primaryText}>Queue lead</Text>
+    </Pressable>
+    <Pressable style={styles.secondaryButton} onPress={onCancel}><Text style={styles.secondaryText}>Cancel</Text></Pressable>
   </View>;
 }
 
@@ -389,3 +435,9 @@ const styles = StyleSheet.create({
   bottomNav: { flexDirection: "row", borderTopWidth: 1, borderTopColor: "#E2E8F0", backgroundColor: "white", paddingVertical: 10, paddingHorizontal: 4 }, navItem: { flex: 1, alignItems: "center", paddingVertical: 8 },
   navLabel: { color: "#64748B", fontSize: 11, fontWeight: "700" }, navLabelActive: { color: DEEP_BLUE, fontWeight: "900" },
 });
+
+
+function makeClientId() {
+  const s = () => Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, "0");
+  return `${s()}-${s().slice(0,4)}-4${s().slice(0,3)}-a${s().slice(0,3)}-${s()}${s().slice(0,4)}`;
+}
