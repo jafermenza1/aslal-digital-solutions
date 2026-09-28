@@ -20,7 +20,8 @@ type SourceRow = RowDataPacket & { source: string; visitors: number; leads: numb
 type ReferralRow = RowDataPacket & { referral_code: string; clicks: number; leads: number; won_deals: number; revenue: number | string | null };
 type ActivityRow = RowDataPacket & { id: string; event_name: string; page_path: string | null; product_slug: string | null; created_at: Date };
 type FollowUpRow = RowDataPacket & { id: string; lead_id: string; name: string; title: string; priority: string; due_at: Date | null; score: number };
-type ClockRow = RowDataPacket & { now: Date };\ntype SearchRow = RowDataPacket & { query_text:string; searches:number; unique_visitors:number; last_seen:Date };
+type ClockRow = RowDataPacket & { now: Date };
+type SearchRow = RowDataPacket & { query_text:string; searches:number; unique_visitors:number; last_seen:Date };
 
 export default async function InsightsPage({ searchParams }: { searchParams: Promise<{ tab?: string; workspaceId?: string }> }) {
   const params = await searchParams;
@@ -129,14 +130,16 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
        ORDER BY (t.due_at < NOW()) DESC, t.due_at ASC
        LIMIT 10`, [workspaceId]
     ),
-    db.query<ClockRow[]>(`SELECT NOW() AS now`),\n    db.query<SearchRow[]>(`SELECT query_text,COUNT(*) AS searches,COUNT(DISTINCT visitor_id) AS unique_visitors,MAX(created_at) AS last_seen FROM catalog_search_events WHERE workspace_id=? GROUP BY query_text ORDER BY searches DESC,last_seen DESC LIMIT 100`,[workspaceId]),
+    db.query<ClockRow[]>(`SELECT NOW() AS now`),
+    db.query<SearchRow[]>(`SELECT query_text,COUNT(*) AS searches,COUNT(DISTINCT visitor_id) AS unique_visitors,MAX(created_at) AS last_seen FROM catalog_search_events WHERE workspace_id=? GROUP BY query_text ORDER BY searches DESC,last_seen DESC LIMIT 100`,[workspaceId]),
   ]);
 
   const products = productRows[0];
   const sources = sourceRows[0];
   const referrals = referralRows[0];
   const activity = activityRows[0];
-  const followUps = followUpRows[0];\n  const searches = searchRows[0];
+  const followUps = followUpRows[0];
+  const searches = searchRows[0];
   // Use one database clock value for the whole render so overdue classification is deterministic.
   const now = new Date(clockRows[0][0]?.now ?? 0).getTime();
 
@@ -145,7 +148,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
     ["acquisition", "Acquisition"],
     ["referrals", "Referrals"],
     ["activity", "Live activity"],
-    ["follow-up", "Follow-up"],\n    ["searches", "Search intelligence"],
+    ["follow-up", "Follow-up"],
+    ["searches", "Search intelligence"],
   ] as const;
 
   return <main className="min-h-screen bg-[#F8FAFC] py-10"><div className="container-aslal">
@@ -158,7 +162,9 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
       {tabs.map(([value,label]) => <Link key={value} href={`/dashboard/insights?tab=${value}`} className={`whitespace-nowrap rounded-xl px-4 py-3 text-sm font-black transition ${tab===value ? "bg-[#0F3E8A] text-white" : "text-slate-600 hover:bg-[#E2B02A]/15 hover:text-[#0F3E8A]"}`}>{label}</Link>)}
     </nav>
 
-    \n    {tab==="searches" && <Panel title="Catalog search intelligence"><div className="mb-4 text-sm text-slate-500">First-party searches captured from the Aslal web/Telegram catalog. Use these terms as evidence for content, products, FAQs and campaigns; this is not a feed of private Google/Facebook/TikTok searches.</div><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-[.12em] text-slate-500"><th className="px-3 py-3">Search phrase</th><th className="px-3 py-3">Searches</th><th className="px-3 py-3">Unique visitors</th><th className="px-3 py-3">Last seen</th></tr></thead><tbody>{searches.map(x=><tr key={x.query_text} className="border-b border-slate-100"><td className="px-3 py-4 font-black text-[#0F3E8A]">{x.query_text}</td><td className="px-3 py-4">{x.searches}</td><td className="px-3 py-4">{x.unique_visitors}</td><td className="px-3 py-4 text-slate-500">{new Date(x.last_seen).toLocaleString()}</td></tr>)}{searches.length===0&&<tr><td colSpan={4} className="px-3 py-10 text-center text-slate-500">No catalog searches recorded yet.</td></tr>}</tbody></table></div></Panel>}\n    {tab==="products" && <Panel title="Product demand"><div className="mb-4 text-sm text-slate-500">Active products ranked by leads, then views. Revenue shown here is attributed from WON leads, not collected payment.</div><div className="overflow-x-auto"><table className="w-full min-w-[920px] text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-[.12em] text-slate-500"><th className="px-3 py-3">Product</th><th className="px-3 py-3">Views</th><th className="px-3 py-3">Unique</th><th className="px-3 py-3">Repeat</th><th className="px-3 py-3">Leads</th><th className="px-3 py-3">Qualified</th><th className="px-3 py-3">Demos</th><th className="px-3 py-3">Won</th><th className="px-3 py-3">Attributed</th></tr></thead><tbody>{products.map(p=><tr key={p.product_slug} className="border-b border-slate-100 last:border-0"><td className="px-3 py-4"><div className="font-black text-slate-800">{p.product_name}</div><div className="text-xs text-slate-500">{p.product_slug}</div></td><td className="px-3 py-4 font-bold">{p.views}</td><td className="px-3 py-4 font-bold">{p.unique_visitors}</td><td className="px-3 py-4 font-bold">{p.repeat_visitors}</td><td className="px-3 py-4 font-black text-[#0F3E8A]">{p.leads_generated}</td><td className="px-3 py-4 font-bold">{p.qualified_leads}</td><td className="px-3 py-4 font-bold">{p.demo_interactions}</td><td className="px-3 py-4 font-black">{p.won_deals}</td><td className="px-3 py-4 font-black">{Number(p.attributed_revenue ?? 0).toLocaleString("en-US",{maximumFractionDigits:2})} ETB</td></tr>)}{products.length===0&&<tr><td colSpan={9} className="px-3 py-10 text-center text-slate-500">No product demand recorded yet.</td></tr>}</tbody></table></div></Panel>}
+    
+    {tab==="searches" && <Panel title="Catalog search intelligence"><div className="mb-4 text-sm text-slate-500">First-party searches captured from the Aslal web/Telegram catalog. Use these terms as evidence for content, products, FAQs and campaigns; this is not a feed of private Google/Facebook/TikTok searches.</div><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-[.12em] text-slate-500"><th className="px-3 py-3">Search phrase</th><th className="px-3 py-3">Searches</th><th className="px-3 py-3">Unique visitors</th><th className="px-3 py-3">Last seen</th></tr></thead><tbody>{searches.map(x=><tr key={x.query_text} className="border-b border-slate-100"><td className="px-3 py-4 font-black text-[#0F3E8A]">{x.query_text}</td><td className="px-3 py-4">{x.searches}</td><td className="px-3 py-4">{x.unique_visitors}</td><td className="px-3 py-4 text-slate-500">{new Date(x.last_seen).toLocaleString()}</td></tr>)}{searches.length===0&&<tr><td colSpan={4} className="px-3 py-10 text-center text-slate-500">No catalog searches recorded yet.</td></tr>}</tbody></table></div></Panel>}
+    {tab==="products" && <Panel title="Product demand"><div className="mb-4 text-sm text-slate-500">Active products ranked by leads, then views. Revenue shown here is attributed from WON leads, not collected payment.</div><div className="overflow-x-auto"><table className="w-full min-w-[920px] text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-[.12em] text-slate-500"><th className="px-3 py-3">Product</th><th className="px-3 py-3">Views</th><th className="px-3 py-3">Unique</th><th className="px-3 py-3">Repeat</th><th className="px-3 py-3">Leads</th><th className="px-3 py-3">Qualified</th><th className="px-3 py-3">Demos</th><th className="px-3 py-3">Won</th><th className="px-3 py-3">Attributed</th></tr></thead><tbody>{products.map(p=><tr key={p.product_slug} className="border-b border-slate-100 last:border-0"><td className="px-3 py-4"><div className="font-black text-slate-800">{p.product_name}</div><div className="text-xs text-slate-500">{p.product_slug}</div></td><td className="px-3 py-4 font-bold">{p.views}</td><td className="px-3 py-4 font-bold">{p.unique_visitors}</td><td className="px-3 py-4 font-bold">{p.repeat_visitors}</td><td className="px-3 py-4 font-black text-[#0F3E8A]">{p.leads_generated}</td><td className="px-3 py-4 font-bold">{p.qualified_leads}</td><td className="px-3 py-4 font-bold">{p.demo_interactions}</td><td className="px-3 py-4 font-black">{p.won_deals}</td><td className="px-3 py-4 font-black">{Number(p.attributed_revenue ?? 0).toLocaleString("en-US",{maximumFractionDigits:2})} ETB</td></tr>)}{products.length===0&&<tr><td colSpan={9} className="px-3 py-10 text-center text-slate-500">No product demand recorded yet.</td></tr>}</tbody></table></div></Panel>}
 
     {tab==="acquisition" && <Panel title="Acquisition → sales"><div className="space-y-2">{sources.map(x=><div key={x.source} className="grid gap-2 rounded-xl bg-[#F8FAFC] px-4 py-4 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center"><span className="font-bold">{x.source}</span><span className="text-xs text-slate-500">{x.visitors} visitors</span><span className="font-black text-[#0F3E8A]">{x.leads} leads</span><span className="text-xs font-bold">{x.won_deals} won</span></div>)}{sources.length===0&&<Empty text="Acquisition data will appear as visitors arrive."/>}</div></Panel>}
 
