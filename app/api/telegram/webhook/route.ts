@@ -56,7 +56,7 @@ async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const recentViews=identity?.visitorId ? await prisma.event.findMany({where:{visitorId:identity.visitorId,eventName:"TELEGRAM_PRODUCT_VIEW"},orderBy:{createdAt:"desc"},take:3,select:{productSlug:true}}).catch(()=>[]) : [];
   const viewText=recentViews.length?"\\n\\nWe remember your recent catalog interest: "+recentViews.map(v=>v.productSlug).filter(Boolean).join(", ")+".":"";
   const welcome=hasContext?"Welcome back to Aslal. I found your existing customer/lead context, so you can continue without starting over.":"Welcome to Aslal. No account or registration is required. Your Telegram identity and catalog activity can be remembered for this workspace.";
-  const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\\/$/,"");
+  const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
   const loginEnabled=String(process.env.TELEGRAM_LOGIN_ENABLED||"").toLowerCase()==="true";
   const keyboard:any[][]=[
     [{text:"🛍 Catalog"},{text:"🎯 Qualify me"}],
