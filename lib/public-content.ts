@@ -82,6 +82,8 @@ export const PUBLIC_CONTENT: PublicContentDefinition[] = [
 {pagePath:"/terms",key:"body",label:"Terms body",defaultValue:"Use of this website and our digital services is subject to applicable Ethiopian law and any service agreement issued for a specific engagement. Website content is provided for general information and may change as our services evolve.",fontSize:18},
 ];
 
+export type ContentMap=Record<string,{value:string;richHtml?:string;fontFamily:string;fontSize:number}>;
+
 type ContentRow=RowDataPacket&{page_path:string;content_key:string;label:string;value:string;rich_html:string|null;font_family:string;font_size:number;active:number};
 
 export const getPageContent=cache(async(pagePath:string)=>{
