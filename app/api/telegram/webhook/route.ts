@@ -125,9 +125,28 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled)return reply(chatId,"Human support is currently unavailable.");
   const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
   const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
-  await db.query("UPDATE telegram_public_sessions SET state='SUPPORT_REQUESTED',support_requested_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[workspaceId,String(user?.id||chatId)]);
-  if(cfg.handoffChatId){const sent=await tg("sendMessage",{chat_id:String(cfg.handoffChatId),text:"🔔 New public Telegram support request\nLead: "+leadId+"\nUser: "+([user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user")+"\nPhone: "+(data.phone||"not provided")+"\nAnswers: "+JSON.stringify(data)});const sentId=sent?.result?.message_id;await savePublicState(workspaceId,String(user?.id||chatId),"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:sentId,publicChatId:chatId,leadId});}
-  return reply(chatId,"A support request has been created. A member of our team will continue with you here.");
+  const name=[user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user";
+  const username=user?.username?("@"+user.username):"not provided";
+  const userId=String(user?.id||chatId);
+  const contactParts=[
+    process.env.ASLAL_CONTACT_ADDRESS ? "Address: "+process.env.ASLAL_CONTACT_ADDRESS : "",
+    process.env.SUPPORT_EMAIL ? "Email: "+process.env.SUPPORT_EMAIL : "",
+    process.env.SUPPORT_PHONE ? "Phone: "+process.env.SUPPORT_PHONE : "",
+    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ? "Telegram: @"+String(process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME).replace(/^@/,"") : ""
+  ].filter(Boolean);
+  const aslalContact=contactParts.length?contactParts.join("\n"):"Website: "+(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com");
+  const customerContact=[
+    "Your Telegram: "+username,
+    "Telegram user ID: "+userId,
+    data.phone ? "Your phone: "+data.phone : ""
+  ].filter(Boolean).join("\n");
+  await db.query("UPDATE telegram_public_sessions SET state='SUPPORT_REQUESTED',support_requested_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[workspaceId,userId]);
+  if(cfg.handoffChatId){
+    const sent=await tg("sendMessage",{chat_id:String(cfg.handoffChatId),text:"🔔 New public Telegram support request\nLead: "+leadId+"\nCustomer: "+name+"\n"+customerContact+"\n\nAslal sales contact:\n"+aslalContact+"\n\nAnswers: "+JSON.stringify(data)});
+    const sentId=sent?.result?.message_id;
+    await savePublicState(workspaceId,userId,"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:sentId,publicChatId:chatId,leadId});
+  }
+  return tg("sendMessage",{chat_id:chatId,text:"A support request has been created. A member of Aslal sales will continue with you here.\n\nAslal sales contact:\n"+aslalContact+"\n\nYour reachable contact:\n"+customerContact,reply_markup:{keyboard:[[{text:"❌ Close menu"}]],resize_keyboard:true,is_persistent:true}});
 }
 async function pricingResponse(chatId:string,workspaceId:string){
   if(await keywordResponse(chatId,workspaceId,"price"))return;
