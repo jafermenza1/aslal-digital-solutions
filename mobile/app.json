@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Aslal",
+    "slug": "aslal-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "aslal",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.aslaldigital.mobile",
+      "versionCode": 1
+    },
+    "ios": {
+      "bundleIdentifier": "com.aslaldigital.mobile"
+    },
+    "extra": {
+      "apiBaseUrl": "https://aslaldigital.com"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-sqlite"
+    ]
+  }
+}
