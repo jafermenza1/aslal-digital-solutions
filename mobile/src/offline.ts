@@ -24,6 +24,14 @@ export async function getMobileDatabase() {
       );
       CREATE INDEX IF NOT EXISTS idx_mobile_outbox_workspace_status
         ON mobile_outbox(workspace_id, status);
+      CREATE TABLE IF NOT EXISTS mobile_lead_cache (
+        id TEXT PRIMARY KEY NOT NULL,
+        workspace_id TEXT NOT NULL,
+        data_json TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_mobile_lead_cache_workspace
+        ON mobile_lead_cache(workspace_id, updated_at);
     `);
     return db;
   }
@@ -63,4 +71,37 @@ export async function listPendingOperations(workspaceId: string) {
       ORDER BY client_created_at ASC`,
     workspaceId,
   );
+}
+
+export async function setOperationStatus(operationId: string, status: LocalOperationStatus, error?: string) {
+  const db = await getMobileDatabase();
+  await db.runAsync(
+    "UPDATE mobile_outbox SET status = ?, attempt_count = attempt_count + 1, last_error = ?, updated_at = ? WHERE operation_id = ?",
+    status, error ?? null, new Date().toISOString(), operationId,
+  );
+}
+
+export async function cacheLeads(workspaceId: string, leads: unknown[]) {
+  const db = await getMobileDatabase();
+  await db.withTransactionAsync(async () => {
+    for (const lead of leads) {
+      const row = lead as { id?: string; updatedAt?: string };
+      if (!row.id) continue;
+      await db.runAsync(
+        "INSERT OR REPLACE INTO mobile_lead_cache (id, workspace_id, data_json, updated_at) VALUES (?, ?, ?, ?)",
+        row.id, workspaceId, JSON.stringify(lead), row.updatedAt || new Date().toISOString(),
+      );
+    }
+  });
+}
+
+export async function listCachedLeads(workspaceId: string) {
+  const db = await getMobileDatabase();
+  const rows = await db.getAllAsync<{ data_json: string }>(
+    "SELECT data_json FROM mobile_lead_cache WHERE workspace_id = ? ORDER BY updated_at DESC LIMIT 100",
+    workspaceId,
+  );
+  return rows.flatMap((row) => {
+    try { return [JSON.parse(row.data_json)]; } catch { return []; }
+  });
 }
