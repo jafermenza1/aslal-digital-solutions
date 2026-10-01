@@ -29,6 +29,11 @@ export async function GET(request:Request) {
   if(!config?.enabled||!config.publicEnabled||!config.allowAnonymousUsers)return NextResponse.json({error:"Public Telegram catalog is disabled for this workspace."},{status:403});
   const selectedWorkspaceIds=[workspace.id];
   const selectedConfigs=[config];
+  const offers=await prisma.catalogOffer.findMany({
+    where:{workspaceId:workspace.id,status:"PUBLISHED",channels:{some:{channel:"TELEGRAM",enabled:true}}},
+    include:{product:{select:{id:true,slug:true,name:true,category:true,imageUrl:true,galleryUrls:true,startingPrice:true,active:true}},resource:{select:{id:true,slug:true,title:true,category:true,preview:true,downloadUrl:true,active:true}},channels:{where:{channel:"TELEGRAM",enabled:true},take:1}},
+    orderBy:[{featured:"desc"},{displayOrder:"asc"},{title:"asc"}]
+  });
   const products=await prisma.product.findMany({
     where:{active:true,workspaceId:{in:selectedWorkspaceIds},...(campaignId?{campaigns:{some:{id:campaignId,status:{in:["OPEN","ACTIVE"]}}}}:{})},
     orderBy:[{featured:"desc"},{sortOrder:"asc"},{name:"asc"}],
@@ -51,5 +56,6 @@ export async function GET(request:Request) {
     products:await Promise.all(visibleProducts.map(async p=>({...p,media:[...parseMedia(p.mediaUrls),...parseMedia(p.galleryUrls)],search:await getSearchProfile(String(p.workspaceId),"PRODUCT",p.id,"en")}))),
     resources:await Promise.all(visibleResources.map(async r=>({...r,media:parseMedia(r.mediaUrls),search:await getSearchProfile(String(r.workspaceId),"RESOURCE",r.id,"en")}))),
     showStock:selectedConfigs.some(c=>c.showStock),
+    offers,
   },{headers:{"Cache-Control":"private, max-age=30"}});
 }
