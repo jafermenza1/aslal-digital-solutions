@@ -247,13 +247,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         }
       }
 
-      const earnedCommission = await tx.commission.findFirst({ where: { paymentId: payment.id, workspaceId: workspace.id } });
-      if (earnedCommission && nextReconciliation === "RECONCILED" && earnedCommission.amount > 0) {
-        const conn = (tx as any);
-        // Prisma transaction clients do not expose the mysql2 connection used by the ledger service;
-        // ledger seeding is therefore performed by the dedicated reconciliation endpoint for new rows.
-      }
-
       if (nextStatus === "REVERSED" || nextStatus === "REFUNDED") {
         const revenue = await tx.revenue.findFirst({ where: { paymentId: payment.id, workspaceId: workspace.id } });
         if (revenue) {
