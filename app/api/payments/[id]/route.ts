@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma, Prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
-import { requireSameWorkspace } from "@/lib/workspace-boundary";
+import { requirePartnerAttributionWorkspace } from "@/lib/workspace-boundary";
 
 const allowed: Record<string, string[]> = {
   INITIATED: ["PENDING", "CONFIRMED", "FAILED"],
@@ -148,7 +148,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           if (payment.order.referralLinkId && !referralLink) {
             throw new Error("Payment order referral link is outside the active workspace or partner attribution.");
           }
-          if (referralLink) requireSameWorkspace(workspace.id, referralLink.workspaceId);
+          if (referralLink) requirePartnerAttributionWorkspace(workspace.id, referralLink.workspaceId, referralLink.partner.workspaceId);
           const campaignId = referralLink?.campaignId || agentDeal?.campaignId || null;
           const campaign = campaignId
             ? await tx.partnerCampaign.findFirst({
