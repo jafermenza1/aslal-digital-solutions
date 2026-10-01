@@ -247,3 +247,20 @@ export async function queueLeadTemplateEmail(input: {
   });
   return { queued: true as const, outboxId: outbox.id };
 }
+
+export async function queuePartnerVerificationEmail(input:{workspaceId:string;recipientAddress:string;name:string;verificationUrl:string;createdBy?:string}) {
+  const template=await prisma.emailTemplate.findUnique({where:{templateKey:"partner.account.verify"}});
+  if(!template?.active) throw new Error("Partner verification email template is not active.");
+  const {renderTemplate}=await import("@/lib/email-templates");
+  const values={name:input.name,verificationUrl:input.verificationUrl};
+  return queueEmail({
+    workspaceId:input.workspaceId,
+    recipientAddress:input.recipientAddress,
+    subject:renderTemplate(template.subjectTemplate,values).replace(/[\r\n]+/g," ").trim().slice(0,250),
+    htmlBody:renderTemplate(template.htmlTemplate,values,true),
+    textBody:renderTemplate(template.textTemplate,values),
+    templateKey:template.templateKey,
+    messageType:EmailMessageType.TRANSACTIONAL,
+    createdBy:input.createdBy||"partner-registration",
+  });
+}
