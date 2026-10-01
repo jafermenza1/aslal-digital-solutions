@@ -2,6 +2,7 @@ import { requirePermission } from "@/lib/authorization";
 import { getWorkspaceForUser } from "@/lib/workspaces";
 import { prisma } from "@/lib/prisma";
 import PartnerOpportunityCenter from "@/components/PartnerOpportunityCenter";
+import PartnerSelfService from "@/components/PartnerSelfService";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function PartnerPortalPage() {
   ]);
 
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
+  const programs = await prisma.partnerProgram.findMany({ where: { workspaceId: workspace.id, status: "PUBLISHED" }, include: { terms: { where: { active: true }, take: 1 } }, orderBy: { createdAt: "desc" }, take: 50 });
 
   return <main className="min-h-screen bg-[#F8FAFC] py-10">
     <div className="container-aslal">
@@ -49,6 +51,7 @@ export default async function PartnerPortalPage() {
         <p className="mt-1 text-sm text-slate-500">Use the approved link or the printed partner card to distribute your referral identity.</p>
         <div className="mt-5 space-y-3">{partner.referralLinks.map((link) => <div key={link.id} className="rounded-2xl border border-slate-100 p-4"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-mono text-sm font-black text-[#0F3E8A]">{link.code}</div><div className="mt-1 break-all text-xs text-slate-400">{baseUrl}/go/{link.code}</div></div><div className="text-xs font-bold text-slate-500">{link._count.clicks} clicks</div></div></div>)}</div>
       </section>
+      <PartnerSelfService programs={programs.map((x) => ({ id:x.id,name:x.name,description:x.description,admissionMode:x.admissionMode,terms:x.terms[0] ? { earningsDescription:x.terms[0].earningsDescription } : null }))} />
       <PartnerOpportunityCenter />
       <p className="mt-5 text-xs leading-5 text-slate-400">This portal exposes only partner-attributed performance. Confidential customer information is not shown here.</p>
     </div>
