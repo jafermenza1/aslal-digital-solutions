@@ -1849,6 +1849,7 @@ model Workspace {
   referralLinks ReferralLink[]
   revenues    Revenue[]
   commissions Commission[]
+  commissionLedgerEvents CommissionLedgerEvent[]
   payouts     PartnerPayout[]
   disputes    PartnerDispute[]
   campaignAssets CampaignAsset[]
