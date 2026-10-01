@@ -14,6 +14,7 @@ export async function GET(request:Request) {
   const requestedWorkspaceId=url.searchParams.get("workspaceId")?.trim()||"";
   const connectionId=url.searchParams.get("connectionId")?.trim()||"";
   const campaignId=url.searchParams.get("campaignId");
+  const requestedReferralCode=url.searchParams.get("ref")?.trim()||"";
   let resolvedWorkspaceId=requestedWorkspaceId;
   if(connectionId){
     const connection=await prisma.telegramBusinessConnection.findUnique({where:{id:connectionId},select:{workspaceId:true,status:true}});
@@ -23,6 +24,12 @@ export async function GET(request:Request) {
   }
   if(!resolvedWorkspaceId) resolvedWorkspaceId=await resolveTelegramDefaultWorkspaceId();
   if(!resolvedWorkspaceId) return NextResponse.json({error:"No active Telegram catalog workspace is available."},{status:403});
+  let referralCode:string|null=null;
+  if(requestedReferralCode){
+    const referral=await prisma.referralLink.findFirst({where:{workspaceId:resolvedWorkspaceId,code:requestedReferralCode,partner:{accountStatus:"ACTIVE"}},select:{code:true,partnerId:true,campaignId:true}});
+    if(!referral) return NextResponse.json({error:"Referral attribution link is invalid or inactive."},{status:400});
+    referralCode=referral.code;
+  }
   const workspace=await prisma.workspace.findFirst({where:{id:resolvedWorkspaceId,active:true},select:{id:true,name:true,slug:true}});
   if(!workspace)return NextResponse.json({error:"Workspace is unavailable."},{status:403});
   const config=await prisma.telegramChannelConfig.findUnique({where:{workspaceId:workspace.id}});
@@ -52,6 +59,7 @@ export async function GET(request:Request) {
     workspaceId:workspace.id,
     connectionId:connectionId||null,
     campaignId:campaignId||null,
+    referralCode,
     workspaces:[workspace],
     products:await Promise.all(visibleProducts.map(async p=>({...p,media:[...parseMedia(p.mediaUrls),...parseMedia(p.galleryUrls)],search:await getSearchProfile(String(p.workspaceId),"PRODUCT",p.id,"en")}))),
     resources:await Promise.all(visibleResources.map(async r=>({...r,media:parseMedia(r.mediaUrls),search:await getSearchProfile(String(r.workspaceId),"RESOURCE",r.id,"en")}))),
