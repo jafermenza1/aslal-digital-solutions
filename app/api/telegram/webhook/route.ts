@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 type TelegramMessage = {
   message_id?: number;
+  business_connection_id?: string;
   chat?: { id?: number | string; type?: string; title?: string; username?: string };
   from?: TelegramUser;
   text?: string;
@@ -18,7 +19,7 @@ type TelegramMessage = {
 };
 type TelegramCallbackQuery = { id:string; data?:string; from?:TelegramUser; message?:TelegramMessage };
 type TelegramInlineQuery = { id:string; query?:string; from?:{id?:number;first_name?:string;last_name?:string;username?:string} };
-type TelegramUpdate = { message?:TelegramMessage; callback_query?:TelegramCallbackQuery; inline_query?:TelegramInlineQuery };
+type TelegramUpdate = { message?:TelegramMessage; business_message?:TelegramMessage; callback_query?:TelegramCallbackQuery; inline_query?:TelegramInlineQuery; business_connection?:{id?:string;user_id?:number;disabled?:boolean;rights?:Record<string,unknown>} };
 type QualificationOption = { label:string; value:string; next?:string };
 type QualificationStep = { id:string; question?:string; inputType?:string; next?:string; options?:QualificationOption[] };
 type KeywordRule = { pattern?:string; mode?:string; response?:string; priority?:number };
@@ -122,7 +123,7 @@ async function ensurePublicLead(workspaceId:string,user:any,chatId:string,stateD
   const [owners]=await db.query<(RowDataPacket&{email:string})[]>(`SELECT u.email FROM users u JOIN workspace_users wu ON wu.user_id=u.id WHERE wu.workspace_id=? AND u.active=1 AND u.role IN ('SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') ORDER BY FIELD(u.role,'SALES_OPERATOR','SALES_MANAGER','BUSINESS_OWNER','ADMIN','SUPER_ADMIN') LIMIT 1`,[workspaceId]);
   await db.query("INSERT INTO persons (id,name) VALUES (?,?)",[personId,name.slice(0,160)]);
   await db.query("INSERT INTO communication_preferences (id,person_id,telegram_allowed) VALUES (?,?,1)",[crypto.randomUUID(),personId]);
-  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,phone,telegram_username,telegram_chat_id,status,source,medium,lead_category,capture_mode,message,owner_email) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),stateData.phone||null,user?.username||null,String(user?.id||chatId),"NEW","telegram","telegram","PUBLIC_TELEGRAM","MANUAL",JSON.stringify(stateData),assignedOwner||owners[0]?.email||null]);
+  await db.query("INSERT INTO leads (workspace_id,id,person_id,name,phone,telegram_username,telegram_chat_id,status,source,medium,lead_category,capture_mode,message,owner_email,referral_code,campaign) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[workspaceId,leadId,personId,name.slice(0,160),stateData.phone||null,user?.username||null,String(user?.id||chatId),"NEW","telegram","telegram","PUBLIC_TELEGRAM","MANUAL",JSON.stringify(stateData),assignedOwner||owners[0]?.email||null,stateData.referralCode||null,stateData.campaignId||null]);
   await db.query("UPDATE telegram_public_sessions SET lead_id=?,person_id=? WHERE workspace_id=? AND telegram_user_id=?",[leadId,personId,workspaceId,String(user?.id||chatId)]);
   await db.query("UPDATE leads SET next_action=?,next_action_due_at=DATE_ADD(NOW(),INTERVAL 30 MINUTE) WHERE id=? AND workspace_id=? AND phone IS NULL",[stateData.phone?"Verify Telegram identity and reachable contact address before human handoff.":"Obtain a reachable phone/contact address and verify Telegram identity before human handoff.",leadId,workspaceId]);
   return leadId;
@@ -300,6 +301,13 @@ async function handleClientInbound(workspaceId:string,d:any,m:TelegramMessage,ch
 }
 
 async function handle(update:TelegramUpdate){
+  if(update.business_connection?.id){
+    const connectionId=String(update.business_connection.id);
+    const connection=await prisma.telegramBusinessConnection.findUnique({where:{telegramBusinessConnectionId:connectionId}});
+    if(connection){await prisma.telegramBusinessConnection.update({where:{id:connection.id},data:{status:update.business_connection.disabled?"DISABLED":"ACTIVE",permissions:update.business_connection.rights||{},lastConnectedAt:new Date(),lastError:null}});}
+    return;
+  }
+  if(update.business_message){ update.message=update.business_message; }
   if(update.inline_query)return inlineCatalog(update.inline_query);
   if(update.callback_query){
     const q=update.callback_query; const data=clean(q.data); const chatId=String(q.message?.chat?.id||""); if(!chatId)return;
@@ -327,6 +335,22 @@ async function handle(update:TelegramUpdate){
   const input=clean(m?.text);
   if(input.startsWith("/start")){
     const token=input.split(/\s+/,2)[1]||"";
+    if(token && !/^(staff_|client_)/.test(token)){
+      const [refRows]=await db.query<(RowDataPacket&{workspace_id:string;partner_id:string;campaign:string|null;active:number;status:string})[]>(`SELECT rl.workspace_id,rl.partner_id,rl.campaign,rl.active,p.account_status AS status FROM referral_links rl JOIN partners p ON p.id=rl.partner_id WHERE rl.code=? LIMIT 1`,[token]);
+      const ref=refRows[0];
+      if(ref?.active && ref.status==="ACTIVE"){
+        const refCfg=await getTelegramChannelConfig(ref.workspace_id);
+        if(refCfg?.enabled&&refCfg.publicEnabled&&refCfg.allowAnonymousUsers){
+          const telegramUser=m.from||{id:chatId};
+          await syncTelegramIdentity({workspaceId:ref.workspace_id,user:telegramUser,chatId,event:"REFERRAL_START",startParam:token}).catch(()=>null);
+          const session=await publicSession(ref.workspace_id,telegramUser,chatId);
+          const prior=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+          await savePublicState(ref.workspace_id,String(telegramUser.id||chatId),"WELCOME",{...prior,referralCode:token,campaignId:ref.campaign||null});
+          await db.query(`INSERT INTO referral_clicks (referral_link_id,visitor_id,created_at) SELECT rl.id,ti.visitor_id,NOW() FROM referral_links rl LEFT JOIN telegram_identities ti ON ti.workspace_id=rl.workspace_id AND ti.telegram_user_id=? WHERE rl.code=? LIMIT 1`,[String(telegramUser.id||chatId),token]).catch(()=>null);
+          return publicMenu(chatId,ref.workspace_id,telegramUser);
+        }
+      }
+    }
     if(token.startsWith("staff_")){
       const raw=token.slice(6);
       const [rows]=await db.query<(RowDataPacket&{id:string;name:string})[]>("SELECT id,name FROM users WHERE telegram_link_token=? AND active=1 LIMIT 1",[raw]);
