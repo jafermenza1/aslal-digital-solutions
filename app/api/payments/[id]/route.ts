@@ -259,7 +259,29 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         const revenue = await tx.revenue.findFirst({ where: { paymentId: payment.id, workspaceId: workspace.id } });
         if (revenue) {
           await tx.revenue.update({ where: { id: revenue.id }, data: { status: "REVERSED", recognizedAmount: 0, commissionableAmount: 0 } });
-          await tx.commission.updateMany({ where: { revenueId: revenue.id, workspaceId: workspace.id }, data: { status: "VOID", amount: 0 } });
+          const commissionsToReverse = await tx.commission.findMany({
+            where: { revenueId: revenue.id, workspaceId: workspace.id },
+            select: { id: true, currentBalance: true, currency: true },
+          });
+          for (const commission of commissionsToReverse) {
+            const balance = Number(commission.currentBalance);
+            const eventType = nextStatus === "REFUNDED" ? "REFUNDED" : "REVERSED";
+            const key = `commission-${eventType.toLowerCase()}:${commission.id}:${payment.id}`;
+            if (balance > 0) {
+              await tx.$executeRaw(Prisma.sql`
+                INSERT INTO commission_ledger_events
+                  (id,workspace_id,commission_id,event_type,amount_delta,balance_after,currency,reason,reference_type,reference_id,idempotency_key,actor)
+                SELECT ${randomUUID()},${workspace.id},${commission.id},${eventType},${-balance},0,${commission.currency},
+                       ${nextStatus === "REFUNDED" ? "Commission reversed after payment refund" : "Commission reversed after payment reversal"},
+                       'PAYMENT',${payment.id},${key},${user.email}
+                WHERE NOT EXISTS (SELECT 1 FROM commission_ledger_events WHERE idempotency_key=${key})
+              `);
+            }
+            await tx.commission.update({
+              where: { id: commission.id },
+              data: { status: "VOID", currentBalance: 0 },
+            });
+          }
         }
       }
 
