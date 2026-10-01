@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
-import { requireSameWorkspace } from "@/lib/workspace-boundary";
+import { requirePartnerAttributionWorkspace } from "@/lib/workspace-boundary";
 import { resolveAffiliateAttributionForLead } from "@/lib/affiliate-engine";
 import { resolveAcceptedAgentDeal } from "@/lib/agent-engine";
 
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         : null;
       if (resolvedAttribution && !referral) throw new Error("Resolved referral link is not owned by this workspace.");
       if (referral) {
-        requireSameWorkspace(access.workspace.id, referral.workspaceId);
+        requirePartnerAttributionWorkspace(access.workspace.id, referral.workspaceId, referral.partner.workspaceId);
         const customerEmail = customer.email?.trim().toLowerCase() || null;
         const customerPhone = customer.phone?.trim() || null;
         const partnerEmail = referral.partner.email?.trim().toLowerCase() || null;
