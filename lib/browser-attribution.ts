@@ -5,6 +5,7 @@ export type BrowserAttribution = {
   content: string | null;
   term: string | null;
   referrer: string | null;
+  referralCode: string | null;
 };
 
 export function browserAttribution(): BrowserAttribution | null {
@@ -16,6 +17,8 @@ export function browserAttribution(): BrowserAttribution | null {
     previous = raw ? JSON.parse(raw) : {};
   } catch {}
   const referrer = document.referrer || null;
+  let referralCode: string | null = null;
+  try { referralCode = document.cookie.split("; ").find(v=>v.startsWith("aslal_referral_code="))?.split("=")[1] || null; } catch {}
   const socialHosts: Record<string, string> = {
     "facebook.com":"facebook","fb.com":"facebook","l.facebook.com":"facebook","lm.facebook.com":"facebook",
     "instagram.com":"instagram","l.instagram.com":"instagram","tiktok.com":"tiktok","vm.tiktok.com":"tiktok","vt.tiktok.com":"tiktok",
@@ -40,7 +43,7 @@ export function browserAttribution(): BrowserAttribution | null {
   const campaign = url.searchParams.get("utm_campaign") || previous.campaign || null;
   const content = url.searchParams.get("utm_content") || previous.content || null;
   const term = url.searchParams.get("utm_term") || previous.term || null;
-  const attribution = { source, medium, campaign, content, term, referrer };
+  const attribution = { source, medium, campaign, content, term, referrer, referralCode };
   if (source || medium || campaign) {
     try { window.localStorage.setItem("aslal_attribution", JSON.stringify(attribution)); } catch {}
   }
