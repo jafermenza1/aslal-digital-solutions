@@ -31,10 +31,6 @@ function present(user: { id:string; email:string; name:string; role:UserRole; ac
 export async function GET() {
   const actor = await authorizePermission("users.manage");
   if (!actor || (actor.role !== "ADMIN" && actor.role !== "SUPER_ADMIN")) return NextResponse.json({ error: "Only platform administrators can manage account roles." }, { status: 403 });
-  const workspace = null;
-  if (actor.role !== "ADMIN" && actor.role !== "SUPER_ADMIN" && !workspace) {
-    return NextResponse.json({ error: "No active workspace is available." }, { status: 403 });
-  }
   const users = await prisma.user.findMany({
     where: workspace ? { workspaceUsers: { some: { workspaceId: workspace.id } } } : undefined,
     orderBy: [{ active: "desc" }, { name: "asc" }],
@@ -45,7 +41,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const actor = await authorizePermission("users.manage");
-  if (!actor) return NextResponse.json({ error: "User administration is not permitted." }, { status: 403 });
+  if (!actor || (actor.role !== "ADMIN" && actor.role !== "SUPER_ADMIN")) return NextResponse.json({ error: "Only platform administrators can create account users." }, { status: 403 });
   const body = await request.json().catch(() => ({}));
   const name = String(body.name || "").trim().slice(0, 160);
   const email = String(body.email || "").trim().toLowerCase().slice(0, 190);
