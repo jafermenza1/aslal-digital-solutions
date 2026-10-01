@@ -1851,7 +1851,7 @@ model Workspace {
   revenues    Revenue[]
   commissions Commission[]
   commissionLedgerEvents CommissionLedgerEvent[]
-  payouts     PartnerPayout[]
+  payouts     PartnerPayout[]\n  payoutExecutions PayoutExecution[]\n  payoutVerifications PayoutVerification[]
   disputes    PartnerDispute[]
   campaignAssets CampaignAsset[]
   conversations Conversation[]
