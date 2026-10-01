@@ -31,6 +31,7 @@ export async function PUT(request:Request){
   if(!["OWNED","AFFILIATE","RESELLER","IMPLEMENTATION_PARTNER","CUSTOM"].includes(relationshipType))return NextResponse.json({error:"Invalid resource relationship type."},{status:400});
   const providerName=typeof body?.providerName==="string"?body.providerName.trim().slice(0,190)||null:null;
   const workspaceId=typeof body?.workspaceId==="string"&&body.workspaceId.trim()?body.workspaceId.trim():null;
+  if(!workspaceId)return NextResponse.json({error:"workspaceId is required."},{status:400});
   const campaignId=typeof body?.campaignId==="string"&&body.campaignId.trim()?body.campaignId.trim():null;
   const mediaUrls=typeof body?.mediaUrls==="string"?body.mediaUrls.trim().slice(0,12000):null;
   const specifications=body.specifications&&typeof body.specifications==="object"?JSON.stringify(body.specifications):null;
@@ -42,9 +43,10 @@ export async function PUT(request:Request){
 }
 
 export async function POST(request:Request){
-  const user=await authorizePermission("content.manage"); if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
   if(!body)return NextResponse.json({error:"Request body is required."},{status:400});
+  const requestedWorkspace=typeof body.workspaceId==="string"&&body.workspaceId.trim()?body.workspaceId.trim():null;
+  const access=await authorizeWorkspacePermission("content.manage",requestedWorkspace); if(!access)return NextResponse.json({error:"Unauthorized for this workspace"},{status:401});
   const slug=typeof body.slug==="string"?body.slug.trim().toLowerCase():"";
   if(!/^[a-z0-9-]{3,160}$/.test(slug))return NextResponse.json({error:"Invalid slug."},{status:400});
   const mediaUrls=typeof body?.mediaUrls==="string"?body.mediaUrls.trim().slice(0,12000):null;
