@@ -38,9 +38,9 @@ function payload(body:any){
 }
 function valid(p:any){return p.name&&p.slug&&p.shortDescription&&Object.values(ProductKind).includes(p.kind)&&Object.values(ProductRelationship).includes(p.relationshipType)&&p.workspaceId&&((p.kind===ProductKind.PRODUCT&&p.stockQuantity!==null&&Number.isInteger(p.stockQuantity))||p.kind===ProductKind.SERVICE);}
 export async function GET(request:Request){
- const actor=await authorizePermission("products.manage");
- if(!actor)return NextResponse.json({error:"Catalog administration is not permitted."},{status:403});
  const workspaceId=new URL(request.url).searchParams.get("workspaceId")?.trim()||"";
+ const actor=await authorizeWorkspacePermission("products.manage",workspaceId||null);
+ if(!actor)return NextResponse.json({error:"Catalog administration is not permitted for this workspace."},{status:403});
  const products=await prisma.product.findMany({where:workspaceId?{workspaceId}:undefined,orderBy:[{active:"desc"},{sortOrder:"asc"},{name:"asc"}],include:{workspace:{select:{id:true,name:true,slug:true}}}});
  const workspaces=await prisma.workspace.findMany({where:{active:true},select:{id:true,name:true,slug:true},orderBy:{name:"asc"}});
  return NextResponse.json({products,workspaces});
