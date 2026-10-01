@@ -1399,6 +1399,8 @@ model Order {
   referralCode       String?     @map("referral_code") @db.VarChar(100)
   promoCode          String?     @map("promo_code") @db.VarChar(100)
   partnerId          String?     @map("partner_id") @db.Char(36)
+  agentDealRegistrationId String? @unique @map("agent_deal_registration_id") @db.Char(36)
+  agentDealRegistration AgentDealRegistration? @relation(fields:[agentDealRegistrationId], references:[id], onDelete:SetNull)
   referralLinkId     String?     @map("referral_link_id") @db.Char(36)
   salesOwnerEmail    String?     @map("sales_owner_email") @db.VarChar(190)
   createdAt          DateTime    @default(now()) @map("created_at") @db.DateTime(0)
