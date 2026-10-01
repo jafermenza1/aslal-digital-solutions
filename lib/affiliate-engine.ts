@@ -158,6 +158,28 @@ export async function resolveAffiliateAttributionForLead(input: {
   }) : null;
 
   const policy = normalizePolicy(preferred?.attribution_policy || clicks[clicks.length - 1].attribution_policy);
+  if (policy === "LEAD_REGISTRATION" || policy === "DEAL_REGISTRATION") {
+    const [locked] = await db.query<RowDataPacket[]>(
+      `SELECT la.referral_code,la.referral_link_id,la.partner_id,la.campaign_id,la.created_at,
+              rl.campaign_id link_campaign_id, pc.program_id, pt.id terms_id, cc.id contract_id
+       FROM lead_attributions la
+       INNER JOIN referral_links rl ON rl.id=la.referral_link_id AND rl.workspace_id=la.workspace_id
+       LEFT JOIN partner_campaigns pc ON pc.id=rl.campaign_id AND pc.workspace_id=rl.workspace_id
+       LEFT JOIN program_terms pt ON pt.program_id=pc.program_id AND pt.active=1
+       LEFT JOIN commission_contracts cc ON cc.program_id=pc.program_id AND cc.partner_id=la.partner_id AND cc.status='ACTIVE'
+       WHERE la.lead_id=? AND la.workspace_id=? AND la.partner_id IS NOT NULL
+       ORDER BY la.created_at DESC LIMIT 1`,
+      [input.leadId, input.workspaceId],
+    );
+    const row = locked[0];
+    if (row) return {
+      referralCode: row.referral_code, referralLinkId: row.referral_link_id, partnerId: row.partner_id,
+      campaignId: row.campaign_id || row.link_campaign_id || null, programId: row.program_id || null,
+      termsId: row.terms_id || null, contractId: row.contract_id || null, policy,
+      attributionWindowDays: Math.max(0, Number(preferred?.attribution_window_days ?? 30)),
+      matchedAt: new Date(row.created_at), reason: policy,
+    };
+  }
   if (input.promoCode && preferred && preferred.code === input.promoCode) {
     return {
       referralCode: preferred.code, referralLinkId: preferred.referral_link_id, partnerId: preferred.partner_id,
