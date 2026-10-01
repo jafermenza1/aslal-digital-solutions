@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { requireSameWorkspace } from "@/lib/workspace-boundary";
 import { resolveAffiliateAttributionForLead } from "@/lib/affiliate-engine";
+import { resolveAcceptedAgentDeal } from "@/lib/agent-engine";
 
 function orderNumber() {
   return `SO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomUUID().slice(0, 8).toUpperCase()}`;
@@ -51,6 +52,10 @@ export async function POST(request: Request) {
           promoCode,
         })
       : null;
+    const acceptedAgentDeal = quote.opportunity?.lead
+      ? await resolveAcceptedAgentDeal({ workspaceId: access.workspace.id, leadId: quote.opportunity.lead.id })
+      : null;
+    const useAgentAttribution = Boolean(acceptedAgentDeal && (!resolvedAttribution || resolvedAttribution.policy === "DEAL_REGISTRATION"));
 
     let selfReferralBlocked = false;
     const order = await prisma.$transaction(async (tx) => {
@@ -84,8 +89,8 @@ export async function POST(request: Request) {
       requireSameWorkspace(access.workspace.id, customer.workspaceId);
 
       const opportunity = quote.opportunity;
-      const referralCode = resolvedAttribution?.referralCode || opportunity?.referralCode || null;
-      const referral = resolvedAttribution
+      const referralCode = useAgentAttribution ? null : (resolvedAttribution?.referralCode || opportunity?.referralCode || null);
+      const referral = resolvedAttribution && !useAgentAttribution
         ? await tx.referralLink.findFirst({
             where: { id: resolvedAttribution.referralLinkId, workspaceId: access.workspace.id, partnerId: resolvedAttribution.partnerId },
             select: { id: true, partnerId: true, campaign: true, workspaceId: true, partner: { select: { workspaceId: true, email: true, phone: true } } },
@@ -112,8 +117,9 @@ export async function POST(request: Request) {
           campaign: opportunity?.campaign || referral?.campaign || undefined,
           referralCode: selfReferralBlocked ? undefined : (referralCode || undefined),
           promoCode: promoCode || undefined,
-          partnerId: selfReferralBlocked ? undefined : (resolvedAttribution?.partnerId || referral?.partnerId || undefined),
-          referralLinkId: selfReferralBlocked ? undefined : (resolvedAttribution?.referralLinkId || referral?.id || undefined),
+          partnerId: selfReferralBlocked ? undefined : (useAgentAttribution ? acceptedAgentDeal!.partnerId : (resolvedAttribution?.partnerId || referral?.partnerId || undefined)),
+          agentDealRegistrationId: selfReferralBlocked ? undefined : (useAgentAttribution ? acceptedAgentDeal!.id : undefined),
+          referralLinkId: selfReferralBlocked || useAgentAttribution ? undefined : (resolvedAttribution?.referralLinkId || referral?.id || undefined),
           salesOwnerEmail: opportunity?.ownerEmail || access.user.email, confirmedAt: new Date(),
           items: { create: quote.items.map((item) => ({
             id: randomUUID(), description: item.description, quantity: item.quantity, unitPrice: item.unitPrice,
