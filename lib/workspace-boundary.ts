@@ -45,3 +45,16 @@ export function requireSameWorkspace(
   }
   return currentWorkspaceId;
 }
+
+/**
+ * Partner attribution crosses partner home workspaces safely. The commercial
+ * boundary is the referral/program workspace; a partner's home workspace is
+ * identity metadata and must never block a valid cross-business attribution.
+ */
+export function requirePartnerAttributionWorkspace(
+  currentWorkspaceId: string,
+  referralWorkspaceId: string | null | undefined,
+  _partnerHomeWorkspaceId?: string | null,
+): string {
+  return requireWorkspaceAccess(currentWorkspaceId, referralWorkspaceId);
+}
