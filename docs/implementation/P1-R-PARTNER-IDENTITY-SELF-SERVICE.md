@@ -278,7 +278,7 @@ Verification is queued through the existing email outbox/dispatcher. The partner
 
 P1-R adds new parent-independent partner state columns and then child tables. The migration history contains a separate legacy backfill migration so existing verified partners retain access.
 
-Production must use the checked-in migration history and `prisma migrate deploy`; do not reset the production database. Prisma's production guidance confirms that `migrate deploy` applies pending migrations and does not generate artifacts or reset the database. citeturn0search7
+Production must use the checked-in migration history and `prisma migrate deploy`; do not reset the production database.
 
 ## P1 exit gate
 
