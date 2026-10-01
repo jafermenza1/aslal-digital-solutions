@@ -45,6 +45,35 @@ enum PartnerTier {
   ELITE
 }
 
+enum PartnerProgramStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  ARCHIVED
+}
+
+enum PartnerAdmissionMode {
+  OPEN
+  VERIFICATION_REQUIRED
+  BUSINESS_APPROVAL
+  INVITATION_ONLY
+}
+
+enum AttributionPolicy {
+  LAST_CLICK
+  FIRST_CLICK
+  LEAD_REGISTRATION
+  DEAL_REGISTRATION
+  PROMO_CODE
+  MANUAL_APPROVAL
+}
+
+enum CommissionContractStatus {
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
 enum CampaignStatus {
   DRAFT
   OPEN
@@ -566,6 +595,7 @@ model Partner {
   orders             Order[]
   user               User?
   campaignPartners   CampaignPartner[]
+  commissionContracts CommissionContract[]
   disputes           PartnerDispute[]
   competingDisputes  PartnerDispute[] @relation("PartnerDisputeCompetingPartner")
   awardedDisputes    PartnerDispute[] @relation("PartnerDisputeAwardedPartner")
@@ -577,6 +607,77 @@ model Partner {
 
   @@index([status], map: "idx_partners_status")
   @@map("partners")
+}
+
+model PartnerProgram {
+  workspaceId        String                 @map("workspace_id") @db.Char(36)
+  id                 String                 @id @db.Char(36)
+  name               String                 @db.VarChar(190)
+  slug               String                 @db.VarChar(160)
+  description        String?                @db.Text
+  status             PartnerProgramStatus   @default(DRAFT)
+  admissionMode      PartnerAdmissionMode   @default(OPEN)
+  allowedPartnerTypes String?               @map("allowed_partner_types") @db.Text
+  publishedAt        DateTime?              @map("published_at") @db.DateTime(0)
+  createdBy          String?                @map("created_by") @db.VarChar(190)
+  createdAt          DateTime               @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace          Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  terms              ProgramTerms[]
+  contracts          CommissionContract[]
+  campaigns          PartnerCampaign[]
+
+  @@unique([workspaceId, slug], map: "uq_partner_program_workspace_slug")
+  @@index([workspaceId, status], map: "idx_partner_program_workspace_status")
+  @@map("partner_programs")
+}
+
+model ProgramTerms {
+  id                    String           @id @db.Char(36)
+  programId             String           @map("program_id") @db.Char(36)
+  version               Int              @default(1)
+  active                Boolean          @default(false)
+  currency              String           @default("ETB") @db.VarChar(10)
+  earningsDescription   String            @map("earnings_description") @db.Text
+  qualifyingEvent       String           @map("qualifying_event") @db.VarChar(190)
+  attributionPolicy     AttributionPolicy @default(LAST_CLICK) @map("attribution_policy")
+  attributionWindowDays Int              @default(30) @map("attribution_window_days")
+  refundHoldDays        Int              @default(0) @map("refund_hold_days")
+  payoutSchedule        String           @default("MANUAL") @map("payout_schedule") @db.VarChar(80)
+  minimumPayout         Decimal          @default(0) @map("minimum_payout") @db.Decimal(15,2)
+  exclusions            String?          @db.Text
+  termsSnapshot         Json?            @map("terms_snapshot")
+  publishedAt           DateTime?        @map("published_at") @db.DateTime(0)
+  createdAt             DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  program               PartnerProgram   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  contracts             CommissionContract[]
+
+  @@unique([programId, version], map: "uq_program_terms_version")
+  @@index([programId, active], map: "idx_program_terms_program_active")
+  @@map("program_terms")
+}
+
+model CommissionContract {
+  id              String         @id @db.Char(36)
+  workspaceId     String         @map("workspace_id") @db.Char(36)
+  programId       String         @map("program_id") @db.Char(36)
+  termsId         String         @map("terms_id") @db.Char(36)
+  partnerId       String         @map("partner_id") @db.Char(36)
+  status          CommissionContractStatus @default(ACTIVE)
+  acceptedAt      DateTime?      @map("accepted_at") @db.DateTime(0)
+  acceptedBy      String?        @map("accepted_by") @db.VarChar(190)
+  termsSnapshot   Json           @map("terms_snapshot")
+  createdAt       DateTime       @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  program         PartnerProgram @relation(fields: [programId], references: [id], onDelete: Restrict)
+  terms           ProgramTerms   @relation(fields: [termsId], references: [id], onDelete: Restrict)
+  partner         Partner        @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+
+  @@unique([programId, partnerId], map: "uq_program_contract_partner")
+  @@index([workspaceId, partnerId, status], map: "idx_contract_workspace_partner_status")
+  @@index([programId, status], map: "idx_contract_program_status")
+  @@map("commission_contracts")
 }
 
 model ReferralLink {
@@ -1495,6 +1596,7 @@ model Workspace {
   payments    Payment[]
   invoices    Invoice[]
   campaigns   PartnerCampaign[]
+  partnerPrograms PartnerProgram[]
   partners    Partner[]
   referralLinks ReferralLink[]
   revenues    Revenue[]
@@ -1512,6 +1614,7 @@ model Workspace {
   emailOutbox EmailOutbox[]
   telegramOutbox TelegramOutbox[]
   telegramTemplates TelegramTemplate[]
+  commissionContracts CommissionContract[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
   @@map("workspaces")
@@ -1602,6 +1705,7 @@ model LeadAdminAudit {
 
 model PartnerCampaign {
   workspaceId          String?              @map("workspace_id") @db.Char(36)
+  programId            String?              @map("program_id") @db.Char(36)
   id                  String               @id @db.Char(36)
   name                String               @db.VarChar(190)
   description         String?              @db.Text
@@ -1623,6 +1727,7 @@ model PartnerCampaign {
   createdAt           DateTime             @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt           DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
   product             Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
+  program             PartnerProgram?      @relation(fields: [programId], references: [id], onDelete: SetNull)
   resources           Resource[]
   partners            CampaignPartner[]
   referralLinks       ReferralLink[]
@@ -1634,6 +1739,7 @@ model PartnerCampaign {
   @@index([status, startsAt, endsAt], map: "idx_partner_campaign_status_dates")
   @@index([location], map: "idx_partner_campaign_location")
   @@index([productId], map: "idx_partner_campaign_product")
+  @@index([programId], map: "idx_partner_campaign_program")
   @@index([resourceId], map: "idx_partner_campaign_resource")
   @@map("partner_campaigns")
   workspace             Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
