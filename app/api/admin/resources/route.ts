@@ -8,10 +8,8 @@ import { ensureResources } from "@/lib/resources-server";
 type Row=RowDataPacket&{id:string;slug:string;category:string;title:string;description:string;preview:string;cta:string;intent:string;download_url:string|null;media_urls:string|null;specifications:any;active:number;published_at:Date;updated_at:Date;workspace_id:string|null;relationship_type:string;provider_name:string|null;campaign_id:string|null};
 
 export async function GET(request:Request){
-
-  const requestedWorkspace=String(body?.workspaceId||"").trim()||null;
+  const requestedWorkspace=new URL(request.url).searchParams.get("workspaceId");
   const access=await authorizeWorkspacePermission("content.manage",requestedWorkspace); if(!access)return NextResponse.json({error:"Unauthorized for this workspace"},{status:401});
-  const user=access.user;
   await ensureResources();
   const url=new URL(request.url); const category=url.searchParams.get("category")||""; const days=Math.min(3650,Math.max(1,Number(url.searchParams.get("days")||3650)));
   const [rows]=await db.query<Row[]>(`SELECT id,slug,category,title,description,preview,cta,intent,download_url,media_urls,specifications,active,published_at,updated_at,workspace_id,relationship_type,provider_name,campaign_id FROM resources WHERE published_at >= DATE_SUB(NOW(), INTERVAL ? DAY) ${category?"AND category=?":""} ORDER BY published_at DESC`,category?[days,category]:[days]);
@@ -19,9 +17,10 @@ export async function GET(request:Request){
 }
 
 export async function PUT(request:Request){
-  const user=await authorizePermission("content.manage"); if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
   if(!body)return NextResponse.json({error:"Request body is required."},{status:400});
+  const requestedWorkspace=typeof body.workspaceId==="string"&&body.workspaceId.trim()?body.workspaceId.trim():null;
+  const access=await authorizeWorkspacePermission("content.manage",requestedWorkspace); if(!access)return NextResponse.json({error:"Unauthorized for this workspace"},{status:401});
   const id=typeof body.id==="string"?body.id:""; if(!id)return NextResponse.json({error:"Resource id is required."},{status:400});
   const fields=["category","title","description","preview","cta","intent","downloadUrl"] as const;
   for(const f of fields)if(typeof body[f]!=="string"||!(body[f] as string).trim())return NextResponse.json({error:`${f} is required.`},{status:400});
