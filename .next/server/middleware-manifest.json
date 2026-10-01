@@ -1,0 +1,52 @@
+{
+  "version": 3,
+  "middleware": {},
+  "functions": {
+    "/api/og/products/route": {
+      "files": [
+        "server/server-reference-manifest.js",
+        "server/app/api/og/products/route_client-reference-manifest.js",
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "required-server-files.js",
+        "server/edge-runtime-webpack.js",
+        "server/app/api/og/products/route.js"
+      ],
+      "entrypoint": "server/app/api/og/products/route.js",
+      "name": "app/api/og/products/route",
+      "page": "/api/og/products/route",
+      "matchers": [
+        {
+          "regexp": "^/api/og/products$",
+          "originalSource": "/api/og/products"
+        }
+      ],
+      "wasm": [
+        {
+          "name": "wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc",
+          "filePath": "server/edge-chunks/wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc.wasm"
+        },
+        {
+          "name": "wasm_77d9faebf7af9e421806970ce10a58e9d83116d7",
+          "filePath": "server/edge-chunks/wasm_77d9faebf7af9e421806970ce10a58e9d83116d7.wasm"
+        }
+      ],
+      "assets": [
+        {
+          "name": "Geist-Regular.4548d4b15b6b765e.ttf",
+          "filePath": "server/edge-chunks/asset_Geist-Regular.4548d4b15b6b765e.ttf"
+        }
+      ],
+      "env": {
+        "__NEXT_BUILD_ID": "Gi6ZXu3ON73W00W16zRo4",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ehYxRCV/AFkUTF7Jb+E/zVRG9Ff6K03+9MFMAKuRunI=",
+        "__NEXT_PREVIEW_MODE_ID": "989ef18da55c0541d097462f462841da",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "a582a05948b70e284054cae9918b0fc61e036ab8ed3fa9ef01fc5168f4e3977e",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "3bbc7fbba7fbb5fa30e68e0d4fcfa024ec892f8202b698d556377314009037c1"
+      }
+    }
+  },
+  "sortedMiddleware": []
+}

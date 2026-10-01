@@ -1,0 +1,8 @@
+stage,definition,required_context,next_action,owner
+NEW,Lead captured from a source,source contact details and initial demand,Review and assign,Sales queue
+QUALIFIED,Need and fit confirmed,business problem urgency decision context,Schedule follow-up,Sales owner
+FOLLOW_UP,Active sales conversation,last contact and next action,Complete agreed action,Sales owner
+OPPORTUNITY,Commercial opportunity accepted,scope value probability,Prepare quote,Sales owner
+QUOTE,Quote issued,quote value terms expiry,Follow up quote,Sales owner
+WON,Order confirmed,order payment state customer record,Start fulfilment,Operations
+LOST,Opportunity closed without sale,loss reason and source,Record reason,Sales owner

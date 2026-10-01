@@ -1,0 +1,9 @@
+User-Agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /login
+Disallow: /portal/
+
+Host: https://aslaldigital.com
+Sitemap: https://aslaldigital.com/sitemap.xml
