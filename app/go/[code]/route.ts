@@ -16,7 +16,7 @@ export async function GET(request:Request,{params}:{params:Promise<{code:string}
       JOIN partners p ON p.id=rl.partner_id AND p.workspace_id=rl.workspace_id
       WHERE rl.code=? LIMIT 1`,[normalized]);
     const link=rows[0];
-    if(!link||["SUSPENDED","CLOSED"].includes(String(link.program_status||""))||!["ACTIVE"].includes(String(link.program_status||"ACTIVE")))return NextResponse.redirect(new URL("/",request.url));
+    if(!link||(["DRAFT","PAUSED","ARCHIVED"].includes(String(link.program_status||""))))return NextResponse.redirect(new URL("/",request.url));
     const forwarded=request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"";
     const ipHash=forwarded?createHash("sha256").update(forwarded).digest("hex"):null;
     const userAgent=request.headers.get("user-agent")?.slice(0,500)||null;
