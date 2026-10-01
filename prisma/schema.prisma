@@ -38,6 +38,41 @@ enum PartnerVerificationStatus {
   SUSPENDED
 }
 
+enum PartnerAccountStatus {
+  REGISTERED
+  EMAIL_VERIFIED
+  ACTIVE
+  RESTRICTED
+  SUSPENDED
+  CLOSED
+}
+
+enum PartnerVerificationLevel {
+  BASIC
+  TRUSTED
+  VERIFIED
+  BUSINESS_VERIFIED
+}
+
+enum PartnerOnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+}
+
+enum PartnerOnboardingStep {
+  PROFILE
+  PARTNER_TYPE
+  PAYOUT
+  TERMS
+  COMPLETE
+}
+
+enum PartnerVerificationChannel {
+  EMAIL
+  PHONE
+}
+
 enum PartnerTier {
   STARTER
   VERIFIED
@@ -572,6 +607,15 @@ model Partner {
   username       String?         @unique @db.VarChar(190)
   passwordHash   String?         @map("password_hash") @db.VarChar(255)
   portalRequested Boolean        @default(false) @map("portal_requested")
+  accountStatus PartnerAccountStatus @default(REGISTERED) @map("account_status")
+  verificationLevel PartnerVerificationLevel @default(BASIC) @map("verification_level")
+  onboardingStatus PartnerOnboardingStatus @default(NOT_STARTED) @map("onboarding_status")
+  onboardingStep PartnerOnboardingStep @default(PROFILE) @map("onboarding_step")
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.DateTime(0)
+  phoneVerifiedAt DateTime? @map("phone_verified_at") @db.DateTime(0)
+  country String? @db.VarChar(100)
+  phone String? @db.VarChar(40)
+  restrictedReason String? @map("restricted_reason") @db.Text
   telegramChatId String?         @unique @map("telegram_chat_id") @db.VarChar(80)
   telegramLinkToken String?      @unique @map("telegram_link_token") @db.VarChar(100)
   telegramLinkedAt DateTime?     @map("telegram_linked_at") @db.DateTime(0)
@@ -600,13 +644,74 @@ model Partner {
   competingDisputes  PartnerDispute[] @relation("PartnerDisputeCompetingPartner")
   awardedDisputes    PartnerDispute[] @relation("PartnerDisputeAwardedPartner")
   payouts            PartnerPayout[]
+  verificationChallenges PartnerVerificationChallenge[]
+  payoutProfile PartnerPayoutProfile?
+  termsAcceptances PartnerTermsAcceptance[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
   @@index([tier], map: "idx_partners_tier")
 
   @@index([status], map: "idx_partners_status")
+  @@index([accountStatus], map: "idx_partners_account_status")
+  @@index([verificationLevel], map: "idx_partners_verification_level")
   @@map("partners")
+}
+
+model PartnerVerificationChallenge {
+  id String @id @db.Char(36)
+  partnerId String @map("partner_id") @db.Char(36)
+  channel PartnerVerificationChannel
+  destination String @db.VarChar(190)
+  tokenHash String @map("token_hash") @db.Char(64)
+  expiresAt DateTime @map("expires_at") @db.DateTime(0)
+  consumedAt DateTime? @map("consumed_at") @db.DateTime(0)
+  attemptCount Int @default(0) @map("attempt_count")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  partner Partner @relation(fields:[partnerId], references:[id], onDelete:Cascade)
+  @@index([partnerId,channel,consumedAt], map:"idx_partner_verification_challenge")
+  @@index([tokenHash], map:"idx_partner_verification_token")
+  @@map("partner_verification_challenges")
+}
+
+model PartnerPayoutProfile {
+  id String @id @db.Char(36)
+  partnerId String @unique @map("partner_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  method String @default("BANK") @db.VarChar(40)
+  accountName String? @map("account_name") @db.VarChar(190)
+  accountNumber String? @map("account_number") @db.VarChar(190)
+  bankName String? @map("bank_name") @db.VarChar(190)
+  mobileWallet String? @map("mobile_wallet") @db.VarChar(190)
+  country String? @db.VarChar(100)
+  currency String @default("ETB") @db.VarChar(10)
+  verified Boolean @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  partner Partner @relation(fields:[partnerId], references:[id], onDelete:Cascade)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@index([workspaceId,verified], map:"idx_partner_payout_profile_workspace")
+  @@map("partner_payout_profiles")
+}
+
+model PartnerTermsAcceptance {
+  id String @id @db.Char(36)
+  partnerId String @map("partner_id") @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  programId String @map("program_id") @db.Char(36)
+  termsId String @map("terms_id") @db.Char(36)
+  contractId String? @map("contract_id") @db.Char(36)
+  acceptedAt DateTime @default(now()) @map("accepted_at") @db.DateTime(0)
+  acceptedBy String? @map("accepted_by") @db.VarChar(190)
+  ipAddress String? @map("ip_address") @db.VarChar(64)
+  userAgent String? @map("user_agent") @db.VarChar(500)
+  partner Partner @relation(fields:[partnerId], references:[id], onDelete:Restrict)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  program PartnerProgram @relation(fields:[programId], references:[id], onDelete:Restrict)
+  terms ProgramTerms @relation(fields:[termsId], references:[id], onDelete:Restrict)
+  @@index([partnerId,programId,acceptedAt], map:"idx_partner_terms_acceptance")
+  @@index([termsId], map:"idx_partner_terms_acceptance_terms")
+  @@map("partner_terms_acceptances")
 }
 
 model PartnerProgram {
@@ -625,6 +730,7 @@ model PartnerProgram {
   workspace          Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
   terms              ProgramTerms[]
   contracts          CommissionContract[]
+  termsAcceptances PartnerTermsAcceptance[]
   campaigns          PartnerCampaign[]
 
   @@unique([workspaceId, slug], map: "uq_partner_program_workspace_slug")
@@ -651,6 +757,7 @@ model ProgramTerms {
   createdAt             DateTime         @default(now()) @map("created_at") @db.DateTime(0)
   program               PartnerProgram   @relation(fields: [programId], references: [id], onDelete: Cascade)
   contracts             CommissionContract[]
+  termsAcceptances PartnerTermsAcceptance[]
 
   @@unique([programId, version], map: "uq_program_terms_version")
   @@index([programId, active], map: "idx_program_terms_program_active")
@@ -1612,6 +1719,8 @@ model Workspace {
   resourceAttributions ResourceAttribution[]
   resources Resource[]
   emailOutbox EmailOutbox[]
+  partnerPayoutProfiles PartnerPayoutProfile[]
+  partnerTermsAcceptances PartnerTermsAcceptance[]
   telegramOutbox TelegramOutbox[]
   telegramTemplates TelegramTemplate[]
   commissionContracts CommissionContract[]
