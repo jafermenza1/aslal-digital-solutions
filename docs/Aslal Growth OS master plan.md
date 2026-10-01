@@ -5738,3 +5738,35 @@ Where a technical term is unavoidable, the user-facing interface should provide 
 The guiding principle remains:
 
 > **Sophisticated technology underneath; simple, honest and understandable commerce on the surface.**
+
+
+## P1-R implementation status — 2026-10-01
+
+The roadmap P1 gate is now being recovered explicitly as **P1-R — Partner Identity & Self-Service Completion**. P1-R is the required gate before deeper P2 expansion is treated as the next roadmap milestone.
+
+Implemented in the repository:
+
+- explicit partner account status, verification level, onboarding status and onboarding step;
+- legacy-partner backfill preserving previously active/verified partner access;
+- self-service partner registration tied to published program context;
+- User ↔ Partner authentication relationship through the existing `users.partner_id` model;
+- email verification challenge and activation;
+- verification email connected to the existing `email_templates` → `email_outbox` → dispatcher workflow;
+- optional SMS-backed phone verification;
+- self-service partner profile and partner-type selection;
+- capability evaluation and restricted-mode rules;
+- basic payout profile;
+- program admission checks against `PartnerProgram.admissionMode`;
+- active `ProgramTerms` acceptance audit;
+- immutable `CommissionContract.termsSnapshot`;
+- referral identity creation/reuse;
+- partner onboarding portal;
+- P1 unit acceptance tests and documented P1-R acceptance gate.
+
+**P1-R status: implementation complete; controlled runtime acceptance remains the gate.**
+
+The required demonstration is:
+
+`new BASIC affiliate → self-register → email verify → ACTIVE → complete profile/payout → join OPEN program → accept active terms → CommissionContract → referral identity → partner portal`
+
+P2 work already present remains preserved, but P2 should not be declared the next completed roadmap milestone until this P1-R demonstration is executed successfully.
