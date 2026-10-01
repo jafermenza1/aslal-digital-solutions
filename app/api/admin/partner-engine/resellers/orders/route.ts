@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     const offerId = String(b.offerId || "").trim();
     const quantity = Number(b.quantity ?? 1);
     const requestedDiscount = Number(b.discountAmount ?? 0);
+    const loc=b.customerLocation&&typeof b.customerLocation==="object"?b.customerLocation:{};
     if (!orderId || !partnerId || !offerId || !Number.isFinite(quantity) || quantity <= 0) {
       return NextResponse.json({ error: "orderId, partnerId, offerId and a positive quantity are required." }, { status: 400 });
     }
@@ -24,6 +25,10 @@ export async function POST(request: Request) {
     if (!reseller) return NextResponse.json({ error: "The partner is not an active reseller." }, { status: 409 });
     const offer = await resolveResellerOffer(access.workspace.id,reseller.resellerId,offerId);
     if (!offer) return NextResponse.json({ error: "Reseller offer is not active or is outside its validity window." }, { status: 409 });
+    if (offer.agreement_id) {
+      const [territories] = await db.query<any[]>("SELECT country,region,city,district,allowed FROM reseller_territories WHERE agreement_id=?",[offer.agreement_id]);
+      if (territories.length) { const matches=territories.filter(t=>(!t.country||t.country===String(loc.country||""))&&(!t.region||t.region===String(loc.region||""))&&(!t.city||t.city===String(loc.city||""))&&(!t.district||t.district===String(loc.district||""))); if (!matches.some(t=>t.allowed)) return NextResponse.json({error:"Customer location is outside the reseller agreement territory."},{status:409}); }
+    }
     if (quantity < Number(offer.minimum_quantity) || (offer.maximum_quantity !== null && quantity > Number(offer.maximum_quantity))) {
       return NextResponse.json({ error: "Quantity is outside the reseller offer limits." }, { status: 409 });
     }
