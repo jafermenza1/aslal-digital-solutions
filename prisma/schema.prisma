@@ -94,6 +94,14 @@ enum PartnerAdmissionMode {
   INVITATION_ONLY
 }
 
+enum PartnerProgramApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
 enum AttributionPolicy {
   LAST_CLICK
   FIRST_CLICK
@@ -666,6 +674,7 @@ model Partner {
   status             PartnerStatus             @default(ACTIVE)
   verificationStatus PartnerVerificationStatus @default(REGISTERED) @map("verification_status")
   tier               PartnerTier               @default(STARTER)
+  programApplications PartnerProgramApplication[]
   bio                String?                   @db.Text
   specialties        String?                   @db.Text
   serviceAreas       String?                   @map("service_areas") @db.Text
@@ -776,12 +785,58 @@ model PartnerProgram {
   workspace          Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
   terms              ProgramTerms[]
   contracts          CommissionContract[]
+  applications PartnerProgramApplication[]
+  marketplaceProfile MarketplaceProgramProfile?
   termsAcceptances PartnerTermsAcceptance[]
   campaigns          PartnerCampaign[]
+  marketplaceProfile MarketplaceProgramProfile?
 
   @@unique([workspaceId, slug], map: "uq_partner_program_workspace_slug")
   @@index([workspaceId, status], map: "idx_partner_program_workspace_status")
   @@map("partner_programs")
+}
+
+model MarketplaceProgramProfile {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  programId String @unique @map("program_id") @db.Char(36)
+  category String @default("General") @db.VarChar(100)
+  headline String? @db.VarChar(250)
+  offerSummary String? @map("offer_summary") @db.Text
+  partnerBenefits String? @map("partner_benefits") @db.Text
+  eligibilitySummary String? @map("eligibility_summary") @db.Text
+  supportDescription String? @map("support_description") @db.Text
+  logoUrl String? @map("logo_url") @db.VarChar(1000)
+  featured Boolean @default(false)
+  displayOrder Int @default(0) @map("display_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+  program PartnerProgram @relation(fields:[programId],references:[id],onDelete:Cascade)
+  @@index([workspaceId,category,featured,displayOrder],map:"idx_marketplace_program_profile")
+  @@map("marketplace_program_profiles")
+}
+
+model PartnerProgramApplication {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  programId String @map("program_id") @db.Char(36)
+  partnerId String @map("partner_id") @db.Char(36)
+  status PartnerProgramApplicationStatus @default(PENDING)
+  message String? @db.Text
+  partnerSnapshot Json? @map("partner_snapshot")
+  reviewedBy String? @map("reviewed_by") @db.VarChar(190)
+  reviewedAt DateTime? @map("reviewed_at") @db.DateTime(0)
+  reviewReason String? @map("review_reason") @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+  program PartnerProgram @relation(fields:[programId],references:[id],onDelete:Restrict)
+  partner Partner @relation(fields:[partnerId],references:[id],onDelete:Restrict)
+  @@unique([programId,partnerId],map:"uq_partner_program_application")
+  @@index([workspaceId,status,createdAt],map:"idx_program_application_workspace_status")
+  @@index([partnerId,status,createdAt],map:"idx_program_application_partner_status")
+  @@map("partner_program_applications")
 }
 
 model ProgramTerms {
@@ -1847,6 +1902,8 @@ model Workspace {
   campaigns   PartnerCampaign[]
   partnerPrograms PartnerProgram[]
   partners    Partner[]
+  programApplications PartnerProgramApplication[]
+  marketplaceProgramProfiles MarketplaceProgramProfile[]
   referralLinks ReferralLink[]
   revenues    Revenue[]
   commissions Commission[]
