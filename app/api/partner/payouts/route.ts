@@ -9,7 +9,7 @@ export async function GET(){
  const [commissions]=await db.query<RowDataPacket[]>(`
    SELECT c.id,c.amount,c.currency,c.status,c.created_at,c.eligible_at,c.order_id,c.payment_id,
           rl.code referral_code,o.order_number,pm.status payment_status,pm.reconciliation_status,
-          pp.id program_id,pp.name program_name,pt.version terms_version,pt.attribution_policy,
+          adr.id agent_deal_registration_id,pp.id program_id,pp.name program_name,pt.version terms_version,pt.attribution_policy,
           pt.attribution_window_days,pt.refund_hold_days,pt.qualifying_event,pt.payout_schedule,
           pc.reward_type,pc.reward_amount,pc.reward_rate
    FROM commissions c
@@ -42,7 +42,9 @@ export async function GET(){
      payment_status:c.payment_status||null,
      reconciliation_status:c.reconciliation_status||null,
      eligible_at:c.eligible_at||null,
-     explanation:c.program_name
+     explanation:c.agent_deal_registration_id
+       ? `Earned from ${c.order_number||"the attributed order"} through accepted agent deal registration ${c.agent_deal_registration_id.slice(0,8)}, after the business verified qualifying work. The qualifying event is ${c.qualifying_event||"reconciled payment"}; the commission remains subject to the published ${c.refund_hold_days??0}-day refund hold.`
+       : c.program_name
        ? `Earned from ${c.order_number||"the attributed order"} through referral ${c.referral_code||"the partner attribution"}, under ${c.program_name} terms v${c.terms_version}. The qualifying event is ${c.qualifying_event||"reconciled payment"}; the commission remains subject to the published ${c.refund_hold_days??0}-day refund hold.`
        : `Earned from ${c.order_number||"the attributed order"} through referral ${c.referral_code||"the partner attribution"} after payment reconciliation.`
    }
