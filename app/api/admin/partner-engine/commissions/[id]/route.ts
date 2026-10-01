@@ -62,6 +62,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!c) return NextResponse.json({ error: "Commission not found." }, { status: 404 });
 
     const current = Number(c.current_balance);
+    if (["REVERSE","REFUND","CHARGEBACK","VOID","ADJUST"].includes(action) && String(c.status) === "PAID") {
+      throw new Error("A PAID commission cannot be mutated through the commission ledger.");
+    }
+    if (action === "APPROVE" && !["QUALIFIED","APPROVED"].includes(String(c.status))) {
+      throw new Error("Only QUALIFIED commissions can be approved.");
+    }
+    if (action === "MARK_PAYABLE" && !["QUALIFIED","APPROVED"].includes(String(c.status))) {
+      throw new Error("Only QUALIFIED or APPROVED commissions can become PAYABLE.");
+    }
     let eventType: string;
     let amountDelta = 0;
     let nextStatus: string = String(c.status);
