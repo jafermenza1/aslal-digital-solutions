@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { authorizePermission } from "@/lib/authorization";
 import { ProductKind, ProductRelationship } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { authorizeWorkspacePermission, INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
