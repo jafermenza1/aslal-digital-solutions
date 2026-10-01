@@ -40,6 +40,8 @@ const ITEMS:Item[]=[
 {key:"partners",href:"/dashboard/partner-marketplace",permission:"partner.portal.view",icon:"store",group:"growth",label:"Partner Marketplace"},
 {key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Marketplace"},
 {key:"partners",href:"/dashboard/partner-applications",permission:"partners.manage",icon:"partner",group:"growth",label:"Partner Applications"},
+{key:"partners",href:"/dashboard/partner-risk",permission:"partners.manage",icon:"ops",group:"growth",label:"Trust & Risk Review"},
+{key:"partners",href:"/dashboard/trust-audit",permission:"partners.manage",icon:"ops",group:"administration",label:"Trust Audit Center"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
 {key:"products",href:"/dashboard/catalog-offers",permission:"products.manage",icon:"store",group:"commerce",label:"Unified Catalog & Offers"},
