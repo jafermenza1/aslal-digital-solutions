@@ -125,6 +125,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             });
 
         if (payment.order.partnerId) {
+          const agentDeal = payment.order.agentDealRegistrationId
+            ? await tx.agentDealRegistration.findFirst({
+                where: {
+                  id: payment.order.agentDealRegistrationId,
+                  workspaceId: workspace.id,
+                  partnerId: payment.order.partnerId,
+                  status: "ACCEPTED",
+                },
+                include: { workEvidence: { where: { verificationStatus: "VERIFIED" }, select: { id: true } } },
+              })
+            : null;
+          if (payment.order.agentDealRegistrationId && (!agentDeal || agentDeal.workEvidence.length === 0)) {
+            throw new Error("Agent commission is blocked: the registered deal is not accepted with verified work evidence.");
+          }
           const referralLink = payment.order.referralLinkId
             ? await tx.referralLink.findFirst({
                 where: { id: payment.order.referralLinkId, workspaceId: workspace.id, partnerId: payment.order.partnerId },
@@ -135,13 +149,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             throw new Error("Payment order referral link is outside the active workspace or partner attribution.");
           }
           if (referralLink) requireSameWorkspace(workspace.id, referralLink.workspaceId, referralLink.partner.workspaceId);
-          const campaign = referralLink?.campaignId
+          const campaignId = referralLink?.campaignId || agentDeal?.campaignId || null;
+          const campaign = campaignId
             ? await tx.partnerCampaign.findFirst({
-                where: { id: referralLink.campaignId, workspaceId: workspace.id },
+                where: { id: campaignId, workspaceId: workspace.id },
                 select: { rewardType: true, rewardAmount: true, rewardRate: true, workspaceId: true, programId: true },
               })
             : null;
-          if (referralLink?.campaignId && !campaign) {
+          if (campaignId && !campaign) {
             throw new Error("Payment referral campaign is outside the active workspace.");
           }
           if (campaign) requireSameWorkspace(workspace.id, campaign.workspaceId);
