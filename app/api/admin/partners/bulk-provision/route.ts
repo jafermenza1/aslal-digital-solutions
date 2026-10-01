@@ -35,7 +35,8 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const workspace = await getWorkspaceForUser(actor, String(body.workspaceId || "").trim() || undefined);
+    const access = await authorizeWorkspacePermission("partners.manage", String(body.workspaceId || "").trim() || undefined);
+    const workspace = access?.workspace;
     if (!workspace) {
       return NextResponse.json({ error: "Select a workspace you are authorized to manage." }, { status: 403 });
     }
