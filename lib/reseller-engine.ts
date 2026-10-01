@@ -19,7 +19,7 @@ export async function resolveActiveReseller(workspaceId: string, partnerId: stri
 
 export async function resolveResellerOffer(workspaceId: string, resellerId: string, offerId: string) {
   const [rows] = await db.query<any[]>(
-    "SELECT id,reseller_id,workspace_id,status,currency,list_price,reseller_price,minimum_quantity,maximum_quantity,valid_from,valid_until,terms_snapshot FROM reseller_offers WHERE id=? AND reseller_id=? AND workspace_id=? LIMIT 1",
+    "SELECT id,reseller_id,workspace_id,status,currency,list_price,reseller_price,permitted_discount_percent,agreement_id,customer_ownership,fulfillment_responsibility,return_responsibility,territory_scope,minimum_quantity,maximum_quantity,valid_from,valid_until,terms_snapshot FROM reseller_offers WHERE id=? AND reseller_id=? AND workspace_id=? LIMIT 1",
     [offerId, resellerId, workspaceId],
   );
   const offer = rows[0];
