@@ -520,6 +520,7 @@ model Lead {
   opportunities     Opportunity[]
   conversations     Conversation[]
   partnerDisputes    PartnerDispute[]
+  agentDealRegistrations AgentDealRegistration[]
 
   @@index([status], map: "idx_leads_status")
   @@index([score], map: "idx_leads_score")
