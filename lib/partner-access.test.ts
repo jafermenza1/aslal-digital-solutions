@@ -21,3 +21,11 @@ describe("P1 partner access",()=>{
   expect(profileComplete({name:"A",email:"a@example.com",phone:null,country:"Ethiopia",type:"AFFILIATE"})).toBe(false);
  });
 });
+
+
+describe("program admission",()=>{
+  const base={accountStatus:"ACTIVE",verificationLevel:"BASIC",type:"AFFILIATE" as const,emailVerifiedAt:new Date(),phoneVerifiedAt:null};
+  it("allows BASIC affiliates into OPEN programs",()=>{expect(canJoinProgram(base,"OPEN")).toBe(true)});
+  it("requires elevated verification for VERIFICATION_REQUIRED programs",()=>{expect(canJoinProgram(base,"VERIFICATION_REQUIRED")).toBe(false);expect(canJoinProgram({...base,verificationLevel:"TRUSTED"},"VERIFICATION_REQUIRED")).toBe(true)});
+  it("does not self-join approval or invitation programs",()=>{expect(canJoinProgram(base,"BUSINESS_APPROVAL")).toBe(false);expect(canJoinProgram(base,"INVITATION_ONLY")).toBe(false)});
+});
