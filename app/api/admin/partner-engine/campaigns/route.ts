@@ -55,7 +55,7 @@ export async function POST(request:Request) {
     if(resourceId){const [rr]=await db.query<RowDataPacket[]>(`SELECT id FROM resources WHERE id=? AND active=1 LIMIT 1`,[resourceId]);if(!rr[0])return NextResponse.json({error:"Selected resource was not found or is inactive."},{status:400});}
     if(productId){const [p]=await db.query<RowDataPacket[]>(`SELECT id FROM products WHERE id=? AND active=1 LIMIT 1`,[productId]); if(!p[0]) return NextResponse.json({error:"Selected product/service was not found or is inactive."},{status:400});}
     await db.query(`INSERT INTO partner_campaigns
-      (id,workspace_id,name,description,status,target_description,location,budget,partner_budget,currency,reward_type,reward_amount,reward_rate,required_partner_types,product_id,starts_at,ends_at,created_by)
+      (id,workspace_id,name,description,status,target_description,location,budget,partner_budget,currency,reward_type,reward_amount,reward_rate,required_partner_types,product_id,resource_id,starts_at,ends_at,created_by)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [id,actor.workspace.id,name,String(b.description??"").trim()||null,status,String(b.targetDescription??"").trim()||null,String(b.location??"").trim()||null,budget.toFixed(2),partnerBudget.toFixed(2),currency,rewardType,rewardAmount===null?null:rewardAmount.toFixed(2),rewardRate===null?null:rewardRate.toFixed(4),types.join(","),productId,resourceId,starts,ends,actor.user.email]);
     return NextResponse.json({ok:true,id},{status:201});
