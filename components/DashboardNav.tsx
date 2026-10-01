@@ -37,6 +37,7 @@ const ITEMS:Item[]=[
 {key:"telegramSales",href:"/dashboard/telegram",permission:"telegram.view",icon:"message",group:"revenue",label:"Telegram Sales"},
 
 {key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"growth",label:"Partners & Commissions"},
+{key:"partners",href:"/dashboard/partner-marketplace",permission:"partner.programs.discover",icon:"store",group:"growth",label:"Partner Marketplace"},
 {key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Marketplace"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
