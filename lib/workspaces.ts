@@ -60,3 +60,17 @@ export async function authorizeWorkspacePermission(permission: Permission, works
   if (!effective.includes(permission)) return null;
   return { user, workspace, permissions: effective };
 }
+
+
+export async function getWorkspacesForUser(user: CurrentUser): Promise<WorkspaceContext[]> {
+  const [rows] = await db.query<any[]>(
+    user.role === "SUPER_ADMIN" || user.role === "ADMIN"
+      ? `SELECT w.id,w.name,w.slug,w.client_type,COALESCE((SELECT wu.role FROM workspace_users wu WHERE wu.workspace_id=w.id AND wu.user_id=? LIMIT 1),'OWNER') role
+           FROM workspaces w WHERE w.active=1 ORDER BY w.name`
+      : `SELECT w.id,w.name,w.slug,w.client_type,wu.role
+           FROM workspaces w JOIN workspace_users wu ON wu.workspace_id=w.id
+          WHERE wu.user_id=? AND w.active=1 ORDER BY w.name`,
+    [user.id]
+  );
+  return rows as WorkspaceContext[];
+}
