@@ -1203,6 +1203,7 @@ model AgentDealRegistration {
   lead Lead @relation(fields:[leadId],references:[id],onDelete:Restrict)
   opportunity Opportunity? @relation(fields:[opportunityId],references:[id],onDelete:SetNull)
   workEvidence AgentWorkEvidence[]
+  orders Order[]
   @@unique([workspaceId,partnerId,leadId],map:"uq_agent_deal_partner_lead")
   @@index([workspaceId,status,createdAt],map:"idx_agent_deal_status")
   @@index([partnerId,status,createdAt],map:"idx_agent_deal_partner_status")
