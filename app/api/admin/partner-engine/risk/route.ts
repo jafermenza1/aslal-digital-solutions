@@ -24,6 +24,13 @@ export async function POST(request:Request){
   try{
     const body=await request.json();
     const action=String(body.action||"SCAN").toUpperCase();
+    if(action==="SCAN_ALL"){
+      const [partners]=await db.query<(RowDataPacket & {id:string})[]>("SELECT id FROM partners WHERE workspace_id=? AND account_status IN ('ACTIVE','RESTRICTED','SUSPENDED') LIMIT 1000",[access.workspace.id]);
+      let total=0; const ids:string[]=[];
+      for(const p of partners){ const found=await detectPartnerRisk(access.workspace.id,p.id); const created=await persistRiskSignals(access.workspace.id,found); total+=found.length; ids.push(...created); }
+      await auditTrustEvent({workspaceId:access.workspace.id,actor:access.user.email,action:"RISK_SCAN_ALL",entityType:"WORKSPACE",entityId:access.workspace.id,after:{partners:partners.length,signals:total}});
+      return NextResponse.json({partnersScanned:partners.length,signalsDetected:total,signalIds:ids});
+    }
     if(action==="SCAN"){
       if(!body.partnerId)return NextResponse.json({error:"partnerId is required."},{status:400});
       const signals=await detectPartnerRisk(access.workspace.id,String(body.partnerId));
