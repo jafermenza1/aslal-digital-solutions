@@ -5380,22 +5380,33 @@ Implemented in the P3 hardening layer:
 
 ## P4 — Referral Agent Engine
 
-**Goal:** Support sales agents who create value without relying on a digital click.
+**Goal:** Support sales agents who create value through verified customer introduction and documented commercial work, without allowing post-hoc claims for work they did not perform.
 
-Deliver:
+**Implementation status:** P4 implementation complete; controlled runtime certification remains.
 
-- deal registration;
-- lead ownership;
-- agent customer introduction;
-- opportunity attribution;
-- agent-specific commission contracts;
-- approval rules;
-- duplicate-deal handling;
-- offline/online workflow;
-- agent activity timeline.
+Implemented:
 
-**Exit condition:** An agent can register a legitimate opportunity and receive attributable credit even when the customer never uses a referral link.
+- agent-only deal registration;
+- workspace and active-account checks;
+- lead-stage gate preventing late-stage post-hoc claims;
+- required claim reason;
+- required customer-introduction date;
+- one active agent claim per lead;
+- competing active-claim protection;
+- dated work-evidence records;
+- business verification/rejection of work evidence;
+- acceptance gate requiring verified work;
+- accepted agent registration linked to the order;
+- DEAL_REGISTRATION precedence when program terms require it;
+- payment-time revalidation of accepted registration and verified work;
+- FIXED and PER_LEAD agent rewards at reconciled-sale boundary;
+- partner-facing explanation of agent earnings;
+- P4 unit tests and implementation documentation.
 
+**Core protection:** An agent cannot earn merely by adding a referral code, naming a customer, or claiming a sale after commercial work has progressed. The claim must have documented work verified by the business and an accepted deal registration before the order/payment commission boundary.
+
+**Exit condition:** An accepted agent deal with verified work can be traced through opportunity → order → reconciled payment → commission, while unsupported, late, duplicate, rejected, and cross-workspace claims are blocked.
+ 
 ## P5 — Reseller and Supplier Commerce
 
 **Goal:** Implement genuine reseller/supplier relationships instead of treating resellers as affiliates.
