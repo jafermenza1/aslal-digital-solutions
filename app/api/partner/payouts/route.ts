@@ -15,8 +15,9 @@ export async function GET(){
    FROM commissions c
    LEFT JOIN referral_links rl ON rl.id=c.referral_link_id AND rl.workspace_id=c.workspace_id
    LEFT JOIN orders o ON o.id=c.order_id AND o.workspace_id=c.workspace_id
+   LEFT JOIN agent_deal_registrations adr ON adr.id=o.agent_deal_registration_id AND adr.workspace_id=c.workspace_id
    LEFT JOIN payments pm ON pm.id=c.payment_id AND pm.workspace_id=c.workspace_id
-   LEFT JOIN partner_campaigns pc ON pc.id=rl.campaign_id AND pc.workspace_id=c.workspace_id
+   LEFT JOIN partner_campaigns pc ON pc.id=COALESCE(rl.campaign_id,adr.campaign_id) AND pc.workspace_id=c.workspace_id
    LEFT JOIN partner_programs pp ON pp.id=pc.program_id AND pp.workspace_id=c.workspace_id
    LEFT JOIN program_terms pt ON pt.program_id=pc.program_id AND pt.active=1
    WHERE c.partner_id=? AND c.workspace_id=(SELECT workspace_id FROM partners WHERE id=?)
@@ -26,6 +27,7 @@ export async function GET(){
    ...c,
    why_earned:{
      program:c.program_name||null,
+     agent_deal_registration_id:c.agent_deal_registration_id||null,
      terms_version:c.terms_version||null,
      referral_code:c.referral_code||null,
      attribution_policy:c.attribution_policy||"LEGACY_DIRECT_REFERRAL",
