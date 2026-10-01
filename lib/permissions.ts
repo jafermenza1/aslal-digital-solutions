@@ -77,7 +77,9 @@ export function resolvePermissions(role: UserRole, raw: unknown) {
   if (raw && typeof raw === "object" && !Array.isArray(raw)) {
     const data = raw as { grant?: unknown; revoke?: unknown };
     const allowed = new Set(allPermissions());
-    if (Array.isArray(data.grant)) for (const item of data.grant) if (typeof item === "string" && allowed.has(item as Permission)) base.add(item as Permission);
+    // Grants can only operate inside the permissions already allowed by the account role.
+    // The account role is the ceiling; overrides cannot elevate a user into another role.
+    if (Array.isArray(data.grant)) for (const item of data.grant) if (typeof item === "string" && allowed.has(item as Permission) && base.has(item as Permission)) base.add(item as Permission);
     if (Array.isArray(data.revoke)) for (const item of data.revoke) if (typeof item === "string") base.delete(item as Permission);
   }
   if (role !== "ADMIN" && role !== "SUPER_ADMIN") base.delete("partners.credentials");
