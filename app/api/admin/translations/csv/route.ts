@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { getWorkspaceForUser } from "@/lib/workspaces";
 import { db } from "@/lib/db";
 export const dynamic="force-dynamic";
