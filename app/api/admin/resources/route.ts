@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2/promise";
-import { authorizePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { db } from "@/lib/db";
 import { ensureResources } from "@/lib/resources-server";
 
 type Row=RowDataPacket&{id:string;slug:string;category:string;title:string;description:string;preview:string;cta:string;intent:string;download_url:string|null;media_urls:string|null;specifications:any;active:number;published_at:Date;updated_at:Date;workspace_id:string|null;relationship_type:string;provider_name:string|null;campaign_id:string|null};
 
 export async function GET(request:Request){
-  const user=await authorizePermission("content.manage"); if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
+
+  const requestedWorkspace=String(body?.workspaceId||"").trim()||null;
+  const access=await authorizeWorkspacePermission("content.manage",requestedWorkspace); if(!access)return NextResponse.json({error:"Unauthorized for this workspace"},{status:401});
+  const user=access.user;
   await ensureResources();
   const url=new URL(request.url); const category=url.searchParams.get("category")||""; const days=Math.min(3650,Math.max(1,Number(url.searchParams.get("days")||3650)));
   const [rows]=await db.query<Row[]>(`SELECT id,slug,category,title,description,preview,cta,intent,download_url,media_urls,specifications,active,published_at,updated_at,workspace_id,relationship_type,provider_name,campaign_id FROM resources WHERE published_at >= DATE_SUB(NOW(), INTERVAL ? DAY) ${category?"AND category=?":""} ORDER BY published_at DESC`,category?[days,category]:[days]);
