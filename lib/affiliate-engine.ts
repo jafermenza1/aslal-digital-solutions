@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2/promise";
 import { db } from "@/lib/db";
 
@@ -204,4 +205,35 @@ export async function resolveAffiliateAttributionForOrder(input: {
     promoCode: input.promoCode,
     occurredAt: input.occurredAt,
   });
+}
+
+
+export async function applyLeadAffiliateAttribution(input: {
+  workspaceId: string;
+  leadId: string;
+  referralCode?: string | null;
+  promoCode?: string | null;
+  occurredAt?: Date;
+}) {
+  const attribution = await resolveAffiliateAttributionForLead(input);
+  if (!attribution) return null;
+  const expiresAt = new Date(attribution.matchedAt.getTime() + attribution.attributionWindowDays * 86400000);
+  await db.query(
+    `UPDATE leads SET referral_code=?, attribution_locked_at=?, attribution_locked_by='affiliate-engine',
+       attribution_expires_at=? WHERE id=? AND workspace_id=?`,
+    [attribution.referralCode, new Date(), expiresAt, input.leadId, input.workspaceId],
+  );
+  await db.query(
+    `UPDATE lead_attributions SET is_first_touch=FALSE,is_last_touch=FALSE WHERE lead_id=? AND workspace_id=?`,
+    [input.leadId, input.workspaceId],
+  );
+  await db.query(
+    `INSERT INTO lead_attributions
+      (id,workspace_id,lead_id,attribution_type,source,medium,campaign,referral_code,referral_link_id,partner_id,campaign_id,is_first_touch,is_last_touch)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [randomUUID(), input.workspaceId, input.leadId, "PARTNER", "partner", "referral",
+      attribution.referralCode, attribution.referralCode, attribution.referralLinkId, attribution.partnerId,
+      attribution.campaignId, attribution.reason === "FIRST_CLICK", attribution.reason === "LAST_CLICK"],
+  );
+  return attribution;
 }
