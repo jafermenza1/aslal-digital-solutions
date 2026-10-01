@@ -26,7 +26,7 @@ function present(user: { id:string; email:string; name:string; role:UserRole; ac
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id:string }> }) {
   const actor = await authorizePermission("users.manage");
-  if (!actor) return NextResponse.json({ error: "User administration is not permitted." }, { status: 403 });
+  if (!actor || (actor.role !== "ADMIN" && actor.role !== "SUPER_ADMIN")) return NextResponse.json({ error: "Only platform administrators can manage account roles." }, { status: 403 });
   const { id } = await params;
   const target = await prisma.user.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: "User not found." }, { status: 404 });
