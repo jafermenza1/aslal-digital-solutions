@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { authorizePermission } from "@/lib/authorization";
+import { getCurrentUser } from "@/lib/authorization";
 import { getWorkspaceForUser } from "@/lib/workspaces";
 
 export async function POST(request: Request) {
-  const actor = await authorizePermission("dashboard.view");
+  const actor = await getCurrentUser();
   if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await request.json().catch(() => ({}));
   const workspaceId = String(body.workspaceId || "").trim();
