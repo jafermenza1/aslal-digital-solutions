@@ -26,7 +26,7 @@ store:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10h16l
 const ITEMS:Item[]=[
 {key:"overview",href:"/dashboard",permission:"dashboard.view",icon:"home",group:"command"},
 {key:"overview",href:"/dashboard/workbench",permission:"dashboard.view",icon:"home",group:"command",label:"My Workbench"},
-{key:"insights",href:"/dashboard/reports",permission:"insights.view",icon:"chart",group:"command",label:"Reports Center"},
+{key:"insights",href:"/dashboard/reports",permission:"dashboard.view",icon:"chart",group:"command",label:"Reports Center"},
 {key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"command"},
 {key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"command"},
 
