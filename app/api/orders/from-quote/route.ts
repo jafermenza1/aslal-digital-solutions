@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { requireSameWorkspace } from "@/lib/workspace-boundary";
+import { resolveAffiliateAttributionForLead } from "@/lib/affiliate-engine";
 
 function orderNumber() {
   return `SO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomUUID().slice(0, 8).toUpperCase()}`;
@@ -41,11 +42,32 @@ export async function POST(request: Request) {
     }
     if (quote.status !== "ACCEPTED") return NextResponse.json({ error: "Only an accepted quote can become an order." }, { status: 409 });
 
+    const promoCode = typeof body.promoCode === "string" ? body.promoCode.trim().slice(0, 100) : null;
+    const resolvedAttribution = quote.opportunity?.lead
+      ? await resolveAffiliateAttributionForLead({
+          workspaceId: access.workspace.id,
+          leadId: quote.opportunity.lead.id,
+          referralCode: quote.opportunity.referralCode || null,
+          promoCode,
+        })
+      : null;
+
+    let selfReferralBlocked = false;
     const order = await prisma.$transaction(async (tx) => {
       let customer = quote.customer || quote.opportunity?.customer || null;
       if (!customer && quote.opportunity?.lead) {
         const lead = quote.opportunity.lead;
-        customer = await tx.customer.create({
+        const duplicate = await tx.customer.findFirst({
+          where: {
+            workspaceId: access.workspace.id,
+            OR: [
+              ...(lead.email ? [{ email: lead.email.toLowerCase() }] : []),
+              ...(lead.phone ? [{ phone: lead.phone }] : []),
+            ],
+          },
+          orderBy: { createdAt: "asc" },
+        });
+        customer = duplicate || await tx.customer.create({
           data: {
             id: randomUUID(),
             workspaceId: access.workspace.id,
@@ -62,15 +84,24 @@ export async function POST(request: Request) {
       requireSameWorkspace(access.workspace.id, customer.workspaceId);
 
       const opportunity = quote.opportunity;
-      const referralCode = opportunity?.referralCode || null;
-      const referral = referralCode
+      const referralCode = resolvedAttribution?.referralCode || opportunity?.referralCode || null;
+      const referral = resolvedAttribution
         ? await tx.referralLink.findFirst({
-            where: { code: referralCode, workspaceId: access.workspace.id },
-            select: { id: true, partnerId: true, campaign: true, workspaceId: true, partner: { select: { workspaceId: true } } },
+            where: { id: resolvedAttribution.referralLinkId, workspaceId: access.workspace.id, partnerId: resolvedAttribution.partnerId },
+            select: { id: true, partnerId: true, campaign: true, workspaceId: true, partner: { select: { workspaceId: true, email: true, phone: true } } },
           })
         : null;
-      if (referralCode && !referral) throw new Error("Referral link is not owned by this workspace.");
-      if (referral) requireSameWorkspace(access.workspace.id, referral.workspaceId, referral.partner.workspaceId);
+      if (resolvedAttribution && !referral) throw new Error("Resolved referral link is not owned by this workspace.");
+      if (referral) {
+        requireSameWorkspace(access.workspace.id, referral.workspaceId, referral.partner.workspaceId);
+        const customerEmail = customer.email?.trim().toLowerCase() || null;
+        const customerPhone = customer.phone?.trim() || null;
+        const partnerEmail = referral.partner.email?.trim().toLowerCase() || null;
+        const partnerPhone = referral.partner.phone?.trim() || null;
+        if ((customerEmail && partnerEmail && customerEmail === partnerEmail) || (customerPhone && partnerPhone && customerPhone === partnerPhone)) {
+          selfReferralBlocked = true;
+        }
+      }
 
       const created = await tx.order.create({
         data: {
@@ -78,8 +109,11 @@ export async function POST(request: Request) {
           quoteId: quote.id, customerId: customer.id, opportunityId: quote.opportunityId || undefined,
           status: "CONFIRMED", currency: quote.currency, subtotal: quote.subtotal, discount: quote.discount, total: quote.total,
           paymentState: "INITIATED", source: opportunity?.source || undefined,
-          campaign: opportunity?.campaign || referral?.campaign || undefined, referralCode: referralCode || undefined,
-          partnerId: referral?.partnerId || undefined, referralLinkId: referral?.id || undefined,
+          campaign: opportunity?.campaign || referral?.campaign || undefined,
+          referralCode: selfReferralBlocked ? undefined : (referralCode || undefined),
+          promoCode: promoCode || undefined,
+          partnerId: selfReferralBlocked ? undefined : (resolvedAttribution?.partnerId || referral?.partnerId || undefined),
+          referralLinkId: selfReferralBlocked ? undefined : (resolvedAttribution?.referralLinkId || referral?.id || undefined),
           salesOwnerEmail: opportunity?.ownerEmail || access.user.email, confirmedAt: new Date(),
           items: { create: quote.items.map((item) => ({
             id: randomUUID(), description: item.description, quantity: item.quantity, unitPrice: item.unitPrice,
