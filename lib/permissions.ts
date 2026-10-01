@@ -83,3 +83,28 @@ export function resolvePermissions(role: UserRole, raw: unknown) {
   if (role !== "ADMIN" && role !== "SUPER_ADMIN") base.delete("partners.credentials");
   return [...base];
 }
+
+export type WorkspaceRole =
+  | "OWNER" | "ADMIN" | "MANAGER" | "SALES" | "FINANCE" | "AUDITOR" | "CLIENT" | "PARTNER" | "MEMBER";
+
+const workspaceSets: Record<WorkspaceRole, Permission[]> = {
+  OWNER: [...PERMISSIONS],
+  ADMIN: [...PERMISSIONS],
+  MANAGER: ["dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view","conversations.view","conversations.send","conversations.manage","products.manage","content.manage","email.view","email.manage","telegram.view","telegram.manage","email_templates.manage","partners.manage","insights.view","operations.view","commerce.view","commerce.manage","commissions.manage","payouts.manage"],
+  SALES: ["dashboard.view","leads.view","leads.create","leads.edit","customers.view","conversations.view","conversations.send","insights.view","operations.view","commerce.view"],
+  FINANCE: ["dashboard.view","customers.view","insights.view","operations.view","commerce.view","commerce.manage","commissions.manage","payouts.manage"],
+  AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view","commerce.view"],
+  CLIENT: ["dashboard.view","customers.view","insights.view"],
+  PARTNER: ["dashboard.view","partner.portal.view"],
+  MEMBER: ["dashboard.view"],
+};
+
+export function permissionsForWorkspaceRole(role: WorkspaceRole) {
+  return [...workspaceSets[role]];
+}
+
+export function resolveWorkspacePermissions(role: UserRole, raw: unknown, workspaceRole: WorkspaceRole) {
+  const account = new Set(resolvePermissions(role, raw));
+  const workspace = new Set(permissionsForWorkspaceRole(workspaceRole));
+  return [...account].filter(permission => workspace.has(permission));
+}
