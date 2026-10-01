@@ -25,8 +25,8 @@ export async function POST(req: Request) {
 
   const lead = await prisma.lead.findFirst({ where: { id: leadId, workspaceId: partner.workspaceId } });
   if (!lead) return NextResponse.json({ error: "Lead not found in your workspace." }, { status: 404 });
-  if (["WON", "LOST"].includes(lead.status)) {
-    return NextResponse.json({ error: "A closed lead cannot be newly claimed as an agent deal." }, { status: 409 });
+  if (!["NEW", "CONTACTED", "QUALIFIED", "DEMO"].includes(lead.status)) {
+    return NextResponse.json({ error: "An agent may register only an open lead before proposal, negotiation, won, or lost stages." }, { status: 409 });
   }
 
   const existing = await prisma.agentDealRegistration.findFirst({
@@ -48,10 +48,18 @@ export async function POST(req: Request) {
     if (allowed.length && !allowed.includes("AGENT")) return NextResponse.json({ error: "This campaign does not accept referral agents." }, { status: 403 });
   }
 
+  const customerIntroducedAt = body.customerIntroducedAt ? new Date(String(body.customerIntroducedAt)) : null;
+  if (!customerIntroducedAt || Number.isNaN(customerIntroducedAt.getTime()) || customerIntroducedAt.getTime() > Date.now()) {
+    return NextResponse.json({ error: "customerIntroducedAt is required and cannot be in the future. An agent must identify when the customer was actually introduced." }, { status: 400 });
+  }
+  if (customerIntroducedAt.getTime() < lead.createdAt.getTime()) {
+    return NextResponse.json({ error: "The customer introduction cannot predate the lead record." }, { status: 400 });
+  }
+
   const registration = await prisma.agentDealRegistration.create({
     data: {
       id: randomUUID(), workspaceId: partner.workspaceId, partnerId: partner.id, leadId,
-      programId, campaignId, claimReason, status: "SUBMITTED",
+      programId, campaignId, claimReason, customerIntroducedAt, status: "SUBMITTED",
     },
     include: { lead: true, workEvidence: true },
   });
