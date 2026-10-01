@@ -13,7 +13,7 @@ const reports=[
  {key:"business",roles:["CLIENT"],title:"Business",description:"Your business dashboard and seven-day operational audit export.",href:"/dashboard/client"},
 ];
 export default async function ReportsPage(){
- const user=await requirePermission("insights.view"); const access=await authorizeWorkspacePermission("insights.view"); if(!access)return null;
+ const user=await requirePermission("dashboard.view"); const access=await authorizeWorkspacePermission("dashboard.view"); if(!access)return null;
  const available=reports.filter(r=>r.roles.includes(user.role));
  return <main className="min-h-screen bg-[var(--ui-canvas)] py-10"><div className="container-aslal">
   <header><div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Reports Center</div><h1 className="mt-2 text-4xl font-black">Workspace reports</h1><p className="mt-2 text-slate-500">Reports are evaluated inside the active business context: <strong>{access.workspace.name}</strong>.</p></header>
