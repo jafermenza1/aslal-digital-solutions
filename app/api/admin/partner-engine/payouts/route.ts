@@ -19,7 +19,7 @@ export async function GET() {
   `, [access.workspace.id]);
 
   const [payableCommissions] = await db.query<RowDataPacket[]>(`
-    SELECT c.id,c.partner_id,p.name partner_name,c.amount,c.currency,c.status,o.order_number,c.created_at
+    SELECT c.id,c.partner_id,p.name partner_name,c.amount,c.currency,c.status,c.eligible_at,o.order_number,c.created_at
     FROM commissions c
     JOIN partners p ON p.id=c.partner_id AND p.workspace_id=c.workspace_id
     LEFT JOIN orders o ON o.id=c.order_id AND o.workspace_id=c.workspace_id
@@ -28,6 +28,7 @@ export async function GET() {
     LEFT JOIN payments pm ON pm.id=c.payment_id AND pm.workspace_id=c.workspace_id
     WHERE c.workspace_id=? AND c.status="PAYABLE" AND pi.id IS NULL
       AND r.status="RECOGNIZED" AND pm.status="CONFIRMED" AND pm.reconciliation_status="RECONCILED"
+      AND (c.eligible_at IS NULL OR c.eligible_at<=NOW())
       AND NOT EXISTS (
         SELECT 1 FROM partner_disputes d
         WHERE d.workspace_id=c.workspace_id
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
       if (commissionIds.length) {
         const placeholders = commissionIds.map(() => "?").join(",");
         const [rows] = await conn.query<RowDataPacket[]>(
-          `SELECT c.id,c.amount,c.partner_id,c.currency,c.status,c.workspace_id,pi.id payout_item_id,
+          `SELECT c.id,c.amount,c.partner_id,c.currency,c.status,c.eligible_at,c.workspace_id,pi.id payout_item_id,
                   r.status revenue_status,pm.status payment_status,pm.reconciliation_status
            FROM commissions c
            LEFT JOIN partner_payout_items pi ON pi.commission_id=c.id
@@ -96,6 +97,7 @@ export async function POST(request: Request) {
         if (rows.some((x) => String(x.partner_id) !== partnerId)) throw new Error("All selected commissions must belong to the selected partner.");
         if (rows.some((x) => String(x.currency) !== currency)) throw new Error("All selected commissions must use the payout currency.");
         if (rows.some((x) => x.status !== "PAYABLE")) throw new Error("Only PAYABLE commissions can be included in a payout.");
+        if (rows.some((x) => x.eligible_at && new Date(x.eligible_at).getTime() > Date.now())) throw new Error("One or more commissions are still within the published refund hold.");
         if (rows.some((x) => x.payout_item_id)) throw new Error("One or more selected commissions are already attached to a payout.");
         if (rows.some((x) => x.revenue_status !== "RECOGNIZED" || x.payment_status !== "CONFIRMED" || x.reconciliation_status !== "RECONCILED")) {
           throw new Error("Every commission must have confirmed, reconciled payment and recognized revenue before payout.");
