@@ -39,6 +39,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const telegramChatId = body.telegramChatId === undefined ? target.telegramChatId : (String(body.telegramChatId || "").trim().slice(0,80) || null);
   const telegramUsername = body.telegramUsername === undefined ? target.telegramUsername : (String(body.telegramUsername || "").trim().replace(/^@/,"").slice(0,190) || null);
   const reason = String(body.reason || "").trim().slice(0, 2000);
+  if (body.workspaceRole !== undefined || body.workspaceId !== undefined) return NextResponse.json({ error: "Workspace membership must be changed from workspace administration, not account-role editing." }, { status: 400 });
 
   if (!reason) return NextResponse.json({ error: "A reason is required for access changes." }, { status: 400 });
   if (!name || !email || !Object.values(UserRole).includes(role)) return NextResponse.json({ error: "Name, email and valid role are required." }, { status: 400 });
