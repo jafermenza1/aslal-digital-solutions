@@ -30,8 +30,8 @@ const ITEMS:Item[]=[
 
 {key:"leads",href:"/dashboard/leads",permission:"leads.view",icon:"leads",group:"revenue"},
 {key:"customers",href:"/dashboard/customers",permission:"customers.view",icon:"users",group:"revenue"},
-{key:"quotes",href:"/dashboard/quotes",permission:"leads.view",icon:"quotes",group:"revenue"},
-{key:"quotes",href:"/dashboard/orders",permission:"leads.view",icon:"box",group:"revenue",label:"Orders"},
+{key:"quotes",href:"/dashboard/quotes",permission:"commerce.view",icon:"quotes",group:"revenue"},
+{key:"quotes",href:"/dashboard/orders",permission:"commerce.view",icon:"box",group:"revenue",label:"Orders"},
 {key:"conversations",href:"/dashboard/conversations",permission:"conversations.view",icon:"message",group:"revenue"},
 {key:"emailTemplates",href:"/dashboard/email",permission:"email.view",icon:"mail",group:"revenue",label:"Email Operations"},
 {key:"telegramSales",href:"/dashboard/telegram",permission:"telegram.view",icon:"message",group:"revenue",label:"Telegram Sales"},
