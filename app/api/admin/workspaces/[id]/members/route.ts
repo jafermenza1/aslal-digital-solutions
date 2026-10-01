@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { authorizePermission } from "@/lib/authorization";
-import { getWorkspaceForUser } from "@/lib/workspaces";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){
- const actor=await authorizePermission("users.manage");
- if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
  const {id}=await params;
- const access=await getWorkspaceForUser(actor,id);
+ const access=await authorizeWorkspacePermission("users.manage",id);
  if(!access)return NextResponse.json({error:"Workspace not found or not authorized."},{status:403});
  const [rows]=await db.query(
   `SELECT wu.id,wu.user_id,u.email,u.name,u.role,wu.role workspace_role
@@ -18,12 +15,9 @@ export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){
 }
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
- const actor=await authorizePermission("users.manage");
- if(!actor)return NextResponse.json({error:"Unauthorized"},{status:401});
  const {id}=await params;
- if(actor.role!=="ADMIN"&&actor.role!=="SUPER_ADMIN")return NextResponse.json({error:"Only administrators can change workspace membership."},{status:403});
  try{
-  const access=await getWorkspaceForUser(actor,id);
+  const access=await authorizeWorkspacePermission("users.manage",id);
   if(!access)return NextResponse.json({error:"Workspace not found or not authorized."},{status:403});
   const b=await request.json();
   const userId=String(b.userId??"").trim();
