@@ -709,6 +709,7 @@ model PartnerTermsAcceptance {
   workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
   program PartnerProgram @relation(fields:[programId], references:[id], onDelete:Restrict)
   terms ProgramTerms @relation(fields:[termsId], references:[id], onDelete:Restrict)
+  contract CommissionContract? @relation(fields:[contractId], references:[id], onDelete:SetNull)
   @@index([partnerId,programId,acceptedAt], map:"idx_partner_terms_acceptance")
   @@index([termsId], map:"idx_partner_terms_acceptance_terms")
   @@map("partner_terms_acceptances")
