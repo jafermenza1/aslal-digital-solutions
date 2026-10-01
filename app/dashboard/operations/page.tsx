@@ -118,7 +118,7 @@ export default async function OperationsPage({
             orderBy: { updatedAt: "desc" },
             take: 300,
           }),
-          prisma.user.findMany({ where: { active: true, role: { not: "PARTNER" }, workspaceUsers: { some: { workspaceId: workspaceAccess.workspace.id, active: true } } }, select: { email: true, name: true, role: true }, orderBy: { name: "asc" }, take: 100 }),
+          prisma.user.findMany({ where: { active: true, role: { not: "PARTNER" }, workspaceUsers: { some: { workspaceId: workspaceAccess.workspace.id } } }, select: { email: true, name: true, role: true }, orderBy: { name: "asc" }, take: 100 }),
         ])
       : [[], [], []];
 
