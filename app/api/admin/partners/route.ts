@@ -1,25 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { authorizePermission } from "@/lib/authorization";
-import { getWorkspaceForUser } from "@/lib/workspaces";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { generatePartnerNumber, generateResellerNumber } from "@/lib/partner-identity";
 
 const PARTNER_TYPES = new Set(["AGENT", "INFLUENCER", "AFFILIATE", "RESELLER"]);
 const PARTNER_STATUSES = new Set(["ACTIVE", "PAUSED", "PENDING"]);
 
-async function isAuthorized() {
-  return Boolean(await authorizePermission("partners.manage"));
-}
-
-
 export async function POST(request: Request) {
-  if (!(await isAuthorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
-    const actor = await authorizeWorkspacePermission("partners.manage", String(body?.workspaceId || "").trim() || undefined)?.user;
-    if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const body = await request.json();
-    const workspace = await getWorkspaceForUser(actor, String(body.workspaceId || "").trim() || undefined);
+    const access = await authorizeWorkspacePermission("partners.manage", String(body.workspaceId || "").trim() || undefined);
+    if (!access) return NextResponse.json({ error: "Select a workspace you are authorized to manage." }, { status: 403 });
+    const actor = access.user;
+    const workspace = access.workspace;
     if (!workspace) return NextResponse.json({ error: "Select a workspace you are authorized to manage." }, { status: 403 });
     const name = String(body.name ?? "").trim();
     const email = String(body.email ?? "").trim().toLowerCase() || null;
