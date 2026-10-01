@@ -1,6 +1,6 @@
-import { PrismaClient, LeadStatus, CommunicationChannel, EmailMessageType, EmailOutboxStatus, EmailAttemptStatus, EmailEventType, TelegramDeliveryEventType, TelegramOutboxStatus, TelegramMessageType, TelegramSendMode } from "@prisma/client";
+import { Prisma, PrismaClient, LeadStatus, CommunicationChannel, EmailMessageType, EmailOutboxStatus, EmailAttemptStatus, EmailEventType, TelegramDeliveryEventType, TelegramOutboxStatus, TelegramMessageType, TelegramSendMode } from "@prisma/client";
 
-export { LeadStatus, CommunicationChannel, EmailMessageType, EmailOutboxStatus, EmailAttemptStatus, EmailEventType, TelegramDeliveryEventType, TelegramOutboxStatus, TelegramMessageType, TelegramSendMode };
+export { Prisma, LeadStatus, CommunicationChannel, EmailMessageType, EmailOutboxStatus, EmailAttemptStatus, EmailEventType, TelegramDeliveryEventType, TelegramOutboxStatus, TelegramMessageType, TelegramSendMode };
 
 const globalForPrisma = globalThis as unknown as { aslalPrisma?: PrismaClient };
 
