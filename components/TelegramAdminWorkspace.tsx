@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { AdminTelegramSales } from "./AdminTelegramSales";
 import { TelegramMiniAppSettings } from "./TelegramMiniAppSettings";
+import { TelegramBusinessChannels } from "./TelegramBusinessChannels";
 
-type Tab = "sales"|"public"|"qualification"|"catalog"|"knowledge"|"payments"|"handoff";
+type Tab = "sales"|"public"|"qualification"|"catalog"|"channels"|"knowledge"|"payments"|"handoff";
 type Config = Record<string, any>;
 
 const tabs:[Tab,string][]=[
@@ -12,6 +13,7 @@ const tabs:[Tab,string][]=[
  ["public","Public Experience"],
  ["qualification","Qualification"],
  ["catalog","Catalog / Mini App"],
+ ["channels","Business Channels"],
  ["knowledge","Knowledge Base"],
  ["payments","Payments"],
  ["handoff","Human Handoff"],
@@ -44,6 +46,7 @@ export function TelegramAdminWorkspace({workspaceId,workspaceName}:{workspaceId:
 
   {tab==="sales"&&<AdminTelegramSales workspaceId={workspaceId} workspaceName={workspaceName}/>}
   {tab==="catalog"&&<TelegramMiniAppSettings workspaceId={workspaceId}/>}
+  {tab==="channels"&&<TelegramBusinessChannels workspaceId={workspaceId}/>}
 
   {tab==="public"&&<section className="dashboard-panel p-5 space-y-5">
     <div><span className="dashboard-kicker">PUBLIC / NO LOGIN</span><h2>Public Telegram experience</h2><p className="text-sm opacity-70">Visitors can start the bot, browse the catalog, qualify demand and request an agent without creating an Aslal account.</p></div>
