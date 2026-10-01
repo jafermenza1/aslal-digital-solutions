@@ -128,6 +128,35 @@ enum CampaignPartnerStatus {
   REMOVED
 }
 
+
+
+enum AgentDealRegistrationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  COMPLETED
+}
+
+enum AgentWorkType {
+  CUSTOMER_INTRODUCTION
+  NEEDS_DISCOVERY
+  MEETING
+  SITE_VISIT
+  DEMO
+  NEGOTIATION
+  PROPOSAL_SUPPORT
+  FOLLOW_UP
+  OTHER
+}
+
+enum AgentWorkVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 enum CampaignRewardType {
   FIXED
   PER_LEAD
@@ -486,6 +515,7 @@ model Lead {
   productInterests  LeadProductInterest[]
   attributions      LeadAttribution[]
   commissions       Commission[]
+  agentDealRegistration AgentDealRegistration?
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
   conversations     Conversation[]
@@ -647,6 +677,8 @@ model Partner {
   verificationChallenges PartnerVerificationChallenge[]
   payoutProfile PartnerPayoutProfile?
   termsAcceptances PartnerTermsAcceptance[]
+  agentDealRegistrations AgentDealRegistration[]
+  agentWorkEvidence AgentWorkEvidence[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
@@ -806,6 +838,7 @@ model ReferralLink {
   clicks          ReferralClick[]
   commissions     Commission[]
   orders          Order[]
+  agentDealRegistration AgentDealRegistration?
   revenues        Revenue[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
@@ -1142,6 +1175,60 @@ model Person {
   @@index([email], map: "idx_person_email")
   @@index([phone], map: "idx_person_phone")
   @@map("persons")
+}
+
+
+
+model AgentDealRegistration {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  partnerId String @map("partner_id") @db.Char(36)
+  leadId String @map("lead_id") @db.Char(36)
+  opportunityId String? @unique @map("opportunity_id") @db.Char(36)
+  programId String? @map("program_id") @db.Char(36)
+  campaignId String? @map("campaign_id") @db.Char(36)
+  status AgentDealRegistrationStatus @default(SUBMITTED)
+  claimReason String @map("claim_reason") @db.Text
+  customerIntroducedAt DateTime? @map("customer_introduced_at") @db.DateTime(0)
+  acceptedAt DateTime? @map("accepted_at") @db.DateTime(0)
+  acceptedBy String? @map("accepted_by") @db.VarChar(190)
+  rejectedAt DateTime? @map("rejected_at") @db.DateTime(0)
+  rejectionReason String? @map("rejection_reason") @db.Text
+  completedAt DateTime? @map("completed_at") @db.DateTime(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+  partner Partner @relation(fields:[partnerId],references:[id],onDelete:Restrict)
+  lead Lead @relation(fields:[leadId],references:[id],onDelete:Restrict)
+  opportunity Opportunity? @relation(fields:[opportunityId],references:[id],onDelete:SetNull)
+  workEvidence AgentWorkEvidence[]
+  @@unique([workspaceId,partnerId,leadId],map:"uq_agent_deal_partner_lead")
+  @@index([workspaceId,status,createdAt],map:"idx_agent_deal_status")
+  @@index([partnerId,status,createdAt],map:"idx_agent_deal_partner_status")
+  @@index([leadId,status],map:"idx_agent_deal_lead_status")
+  @@map("agent_deal_registrations")
+}
+
+model AgentWorkEvidence {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  dealRegistrationId String @map("deal_registration_id") @db.Char(36)
+  partnerId String @map("partner_id") @db.Char(36)
+  workType AgentWorkType @map("work_type")
+  description String @db.Text
+  occurredAt DateTime @map("occurred_at") @db.DateTime(0)
+  evidenceReference String? @map("evidence_reference") @db.VarChar(500)
+  verificationStatus AgentWorkVerificationStatus @default(PENDING) @map("verification_status")
+  verifiedBy String? @map("verified_by") @db.VarChar(190)
+  verifiedAt DateTime? @map("verified_at") @db.DateTime(0)
+  rejectionReason String? @map("rejection_reason") @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+  dealRegistration AgentDealRegistration @relation(fields:[dealRegistrationId],references:[id],onDelete:Cascade)
+  partner Partner @relation(fields:[partnerId],references:[id],onDelete:Restrict)
+  @@index([dealRegistrationId,occurredAt],map:"idx_agent_work_deal")
+  @@index([partnerId,verificationStatus,occurredAt],map:"idx_agent_work_partner")
+  @@map("agent_work_evidence")
 }
 
 model Opportunity {
