@@ -279,6 +279,26 @@ enum ProductKind {
   SERVICE
 }
 
+enum CatalogOfferStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  ARCHIVED
+}
+
+enum CatalogOfferPriceType {
+  FIXED
+  STARTING_FROM
+  QUOTE
+  CONTACT
+}
+
+enum CatalogOfferChannelType {
+  WEBSITE
+  PARTNER_MARKETPLACE
+  TELEGRAM
+}
+
 enum UserRole {
   SUPER_ADMIN
   ADMIN
@@ -1045,6 +1065,7 @@ model Product {
   interests        LeadProductInterest[]
   campaigns        PartnerCampaign[]
   attributions     LeadAttribution[]
+  catalogOffers    CatalogOffer[]
   workspace        Workspace? @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
 
   @@index([kind, active, sortOrder], map: "idx_products_kind_active_sort")
@@ -1052,6 +1073,58 @@ model Product {
   @@index([active], map: "idx_products_active")
   @@index([workspaceId], map: "idx_products_workspace")
   @@map("products")
+}
+
+model CatalogOffer {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  productId String? @map("product_id") @db.Char(36)
+  resourceId String? @map("resource_id") @db.Char(36)
+  slug String @db.VarChar(180)
+  title String @db.VarChar(250)
+  shortDescription String? @map("short_description") @db.VarChar(500)
+  description String? @db.Text
+  status CatalogOfferStatus @default(DRAFT)
+  priceType CatalogOfferPriceType @default(QUOTE) @map("price_type")
+  price Decimal? @db.Decimal(15,2)
+  currency String @default("ETB") @db.VarChar(10)
+  ctaLabel String @map("cta_label") @db.VarChar(80)
+  ctaMode String @default("REQUEST") @map("cta_mode") @db.VarChar(40)
+  terms String? @db.Text
+  eligibility String? @db.Text
+  displayOrder Int @default(0) @map("display_order")
+  featured Boolean @default(false)
+  publishedAt DateTime? @map("published_at") @db.DateTime(0)
+  createdBy String? @map("created_by") @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  product Product? @relation(fields:[productId], references:[id], onDelete:Restrict)
+  resource Resource? @relation(fields:[resourceId], references:[id], onDelete:Restrict)
+  channels CatalogOfferChannel[]
+  @@unique([workspaceId,slug], map:"uq_catalog_offer_workspace_slug")
+  @@index([workspaceId,status,displayOrder], map:"idx_catalog_offer_workspace_status_order")
+  @@index([productId], map:"idx_catalog_offer_product")
+  @@index([resourceId], map:"idx_catalog_offer_resource")
+  @@map("catalog_offers")
+}
+
+model CatalogOfferChannel {
+  id String @id @db.Char(36)
+  offerId String @map("offer_id") @db.Char(36)
+  channel CatalogOfferChannelType
+  enabled Boolean @default(true)
+  headline String? @db.VarChar(250)
+  description String? @db.Text
+  ctaLabel String? @map("cta_label") @db.VarChar(80)
+  destination String? @db.VarChar(1000)
+  sortOrder Int @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  offer CatalogOffer @relation(fields:[offerId], references:[id], onDelete:Cascade)
+  @@unique([offerId,channel], map:"uq_catalog_offer_channel")
+  @@index([channel,enabled,sortOrder], map:"idx_catalog_offer_channel_enabled")
+  @@map("catalog_offer_channels")
 }
 
 model Revenue {
