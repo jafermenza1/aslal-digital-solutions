@@ -36,10 +36,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const body = await request.json();
   const action = String(body.action ?? "").toUpperCase();
   const reason = String(body.reason ?? "").trim();
+  const idempotencyKey = String(body.idempotencyKey ?? "").trim();
   const delta = Number(body.amountDelta ?? 0);
 
   if (!ACTIONS.has(action)) return NextResponse.json({ error: "Unsupported commission ledger action." }, { status: 400 });
   if (reason.length < 5) return NextResponse.json({ error: "A reason of at least 5 characters is required." }, { status: 400 });
+  if (!idempotencyKey || idempotencyKey.length > 255) return NextResponse.json({ error: "A unique idempotencyKey is required." }, { status: 400 });
   if (action === "ADJUST" && (!Number.isFinite(delta) || delta === 0)) {
     return NextResponse.json({ error: "ADJUST requires a non-zero amountDelta." }, { status: 400 });
   }
@@ -83,7 +85,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       nextStatus = "VOID";
     }
 
-    const key = `commission-ledger:${action.toLowerCase()}:${id}:${Date.now()}:${actor}`;
+    const key = idempotencyKey;
     const result = await appendCommissionLedgerEvent(conn, {
       commissionId: id,
       workspaceId: access.workspace.id,
