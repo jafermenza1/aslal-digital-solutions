@@ -203,6 +203,18 @@ enum ProductRelationship {
   CUSTOM
 }
 
+enum CommissionLedgerEventType {
+  EARNED
+  ADJUSTED
+  REVERSED
+  APPROVED
+  PAYABLE
+  PAID
+  REFUNDED
+  CHARGEBACK
+  VOID
+}
+
 enum CommissionStatus {
   PENDING
   QUALIFIED
@@ -985,6 +997,28 @@ model Revenue {
   @@map("revenues")
 }
 
+model CommissionLedgerEvent {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  commissionId String @map("commission_id") @db.Char(36)
+  eventType CommissionLedgerEventType @map("event_type")
+  amountDelta Decimal @default(0) @map("amount_delta") @db.Decimal(15,2)
+  balanceAfter Decimal @default(0) @map("balance_after") @db.Decimal(15,2)
+  currency String @default("ETB") @db.VarChar(10)
+  reason String? @db.Text
+  referenceType String? @map("reference_type") @db.VarChar(60)
+  referenceId String? @map("reference_id") @db.Char(36)
+  idempotencyKey String @unique @map("idempotency_key") @db.VarChar(255)
+  actor String? @db.VarChar(190)
+  metadata Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  commission Commission @relation(fields:[commissionId], references:[id], onDelete:Restrict)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@index([commissionId,createdAt], map:"idx_commission_ledger_commission_created")
+  @@index([workspaceId,eventType,createdAt], map:"idx_commission_ledger_workspace_type_created")
+  @@map("commission_ledger_events")
+}
+
 model Commission {
   workspaceId String @map("workspace_id") @db.Char(36)
   id             String           @id @db.Char(36)
@@ -998,6 +1032,17 @@ model Commission {
   currency       String           @default("ETB") @db.VarChar(10)
   status         CommissionStatus @default(PENDING)
   eligibleAt     DateTime?        @map("eligible_at") @db.DateTime(0)
+  contractId String? @map("contract_id") @db.Char(36)
+  termsId String? @map("terms_id") @db.Char(36)
+  contractSnapshot Json? @map("contract_snapshot")
+  qualifyingEvent String? @map("qualifying_event") @db.VarChar(190)
+  attributionPolicy String? @map("attribution_policy") @db.VarChar(40)
+  attributionWindowDays Int? @map("attribution_window_days")
+  refundHoldDays Int? @map("refund_hold_days")
+  rewardType String? @map("reward_type") @db.VarChar(40)
+  rewardAmount Decimal? @map("reward_amount") @db.Decimal(15,2)
+  rewardRate Decimal? @map("reward_rate") @db.Decimal(15,6)
+  commissionableBasis Decimal? @map("commissionable_basis") @db.Decimal(15,2)
   createdAt      DateTime         @default(now()) @map("created_at") @db.DateTime(0)
   partner        Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   lead           Lead?            @relation(fields: [leadId], references: [id], onDelete: SetNull)
@@ -1006,6 +1051,7 @@ model Commission {
   payment        Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   revenue        Revenue?         @relation(fields: [revenueId], references: [id], onDelete: SetNull)
   payoutItems    PartnerPayoutItem[]
+  ledgerEvents CommissionLedgerEvent[]
   disputes       PartnerDispute[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
