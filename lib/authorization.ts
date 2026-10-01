@@ -20,7 +20,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     const user = await prisma.user.findUnique({
       where: { email: session.email.trim().toLowerCase() },
       select: { id:true,email:true,name:true,role:true,active:true,permissions:true,
-        workspaceUsers:{ where:{ workspace:{ active:true } }, select:{ role:true,workspace:{ select:{ id:true,name:true } } } } },
+        workspaceUsers:{ where:{ status:"ACTIVE", workspace:{ active:true } }, select:{ role:true,workspace:{ select:{ id:true,name:true } } } } },
     });
     if (user) {
       if (!user.active) return null;
