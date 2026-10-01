@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { authorizePermission } from "@/lib/authorization";
 import { getWorkspaceForUser } from "@/lib/workspaces";
+import { generatePartnerNumber, generateResellerNumber } from "@/lib/partner-identity";
 
 const PARTNER_TYPES = new Set(["AGENT", "INFLUENCER", "AFFILIATE", "RESELLER"]);
 const PARTNER_STATUSES = new Set(["ACTIVE", "PAUSED", "PENDING"]);
@@ -52,17 +53,17 @@ export async function POST(request: Request) {
     }
 
     const partnerId = crypto.randomUUID();
-    // Human-facing partner IDs are sequential business identifiers; the UUID remains the internal DB key.
-    const year = new Date().getFullYear();
-    const [seqRows] = await db.query<{ next: number }[] & import("mysql2").RowDataPacket[]>(
-      "SELECT COALESCE(MAX(CAST(SUBSTRING(partner_number, 5, 10) AS UNSIGNED)), 100) + 1 AS next FROM partners WHERE partner_number LIKE CONCAT('ASL-', '%', '-', ?) ",
-      [year],
-    );
-    const nextNumber = Number(seqRows[0]?.next || 101);
-    const partnerNumber = `ASL-${nextNumber}-${year}`;
-    await db.query("INSERT INTO partners (id, workspace_id, partner_number, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+    const partnerNumber = generatePartnerNumber(type as "AGENT" | "INFLUENCER" | "AFFILIATE" | "RESELLER");
+    await db.query("INSERT INTO partners (id, workspace_id, partner_number, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested, registration_source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'INTERNAL')", [
       partnerId, workspace.id, partnerNumber, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
     ]);
+    if (type === "RESELLER") {
+      const businessName = String(body.businessName ?? name).trim().slice(0, 190);
+      await db.query(
+        "INSERT INTO resellers (id, workspace_id, partner_id, reseller_number, business_name, business_registration_number, tax_number, business_type, address, status, default_currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)",
+        [crypto.randomUUID(), workspace.id, partnerId, generateResellerNumber(), businessName, String(body.businessRegistrationNumber ?? "").trim().slice(0,100) || null, String(body.taxNumber ?? "").trim().slice(0,100) || null, String(body.businessType ?? "").trim().slice(0,100) || null, String(body.address ?? "").trim().slice(0,500) || null, String(body.currency ?? "ETB").toUpperCase().slice(0,10)]
+      );
+    }
 
     try {
       await db.query(
