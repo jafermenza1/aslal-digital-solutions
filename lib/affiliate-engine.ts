@@ -150,7 +150,7 @@ export async function resolveAffiliateAttributionForLead(input: {
     WHERE rc.visitor_id=? AND rc.created_at<=? ${programClause}
       AND (pc.program_id IS NULL OR (pp.status='PUBLISHED' AND cc.id IS NOT NULL))
     ORDER BY rc.created_at ASC, rc.id ASC
-  `, [input.workspaceId, input.workspaceId, visitorId, at, ...(preferred?.program_id ? [preferred.program_id] : [])]);
+  `, [input.workspaceId, visitorId, at, ...(preferred?.program_id ? [preferred.program_id] : [])]);
 
   if (!clicks.length) return preferred ? resolveAffiliateAttribution({
     workspaceId: input.workspaceId, referralCode: preferred.code, occurredAt: at,
