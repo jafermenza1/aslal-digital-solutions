@@ -195,7 +195,29 @@ enum PartnerDisputeStatus {
   REJECTED
 }
 
-enum PayoutProvider {\n  MANUAL\n  TELEBIRR\n  MPESA\n}\n\nenum PayoutExecutionStatus {\n  QUEUED\n  PROCESSING\n  SUBMITTED\n  CONFIRMED\n  FAILED\n  CANCELLED\n  REQUIRES_MANUAL_REVIEW\n}\n\nenum PayoutVerificationStatus {\n  UNVERIFIED\n  VERIFIED\n  REJECTED\n}\n\nenum PartnerPayoutStatus {
+enum PayoutProvider {
+  MANUAL
+  TELEBIRR
+  MPESA
+}
+
+enum PayoutExecutionStatus {
+  QUEUED
+  PROCESSING
+  SUBMITTED
+  CONFIRMED
+  FAILED
+  CANCELLED
+  REQUIRES_MANUAL_REVIEW
+}
+
+enum PayoutVerificationStatus {
+  UNVERIFIED
+  VERIFIED
+  REJECTED
+}
+
+enum PartnerPayoutStatus {
   PENDING
   APPROVED
   PAID
@@ -1907,7 +1929,9 @@ model Workspace {
   revenues    Revenue[]
   commissions Commission[]
   commissionLedgerEvents CommissionLedgerEvent[]
-  payouts     PartnerPayout[]\n  payoutExecutions PayoutExecution[]\n  payoutVerifications PayoutVerification[]
+  payouts     PartnerPayout[]
+  payoutExecutions PayoutExecution[]
+  payoutVerifications PayoutVerification[]
   disputes    PartnerDispute[]
   campaignAssets CampaignAsset[]
   conversations Conversation[]
@@ -2145,7 +2169,9 @@ model PartnerPayout {
   createdAt   DateTime             @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt   DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
   partner     Partner              @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  items       PartnerPayoutItem[]\n  executions PayoutExecution[]\n  verification PayoutVerification?
+  items       PartnerPayoutItem[]
+  executions PayoutExecution[]
+  verification PayoutVerification?
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([partnerId, status, createdAt], map: "idx_partner_payouts_partner_status")
@@ -2153,7 +2179,51 @@ model PartnerPayout {
   @@map("partner_payouts")
 }
 
-model PayoutExecution {\n  id String @id @db.Char(36)\n  workspaceId String @map("workspace_id") @db.Char(36)\n  payoutId String @map("payout_id") @db.Char(36)\n  provider PayoutProvider\n  status PayoutExecutionStatus @default(QUEUED)\n  attempt Int @default(0)\n  idempotencyKey String @unique @map("idempotency_key") @db.VarChar(255)\n  providerTransactionId String? @map("provider_transaction_id") @db.VarChar(190)\n  providerRequest Json? @map("provider_request")\n  providerResponse Json? @map("provider_response")\n  failureCode String? @map("failure_code") @db.VarChar(80)\n  failureReason String? @map("failure_reason") @db.Text\n  submittedAt DateTime? @map("submitted_at") @db.DateTime(0)\n  confirmedAt DateTime? @map("confirmed_at") @db.DateTime(0)\n  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)\n  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)\n  payout PartnerPayout @relation(fields:[payoutId],references:[id],onDelete:Restrict)\n  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)\n  @@index([workspaceId,status,createdAt],map:"idx_payout_execution_workspace_status")\n  @@index([payoutId,createdAt],map:"idx_payout_execution_payout")\n  @@map("payout_executions")\n}\n\nmodel PayoutVerification {\n  id String @id @db.Char(36)\n  workspaceId String @map("workspace_id") @db.Char(36)\n  payoutId String @map("payout_id") @db.Char(36)\n  status PayoutVerificationStatus @default(UNVERIFIED)\n  method String @default("MANUAL") @db.VarChar(40)\n  reference String? @db.VarChar(190)\n  evidenceUrl String? @map("evidence_url") @db.VarChar(1000)\n  notes String? @db.Text\n  verifiedBy String? @map("verified_by") @db.VarChar(190)\n  verifiedAt DateTime? @map("verified_at") @db.DateTime(0)\n  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)\n  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)\n  payout PartnerPayout @relation(fields:[payoutId],references:[id],onDelete:Restrict)\n  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)\n  @@unique([payoutId],map:"uq_payout_verification_payout")\n  @@index([workspaceId,status],map:"idx_payout_verification_workspace_status")\n  @@map("payout_verifications")\n}\n\nmodel PartnerPayoutItem {
+model PayoutExecution {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  payoutId String @map("payout_id") @db.Char(36)
+  provider PayoutProvider
+  status PayoutExecutionStatus @default(QUEUED)
+  attempt Int @default(0)
+  idempotencyKey String @unique @map("idempotency_key") @db.VarChar(255)
+  providerTransactionId String? @map("provider_transaction_id") @db.VarChar(190)
+  providerRequest Json? @map("provider_request")
+  providerResponse Json? @map("provider_response")
+  failureCode String? @map("failure_code") @db.VarChar(80)
+  failureReason String? @map("failure_reason") @db.Text
+  submittedAt DateTime? @map("submitted_at") @db.DateTime(0)
+  confirmedAt DateTime? @map("confirmed_at") @db.DateTime(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  payout PartnerPayout @relation(fields:[payoutId],references:[id],onDelete:Restrict)
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+  @@index([workspaceId,status,createdAt],map:"idx_payout_execution_workspace_status")
+  @@index([payoutId,createdAt],map:"idx_payout_execution_payout")
+  @@map("payout_executions")
+}
+
+model PayoutVerification {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  payoutId String @map("payout_id") @db.Char(36)
+  status PayoutVerificationStatus @default(UNVERIFIED)
+  method String @default("MANUAL") @db.VarChar(40)
+  reference String? @db.VarChar(190)
+  evidenceUrl String? @map("evidence_url") @db.VarChar(1000)
+  notes String? @db.Text
+  verifiedBy String? @map("verified_by") @db.VarChar(190)
+  verifiedAt DateTime? @map("verified_at") @db.DateTime(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  payout PartnerPayout @relation(fields:[payoutId],references:[id],onDelete:Restrict)
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+  @@unique([payoutId],map:"uq_payout_verification_payout")
+  @@index([workspaceId,status],map:"idx_payout_verification_workspace_status")
+  @@map("payout_verifications")
+}
+
+model PartnerPayoutItem {
   id           String        @id @db.Char(36)
   payoutId     String        @map("payout_id") @db.Char(36)
   commissionId String        @map("commission_id") @db.Char(36)
