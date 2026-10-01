@@ -4350,3 +4350,1391 @@ A future reconciliation document will identify where the current implementation 
 A future development roadmap will determine how and when the system reaches this target state.
 
 **This separation is intentional. The PRD defines what the business is building. Reconciliation defines where implementation currently stands. The roadmap defines how the implementation moves from its current state toward the product defined here.**
+
+
+---
+
+# 231. ASLAL PARTNER COMMERCE NETWORK — REDESIGNED TARGET MODEL
+
+## 231.1 Purpose
+
+The Partner Commerce Network is the part of Aslal Growth OS that allows a business to work with people and organizations outside its own staff to generate customers and sales.
+
+The network supports influencers, affiliates, sales agents, referral agents, resellers, implementation partners and suppliers.
+
+The simple idea is:
+
+> **A business provides something valuable. A partner helps the business reach or serve customers. Aslal records what happened and calculates what the partner is entitled to receive according to clearly published rules.**
+
+The platform must make joining and selling easy while making attribution and money movement strict and auditable.
+
+The design principle is:
+
+> **Easy to participate. Hard to misunderstand. Hard to manipulate. Easy to verify.**
+
+---
+
+# 232. Plain-Language Terms
+
+The following definitions are mandatory product terminology. The interface should use the simple explanation first and the technical term only where useful.
+
+| Term | Plain-language meaning |
+|---|---|
+| Partner | A person or organization that helps a business find, influence, sell to, or serve customers. |
+| Influencer | A person with an audience who promotes a business product or service. |
+| Affiliate | A partner who promotes a product or service using a unique link, code, QR code, or similar identifier and earns when a qualifying result occurs. |
+| Agent | A person who actively helps find or close customers, often through direct relationships, field work, phone calls, messaging, or referrals. |
+| Referral | A customer or potential customer introduced by a partner. |
+| Referral link | A special web link that identifies which partner sent a visitor. |
+| Referral code | A short code associated with a partner, campaign, or promotion. |
+| QR code | A scannable square code that can open a partner's tracked link. |
+| Attribution | The method used to decide which partner or source receives credit for a result. Attribution is credit for a defined business event; it does not automatically prove that the partner caused every part of the sale. |
+| Campaign | A business promotion with a defined objective, audience, product/service, period, and rules. |
+| Partner Program | The public commercial offer that explains how a partner can participate in selling or promoting something. |
+| Program Terms | The written rules that explain what the partner must do and what the partner earns. |
+| Commission | Money a partner may earn when the program's qualifying conditions are satisfied. |
+| Commissionable amount | The portion of a transaction that the program says can be used to calculate commission. |
+| Qualifying event | The event that must happen before a commission can be earned, such as a confirmed payment or completed sale. |
+| Refund hold | A waiting period after a sale during which the commission is not yet payable because the customer may still receive a refund or cancellation. |
+| Payable | A commission that has satisfied all conditions and is ready to be included in a payout. |
+| Payout | The process of sending or recording money owed to a partner. |
+| Payout ledger | The system's financial record showing what is owed, approved, paid, reversed, or failed. |
+| Reseller | A partner who buys or sells a product/service under reseller terms and may earn through a reseller price or margin rather than a simple referral commission. |
+| Supplier | A business or provider whose product/service is offered through another business or partner relationship. |
+| Margin | The difference between the partner's permitted selling price and the partner's agreed purchase/reseller price, subject to the contract. |
+| Deal registration | An agent or partner records a potential customer/deal so the business can recognize and manage the partner's commercial claim under defined rules. |
+| Verification | Checking information about a partner before allowing higher-risk activities. |
+| Verification level | The level of trust or evidence established for a partner. It is different from whether the partner's account is currently active. |
+| Partner status | Whether the partner account is currently usable, restricted, suspended, or closed. |
+| Program admission | The rule determining whether anyone can join, whether basic verification is required, whether the business must approve the partner, or whether participation is invitation-only. |
+| Attribution window | The period during which a partner's qualifying interaction can receive credit. |
+| Self-referral | A partner attempting to receive commission from their own purchase or another prohibited related transaction. |
+| Dispute | A formal request to review a decision about attribution, commission, payout, order status, or another partner matter. |
+| Immutable ledger | A financial history where important events are recorded as new entries rather than silently overwritten. |
+| Idempotency | A safety mechanism that prevents the same payment, webhook, or event from being processed twice. |
+| Webhook | An automatic message from another system telling Aslal that something happened, such as a payment confirmation. |
+| Reconciliation | Comparing Aslal's records with another system, such as a payment provider, to identify and resolve differences. |
+
+The user interface should avoid unexplained technical language. For example, instead of displaying only COMMISSION_LOCKED, the interface should say:
+
+> **Commission on hold — waiting for the refund period to finish.**
+
+---
+
+# 233. Aslal's Distinctive Value for Influencers and Agents
+
+Aslal must not treat influencers and agents as merely sources of advertising traffic.
+
+The distinctive value offered to them should be:
+
+> **Aslal gives influencers and agents a simple, transparent way to turn trusted audience relationships and real-world sales relationships into measurable commercial opportunities without requiring them to build their own ecommerce, CRM, tracking, commission, quotation, or reporting systems.**
+
+## 233.1 The Aslal Partner Opportunity
+
+An influencer or agent should be able to discover legitimate products and services, understand the earning rules before promoting them, receive ready-to-use selling materials, obtain a unique link/code/QR, share or present the offer, see resulting customer activity, understand which sales qualify, and track earnings from one place.
+
+The partner should not have to ask the business:
+
+> “Did that customer come from me?”
+
+The system should answer that question whenever the evidence and attribution rules allow it.
+
+The partner should not have to ask:
+
+> “How did you calculate my commission?”
+
+The system should show the calculation.
+
+The partner should not have to maintain spreadsheets to remember customers referred, links shared, sales made, commission earned, commission waiting, commission approved, and money already paid.
+
+Aslal should provide this record.
+
+## 233.2 What Makes This Valuable to Influencers
+
+For influencers, Aslal should provide a **Creator-to-Commerce Bridge**.
+
+An influencer can move from:
+
+**Audience → Trusted recommendation → Trackable offer → Customer → Sale → Transparent earning**
+
+without becoming a full-time salesperson.
+
+The system should provide:
+
+1. A searchable catalog of eligible offers.
+2. Clear earning terms before joining.
+3. Ready-made product information and approved marketing assets.
+4. Personal referral links.
+5. Personal QR codes for offline audiences.
+6. Optional promotional codes.
+7. Mobile-friendly performance information.
+8. Customer/sale attribution where the evidence supports it.
+9. A visible explanation of each commission.
+10. A clear expected payment date or condition.
+11. A dispute process.
+12. A reputation/trust history based on actual program participation, without exposing private customer information.
+
+## 233.3 What Makes This Valuable to Agents
+
+For agents, Aslal should provide a **Sales Opportunity-to-Earning Bridge**.
+
+An agent can find or receive an opportunity, register the customer/deal where required, continue the sale, record important actions, use approved quotations or offers, and see the commercial outcome.
+
+The agent should be able to work both online and offline.
+
+The system should therefore support:
+
+**Person met in the field → Customer captured → Opportunity registered → Follow-up → Quote → Negotiation → Order → Payment → Commission**
+
+This is important because an agent may create value even when the customer never clicks a digital referral link.
+
+## 233.4 The Combined Advantage
+
+The strongest Aslal partner experience is not simply:
+
+> “Here is a link. Go advertise.”
+
+It is:
+
+> **“Here is a legitimate offer, here are the exact earning rules, here are the materials you can use, here is your unique identity, here is what happened after you introduced the customer, here is how your earnings were calculated, and here is what remains before you are paid.”**
+
+That creates value for both the partner and the business.
+
+---
+
+# 234. Four Commercial Partner Models
+
+Aslal must not force every partner relationship into one affiliate model.
+
+## 234.1 Affiliate
+
+The affiliate promotes an eligible product or service.
+
+Typical tools:
+
+- referral link;
+- QR code;
+- promotional code;
+- campaign assets.
+
+Typical earning:
+
+- percentage of qualifying sale;
+- fixed amount per qualifying sale;
+- fixed amount per qualified lead;
+- hybrid reward.
+
+The affiliate normally does not own the customer relationship, set the product price, or fulfill the order.
+
+## 234.2 Influencer
+
+The influencer is an audience-based promoter.
+
+An influencer may use the same tracking mechanisms as an affiliate but can also receive campaign-specific content requirements, publication requirements, audience criteria, fixed campaign fees, sales commissions, or combinations of these.
+
+The system must clearly distinguish:
+
+- payment for publishing/content work;
+- payment for qualified leads;
+- payment for sales;
+- bonuses.
+
+These are different earning reasons and must not be mixed into one unexplained amount.
+
+## 234.3 Agent
+
+The agent actively assists with acquisition or sales.
+
+An agent may:
+
+- introduce a customer;
+- register a deal;
+- arrange a meeting;
+- communicate with the customer;
+- prepare or request a quote;
+- assist negotiation;
+- support closing.
+
+Agent compensation may be based on lead, opportunity, sale, fixed fee, percentage, or another agreed rule.
+
+The system must preserve the exact basis for payment.
+
+## 234.4 Reseller
+
+A reseller is commercially different.
+
+A reseller may receive a reseller price and sell to the customer at an allowed price.
+
+The system must therefore support:
+
+- reseller price;
+- recommended/public price where applicable;
+- permitted discount;
+- partner margin;
+- customer ownership rules;
+- territory rules;
+- stock/fulfillment responsibility where applicable;
+- order responsibility;
+- return responsibility;
+- payment responsibility;
+- settlement rules.
+
+A reseller must not be implemented merely by changing an affiliate commission percentage.
+
+---
+
+# 235. Supplier and Reseller Relationship Model
+
+The future system must support a formal commercial relationship between a business and a supplier/reseller.
+
+A relationship should define:
+
+1. Who provides the product or service.
+2. Who is allowed to sell it.
+3. Where it can be sold.
+4. At what price or price range it can be sold.
+5. Who receives customer payment.
+6. Who fulfills the order.
+7. Who handles returns or cancellations.
+8. Who provides customer support.
+9. Who owns the customer relationship.
+10. How the parties settle money.
+11. What happens when an order is refunded.
+12. What happens when one party ends the relationship.
+
+The system should represent these rules as a commercial agreement rather than scattered fields.
+
+Historical transactions must preserve the agreement terms that applied when the transaction occurred.
+
+---
+
+# 236. Partner Programs and Commercial Terms
+
+A **Partner Program** is the public offer through which a business invites partners to promote or sell a product/service.
+
+Every Partner Program must have clear terms.
+
+Before joining, a partner must be able to understand:
+
+- what is being sold;
+- who can participate;
+- whether approval is required;
+- what the partner must do;
+- how the partner is tracked;
+- what event creates an earning;
+- how much the partner earns;
+- what amount is commissionable;
+- how attribution is decided;
+- how long attribution lasts;
+- how refunds affect earnings;
+- when earnings become payable;
+- minimum payout amount;
+- payout method;
+- prohibited behavior;
+- dispute process;
+- termination rules.
+
+A partner must not be required to discover these rules after making a sale.
+
+## 236.1 Terms Snapshot
+
+When a partner joins a program, Aslal must store a version of the terms that applied at that time.
+
+If the business changes the commission from 10% to 12%, a previously qualifying transaction must not silently change from 10% to 12%.
+
+The transaction must use the historical terms that governed it.
+
+This is essential for fairness and auditability.
+
+---
+
+# 237. Simple Business Owner Setup
+
+Creating a partner program should use a short wizard.
+
+### Step 1 — What are you selling?
+
+Select:
+
+- product;
+- service;
+- package;
+- subscription;
+- other eligible offer.
+
+### Step 2 — Who can sell it?
+
+Choose:
+
+- affiliates;
+- influencers;
+- agents;
+- resellers;
+- invitation-only partners;
+- selected partner groups.
+
+### Step 3 — How do they earn?
+
+Choose a simple reward method:
+
+- fixed amount;
+- percentage of sale;
+- amount per qualified lead;
+- hybrid;
+- reseller margin;
+- campaign fee plus performance reward.
+
+### Step 4 — When do they earn?
+
+Define:
+
+- qualifying event;
+- attribution rule;
+- attribution window;
+- refund/cancellation hold;
+- payout timing;
+- minimum payout.
+
+### Step 5 — Publish
+
+The system displays a plain-language summary:
+
+> **Earn 10% of eligible sales. A sale must be successfully paid. Commission remains on hold for 14 days for refunds. Approved earnings are paid monthly when your balance reaches ETB 500.**
+
+The owner can publish only after the required terms are complete.
+
+---
+
+# 238. Simple Partner Experience
+
+The partner portal should be organized around five simple areas:
+
+**Discover** — find products and programs.
+
+**My Programs** — see programs joined and their rules.
+
+**My Links** — get links, codes, QR codes and approved materials.
+
+**My Sales** — see leads, orders and attributed sales.
+
+**My Earnings** — see pending, approved, payable and paid earnings.
+
+The partner should not need to understand database tables, attribution engines, webhooks, ledger entries, or reconciliation processes.
+
+Those are system responsibilities.
+
+---
+
+# 239. Self-Service Partner Onboarding Without Removing Controls
+
+Aslal should separate two concepts that are currently too closely connected:
+
+**Account status** and **verification level**.
+
+A person should be able to create an account and become an eligible basic affiliate without waiting for a manual administrator to create the partner record.
+
+Higher-risk activities should require stronger verification.
+
+## 239.1 Recommended Partner Account Status
+
+- **REGISTERED** — account created but not yet verified.
+- **EMAIL_VERIFIED** — email verification completed.
+- **ACTIVE** — allowed to participate in programs permitted at the current verification level.
+- **RESTRICTED** — account remains usable but some activities are limited while a review is completed.
+- **SUSPENDED** — participation is temporarily blocked.
+- **CLOSED** — account is permanently closed for future participation.
+
+## 239.2 Recommended Verification Levels
+
+- **BASIC** — minimum information and verified contact.
+- **TRUSTED** — established through clean activity and/or additional evidence.
+- **VERIFIED** — stronger identity and payout verification.
+- **BUSINESS_VERIFIED** — business-level verification for reseller/supplier/high-risk commercial relationships.
+
+Verification level is not the same as account status.
+
+A BASIC partner can be ACTIVE.
+
+A VERIFIED partner can be SUSPENDED.
+
+This separation makes the rules understandable and flexible.
+
+---
+
+# 240. Register and Immediately Start Selling — Safely
+
+For programs that allow instant participation, the flow should be:
+
+**Create account → Verify email/phone → Accept program terms → Join eligible program → Receive link/code/QR → Start promoting → Track activity**
+
+The basic affiliate should not need manual approval for every program.
+
+However, instant access should be capability-limited.
+
+A BASIC partner may be allowed to:
+
+- browse eligible programs;
+- join instant-join programs;
+- receive referral links;
+- receive QR codes;
+- use approved promotional assets;
+- generate attributed sales;
+- view commissions;
+- request payout when eligible.
+
+A BASIC partner should normally not be allowed to:
+
+- change product prices;
+- access another customer's private information;
+- create reseller inventory;
+- transfer customer ownership;
+- receive high-value customer data;
+- enter high-risk commercial agreements;
+- perform restricted payout actions;
+- represent themselves as an authorized employee of the business.
+
+Higher-risk privileges require higher verification.
+
+This provides the desired experience:
+
+> **Register and start selling immediately where the business permits it, without removing sensible financial and security controls.**
+
+---
+
+# 241. Program Admission Controls
+
+Every Partner Program should choose one admission policy:
+
+### Open Join
+
+Anyone meeting the program's minimum conditions can join immediately.
+
+### Basic Verification Required
+
+The partner must verify a contact method before joining.
+
+### Business Approval Required
+
+The partner applies and the business approves the application.
+
+### Invitation Only
+
+Only invited partners can participate.
+
+The system must show the admission rule before the partner joins.
+
+---
+
+# 242. Capability-Based Controls
+
+Access should be based on what the partner is trying to do rather than one global “approved/not approved” switch.
+
+| Capability | Basic | Trusted | Verified | Business Verified |
+|---|---:|---:|---:|---:|
+| View programs | Yes | Yes | Yes | Yes |
+| Join instant affiliate programs | Yes | Yes | Yes | Yes |
+| Get referral link | Yes | Yes | Yes | Yes |
+| Get QR code | Yes | Yes | Yes | Yes |
+| Earn commissions | Yes | Yes | Yes | Yes |
+| Request payout | Limited | Yes | Yes | Yes |
+| Deal registration | Selected | Yes | Yes | Yes |
+| Access restricted customer details | No | Limited | By permission | By permission |
+| Reseller pricing | No | No | Limited | Yes |
+| Reseller agreements | No | No | Limited | Yes |
+| Supplier relationships | No | No | No | Yes |
+
+The exact thresholds must be configurable by program and risk level.
+
+---
+
+# 243. Partner Offer Transparency
+
+Every offer card must answer the partner's basic questions before the partner clicks “Join.”
+
+Example:
+
+**Digital Marketing Package**
+
+**You can earn:** 10% of eligible sales.
+
+**How you earn:** Customer completes a qualifying paid order.
+
+**Tracking:** Your unique link, QR code, or approved promo code.
+
+**Attribution:** Last eligible partner interaction within 30 days.
+
+**Refund hold:** 14 days.
+
+**Payment:** Monthly after approval.
+
+**Minimum payout:** ETB 500.
+
+**Join:** Instant after email verification.
+
+**Important:** Refunds, chargebacks, self-referrals and prohibited transactions do not qualify.
+
+This is the minimum standard for an honest partner marketplace.
+
+---
+
+# 244. End-to-End Affiliate Sale Reliability
+
+The affiliate sale process must be treated as a financial workflow, not merely a URL-tracking feature.
+
+The target state is:
+
+**CLICKED → ATTRIBUTED → LEAD → OPPORTUNITY → ORDER CREATED → PAYMENT PENDING → PAYMENT CONFIRMED → ORDER FULFILLED → REFUND HOLD → COMMISSION LOCKED → COMMISSION PAYABLE → PAYOUT CREATED → PAYOUT PROCESSING → PAYOUT CONFIRMED**
+
+Not every sale will contain every stage, but the system must preserve the applicable sequence.
+
+## 244.1 Clicked
+
+The partner's link is opened.
+
+The system records:
+
+- partner;
+- referral link;
+- program/campaign;
+- timestamp;
+- destination;
+- permitted technical context.
+
+## 244.2 Attributed
+
+The system applies the program's attribution rule.
+
+Possible rules include:
+
+- last eligible click;
+- first eligible click;
+- lead registration;
+- deal registration;
+- promo code;
+- manual approval.
+
+The rule must be visible in the program terms.
+
+## 244.3 Lead
+
+A person becomes a lead only when the configured lead criteria are met.
+
+A click alone is not automatically a lead.
+
+## 244.4 Order Created
+
+The commercial order is created.
+
+The order must preserve partner attribution where applicable.
+
+## 244.5 Payment Confirmed
+
+The payment provider or authorized operator confirms payment.
+
+A payment confirmation must be idempotent so that receiving the same provider notification twice does not create two payments or two commissions.
+
+## 244.6 Fulfillment
+
+Where the business model requires delivery or service completion, the order must reach the configured fulfillment condition.
+
+## 244.7 Refund Hold
+
+The system waits for the program's defined refund/cancellation period.
+
+The commission remains visible to the partner but is clearly marked as not yet payable.
+
+## 244.8 Commission Payable
+
+Only after all required conditions are satisfied does the commission become payable.
+
+## 244.9 Payout
+
+The system creates a payout record containing the eligible commissions.
+
+Where an external payout provider is connected, the payout process must record:
+
+- provider;
+- provider transaction/reference;
+- request time;
+- processing state;
+- confirmation;
+- failure;
+- retry;
+- reconciliation result.
+
+An internal payout record must never be described as proof that money was actually transferred unless external transfer confirmation exists.
+
+---
+
+# 245. Commission Ledger
+
+Every financially important commission event must create a ledger entry.
+
+Supported event types should include:
+
+- EARNED;
+- ADJUSTED;
+- REVERSED;
+- APPROVED;
+- PAYABLE;
+- PAID;
+- REFUNDED;
+- CHARGEBACK.
+
+The system must not silently overwrite the financial history.
+
+The partner should be able to see a human-readable explanation.
+
+Example:
+
+> **ETB 1,000 earned**
+>
+> Customer order: #ASL-1048
+>
+> Eligible sale: ETB 10,000
+>
+> Commission rate: 10%
+>
+> Attribution: Your referral link
+>
+> Status: On hold until 15 October
+>
+> Reason for hold: Refund period
+
+---
+
+# 246. Attribution Reliability Rules
+
+Attribution must be deterministic.
+
+The system must know which rule it is applying.
+
+It must not allow two different services to independently invent different attribution outcomes.
+
+A single authoritative attribution service should determine:
+
+- eligible partner;
+- eligible referral;
+- program;
+- campaign;
+- attribution window;
+- qualifying event;
+- attribution result.
+
+Attribution changes must be auditable.
+
+Where two partners appear to claim the same sale, the system must apply the published rule and expose a dispute path rather than silently changing the result.
+
+---
+
+# 247. Promo Codes as a Secondary Tracking Method
+
+Aslal should support promotional codes in addition to referral links.
+
+This is especially important for influencers and agents because many customers do not click a link.
+
+Examples:
+
+- an influencer mentions a code in a video;
+- an agent tells a customer the code in person;
+- a customer types the code during checkout;
+- the sale is attributed according to the program's published rules.
+
+Promo codes must not automatically override every other attribution method.
+
+The program must define how code-based attribution interacts with link-based and deal-registration attribution.
+
+---
+
+# 248. Fraud and Abuse Controls
+
+The system should detect risk signals such as:
+
+- self-referrals;
+- repeated use of the same payment/customer identity;
+- suspicious click patterns;
+- unusually high conversion from automated traffic;
+- duplicated orders;
+- coupon abuse;
+- unusual refund patterns;
+- payout-account inconsistencies;
+- attempts to manipulate attribution.
+
+Risk detection should normally produce:
+
+**Normal → Review → Restricted/Suspended**
+
+The system must not automatically declare a partner dishonest based solely on a statistical signal.
+
+The partner should have a path to provide evidence or dispute a decision.
+
+---
+
+# 249. Multi-Business Partner Marketplace
+
+The target marketplace model is:
+
+**Business publishes program → Partner discovers program → Partner joins → Partner receives selling tools → Customer is acquired → Sale is attributed → Commission is calculated → Earnings become payable → Payout is processed → Both sides see the same commercial truth**
+
+Each business must remain isolated by workspace.
+
+A partner may participate in programs from multiple businesses.
+
+The partner must see each business relationship separately.
+
+A commission from Business A must never appear as a financial obligation of Business B.
+
+The same customer may have relationships with multiple businesses, subject to privacy and authorization rules.
+
+---
+
+# 250. Business Marketplace Trust Rules
+
+The marketplace must protect both sides.
+
+Businesses must publish meaningful terms.
+
+Partners must follow program rules.
+
+Customers must not be exposed to misleading claims.
+
+Aslal should provide:
+
+- verified business identity where available;
+- program terms;
+- partner authorization status where appropriate;
+- dispute mechanisms;
+- audit history;
+- payout status;
+- fraud controls;
+- clear customer communication;
+- privacy controls.
+
+Aslal should not promise that every listed business, partner, or offer is risk-free.
+
+The platform's role is to provide structure, evidence and controls.
+
+---
+
+# 251. Campaign Creation Consistency Fix
+
+The current campaign creation implementation must be reconciled before further partner-engine expansion.
+
+The campaign API currently has a mismatch between the fields being inserted and the declared database columns.
+
+In particular, the implementation must decide whether a campaign owns a resource_id relationship.
+
+If yes:
+
+1. Add the field consistently to the database model.
+2. Add migration.
+3. Add validation.
+4. Add API support.
+5. Add query/read support.
+6. Add update support.
+7. Add UI support.
+8. Add indexes/constraints where required.
+9. Add tests.
+10. Document the meaning.
+
+If no:
+
+1. Remove resourceId from the create operation.
+2. Remove unused validation.
+3. Remove unused UI/API assumptions.
+4. Ensure all campaign queries use the same model.
+
+No field should exist only in one layer.
+
+The rule is:
+
+> **One business concept must have one consistent definition across database, API, service logic, UI and documentation.**
+
+---
+
+# 252. Partner Data Model Evolution
+
+The existing Partner entity should evolve rather than be discarded.
+
+The target conceptual model is:
+
+**Partner Account**
+→ **Verification**
+→ **Partner Program Membership**
+→ **Partner Capabilities**
+→ **Referral Identity**
+→ **Commercial Activity**
+→ **Commission Ledger**
+→ **Payout Ledger**
+→ **Disputes**
+
+A Partner Program should be separated from a Campaign.
+
+A campaign describes a marketing activity.
+
+A Partner Program describes the commercial relationship and earning rules.
+
+A campaign may use a partner program.
+
+A partner may participate in several campaigns under the same program terms.
+
+This separation prevents marketing scheduling data from becoming responsible for financial contract rules.
+
+---
+
+# 253. Commission Contract
+
+Each commercial partner relationship must have a versioned commission contract.
+
+The contract should contain:
+
+- program;
+- partner;
+- partner type;
+- reward type;
+- reward rate/amount;
+- commissionable basis;
+- qualifying event;
+- attribution rule;
+- attribution window;
+- refund hold;
+- exclusions;
+- payout schedule;
+- minimum payout;
+- currency;
+- effective date;
+- expiry date where applicable;
+- acceptance timestamp.
+
+When a transaction is created, the applicable contract version must be identifiable.
+
+---
+
+# 254. Business-to-Partner Truth and Partner-to-Business Truth
+
+Aslal should provide one shared commercial truth.
+
+The business sees:
+
+- who referred the customer;
+- what happened;
+- what was sold;
+- what was paid;
+- what commission was calculated;
+- what is payable;
+- what was paid;
+- what was reversed.
+
+The partner sees the same underlying commercial result, limited to information they are authorized to view.
+
+The system should not create a private unexplained calculation on one side and a different calculation on the other.
+
+---
+
+# 255. Reliability Requirements
+
+Partner commerce must use strong consistency controls for financial events.
+
+Required controls include:
+
+- database transactions for multi-record financial changes;
+- unique identifiers for provider events;
+- idempotency keys;
+- unique constraints preventing duplicate commission creation;
+- workspace isolation;
+- authorization checks;
+- immutable financial event history;
+- reconciliation jobs;
+- retry handling;
+- failed-event queues;
+- monitoring and alerting;
+- audit logs.
+
+External integrations must be isolated behind adapters.
+
+A payment provider outage must not destroy the underlying order.
+
+A payout provider outage must not erase a payable commission.
+
+A duplicate webhook must not duplicate money.
+
+---
+
+# 256. Partner Dispute Workflow
+
+A partner should be able to open a dispute for a defined reason.
+
+Examples:
+
+- missing attribution;
+- wrong attribution;
+- incorrect commission;
+- missing sale;
+- refund disagreement;
+- payout failure;
+- program-term disagreement.
+
+The dispute should record:
+
+- claimant;
+- transaction/program;
+- reason;
+- evidence;
+- submitted date;
+- current status;
+- assigned reviewer;
+- decision;
+- decision reason;
+- timestamps.
+
+The system must preserve the original financial record while recording the dispute outcome.
+
+---
+
+# 257. Recommended Implementation Roadmap — P0 to P10
+
+The roadmap below is the recommended implementation sequence. It is intentionally ordered around commercial correctness rather than visual feature count.
+
+## P0 — Correctness and Foundation
+
+**Goal:** Make the existing engine internally consistent before adding more capabilities.
+
+Deliver:
+
+- fix campaign creation field mismatch;
+- reconcile schema/API/UI field names;
+- remove duplicate business logic;
+- confirm workspace isolation;
+- add database constraints;
+- add transactions for financial changes;
+- add idempotency;
+- add webhook event uniqueness;
+- define authoritative attribution service;
+- define financial ledger rules;
+- document current-versus-target gaps.
+
+**Exit condition:** Existing partner, order, payment, revenue and commission flows can be tested without ambiguous data relationships.
+
+## P1 — Partner Identity and Self-Service Foundation
+
+**Goal:** Allow partners to register themselves safely.
+
+Deliver:
+
+- Partner Account;
+- account status;
+- verification level;
+- email/phone verification;
+- self-service profile;
+- partner type selection;
+- capability rules;
+- basic payout profile;
+- terms acceptance;
+- onboarding state;
+- restricted-mode handling.
+
+**Exit condition:** A BASIC affiliate can register, verify, join an instant-join program, and receive a referral identity without administrator data entry.
+
+## P2 — Partner Programs and Commercial Terms
+
+**Goal:** Replace informal campaign-only partner rules with explicit commercial programs.
+
+Deliver:
+
+- Partner Program;
+- Program Terms;
+- program admission policy;
+- commission contract;
+- terms versioning;
+- partner offer cards;
+- program discovery;
+- join/apply/approve flow;
+- historical terms snapshots.
+
+**Exit condition:** A partner can understand exactly what they will earn before joining.
+
+## P3 — Reliable Affiliate Engine
+
+**Goal:** Make digital referral sales reliable from click to commission.
+
+Deliver:
+
+- referral links;
+- QR codes;
+- promo codes;
+- visitor identity;
+- attribution windows;
+- deterministic attribution;
+- lead attribution;
+- order attribution;
+- payment connection;
+- refund hold;
+- commission calculation;
+- partner-facing earning explanation.
+
+**Exit condition:** A complete test sale can be traced from partner promotion to paid order and explainable commission.
+
+## P4 — Referral Agent Engine
+
+**Goal:** Support sales agents who create value without relying on a digital click.
+
+Deliver:
+
+- deal registration;
+- lead ownership;
+- agent customer introduction;
+- opportunity attribution;
+- agent-specific commission contracts;
+- approval rules;
+- duplicate-deal handling;
+- offline/online workflow;
+- agent activity timeline.
+
+**Exit condition:** An agent can register a legitimate opportunity and receive attributable credit even when the customer never uses a referral link.
+
+## P5 — Reseller and Supplier Commerce
+
+**Goal:** Implement genuine reseller/supplier relationships instead of treating resellers as affiliates.
+
+Deliver:
+
+- supplier relationship;
+- reseller agreement;
+- reseller pricing;
+- margin;
+- permitted discounts;
+- territories;
+- customer ownership rules;
+- fulfillment responsibility;
+- return responsibility;
+- settlement rules;
+- reseller order flow.
+
+**Exit condition:** A reseller transaction can be completed and settled using explicit commercial terms.
+
+## P6 — Commission and Financial Ledger
+
+**Goal:** Make partner earnings financially auditable.
+
+Deliver:
+
+- immutable commission ledger;
+- commission event types;
+- historical contract reference;
+- adjustment/reversal;
+- refund/chargeback handling;
+- payable calculation;
+- partner statement;
+- business statement;
+- financial reconciliation.
+
+**Exit condition:** Every partner balance can be reconstructed from recorded events.
+
+## P7 — Automated Payout Engine
+
+**Goal:** Move from internal payout records to reliable payout execution.
+
+Deliver:
+
+- payout batching;
+- payout approval;
+- external provider adapters;
+- provider references;
+- processing state;
+- success confirmation;
+- failure and retry;
+- payout reconciliation;
+- minimum payout rules;
+- partner payout notifications.
+
+**Exit condition:** A payable commission can be transferred through a supported provider and the system can prove whether the transfer succeeded.
+
+## P8 — Multi-Business Partner Marketplace
+
+**Goal:** Turn the partner engine into a real two-sided network.
+
+Deliver:
+
+- business program publishing;
+- partner marketplace discovery;
+- category/search/filter;
+- partner applications;
+- business approval;
+- program eligibility;
+- cross-business partner dashboard;
+- business isolation;
+- standardized offer pages;
+- marketplace trust indicators.
+
+**Exit condition:** A partner can discover and participate in programs from multiple businesses without cross-business data leakage.
+
+## P9 — Trust, Fraud, Disputes and Reputation
+
+**Goal:** Protect the network while keeping decisions explainable.
+
+Deliver:
+
+- risk signals;
+- self-referral detection;
+- duplicate customer detection;
+- suspicious activity review;
+- restriction/suspension;
+- evidence workflow;
+- disputes;
+- partner history;
+- business trust information;
+- audit center.
+
+**Exit condition:** The system can detect and review suspicious activity without silently destroying legitimate partner earnings.
+
+## P10 — Production Hardening and Certification
+
+**Goal:** Prove the complete system is reliable enough for real commercial operation.
+
+Deliver:
+
+- end-to-end test suite;
+- load testing;
+- payment failure testing;
+- duplicate webhook testing;
+- refund testing;
+- partial refund testing;
+- payout failure/retry testing;
+- multi-workspace isolation testing;
+- security testing;
+- backup/restore testing;
+- monitoring;
+- alerting;
+- disaster recovery;
+- operational runbooks;
+- partner/business support procedures;
+- production certification checklist.
+
+**Exit condition:** The complete commercial journey can be demonstrated repeatedly from partner registration through sale, commission and payout, including failure and recovery scenarios.
+
+---
+
+# 258. Mandatory End-to-End Test Scenarios
+
+The following tests must exist before the partner system is considered production-ready:
+
+1. Normal affiliate sale.
+2. Affiliate sale with QR code.
+3. Affiliate sale using promo code.
+4. Agent deal registration without referral click.
+5. Duplicate payment webhook.
+6. Duplicate commission event.
+7. Customer refund.
+8. Partial refund.
+9. Chargeback.
+10. Cancelled order.
+11. Failed payment.
+12. Payout failure.
+13. Payout retry.
+14. Two partners attempting to claim one sale.
+15. Self-referral.
+16. Suspicious activity review.
+17. Partner dispute.
+18. Program-term change after an earlier sale.
+19. Partner suspension with existing payable commissions.
+20. Multi-business workspace isolation.
+21. Partner participates in two different businesses.
+22. Business closes a program while existing commissions remain.
+23. Payment provider temporarily unavailable.
+24. Payout provider temporarily unavailable.
+25. Customer completes a sale after an attribution window expires.
+
+The expected result for every scenario must be documented.
+
+---
+
+# 259. Honest Partner-Earning Rules
+
+Aslal must never market the partner network using statements that imply guaranteed income.
+
+The system may say:
+
+> **Earn commissions on qualifying sales according to each program's published terms.**
+
+It should not say:
+
+> **Every click makes money.**
+
+It should not say:
+
+> **Guaranteed income.**
+
+It should not say:
+
+> **Instant payment for every sale.**
+
+The platform should clearly distinguish:
+
+**Activity** → something happened.
+
+**Attributed** → the system assigned credit under a defined rule.
+
+**Earned** → the qualifying conditions were met.
+
+**On hold** → the earning exists but is waiting for a defined condition.
+
+**Payable** → all conditions are satisfied and it can be included in payout.
+
+**Paid** → the payout has been confirmed.
+
+This vocabulary is central to partner trust.
+
+---
+
+# 260. Partner Value Proposition
+
+The recommended Aslal partner proposition is:
+
+> **Promote. Sell. Track. Understand. Earn.**
+
+For influencers:
+
+> **Turn trusted audience attention into measurable commercial opportunities with ready-to-use offers, unique links and codes, transparent attribution, and clear earnings.**
+
+For agents:
+
+> **Turn real customer relationships into organized sales opportunities with deal registration, follow-up tools, attributable sales and transparent commissions.**
+
+For businesses:
+
+> **Build a sales network beyond your internal team while keeping attribution, customer ownership, commissions and payments organized.**
+
+For customers:
+
+> **Discover legitimate offers through people and channels you trust, while the underlying business remains responsible for the product, service, order and customer relationship.**
+
+---
+
+# 261. Aslal Partner Network — Competitive Design Principle
+
+The objective is not to copy one existing affiliate platform.
+
+Aslal should combine useful ideas from mature partner-commerce models while adapting them to Ethiopian business realities.
+
+The target combination is:
+
+**Affiliate tracking**
++
+**Influencer campaign management**
++
+**Agent/deal registration**
++
+**Reseller commerce**
++
+**CRM**
++
+**Quotation and order flow**
++
+**Payment reconciliation**
++
+**Transparent commission ledger**
++
+**Multi-business marketplace**
++
+**Ethiopian-first mobile and messaging workflows**
+
+The unique Aslal contribution is the continuity between these models.
+
+An influencer should be able to generate a lead.
+
+An agent should be able to take over the opportunity where authorized.
+
+A salesperson should be able to convert it.
+
+The customer should receive a quote.
+
+The customer should pay.
+
+The payment should reconcile.
+
+The original partner contribution should remain visible.
+
+The commission should be calculated from the actual transaction.
+
+The partner should see why they earned it.
+
+The business should see the same commercial truth.
+
+This is the **Partner-to-Revenue Continuity** that Aslal should own as a product principle.
+
+---
+
+# 262. Final Partner Commerce Definition
+
+The Aslal Partner Commerce Network is:
+
+> **A transparent commercial network that connects businesses with influencers, affiliates, agents, resellers and other partners, then carries the partner relationship from discovery and onboarding through promotion, customer acquisition, sales, payment, attribution, commission and payout.**
+
+The system should make the easy things easy:
+
+- register;
+- verify;
+- discover;
+- join;
+- get a link;
+- share;
+- sell;
+- see results;
+- understand earnings.
+
+The system should make the risky things controlled:
+
+- customer data;
+- price changes;
+- reseller privileges;
+- attribution changes;
+- financial adjustments;
+- payout actions;
+- business-to-business agreements.
+
+The system should make the important things explainable:
+
+- why a sale was attributed;
+- why a commission was calculated;
+- why an earning is on hold;
+- why a payout is delayed;
+- why an account is restricted;
+- what terms governed a transaction.
+
+The system should make the entire commercial chain auditable.
+
+That is the standard to which all future Aslal partner-engine implementation should be compared.
+
+---
+
+# 263. Implementation Priority Rule
+
+When implementation capacity is limited, Aslal must prioritize in this order:
+
+**Financial correctness → attribution correctness → data integrity → partner transparency → security → self-service → automation → marketplace scale → advanced intelligence.**
+
+A beautiful partner dashboard must never be prioritized above correct commission calculation.
+
+A fast onboarding flow must never bypass required financial or security controls.
+
+A marketplace with thousands of offers must never be launched before the system can reliably explain who earned what and why.
+
+The system's credibility depends on the integrity of the commercial record.
+
+---
+
+# 264. Document Status After Partner Commerce Redesign
+
+This document now defines the target-state partner commerce model in addition to the broader Aslal Growth OS.
+
+The existing implementation must be treated as a partial implementation of this target.
+
+The roadmap P0–P10 defines the recommended sequence for closing the gap.
+
+The terms in Sections 232–264 are the preferred business language for product, UX, engineering, support and partner communications.
+
+Where a technical term is unavoidable, the user-facing interface should provide a plain-language explanation.
+
+The guiding principle remains:
+
+> **Sophisticated technology underneath; simple, honest and understandable commerce on the surface.**
