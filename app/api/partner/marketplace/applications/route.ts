@@ -44,6 +44,7 @@ export async function POST(req:Request){
       await tx.partnerTermsAcceptance.create({data:{id:crypto.randomUUID(),partnerId:partner.id,workspaceId:program.workspaceId,programId,termsId:t.id,contractId:contract.id,acceptedBy:access.email}});
       let link=await tx.referralLink.findFirst({where:{partnerId:partner.id,workspaceId:program.workspaceId,campaignId:null},orderBy:{createdAt:"asc"}}); if(!link){const base="ASL-"+partner.partnerNumber.replace(/[^A-Z0-9]/gi,"").toUpperCase(); try{link=await tx.referralLink.create({data:{id:crypto.randomUUID(),workspaceId:program.workspaceId,partnerId:partner.id,code:base,destinationPath:"/"}})}catch{link=await tx.referralLink.create({data:{id:crypto.randomUUID(),workspaceId:program.workspaceId,partnerId:partner.id,code:"ASL-"+crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase(),destinationPath:"/"}})}}
     }
+    if(!autoApprove) await tx.partnerTermsAcceptance.create({data:{id:crypto.randomUUID(),partnerId:partner.id,workspaceId:program.workspaceId,programId,termsId:t.id,acceptedBy:access.email}});
     return a;
   });
   return NextResponse.json({ok:true,application,autoApproved:autoApprove},{status:201});
