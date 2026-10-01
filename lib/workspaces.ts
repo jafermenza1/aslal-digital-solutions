@@ -46,7 +46,7 @@ export async function getWorkspaceForUser(user: CurrentUser, workspaceId?: strin
       `SELECT id,name,slug,client_type FROM workspaces WHERE id=? AND active=1 LIMIT 1`,
       [requested]
     );
-    return admins[0] || null;
+    return admins[0] ? { ...admins[0], role: "OWNER" as WorkspaceRole } : null;
   }
   return null;
 }
