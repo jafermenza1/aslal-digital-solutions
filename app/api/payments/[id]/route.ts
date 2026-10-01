@@ -182,12 +182,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             throw new Error("Partner program terms/contract are not active for this sale.");
           }
 
-          if (campaign && ["FIXED", "PERCENT_SALE", "HYBRID"].includes(campaign.rewardType)) {
+          if (campaign && ["FIXED", "PER_LEAD", "PERCENT_SALE", "HYBRID"].includes(campaign.rewardType)) {
             const collected = Number(payment.amount);
             const fixed = Number(campaign.rewardAmount || 0);
             const rate = Number(campaign.rewardRate || 0);
             const commissionAmount =
-              campaign.rewardType === "FIXED" ? fixed :
+              campaign.rewardType === "FIXED" || campaign.rewardType === "PER_LEAD" ? fixed :
               campaign.rewardType === "PERCENT_SALE" ? collected * rate / 100 :
               fixed + collected * rate / 100;
 
