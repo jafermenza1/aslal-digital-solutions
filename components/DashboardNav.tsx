@@ -56,7 +56,8 @@ const ITEMS:Item[]=[
 {key:"publicContent",href:"/dashboard/social-profiles",permission:"content.manage",icon:"message",group:"administration",nested:true,label:"Social Profiles"},
 
 {key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"},
-{key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"}
+{key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore",label:"Partner Workspace"},
+{key:"partners",href:"/dashboard/partner-marketplace",permission:"partner.portal.view",icon:"store",group:"explore",label:"Partner Marketplace"}
 ];
 
 export function DashboardNav({locale,permissions,mobile=false}:{locale:Locale;permissions:string[];mobile?:boolean}) {
