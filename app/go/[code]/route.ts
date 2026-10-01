@@ -13,7 +13,7 @@ export async function GET(request:Request,{params}:{params:Promise<{code:string}
       FROM referral_links rl
       LEFT JOIN partner_campaigns pc ON pc.id=rl.campaign_id AND pc.workspace_id=rl.workspace_id
       LEFT JOIN partner_programs pp ON pp.id=pc.program_id AND pp.workspace_id=rl.workspace_id
-      JOIN partners p ON p.id=rl.partner_id AND p.workspace_id=rl.workspace_id
+      JOIN partners p ON p.id=rl.partner_id
       WHERE rl.code=? LIMIT 1`,[normalized]);
     const link=rows[0];
     if(!link||(["DRAFT","PAUSED","ARCHIVED"].includes(String(link.program_status||""))))return NextResponse.redirect(new URL("/",request.url));
