@@ -148,7 +148,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           if (payment.order.referralLinkId && !referralLink) {
             throw new Error("Payment order referral link is outside the active workspace or partner attribution.");
           }
-          if (referralLink) requireSameWorkspace(workspace.id, referralLink.workspaceId, referralLink.partner.workspaceId);
+          if (referralLink) requireSameWorkspace(workspace.id, referralLink.workspaceId);
           const campaignId = referralLink?.campaignId || agentDeal?.campaignId || null;
           const campaign = campaignId
             ? await tx.partnerCampaign.findFirst({
