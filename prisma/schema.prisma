@@ -604,7 +604,21 @@ model Event {
   @@map("events")
 }
 
+model PartnerIdentity {
+  id        String   @id @db.Char(36)
+  name      String   @db.VarChar(160)
+  email     String?  @db.VarChar(190)
+  phone     String?  @db.VarChar(40)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  partners  Partner[]
+  @@index([email], map:"idx_partner_identity_email")
+  @@index([phone], map:"idx_partner_identity_phone")
+  @@map("partner_identities")
+}
+
 model Partner {
+  identityId String? @map("identity_id") @db.Char(36)
   workspaceId String @map("workspace_id") @db.Char(36)
   id             String          @id @db.Char(36)
   partnerNumber  String          @unique @map("partner_number") @db.VarChar(30)
@@ -644,6 +658,7 @@ model Partner {
   revenues           Revenue[]
   orders             Order[]
   user               User?
+  identity           PartnerIdentity? @relation(fields:[identityId], references:[id], onDelete:SetNull)
   campaignPartners   CampaignPartner[]
   commissionContracts CommissionContract[]
   disputes           PartnerDispute[]
@@ -661,6 +676,7 @@ model Partner {
   @@index([status], map: "idx_partners_status")
   @@index([accountStatus], map: "idx_partners_account_status")
   @@index([verificationLevel], map: "idx_partners_verification_level")
+  @@index([identityId], map:"idx_partners_identity")
   @@map("partners")
 }
 
