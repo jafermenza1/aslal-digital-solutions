@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         : null;
       if (resolvedAttribution && !referral) throw new Error("Resolved referral link is not owned by this workspace.");
       if (referral) {
-        requireSameWorkspace(access.workspace.id, referral.workspaceId, referral.partner.workspaceId);
+        requireSameWorkspace(access.workspace.id, referral.workspaceId);
         const customerEmail = customer.email?.trim().toLowerCase() || null;
         const customerPhone = customer.phone?.trim() || null;
         const partnerEmail = referral.partner.email?.trim().toLowerCase() || null;
