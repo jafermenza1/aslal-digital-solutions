@@ -36,17 +36,16 @@ const ITEMS:Item[]=[
 {key:"emailTemplates",href:"/dashboard/email",permission:"email.view",icon:"mail",group:"revenue",label:"Email Operations"},
 {key:"telegramSales",href:"/dashboard/telegram",permission:"telegram.view",icon:"message",group:"revenue",label:"Telegram Sales"},
 
-{key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"growth",label:"Partners & Commissions"},
-{key:"partners",href:"/dashboard/partner-marketplace",permission:"partner.portal.view",icon:"store",group:"growth",label:"Partner Marketplace"},
-{key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Marketplace"},
+{key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"growth",label:"Partner Network"},
+{key:"partners",href:"/dashboard/partner-programs",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Programs"},
 {key:"partners",href:"/dashboard/partner-applications",permission:"partners.manage",icon:"partner",group:"growth",label:"Partner Applications"},
 {key:"partners",href:"/dashboard/partner-risk",permission:"partners.manage",icon:"ops",group:"growth",label:"Trust & Risk Review"},
-{key:"partners",href:"/dashboard/trust-audit",permission:"partners.manage",icon:"ops",group:"administration",label:"Trust Audit Center"},
+{key:"partners",href:"/dashboard/trust-audit",permission:"partners.manage",icon:"ops",group:"administration",label:"Trust Audit"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
-{key:"products",href:"/dashboard/catalog-offers",permission:"products.manage",icon:"store",group:"commerce",label:"Unified Catalog & Offers"},
+{key:"products",href:"/dashboard/catalog-offers",permission:"products.manage",icon:"store",group:"commerce",label:"Catalog & Offers"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"commerce"},
-{key:"operations",href:"/dashboard/finance",permission:"commissions.manage",icon:"ops",group:"commerce",label:"Finance & Payouts"},
+{key:"operations",href:"/dashboard/finance",permission:"commissions.manage",icon:"ops",group:"commerce",label:"Partner Finance"},
 
 {key:"users",href:"/dashboard/users",permission:"users.manage",icon:"users",group:"administration",label:"Users & Access"},
 {key:"users",href:"/dashboard/workspaces",permission:"users.manage",icon:"users",group:"administration",label:"Workspaces"},
