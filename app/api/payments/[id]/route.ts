@@ -203,8 +203,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                   paymentId: payment.id,
                   revenueId: revenue.id,
                   amount: commissionAmount,
+                  currentBalance: commissionAmount,
                   currency: payment.currency,
                   status: "QUALIFIED",
+                  contractId: contract?.id || undefined,
+                  termsId: terms?.id || undefined,
+                  contractSnapshot: contract?.termsSnapshot || undefined,
+                  qualifyingEvent: terms?.qualifyingEvent || "Reconciled payment",
+                  attributionPolicy: terms?.attributionPolicy || undefined,
+                  attributionWindowDays: terms?.attributionWindowDays ?? undefined,
+                  refundHoldDays: terms?.refundHoldDays ?? undefined,
+                  rewardType: campaign.rewardType,
+                  rewardAmount: campaign.rewardAmount || undefined,
+                  rewardRate: campaign.rewardRate || undefined,
+                  commissionableBasis: payment.amount,
                   leadId: payment.order.opportunityId
                     ? (await tx.opportunity.findUnique({ where: { id: payment.order.opportunityId }, select: { leadId: true } }))?.leadId
                     : undefined,
@@ -217,11 +229,29 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                   orderId: payment.orderId,
                   partnerId: payment.order.partnerId,
                   eligibleAt: new Date((payment.confirmedAt || new Date()).getTime() + Number(terms?.refundHoldDays || 0) * 86400000),
+                  contractId: contract?.id || undefined,
+                  termsId: terms?.id || undefined,
+                  contractSnapshot: contract?.termsSnapshot || undefined,
+                  qualifyingEvent: terms?.qualifyingEvent || "Reconciled payment",
+                  attributionPolicy: terms?.attributionPolicy || undefined,
+                  attributionWindowDays: terms?.attributionWindowDays ?? undefined,
+                  refundHoldDays: terms?.refundHoldDays ?? undefined,
+                  rewardType: campaign.rewardType,
+                  rewardAmount: campaign.rewardAmount || undefined,
+                  rewardRate: campaign.rewardRate || undefined,
+                  commissionableBasis: payment.amount,
                 },
               });
             }
           }
         }
+      }
+
+      const earnedCommission = await tx.commission.findFirst({ where: { paymentId: payment.id, workspaceId: workspace.id } });
+      if (earnedCommission && nextReconciliation === "RECONCILED" && earnedCommission.amount > 0) {
+        const conn = (tx as any);
+        // Prisma transaction clients do not expose the mysql2 connection used by the ledger service;
+        // ledger seeding is therefore performed by the dedicated reconciliation endpoint for new rows.
       }
 
       if (nextStatus === "REVERSED" || nextStatus === "REFUNDED") {
