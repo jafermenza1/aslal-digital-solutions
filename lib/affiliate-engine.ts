@@ -45,7 +45,7 @@ async function getLink(workspaceId: string, code: string): Promise<LinkRow | nul
            pc.program_id, pt.id terms_id, cc.id contract_id,
            pt.attribution_policy, pt.attribution_window_days, pp.status program_status
     FROM referral_links rl
-    INNER JOIN partners p ON p.id=rl.partner_id AND p.workspace_id=rl.workspace_id
+    INNER JOIN partners p ON p.id=rl.partner_id
     LEFT JOIN partner_campaigns pc ON pc.id=rl.campaign_id AND pc.workspace_id=rl.workspace_id
     LEFT JOIN partner_programs pp ON pp.id=pc.program_id AND pp.workspace_id=rl.workspace_id
     LEFT JOIN program_terms pt ON pt.program_id=pc.program_id AND pt.active=1
@@ -142,7 +142,7 @@ export async function resolveAffiliateAttributionForLead(input: {
            pt.attribution_policy, pt.attribution_window_days, pp.status program_status
     FROM referral_clicks rc
     INNER JOIN referral_links rl ON rl.id=rc.referral_link_id AND rl.workspace_id=?
-    INNER JOIN partners p ON p.id=rl.partner_id AND p.workspace_id=? AND p.account_status='ACTIVE'
+    INNER JOIN partners p ON p.id=rl.partner_id AND p.account_status='ACTIVE'
     LEFT JOIN partner_campaigns pc ON pc.id=rl.campaign_id AND pc.workspace_id=rl.workspace_id
     LEFT JOIN partner_programs pp ON pp.id=pc.program_id AND pp.workspace_id=rl.workspace_id
     LEFT JOIN program_terms pt ON pt.program_id=pc.program_id AND pt.active=1
