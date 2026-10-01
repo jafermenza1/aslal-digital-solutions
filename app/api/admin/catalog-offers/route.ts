@@ -29,11 +29,10 @@ export async function GET(request:Request){
  const url=new URL(request.url),workspaceId=url.searchParams.get("workspaceId"),channel=url.searchParams.get("channel");
  const access=await authorizeWorkspacePermission("products.manage",workspaceId);
  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied."},{status:403});
- const offers=await prisma.catalogOffer.findMany({where:{workspaceId:access.workspace.id,...(channel&&channels.includes(channel as any)?{channels:{some:{channel:channel as any}}}:{})},include:{product:{select:{id:nameSlugSelect.id,slug:nameSlugSelect.slug,name:nameSlugSelect.name}},resource:{select:{id:titleSlugSelect.id,slug:titleSlugSelect.slug,title:titleSlugSelect.title}},channels:{orderBy:{sortOrder:"asc"}}},orderBy:[{displayOrder:"asc"},{createdAt:"desc"}]});
- const [products,resources]=await Promise.all([prisma.product.findMany({where:{workspaceId:access.workspace.id,active:true},select:{id:true,name:true,slug:true}}),prisma.resource.findMany({where:{workspaceId:access.workspace.id,active:true},select:{id:true,title:true,slug:true}})]);\n return NextResponse.json({workspace:access.workspace,offers,products,resources});
+ const offers=await prisma.catalogOffer.findMany({where:{workspaceId:access.workspace.id,...(channel&&channels.includes(channel as any)?{channels:{some:{channel:channel as any}}}:{})},include:{product:{select:{id:true,slug:true,name:true}},resource:{select:{id:true,slug:true,title:true}},channels:{orderBy:{sortOrder:"asc"}}},orderBy:[{displayOrder:"asc"},{createdAt:"desc"}]});
+ const [products,resources]=await Promise.all([prisma.product.findMany({where:{workspaceId:access.workspace.id,active:true},select:{id:true,name:true,slug:true}}),prisma.resource.findMany({where:{workspaceId:access.workspace.id,active:true},select:{id:true,title:true,slug:true}})]);
+ return NextResponse.json({workspace:access.workspace,offers,products,resources});
 }
-const nameSlugSelect={id:true,slug:true,name:true} as const;
-const titleSlugSelect={id:true,slug:true,title:true} as const;
 
 export async function POST(request:Request){
  const body=await request.json().catch(()=>({})),workspaceId=str(body.workspaceId,36);
