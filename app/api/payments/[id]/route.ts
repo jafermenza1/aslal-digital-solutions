@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma, Prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { requireSameWorkspace } from "@/lib/workspace-boundary";
 
@@ -192,7 +192,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
               fixed + collected * rate / 100;
 
             if (commissionAmount > 0) {
-              await tx.commission.upsert({
+              const createdCommission = await tx.commission.upsert({
                 where: { revenueId: revenue.id },
                 create: {
                   id: randomUUID(),
@@ -242,6 +242,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                   commissionableBasis: payment.amount,
                 },
               });
+              await tx.$executeRaw(Prisma.sql`UPDATE commissions SET current_balance = amount WHERE id = ${createdCommission.id} AND workspace_id = ${workspace.id}`);
+              await tx.$executeRaw(Prisma.sql`
+                INSERT INTO commission_ledger_events
+                  (id,workspace_id,commission_id,event_type,amount_delta,balance_after,currency,reason,reference_type,reference_id,idempotency_key,actor)
+                SELECT ${randomUUID()},${workspace.id},${createdCommission.id},'EARNED',${commissionAmount},${commissionAmount},${payment.currency},
+                       'Commission earned from reconciled payment','PAYMENT',${payment.id},CONCAT('commission-earned:',${createdCommission.id}),'FINANCE'
+                WHERE NOT EXISTS (SELECT 1 FROM commission_ledger_events WHERE idempotency_key=CONCAT('commission-earned:',${createdCommission.id}))
+              `);
             }
           }
         }
