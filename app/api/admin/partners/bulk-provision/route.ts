@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { authorizePermission } from "@/lib/authorization";
-import { getWorkspaceForUser } from "@/lib/workspaces";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { db } from "@/lib/db";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
@@ -30,9 +29,6 @@ function referralCode(index: number) {
 }
 
 export async function POST(request: Request) {
-  const actor = await authorizePermission("partners.manage");
-  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
     const body = await request.json().catch(() => ({}));
     const access = await authorizeWorkspacePermission("partners.manage", String(body.workspaceId || "").trim() || undefined);
