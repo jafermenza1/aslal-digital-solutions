@@ -789,7 +789,6 @@ model PartnerProgram {
   marketplaceProfile MarketplaceProgramProfile?
   termsAcceptances PartnerTermsAcceptance[]
   campaigns          PartnerCampaign[]
-  marketplaceProfile MarketplaceProgramProfile?
 
   @@unique([workspaceId, slug], map: "uq_partner_program_workspace_slug")
   @@index([workspaceId, status], map: "idx_partner_program_workspace_status")
