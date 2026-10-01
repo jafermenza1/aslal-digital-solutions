@@ -5357,22 +5357,33 @@ Deliver:
 
 **Goal:** Make digital referral sales reliable from click to commission.
 
-Deliver:
+**Implementation status:** P3 foundation implemented; controlled runtime certification remains.
 
-- referral links;
-- QR codes;
-- promo codes;
-- visitor identity;
-- attribution windows;
-- deterministic attribution;
-- lead attribution;
-- order attribution;
-- payment connection;
-- refund hold;
-- commission calculation;
-- partner-facing earning explanation.
+Implemented in this P3 pass:
 
-**Exit condition:** A complete test sale can be traced from partner promotion to paid order and explainable commission.
+- referral-link public redirect;
+- referral click capture;
+- workspace/partner/program validation;
+- safe internal destination handling;
+- browser referral identity persistence;
+- attribution-window aware resolver;
+- FIRST_CLICK and LAST_CLICK deterministic selection;
+- explicit policy handling for LEAD_REGISTRATION, DEAL_REGISTRATION, PROMO_CODE and MANUAL_APPROVAL;
+- active CommissionContract requirement for P2 program-linked attribution;
+- integration of referralCode into existing browser attribution data;
+- P3 attribution policy tests and implementation documentation.
+
+Remaining P3 certification/hardening:
+
+- production verification of visitor-to-lead persistence;
+- complete order attribution certification;
+- promo-code attribution implementation where a commerce promo-code field is available;
+- refund-hold verification;
+- partner-facing earning explanation;
+- self-referral and duplicate-customer controls;
+- complete end-to-end paid-sale test.
+
+**Exit condition:** A complete test sale can be traced from partner promotion to paid order and explainable commission. This exit condition is not yet declared complete until the deployed runtime passes the controlled acceptance suite.
 
 ## P4 — Referral Agent Engine
 
