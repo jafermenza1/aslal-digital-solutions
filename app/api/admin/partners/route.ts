@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   if (!(await isAuthorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const actor = await authorizePermission("partners.manage");
+    const actor = await authorizeWorkspacePermission("partners.manage", String(body?.workspaceId || "").trim() || undefined)?.user;
     if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const body = await request.json();
     const workspace = await getWorkspaceForUser(actor, String(body.workspaceId || "").trim() || undefined);
