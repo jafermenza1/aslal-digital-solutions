@@ -50,18 +50,18 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const b=await request.json();
   const userId=String(b.userId??"").trim();
   const role=String(b.role??"").trim();
-  const hasActive=typeof b.active==="boolean";
+  
   const allowedRoles=new Set(["OWNER","ADMIN","MANAGER","SALES","FINANCE","AUDITOR","CLIENT","PARTNER","MEMBER"]);
   if(!userId)return NextResponse.json({error:"userId is required."},{status:400});
   if(role && !allowedRoles.has(role))return NextResponse.json({error:"Invalid workspace role."},{status:400});
-  if(!role && !hasActive)return NextResponse.json({error:"role or active is required."},{status:400});
+  if(!role)return NextResponse.json({error:"role is required."},{status:400});
   const sets:string[]=[]; const values:any[]=[];
   if(role){sets.push("role=?");values.push(role);}
-  if(hasActive){sets.push("active=?");values.push(b.active?1:0);}
+  
   values.push(id,userId);
   const [result]=await db.query<any>(`UPDATE workspace_users SET ${sets.join(", ")} WHERE workspace_id=? AND user_id=?`,values);
   if(!result.affectedRows)return NextResponse.json({error:"Membership not found."},{status:404});
-  return NextResponse.json({ok:true,workspaceId:id,userId,role:role||undefined,active:hasActive?!!b.active:undefined});
+  return NextResponse.json({ok:true,workspaceId:id,userId,role});
  }catch(error){
   console.error("WORKSPACE_MEMBER_PATCH_ERROR",error);
   return NextResponse.json({error:"Could not amend workspace membership."},{status:500});
