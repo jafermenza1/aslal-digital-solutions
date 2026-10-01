@@ -38,8 +38,10 @@ function validBody(body:any,current:any){
  return p;
 }
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
- const actor=await authorizePermission("products.manage");
- if(!actor)return NextResponse.json({error:"Catalog administration is not permitted."},{status:403});
+ const workspaceId=new URL(request.url).searchParams.get("workspaceId");
+ const access=await authorizeWorkspacePermission("products.manage",workspaceId);
+ if(!access)return NextResponse.json({error:"Catalog administration is not permitted for this workspace."},{status:403});
+ const actor=access.user;
  const {id}=await params; const current=await prisma.product.findUnique({where:{id}});
  if(!current)return NextResponse.json({error:"Product/service not found."},{status:404});
  const body=await request.json().catch(()=>({})); const data=validBody(body,current);
