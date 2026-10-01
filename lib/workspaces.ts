@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
 import { cookies } from "next/headers";
 import { authorizePermission, type CurrentUser } from "@/lib/authorization";
-import type { Permission } from "@/lib/permissions";
+import type { Permission, WorkspaceRole } from "@/lib/permissions";
+import { resolveWorkspacePermissions } from "@/lib/permissions";
 
 export const INTERNAL_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
 export function resolvePublicWorkspaceId(hostname?: string | null) {
@@ -25,13 +26,14 @@ export type WorkspaceContext = {
   name: string;
   slug: string;
   clientType: string | null;
+  role: WorkspaceRole;
 };
 
 export async function getWorkspaceForUser(user: CurrentUser, workspaceId?: string | null): Promise<WorkspaceContext | null> {
   const stored = workspaceId ? "" : (await cookies()).get("aslal_workspace_id")?.value || "";
   const requested = String(workspaceId || stored).trim() || INTERNAL_WORKSPACE_ID;
   const [rows] = await db.query<any[]>(
-    `SELECT w.id,w.name,w.slug,w.client_type
+    `SELECT w.id,w.name,w.slug,w.client_type,wu.role
        FROM workspaces w
        JOIN workspace_users wu ON wu.workspace_id=w.id
       WHERE wu.user_id=? AND w.id=? AND w.active=1
@@ -54,5 +56,7 @@ export async function authorizeWorkspacePermission(permission: Permission, works
   if (!user) return null;
   const workspace = await getWorkspaceForUser(user, workspaceId);
   if (!workspace) return null;
-  return { user, workspace };
+  const effective = resolveWorkspacePermissions(user.role, user.permissions, workspace.role);
+  if (!effective.includes(permission)) return null;
+  return { user, workspace, permissions: effective };
 }
