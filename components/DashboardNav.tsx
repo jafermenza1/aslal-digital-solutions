@@ -42,6 +42,7 @@ const ITEMS:Item[]=[
 {key:"partners",href:"/dashboard/partner-applications",permission:"partners.manage",icon:"partner",group:"growth",label:"Partner Applications"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
+{key:"products",href:"/dashboard/catalog-offers",permission:"products.manage",icon:"store",group:"commerce",label:"Unified Catalog & Offers"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"commerce"},
 {key:"operations",href:"/dashboard/finance",permission:"commissions.manage",icon:"ops",group:"commerce",label:"Finance & Payouts"},
 
