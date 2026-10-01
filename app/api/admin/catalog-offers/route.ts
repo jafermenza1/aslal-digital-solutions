@@ -26,7 +26,7 @@ async function validateSource(workspaceId:string,productId:string|null,resourceI
 
 export async function GET(request:Request){
  const url=new URL(request.url),workspaceId=url.searchParams.get("workspaceId"),channel=url.searchParams.get("channel");
- const access=await authorizeWorkspacePermission("catalog.view",workspaceId);
+ const access=await authorizeWorkspacePermission("products.manage",workspaceId);
  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied."},{status:403});
  const offers=await prisma.catalogOffer.findMany({where:{workspaceId:access.workspace.id,...(channel&&channels.includes(channel as any)?{channels:{some:{channel:channel as any}}}:{})},include:{product:{select:{id:nameSlugSelect.id,slug:nameSlugSelect.slug,name:nameSlugSelect.name}},resource:{select:{id:titleSlugSelect.id,slug:titleSlugSelect.slug,title:titleSlugSelect.title}},channels:{orderBy:{sortOrder:"asc"}}},orderBy:[{displayOrder:"asc"},{createdAt:"desc"}]});
  const [products,resources]=await Promise.all([prisma.product.findMany({where:{workspaceId:access.workspace.id,active:true},select:{id:true,name:true,slug:true}}),prisma.resource.findMany({where:{workspaceId:access.workspace.id,active:true},select:{id:true,title:true,slug:true}})]);\n return NextResponse.json({workspace:access.workspace,offers,products,resources});
@@ -36,7 +36,7 @@ const titleSlugSelect={id:true,slug:true,title:true} as const;
 
 export async function POST(request:Request){
  const body=await request.json().catch(()=>({})),workspaceId=str(body.workspaceId,36);
- const access=await authorizeWorkspacePermission("catalog.manage",workspaceId);
+ const access=await authorizeWorkspacePermission("products.manage",workspaceId);
  if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied."},{status:403});
  const productId=str(body.productId,36)||null,resourceId=str(body.resourceId,36)||null;
  const source=await validateSource(access.workspace.id,productId,resourceId); if("error"in source)return NextResponse.json(source,{status:400});
@@ -58,7 +58,7 @@ export async function POST(request:Request){
 export async function PATCH(request:Request){
  const body=await request.json().catch(()=>({})),id=str(body.id,36); if(!id)return NextResponse.json({error:"Offer id is required."},{status:400});
  const existing=await prisma.catalogOffer.findUnique({where:{id}}); if(!existing)return NextResponse.json({error:"Offer not found."},{status:404});
- const access=await authorizeWorkspacePermission("catalog.manage",existing.workspaceId); if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied."},{status:403});
+ const access=await authorizeWorkspacePermission("products.manage",existing.workspaceId); if(!access)return NextResponse.json({error:"Unauthorized or workspace access denied."},{status:403});
  const productId=body.productId===undefined?existing.productId:(str(body.productId,36)||null),resourceId=body.resourceId===undefined?existing.resourceId:(str(body.resourceId,36)||null);
  const source=await validateSource(existing.workspaceId,productId,resourceId); if("error"in source)return NextResponse.json(source,{status:400});
  const status=statuses.includes(body.status)?body.status:existing.status,priceType=priceTypes.includes(body.priceType)?body.priceType:existing.priceType;
