@@ -498,6 +498,18 @@ enum TelegramDestinationType {
   CHANNEL
 }
 
+enum TelegramConnectionType {
+  BOT
+  BUSINESS
+}
+
+enum TelegramConnectionStatus {
+  PENDING
+  ACTIVE
+  DISABLED
+  ERROR
+}
+
 model Visitor {
   id                  String   @id @db.Char(36)
   anonymousId         String   @unique @map("anonymous_id") @db.Char(36)
@@ -1747,9 +1759,34 @@ model Message {
   @@map("conversation_messages")
 }
 
+model TelegramBusinessConnection {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  connectionType TelegramConnectionType @default(BOT) @map("connection_type")
+  status TelegramConnectionStatus @default(PENDING)
+  displayName String @db.VarChar(190)
+  botUsername String? @map("bot_username") @db.VarChar(190)
+  botId String? @map("bot_id") @db.VarChar(80)
+  telegramBusinessConnectionId String? @unique @map("telegram_business_connection_id") @db.VarChar(190)
+  botTokenEnvKey String? @map("bot_token_env_key") @db.VarChar(190)
+  permissions Json?
+  webhookStatus String? @map("webhook_status") @db.VarChar(40)
+  webhookUrl String? @map("webhook_url") @db.VarChar(1000)
+  lastConnectedAt DateTime? @map("last_connected_at") @db.DateTime(0)
+  lastError String? @map("last_error") @db.Text
+  createdBy String? @map("created_by") @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@index([workspaceId,status], map:"idx_telegram_connection_workspace_status")
+  @@index([workspaceId,connectionType], map:"idx_telegram_connection_workspace_type")
+  @@map("telegram_business_connections")
+}
+
 model TelegramChannelConfig {
   id                          String   @id @db.Char(36)
   workspaceId                 String   @unique @map("workspace_id") @db.Char(36)
+  workspace                   Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
   enabled                     Boolean  @default(true)
   miniAppEnabled              Boolean  @default(false) @map("mini_app_enabled")
   miniAppUrl                  String?  @map("mini_app_url") @db.VarChar(1000)
@@ -1936,6 +1973,8 @@ model Workspace {
   campaignAssets CampaignAsset[]
   conversations Conversation[]
   telegramDestinations TelegramDestination[]
+  telegramConnections TelegramBusinessConnection[]
+  telegramChannelConfig TelegramChannelConfig?
   products Product[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
