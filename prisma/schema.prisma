@@ -780,6 +780,7 @@ model CommissionContract {
   program         PartnerProgram @relation(fields: [programId], references: [id], onDelete: Restrict)
   terms           ProgramTerms   @relation(fields: [termsId], references: [id], onDelete: Restrict)
   partner         Partner        @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  termsAcceptances PartnerTermsAcceptance[]
 
   @@unique([programId, partnerId], map: "uq_program_contract_partner")
   @@index([workspaceId, partnerId, status], map: "idx_contract_workspace_partner_status")
