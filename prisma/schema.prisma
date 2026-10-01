@@ -1029,6 +1029,7 @@ model Commission {
   paymentId      String?          @unique @map("payment_id") @db.Char(36)
   revenueId      String?          @unique @map("revenue_id") @db.Char(36)
   amount         Decimal          @default(0) @db.Decimal(15, 2)
+  currentBalance Decimal          @default(0) @map("current_balance") @db.Decimal(15, 2)
   currency       String           @default("ETB") @db.VarChar(10)
   status         CommissionStatus @default(PENDING)
   eligibleAt     DateTime?        @map("eligible_at") @db.DateTime(0)
