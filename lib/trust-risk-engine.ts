@@ -27,6 +27,16 @@ export async function detectPartnerRisk(workspaceId:string, partnerId:string){
     }
   }
 
+  const [duplicateCustomers]=await db.query<(RowDataPacket & {identity:string;customer_count:number})[]>(`
+    SELECT identity,COUNT(*) customer_count FROM (
+      SELECT LOWER(TRIM(email)) identity FROM customers WHERE workspace_id=? AND email IS NOT NULL AND TRIM(email)<>''
+      UNION ALL
+      SELECT REPLACE(REPLACE(REPLACE(TRIM(phone),' ',''),'-',''),'(','') identity FROM customers WHERE workspace_id=? AND phone IS NOT NULL AND TRIM(phone)<>''
+    ) x GROUP BY identity HAVING COUNT(*)>1 ORDER BY customer_count DESC LIMIT 20`,[workspaceId,workspaceId]);
+  for(const x of duplicateCustomers){
+    signals.push({code:"DUPLICATE_CUSTOMER_IDENTITY",severity:"MEDIUM",score:40,summary:"Customer identity appears on multiple customer records.",explanation:"The same normalized email or phone appears on multiple customer records in this workspace. This may be duplicate data rather than fraud; review before changing attribution or earnings.",partnerId,evidence:{identity:x.identity,customerCount:x.customer_count}});
+  }
+
   const [orders]=await db.query<(RowDataPacket & {id:string;order_number:string;customer_id:string|null;total:string;created_at:string})[]>(
     "SELECT id,order_number,customer_id,total,created_at FROM orders WHERE workspace_id=? AND partner_id=? ORDER BY created_at DESC LIMIT 50",[workspaceId,partnerId]);
   const customerIds=orders.map(o=>o.customer_id).filter(Boolean) as string[];
