@@ -59,7 +59,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
   const edit = (user: UserRow) => {
     setDraft({
       id: user.id, name: user.name, email: user.email, password: "",
-      role: user.role, active: user.active, workspaceId: workspaces[0]?.id || "", workspaceRole: workspaceRoleForAccountRole(user.role),
+      role: user.role, active: user.active, workspaceId: "", workspaceRole: workspaceRoleForAccountRole(user.role),
       selected: user.permissions, reason: "", telegramChatId: user.telegramChatId || "", telegramUsername: user.telegramUsername || "",
     });
     setNotice("");
@@ -84,8 +84,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
       active: draft.active,
       permissions: { grant, revoke },
       reason: draft.reason.trim(),
-      workspaceId: draft.workspaceId,
-      workspaceRole: draft.workspaceRole,
+      ...(draft.id ? {} : { workspaceId: draft.workspaceId, workspaceRole: draft.workspaceRole }),
       telegramChatId: draft.telegramChatId.trim() || undefined,
       telegramUsername: draft.telegramUsername.trim().replace(/^@/,"") || undefined,
     };
@@ -153,13 +152,13 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
           <input required value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} placeholder="Full name" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
           <input required type="email" value={draft.email} onChange={event => setDraft({ ...draft, email: event.target.value })} placeholder="Email" className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
           <input type="password" minLength={10} value={draft.password} onChange={event => setDraft({ ...draft, password: event.target.value })} placeholder={draft.id ? "New password (leave blank to keep)" : "Password · 10+ characters"} className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" />
-          <label className="text-sm font-bold text-white/70">Workspace<select required disabled={Boolean(draft.id)} value={draft.workspaceId} onChange={event => setDraft({ ...draft, workspaceId: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white disabled:opacity-50">
+          <label className="text-sm font-bold text-white/70">Initial workspace<select required disabled={Boolean(draft.id)} value={draft.workspaceId} onChange={event => setDraft({ ...draft, workspaceId: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white disabled:opacity-50">
             <option value="">Select workspace</option>{workspaces.map(workspace => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}
           </select></label>
-          <label className="text-sm font-bold text-white/70">Workspace role<select required value={draft.workspaceRole} onChange={event => setDraft({ ...draft, workspaceRole: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white">
+          {!draft.id && <label className="text-sm font-bold text-white/70">Initial workspace role<select required value={draft.workspaceRole} onChange={event => setDraft({ ...draft, workspaceRole: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-white">
             {["OWNER","ADMIN","MANAGER","SALES","FINANCE","AUDITOR","CLIENT","PARTNER","MEMBER"].map(role => <option key={role} value={role}>{role}</option>)}
-          </select></label>
-          <select value={draft.role} onChange={event => {
+          </select></label>}
+          <label className="text-sm font-bold text-white/70">Account role<select value={draft.role} onChange={event => {
             const role = event.target.value;
             setDraft({ ...draft, role, workspaceRole: workspaceRoleForAccountRole(role), selected: [...(roleDefaults[role] || [])] });
           }} className="rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white">
@@ -174,7 +173,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
             <option value="FINANCE">Finance</option>
             <option value="AUDITOR">Auditor</option>
             <option value="CLIENT">Client</option>
-          </select>
+          </select></label>
           <label className="grid gap-1 text-sm font-bold text-white/70">Telegram chat ID<input value={draft.telegramChatId} onChange={event => setDraft({ ...draft, telegramChatId: event.target.value })} placeholder="Telegram user/chat ID" className="mt-2 rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" /><span className="text-xs font-normal text-white/40">Optional. Link an existing Telegram account to this user.</span></label><label className="grid gap-1 text-sm font-bold text-white/70">Telegram username<input value={draft.telegramUsername} onChange={event => setDraft({ ...draft, telegramUsername: event.target.value })} placeholder="@username" className="mt-2 rounded-xl border border-white/10 bg-white/[.05] px-4 py-3 text-sm text-white placeholder:text-white/30" /></label><label className="flex items-center gap-3 text-sm font-bold text-white/70">
             <input type="checkbox" checked={draft.active} onChange={event => setDraft({ ...draft, active: event.target.checked })} />
             Active user
