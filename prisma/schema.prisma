@@ -1006,6 +1006,7 @@ model Resource {
   workspace Workspace? @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
   campaign PartnerCampaign? @relation(fields:[campaignId], references:[id], onDelete:SetNull)
   leadAttributions LeadAttribution[]
+  catalogOffers CatalogOffer[]
 
   @@index([category, publishedAt], map: "idx_resources_category_published")
   @@index([active, publishedAt], map: "idx_resources_active_published")
@@ -2032,6 +2033,7 @@ model Workspace {
   invoices    Invoice[]
   campaigns   PartnerCampaign[]
   partnerPrograms PartnerProgram[]
+  catalogOffers CatalogOffer[]
   partners    Partner[]
   programApplications PartnerProgramApplication[]
   marketplaceProgramProfiles MarketplaceProgramProfile[]
