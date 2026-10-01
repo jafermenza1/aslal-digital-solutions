@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { validateOfferInput } from "@/lib/catalog-offer-engine";
 
 const statuses=["DRAFT","PUBLISHED","PAUSED","ARCHIVED"] as const;
 const priceTypes=["FIXED","STARTING_FROM","QUOTE","CONTACT"] as const;
@@ -47,6 +48,8 @@ export async function POST(request:Request){
  const price=body.price===null||body.price===undefined||body.price===""?null:Number(body.price);
  if(price!==null&&(!Number.isFinite(price)||price<0))return NextResponse.json({error:"Price must be a non-negative number."},{status:400});
  const selectedChannels=Array.isArray(body.channels)?body.channels.filter((x:string)=>channels.includes(x as any)):[];
+ const validation=validateOfferInput({workspaceId:access.workspace.id,productId,resourceId,status,channels:selectedChannels,priceType,price});
+ if(!validation.ok)return NextResponse.json({error:validation.reason},{status:400});
  const offer=await prisma.$transaction(async tx=>{
   const created=await tx.catalogOffer.create({data:{id:randomUUID(),workspaceId:access.workspace.id,productId,resourceId,slug,title,shortDescription:str(body.shortDescription,500)||null,description:str(body.description)||null,status,priceType,price,currency:str(body.currency,10)||"ETB",ctaLabel:str(body.ctaLabel,80)||"Request this",ctaMode:str(body.ctaMode,40)||"REQUEST",terms:str(body.terms)||null,eligibility:str(body.eligibility)||null,displayOrder:Number(body.displayOrder)||0,featured:Boolean(body.featured),publishedAt:status==="PUBLISHED"?new Date():null,createdBy:access.user?.email||access.user?.id||null}});
   for(let i=0;i<selectedChannels.length;i++) await tx.catalogOfferChannel.create({data:{id:randomUUID(),offerId:created.id,channel:selectedChannels[i],enabled:true,headline:str(body.channelOverrides?.[selectedChannels[i]]?.headline,250)||null,description:str(body.channelOverrides?.[selectedChannels[i]]?.description)||null,ctaLabel:str(body.channelOverrides?.[selectedChannels[i]]?.ctaLabel,80)||null,sortOrder:i}});
