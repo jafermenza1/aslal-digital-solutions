@@ -301,6 +301,9 @@ async function handleClientInbound(workspaceId:string,d:any,m:TelegramMessage,ch
 }
 
 async function handle(update:TelegramUpdate){
+  const businessConnectionId=String(update.business_message?.business_connection_id||update.message?.business_connection_id||"");
+  const businessConnection=businessConnectionId?await prisma.telegramBusinessConnection.findUnique({where:{telegramBusinessConnectionId:businessConnectionId},select:{workspaceId:true,status:true}}):null;
+  const scopedWorkspaceId=businessConnection?.status==="ACTIVE"?businessConnection.workspaceId:"";
   if(update.business_connection?.id){
     const connectionId=String(update.business_connection.id);
     const connection=await prisma.telegramBusinessConnection.findUnique({where:{telegramBusinessConnectionId:connectionId}});
@@ -372,12 +375,12 @@ async function handle(update:TelegramUpdate){
     }
     const p=await partnerForChat(chatId);
     if(p)return catalog(chatId,p.workspace_id);
-    const defaultWorkspaceId=await resolveTelegramDefaultWorkspaceId();
+    const defaultWorkspaceId=scopedWorkspaceId||await resolveTelegramDefaultWorkspaceId();
     if(defaultWorkspaceId){const cfg=await getTelegramChannelConfig(defaultWorkspaceId);if(cfg?.publicEnabled&&cfg.allowAnonymousUsers)return publicMenu(chatId,defaultWorkspaceId,m.from||{id:chatId});return catalog(chatId,defaultWorkspaceId);}
     return reply(chatId,"Welcome to Aslal. Telegram is not connected to an active workspace yet. Please contact Aslal support.");
   }
 
-  const publicWorkspaceId=await resolveTelegramDefaultWorkspaceId();
+  const publicWorkspaceId=scopedWorkspaceId||await resolveTelegramDefaultWorkspaceId();
   if(chatType==="private" && publicWorkspaceId && m.contact?.phone_number && (!m.contact.user_id || String(m.contact.user_id)===String(m.from?.id||""))){
     const contactUserId=String(m.contact.user_id||m.from?.id||chatId);
     const contactPhone=clean(m.contact.phone_number);
@@ -453,7 +456,7 @@ async function handle(update:TelegramUpdate){
     return handleClientInbound(d.workspace_id,d,m,chatId);
   }
 
-  const resolvedWorkspaceId=await resolveTelegramDefaultWorkspaceId(); const publicHandoffChatId=String((await getTelegramChannelConfig(resolvedWorkspaceId))?.handoffChatId||"");
+  const resolvedWorkspaceId=scopedWorkspaceId||await resolveTelegramDefaultWorkspaceId(); const publicHandoffChatId=String((await getTelegramChannelConfig(resolvedWorkspaceId))?.handoffChatId||"");
   if((chatType==="group"||chatType==="supergroup") && publicHandoffChatId===chatId && m.reply_to_message?.message_id){
     if(await routeAdminReplyToPublic(m))return;
   }
