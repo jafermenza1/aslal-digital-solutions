@@ -12,7 +12,8 @@ ALTER TABLE commissions
   ADD COLUMN reward_type VARCHAR(40) NULL,
   ADD COLUMN reward_amount DECIMAL(15,2) NULL,
   ADD COLUMN reward_rate DECIMAL(15,6) NULL,
-  ADD COLUMN commissionable_basis DECIMAL(15,2) NULL;
+  ADD COLUMN commissionable_basis DECIMAL(15,2) NULL,
+  ADD COLUMN current_balance DECIMAL(15,2) NOT NULL DEFAULT 0;
 
 CREATE INDEX idx_commissions_contract ON commissions(contract_id);
 CREATE INDEX idx_commissions_terms ON commissions(terms_id);
@@ -40,7 +41,7 @@ CREATE TABLE commission_ledger_events (
   CONSTRAINT fk_commission_ledger_commission FOREIGN KEY (commission_id) REFERENCES commissions(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- Preserve the commercial basis of legacy commission rows where it can be
+UPDATE commissions SET current_balance=amount WHERE current_balance=0 AND amount<>0;\n\n-- Preserve the commercial basis of legacy commission rows where it can be
 -- reconstructed from their linked campaign/program. Rows that cannot be
 -- reconstructed remain valid legacy commissions and are marked by the
 -- absence of a contract snapshot.
