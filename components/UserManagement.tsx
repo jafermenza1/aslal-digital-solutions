@@ -192,7 +192,7 @@ export function UserManagement({ initial, workspaces }: { initial: UserRow[]; wo
                 <input
                   type="checkbox"
                   checked={draft.selected.includes(permission)}
-                  disabled={permission==="partners.credentials" && !["ADMIN","SUPER_ADMIN"].includes(draft.role)}
+                  disabled={!roleDefaults[draft.role]?.includes(permission)}
                   onChange={event => setDraft({
                     ...draft,
                     selected: event.target.checked
