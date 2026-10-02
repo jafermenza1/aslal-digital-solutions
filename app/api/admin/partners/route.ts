@@ -94,6 +94,8 @@ export async function POST(request: Request) {
       code: finalCode,
       referralUrl: publicUrl,
       credentialsIssued: false,
+      status: "PENDING",
+      accountStatus: "REGISTERED",
       verificationStatus: "REGISTERED",
       workflow: ["REGISTERED","PROFILE_COMPLETED","VERIFICATION","APPROVED","CREDENTIALS","CAMPAIGN_MATCHING","ACTIVE"],
       emailSent: false,
