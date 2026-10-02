@@ -128,3 +128,5 @@ Open reconciliation items remain: dispute-driven commercial attribution reassign
 See `docs/qa/Q1-E2E-GAP-RECONCILIATION.md`. Statuses remain evidence-gated.
 
 | R55 | CE-6 Complete Demand Workflow | IMPLEMENTED-UNVERIFIED | CommercialRequest supports BUY_REQUEST/ASSET_REQUEST/SERVICE_REQUEST/RFP from public intake through Lead, qualification, supplier/provider response, Opportunity, Quote and Order handoff; runtime acceptance and workspace-isolation tests remain pending. |
+
+| R56 | CE-7 Supply/Demand Matching | IMPLEMENTED-UNVERIFIED | Deterministic listing matching, score/reason persistence, duplicate prevention, partner eligibility evaluation, match review and CE-6 response creation are implemented; runtime verification remains pending. |
