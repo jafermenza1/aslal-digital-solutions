@@ -83,6 +83,31 @@ A capability is not accepted merely because code, schema, UI, API or an adapter 
 | R48 | Transactional contact auto-reply | IMPLEMENTED-UNVERIFIED | Consent-gated rich HTML email template, product/service-aware request summary, canonical Email conversation/message, provider result persistence and multi-template admin UI are implemented; provider/deployment/controlled acceptance remains. |
 | R49 | User roles and editable permissions | PARTIAL | Database User/UserAudit models, role defaults, editable grants/revokes, managed login, user-management UI and permission-filtered dashboard navigation are implemented; legacy routes still need full permission enforcement and shared tenant isolation remains a separate gate. |
 
+## Commercial Engine gap-closure traceability
+
+The following requirements extend the existing baseline without invalidating earlier R-IDs. They identify the detailed commercial gaps that must be reconciled against existing entities and workflows.
+
+| ID | Requirement | Target behavior | Initial status |
+|---|---|---|---|
+| R50 | Commercial listing | Publish controlled products/assets/properties/services with owner, status and distribution controls. | TARGET / GAP-CLOSURE |
+| R51 | Listing authorization | Explicit supplier/owner/staff/partner authorization with dates, territory, channel and terms. | TARGET / GAP-CLOSURE |
+| R52 | Partner eligibility | Determine whether a partner may promote a listing/program under current status and contract. | TARGET / GAP-CLOSURE |
+| R53 | Deal registration | Partner can register an opportunity; seller can approve/reject/request information; approved registration can create protection. | TARGET / GAP-CLOSURE |
+| R54 | Attribution protection | Preserve protected partner contribution through inspection, quote, order and external payment evidence where terms apply. | TARGET / GAP-CLOSURE |
+| R55 | Inspection/appointment | Record physical inspection/site visit/check-in/outcome as commercial evidence. | TARGET / GAP-CLOSURE |
+| R56 | Demand requests | Public users can submit buy, asset, service and RFP requests that enter the Lead/Opportunity chain. | TARGET / GAP-CLOSURE |
+| R57 | Supply-demand matching | Match structured demand to eligible listings/providers and preserve match provenance. | TARGET / GAP-CLOSURE |
+| R58 | Professional provider | Provider profile, qualifications/verification evidence, services, service area and availability. | TARGET / GAP-CLOSURE |
+| R59 | Proposal/RFP | Providers can respond with versioned proposals that can be compared and accepted. | TARGET / GAP-CLOSURE |
+| R60 | External payment evidence | Record and verify bank/cash/external settlement evidence without misrepresenting it as provider-processed payment. | TARGET / GAP-CLOSURE |
+| R61 | Commercial leakage/dispute controls | Detect review signals, preserve evidence and resolve attribution/commission disputes without silent invalidation. | TARGET / GAP-CLOSURE |
+| R62 | Commercial self-service | Business owners, staff, partners and providers have role-appropriate interfaces for the commercial lifecycle. | TARGET / GAP-CLOSURE |
+| R63 | Commercial marketplace | Discovery is a surface over the canonical commercial chain, not a parallel transaction system. | TARGET / GAP-CLOSURE |
+| R64 | QR/ticket/coupon continuity | Existing redemption assets can participate in the commercial attribution and audit model. | PARTIAL / RECONCILE |
+| R65 | Commercial reporting | Supply, demand, matching, conversion, revenue and commission reports reconcile to source records. | TARGET / GAP-CLOSURE |
+
+These IDs are domain-gap identifiers. They do not independently move the development roadmap. Status can change only when the owning phase provides evidence.
+
 ## Reconciliation rules
 
 A future PR must identify affected R-IDs and provide business outcome, data/API/UI effect, migration/rollback risk and acceptance evidence.
