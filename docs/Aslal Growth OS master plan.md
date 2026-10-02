@@ -6045,3 +6045,46 @@ Phase 2 acceptance requires:
 8. payment remains in the existing payment lifecycle;
 9. workspace isolation is preserved;
 10. the printable issued asset remains available after sale.
+
+
+### 265.17 Phase 2B — Customer Capture and Commission Qualification
+
+Phase 2B closes the remaining commercial identity and attribution gap in Partner Sales Capture.
+
+At sale time, the partner must capture the minimum customer identity required to make the transaction operationally useful:
+
+- customer/holder name;
+- phone or email;
+- optional email when phone is supplied;
+- issued asset holder fields.
+
+The system must resolve an existing workspace customer by phone first and email second. If no matching customer exists, it creates a workspace-scoped Customer record. The resulting Order must reference that Customer.
+
+The platform must continue to avoid creating a Lead merely because an asset was sold. The Customer is the commercial identity for the transaction; a Lead remains an acquisition-stage object.
+
+**Phase 2B financial flow:**
+
+**Partner sale → Customer → Order → Pending Payment → Finance confirmation → Reconciliation → Recognized Revenue → Commission qualification**
+
+The existing payment and reconciliation controls remain authoritative. Partner Sales Assets must not introduce a partner-side payment confirmation mechanism.
+
+For a campaign-associated asset sale, commission qualification must be able to resolve the Campaign from the distribution asset even when no referral link exists. The resulting commission must use the existing campaign reward rules, active program terms and partner commission contract. The commission must retain the Order, Payment, Revenue and Partner relationships already used by the finance model.
+
+A referral link remains optional for an asset sale. Direct partner distribution therefore remains attributable through:
+
+**Distribution Asset → Campaign → Partner → Order → Payment → Revenue → Commission**
+
+without manufacturing a referral click or Lead.
+
+Phase 2B acceptance requires:
+
+1. customer name is captured;
+2. phone or email is captured;
+3. customer is resolved or created within the active workspace;
+4. Order references the Customer;
+5. no Lead is manufactured solely for the sale;
+6. asset-linked campaign attribution works without a referral link;
+7. confirmed and reconciled payment creates the existing Revenue record;
+8. eligible campaign rules create the existing Commission record;
+9. commission remains subject to existing program terms/contract controls;
+10. reversals/refunds use the existing revenue and commission reversal controls.
