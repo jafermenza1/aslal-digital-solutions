@@ -4,7 +4,7 @@ import PartnerPayoutBatch from "./PartnerPayoutBatch";
 
 type Partner={id:string;name:string;type:string;status:string;verification_status:string;tier:string;audience_size:number|null;campaigns:number;active_campaigns:number;leads:number;won:number;revenue:number|string|null;open_disputes:number};
 type Program={id:string;name:string;status:string};
-type Campaign={id:string;name:string;status:string;target_description:string|null;location:string|null;budget:number|string;partner_budget:number|string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;program_id:string|null;program_name:string|null;product_id:string|null;product_name:string|null;resource_id:string|null;resource_title:string|null;currency:string;partner_count:number;active_partner_count:number};
+type Campaign={id:string;name:string;status:string;target_description:string|null;delivery_mode:string;location:string|null;budget:number|string;partner_budget:number|string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;program_id:string|null;program_name:string|null;product_id:string|null;product_name:string|null;resource_id:string|null;resource_title:string|null;currency:string;partner_count:number;active_partner_count:number};
 type Product={id:string;name:string;kind:string};
 type Dispute={id:string;partner_name:string;campaign_name:string|null;subject:string;description:string;status:string};
 type Payout={id:string;partner_name:string;amount:number|string;currency:string;status:string;reference:string|null;commission_count:number;created_at:string;paid_at:string|null};
