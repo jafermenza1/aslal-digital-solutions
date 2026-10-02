@@ -1933,6 +1933,10 @@ CommercialListing, lifecycle, ownership, publishing and public detail.
 
 ### CE-2 — Owner/Supplier Authorization
 
+**Implementation state: IMPLEMENTED — VERIFICATION PENDING**
+
+CE-2 adds the commercial party registry, explicit listing owner/supplier references, publication ownership guard, and workspace-scoped distribution authorizations for staff users, partners and commercial parties. Authorization lifecycle and scope fields are recorded without creating commission entitlement or partner eligibility automatically.
+
 Listing authorization, staff ownership and distribution controls.
 
 ### CE-3 — Partner Eligibility
