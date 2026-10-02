@@ -747,6 +747,7 @@ model Partner {
   payoutProfile PartnerPayoutProfile?
   termsAcceptances PartnerTermsAcceptance[]
   commercialListingAuthorizations CommercialListingAuthorization[]
+  commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
@@ -1055,6 +1056,7 @@ model CommercialListing {
   ownerParty        CommercialParty?       @relation("CommercialListingOwner", fields:[ownerPartyId], references:[id], onDelete:SetNull)
   supplierParty     CommercialParty?       @relation("CommercialListingSupplier", fields:[supplierPartyId], references:[id], onDelete:SetNull)
   authorizations    CommercialListingAuthorization[]
+  eligibilityDecisions CommercialEligibilityDecisionRecord[]
 
   @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
   @@index([workspaceId, status, publicVisible], map:"idx_commercial_listing_workspace_status_public")
@@ -1141,6 +1143,7 @@ model CommercialListingAuthorization {
   party        CommercialParty?             @relation(fields:[partyId], references:[id], onDelete:SetNull)
   program      PartnerProgram?               @relation(fields:[programId], references:[id], onDelete:SetNull)
   partner      Partner?                     @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  eligibilityDecisions CommercialEligibilityDecisionRecord[]
   user         User?                        @relation(fields:[userId], references:[id], onDelete:SetNull)
 
   @@index([workspaceId,status], map:"idx_commercial_auth_workspace_status")
