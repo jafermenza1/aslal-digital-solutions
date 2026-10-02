@@ -1925,6 +1925,10 @@ These are **domain increments, not a replacement roadmap**.
 
 ### CE-1 — Listing Foundation
 
+**Current implementation state: IMPLEMENTED — VERIFICATION PENDING.**
+
+Implemented on PR #99: `CommercialListing`, lifecycle/type enums, checked-in migration, workspace-scoped owner API/UI, optional linkage to the existing Product/Service catalog, standalone asset/property listing support, and public marketplace/listing detail surfaces. This does not yet grant partner authorization or commission entitlement.
+
 CommercialListing, lifecycle, ownership, publishing and public detail.
 
 ### CE-2 — Owner/Supplier Authorization
