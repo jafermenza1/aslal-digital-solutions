@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { authorizePermission } from "@/lib/authorization";
+import { db } from "@/lib/db";
 import { generatePartnerCardPdf, partnerCardFileName } from "@/lib/partner-card";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -7,7 +8,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   try {
     const { id } = await params;
-    const pdf = await generatePartnerCardPdf(id);
+    const [rows] = await db.query<Array<{ id:string; status:string; account_status:string; verification_status:string }>>(
+      "SELECT id, status, account_status, verification_status FROM partners WHERE id = ? OR partner_number = ? LIMIT 1",
+      [id, id],
+    );
+    const partner = rows[0];
+    if (!partner) return NextResponse.json({ error: "Partner not found." }, { status: 404 });
+    if (partner.status !== "ACTIVE" || partner.account_status !== "ACTIVE" || partner.verification_status !== "VERIFIED") {
+      return NextResponse.json({ error: "The official partner ID card is available only after verification and activation." }, { status: 409 });
+    }
+    const pdf = await generatePartnerCardPdf(partner.id);
     const body = new ArrayBuffer(pdf.byteLength);
     new Uint8Array(body).set(pdf);
     const filenameKey = id.startsWith("ASL-") ? id : id.slice(0, 12);
