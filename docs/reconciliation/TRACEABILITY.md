@@ -98,7 +98,7 @@ The following requirements extend the existing baseline without invalidating ear
 | R56 | Demand requests | Public users can submit buy, asset, service and RFP requests that enter the Lead/Opportunity chain. | TARGET / GAP-CLOSURE |
 | R57 | Supply-demand matching | Match structured demand to eligible listings/providers and preserve match provenance. | IMPLEMENTED-UNVERIFIED | CE-7 implements deterministic matching, persisted scores/reasons, duplicate prevention, expiry, review controls and CE-6 response handoff. A migration-seeded demo dataset provides five demand scenarios and eight match examples; runtime migration/E2E verification remains required. |
 | R58 | Professional provider | Provider profile, qualifications/verification evidence, services, service area and availability. | IMPLEMENTED-UNVERIFIED | CE-8 adds ProfessionalProfile and ProfessionalCredential domains, provider self-service/operator review, public published profiles, service-listing linkage and CE-7 matching integration. Runtime migration/typecheck/build/E2E evidence remains required. |
-| R59 | Proposal/RFP | Providers can respond with versioned proposals that can be compared and accepted. | TARGET / GAP-CLOSURE |
+| R59 | Proposal/RFP | Providers can respond with versioned proposals that can be compared and accepted. | IMPLEMENTED-UNVERIFIED | CE-9 adds versioned ProfessionalProposal/ProfessionalProposalVersion records, factual comparison, acceptance/supersession, immutable revision protection and canonical Quote/NegotiationEvent handoff. Runtime Prisma/typecheck/build and controlled acceptance remain required. |
 | R60 | External payment evidence | Record and verify bank/cash/external settlement evidence without misrepresenting it as provider-processed payment. | TARGET / GAP-CLOSURE |
 | R61 | Commercial leakage/dispute controls | Detect review signals, preserve evidence and resolve attribution/commission disputes without silent invalidation. | TARGET / GAP-CLOSURE |
 | R62 | Commercial self-service | Business owners, staff, partners and providers have role-appropriate interfaces for the commercial lifecycle. | TARGET / GAP-CLOSURE |
@@ -112,7 +112,7 @@ These IDs are domain-gap identifiers. They do not independently move the develop
 
 A future PR must identify affected R-IDs and provide business outcome, data/API/UI effect, migration/rollback risk and acceptance evidence.
 
-Phase 5 implementation is now on mainline. Status remains IMPLEMENTED-UNVERIFIED/PARTIAL until scheduled production execution and acceptance evidence are retained.\n\nPhase 6A implementation is now on mainline and deployed through Emerald. R22/R23 remain IMPLEMENTED-UNVERIFIED until a controlled quote is sent, revised, accepted/rejected and reconstructed from production history.
+Phase 5 implementation is now on mainline. Status remains IMPLEMENTED-UNVERIFIED/PARTIAL until scheduled production execution and acceptance evidence are retained.\nPhase 6A implementation is now on mainline and deployed through Emerald. R22/R23 remain IMPLEMENTED-UNVERIFIED until a controlled quote is sent, revised, accepted/rejected and reconstructed from production history.
 
 Statuses can move only when the evidence required by the row is present.
 
