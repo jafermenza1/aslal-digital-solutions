@@ -2,13 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches:
-      - main
-      - p10-1-authorization-hardening
   push:
     branches:
       - main
-      - p10-1-authorization-hardening
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
