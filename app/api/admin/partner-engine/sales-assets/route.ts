@@ -34,6 +34,9 @@ export async function POST(request:Request){
   const price=b.price==null||b.price===""?null:Number(b.price);
   const value=b.value==null||b.value===""?null:Number(b.value);
   const inventoryLimit=b.inventoryLimit==null||b.inventoryLimit===""?null:Number(b.inventoryLimit);
+  const rsvpRequired=Boolean(b.rsvpRequired);
+  const rsvpOpensAt=b.rsvpOpensAt?new Date(b.rsvpOpensAt):null;
+  const rsvpClosesAt=b.rsvpClosesAt?new Date(b.rsvpClosesAt):null;
   if(!name||!TYPES.has(assetType)||!STATUSES.has(status))return NextResponse.json({error:"Name, asset type and valid status are required."},{status:400});
   if(price!==null&&(!Number.isFinite(price)||price<0))return NextResponse.json({error:"Price must be a non-negative number."},{status:400});
   if(value!==null&&(!Number.isFinite(value)||value<0))return NextResponse.json({error:"Value must be a non-negative number."},{status:400});
@@ -42,13 +45,16 @@ export async function POST(request:Request){
   if(campaignId){const [c]=await db.query<RowDataPacket[]>(`SELECT id FROM partner_campaigns WHERE id=? AND workspace_id=? LIMIT 1`,[campaignId,access.workspace.id]);if(!c[0])return NextResponse.json({error:"Campaign not found in this workspace."},{status:404});}
   if(!productId&&!campaignId)return NextResponse.json({error:"Associate the asset with an existing Product/Service or Campaign."},{status:400});
   if(b.startsAt&&b.endsAt&&new Date(b.endsAt)<new Date(b.startsAt))return NextResponse.json({error:"End date cannot be before start date."},{status:400});
+  if(rsvpRequired&&!rsvpOpensAt)return NextResponse.json({error:"RSVP opening time is required when RSVP is enabled."},{status:400});
+  if(rsvpOpensAt&&rsvpClosesAt&&rsvpClosesAt<rsvpOpensAt)return NextResponse.json({error:"RSVP closing time cannot be before opening time."},{status:400});
+  if(rsvpClosesAt&&b.startsAt&&rsvpClosesAt>new Date(b.startsAt))return NextResponse.json({error:"RSVP must close no later than the event/ticket start time."},{status:400});
   const id=randomUUID();
   await db.query(`INSERT INTO commercial_distribution_items
-   (id,workspace_id,name,asset_type,description,product_id,campaign_id,price,value,currency,inventory_limit,starts_at,ends_at,redemption_instructions,status,created_by,created_at,updated_at)
-   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())`,[
+   (id,workspace_id,name,asset_type,description,product_id,campaign_id,price,value,currency,inventory_limit,starts_at,ends_at,rsvp_required,rsvp_opens_at,rsvp_closes_at,redemption_instructions,status,created_by,created_at,updated_at)
+   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())`,[
     id,access.workspace.id,name,assetType,String(b.description??"").trim()||null,productId,campaignId,
     price,value,String(b.currency??"ETB").trim().toUpperCase()||"ETB",inventoryLimit,
-    b.startsAt?new Date(b.startsAt):null,b.endsAt?new Date(b.endsAt):null,
+    b.startsAt?new Date(b.startsAt):null,b.endsAt?new Date(b.endsAt):null,rsvpRequired,rsvpOpensAt,rsvpClosesAt,
     String(b.redemptionInstructions??"").trim()||null,status,access.user.email
   ]);
   return NextResponse.json({ok:true,id},{status:201});
