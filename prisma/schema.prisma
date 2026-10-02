@@ -260,6 +260,31 @@ enum CommercialAuthorizationStatus {
   REVOKED
 }
 
+enum CommercialEligibilityDecision {
+  ELIGIBLE
+  INELIGIBLE
+  REVIEW_REQUIRED
+}
+
+enum CommercialEligibilityReason {
+  PARTNER_INACTIVE
+  ACCOUNT_RESTRICTED
+  VERIFICATION_REQUIRED
+  ONBOARDING_INCOMPLETE
+  PARTNER_TYPE_NOT_ALLOWED
+  AUTHORIZATION_MISSING
+  AUTHORIZATION_NOT_ACTIVE
+  PROGRAM_NOT_PUBLISHED
+  CONTRACT_MISSING
+  CONTRACT_NOT_ACTIVE
+  TERMS_NOT_ACCEPTED
+  TERRITORY_RESTRICTED
+  CHANNEL_RESTRICTED
+  LISTING_NOT_PUBLISHED
+  LISTING_NOT_AVAILABLE
+  MANUAL_REVIEW_REQUIRED
+}
+
 enum UserRole {
   SUPER_ADMIN
   ADMIN
@@ -1060,6 +1085,32 @@ model CommercialParty {
   @@map("commercial_parties")
 }
 
+model CommercialEligibilityDecisionRecord {
+  id              String                       @id @db.Char(36)
+  workspaceId     String                       @map("workspace_id") @db.Char(36)
+  listingId       String                       @map("listing_id") @db.Char(36)
+  partnerId       String                       @map("partner_id") @db.Char(36)
+  authorizationId String?                      @map("authorization_id") @db.Char(36)
+  decision        CommercialEligibilityDecision
+  reasons         Json
+  criteriaSnapshot Json                        @map("criteria_snapshot")
+  evaluatedAt     DateTime                     @default(now()) @map("evaluated_at") @db.DateTime(0)
+  evaluatedBy     String?                      @map("evaluated_by") @db.Char(36)
+  expiresAt       DateTime?                    @map("expires_at") @db.DateTime(0)
+  overrideReason  String?                      @map("override_reason") @db.Text
+  overriddenBy    String?                      @map("overridden_by") @db.Char(36)
+  createdAt       DateTime                     @default(now()) @map("created_at") @db.DateTime(0)
+  workspace       Workspace                    @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  listing         CommercialListing            @relation(fields:[listingId], references:[id], onDelete:Restrict)
+  partner         Partner                      @relation(fields:[partnerId], references:[id], onDelete:Restrict)
+  authorization   CommercialListingAuthorization? @relation(fields:[authorizationId], references:[id], onDelete:SetNull)
+
+  @@index([workspaceId,partnerId,decision], map:"idx_commercial_eligibility_workspace_partner")
+  @@index([listingId,partnerId,evaluatedAt], map:"idx_commercial_eligibility_listing_partner")
+  @@index([authorizationId], map:"idx_commercial_eligibility_authorization")
+  @@map("commercial_eligibility_decisions")
+}
+
 model CommercialListingAuthorization {
   id            String                        @id @db.Char(36)
   workspaceId   String                        @map("workspace_id") @db.Char(36)
@@ -1067,6 +1118,7 @@ model CommercialListingAuthorization {
   partyId       String?                       @map("party_id") @db.Char(36)
   partnerId     String?                       @map("partner_id") @db.Char(36)
   userId        String?                       @map("user_id") @db.Char(36)
+  programId     String?                       @map("program_id") @db.Char(36)
   authorizationType CommercialAuthorizationType @map("authorization_type")
   status        CommercialAuthorizationStatus @default(REQUESTED)
   effectiveAt   DateTime                      @default(now()) @map("effective_at") @db.DateTime(0)
@@ -1087,6 +1139,7 @@ model CommercialListingAuthorization {
   workspace    Workspace                      @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
   listing      CommercialListing             @relation(fields:[listingId], references:[id], onDelete:Restrict)
   party        CommercialParty?             @relation(fields:[partyId], references:[id], onDelete:SetNull)
+  program      PartnerProgram?               @relation(fields:[programId], references:[id], onDelete:SetNull)
   partner      Partner?                     @relation(fields:[partnerId], references:[id], onDelete:SetNull)
   user         User?                        @relation(fields:[userId], references:[id], onDelete:SetNull)
 
@@ -1939,6 +1992,7 @@ model Workspace {
   commercialListings CommercialListing[]
   commercialParties CommercialParty[]
   commercialListingAuthorizations CommercialListingAuthorization[]
+  commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
