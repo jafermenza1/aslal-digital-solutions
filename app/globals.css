@@ -1034,6 +1034,7 @@ body{background:var(--bg-primary);color:var(--text-primary)}
   min-height:100vh;
   display:flex;
   flex-direction:column;
+  overflow-y:auto;
   overflow-x:hidden;
 }
 .dashboard-topbar{
@@ -1061,7 +1062,6 @@ body{background:var(--bg-primary);color:var(--text-primary)}
 .dashboard-content{
   flex:1 1 auto;
   min-width:0;
-  overflow-y:auto;
   overflow-x:hidden;
 }
 .dashboard-workspace-context{
