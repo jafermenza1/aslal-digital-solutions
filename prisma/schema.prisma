@@ -266,6 +266,16 @@ enum CommercialEligibilityDecision {
   REVIEW_REQUIRED
 }
 
+enum CommercialDealRegistrationStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  PROTECTED
+  EXPIRED
+  CONVERTED
+  DISPUTED
+}
+
 enum CommercialEligibilityReason {
   PARTNER_INACTIVE
   ACCOUNT_RESTRICTED
@@ -574,6 +584,7 @@ model Lead {
   opportunities     Opportunity[]
   conversations     Conversation[]
   partnerDisputes    PartnerDispute[]
+  commercialDealRegistrations CommercialDealRegistration[]
 
   @@index([status], map: "idx_leads_status")
   @@index([score], map: "idx_leads_score")
@@ -748,6 +759,7 @@ model Partner {
   termsAcceptances PartnerTermsAcceptance[]
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
+  commercialDealRegistrations CommercialDealRegistration[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
@@ -1088,6 +1100,51 @@ model CommercialParty {
   @@map("commercial_parties")
 }
 
+model CommercialDealRegistration {
+  id               String                         @id @db.Char(36)
+  workspaceId      String                         @map("workspace_id") @db.Char(36)
+  listingId        String                         @map("listing_id") @db.Char(36)
+  partnerId        String                         @map("partner_id") @db.Char(36)
+  authorizationId  String?                        @map("authorization_id") @db.Char(36)
+  leadId           String                         @map("lead_id") @db.Char(36)
+  opportunityId    String?                        @map("opportunity_id") @db.Char(36)
+  status           CommercialDealRegistrationStatus @default(REQUESTED)
+  source           String?                        @db.VarChar(100)
+  buyerName        String?                        @map("buyer_name") @db.VarChar(190)
+  buyerEmail       String?                        @map("buyer_email") @db.VarChar(190)
+  buyerPhone       String?                        @map("buyer_phone") @db.VarChar(40)
+  estimatedValue   Decimal?                       @map("estimated_value") @db.Decimal(15,2)
+  currency         String                         @default("ETB") @db.VarChar(10)
+  notes            String?                        @db.Text
+  evidence         Json?
+  requestedAt      DateTime                       @default(now()) @map("requested_at") @db.DateTime(0)
+  reviewedAt       DateTime?                      @map("reviewed_at") @db.DateTime(0)
+  protectedFrom    DateTime?                      @map("protected_from") @db.DateTime(0)
+  protectedUntil   DateTime?                      @map("protected_until") @db.DateTime(0)
+  rejectedAt       DateTime?                      @map("rejected_at") @db.DateTime(0)
+  rejectionReason  String?                        @map("rejection_reason") @db.Text
+  convertedAt      DateTime?                      @map("converted_at") @db.DateTime(0)
+  disputedAt      DateTime?                      @map("disputed_at") @db.DateTime(0)
+  createdBy        String?                        @map("created_by") @db.Char(36)
+  reviewedBy       String?                        @map("reviewed_by") @db.Char(36)
+  createdAt        DateTime                       @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime                       @updatedAt @map("updated_at") @db.DateTime(0)
+
+  workspace        Workspace                      @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  listing          CommercialListing              @relation(fields:[listingId], references:[id], onDelete:Restrict)
+  partner          Partner                        @relation(fields:[partnerId], references:[id], onDelete:Restrict)
+  authorization    CommercialListingAuthorization? @relation(fields:[authorizationId], references:[id], onDelete:SetNull)
+  lead             Lead                           @relation(fields:[leadId], references:[id], onDelete:Restrict)
+  opportunity      Opportunity?                   @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
+
+  @@index([workspaceId,status,requestedAt], map:"idx_commercial_deal_workspace_status")
+  @@index([listingId,status,protectedUntil], map:"idx_commercial_deal_listing_status")
+  @@index([partnerId,status], map:"idx_commercial_deal_partner_status")
+  @@index([leadId,status], map:"idx_commercial_deal_lead_status")
+  @@index([opportunityId], map:"idx_commercial_deal_opportunity")
+  @@map("commercial_deal_registrations")
+}
+
 model CommercialEligibilityDecisionRecord {
   id              String                       @id @db.Char(36)
   workspaceId     String                       @map("workspace_id") @db.Char(36)
@@ -1145,6 +1202,7 @@ model CommercialListingAuthorization {
   program      PartnerProgram?               @relation(fields:[programId], references:[id], onDelete:SetNull)
   partner      Partner?                     @relation(fields:[partnerId], references:[id], onDelete:SetNull)
   eligibilityDecisions CommercialEligibilityDecisionRecord[]
+  commercialDealRegistrations CommercialDealRegistration[]
   user         User?                        @relation(fields:[userId], references:[id], onDelete:SetNull)
 
   @@index([workspaceId,status], map:"idx_commercial_auth_workspace_status")
@@ -1403,6 +1461,7 @@ model Opportunity {
   activities      Activity[]
   quotes          Quote[]
   orders          Order[]
+  commercialDealRegistrations CommercialDealRegistration[]
 
   @@index([leadId, stage], map: "idx_opportunities_lead_stage")
   @@index([ownerEmail, stage], map: "idx_opportunities_owner_stage")
@@ -1994,6 +2053,7 @@ model Workspace {
   telegramDestinations TelegramDestination[]
   products Product[]
   commercialListings CommercialListing[]
+  commercialDealRegistrations CommercialDealRegistration[]
   commercialParties CommercialParty[]
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
@@ -2071,6 +2131,7 @@ model User {
   partner         Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   workspaceUsers   WorkspaceUser[]
   commercialListingAuthorizations CommercialListingAuthorization[]
+  commercialDealRegistrations CommercialDealRegistration[]
   membershipHistory WorkspaceMembershipHistory[]
   audits          UserAudit[]
 
