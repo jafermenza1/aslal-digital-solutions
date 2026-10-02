@@ -50,6 +50,11 @@ export async function GET(req:Request){
   const responseRequestGroups=await prisma.commercialRequestResponse.groupBy({by:["requestId"],where:{workspaceId:w,createdAt:period},_count:{_all:true}});
   const partnerAttributed=Number(money(partnerRevenue._sum?.recognizedAmount));
   const recognized=Number(money(revenueTotal._sum?.recognizedAmount));
+  if(u.searchParams.get("format")==="csv"){
+    const rows=[["Metric","Value"],["Listings published",listings],["Demand requests",requests],["Leads",leads],["Opportunities",opportunities],["Quotes",quotes],["Orders",orders],["Paid orders",paidOrders],["Recognized revenue",money(revenueTotal._sum?.recognizedAmount)],["Partner-attributed revenue",money(partnerRevenue._sum?.recognizedAmount)],["Commission liability",money(commissions._sum?.amount)],["Commission paid",money(commissionPaid._sum?.amount)],["Payouts paid",money(payouts._sum?.amount)],["Matches",matches],["Appointments",appointments],["Verified external payments",externalEvidence],["Disputes",disputes]];
+    const csv=rows.map(row=>row.map(value=>"\"" + String(value).replaceAll("\"","\"\"") + "\"").join(",")).join("\n");
+    return new Response(csv,{headers:{"Content-Type":"text/csv; charset=utf-8","Content-Disposition":\`attachment; filename="commercial-analytics-\${from.toISOString().slice(0,10)}-\${to.toISOString().slice(0,10)}.csv"\`}});
+  }
   return NextResponse.json({
     ok:true,workspace:{id:w,name:access.workspace.name},period:{start:from.toISOString(),end:to.toISOString(),days:Math.max(1,Math.round((to.getTime()-from.getTime())/DAY))},
     metrics:{
@@ -73,7 +78,7 @@ export async function GET(req:Request){
       population:"Workspace-scoped records created or recognized inside the selected period; test leads are excluded.",
       attribution:"Partner-attributed revenue uses canonical Revenue.partnerId; no click-only revenue is counted.",
       revenue:"Recognized revenue uses Revenue.status=RECOGNIZED and recognizedAt in the selected period.",
-      commission:"Liability includes all non-VOID commissions created in the selected period; paid is Commission.status=PAID.",
+      commission:"Liability is outstanding commission in PENDING, QUALIFIED, APPROVED or PAYABLE states created in the selected period; paid is Commission.status=PAID.",
       responseRate:"Requests eligible for responses with at least one recorded response, based on request/response records in the selected period."
     }
   });
