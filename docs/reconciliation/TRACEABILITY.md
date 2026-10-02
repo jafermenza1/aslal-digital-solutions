@@ -96,7 +96,7 @@ The following requirements extend the existing baseline without invalidating ear
 | R54 | Attribution protection | Preserve protected partner contribution through inspection, quote, order and external payment evidence where terms apply. | TARGET / GAP-CLOSURE |
 | R55 | Inspection/appointment | Record physical inspection/site visit/check-in/outcome as commercial evidence. | TARGET / GAP-CLOSURE |
 | R56 | Demand requests | Public users can submit buy, asset, service and RFP requests that enter the Lead/Opportunity chain. | TARGET / GAP-CLOSURE |
-| R57 | Supply-demand matching | Match structured demand to eligible listings/providers and preserve match provenance. | TARGET / GAP-CLOSURE |
+| R57 | Supply-demand matching | Match structured demand to eligible listings/providers and preserve match provenance. | IMPLEMENTED-UNVERIFIED | CE-7 implements deterministic matching, persisted scores/reasons, duplicate prevention, expiry, review controls and CE-6 response handoff. A migration-seeded demo dataset provides five demand scenarios and eight match examples; runtime migration/E2E verification remains required. |
 | R58 | Professional provider | Provider profile, qualifications/verification evidence, services, service area and availability. | TARGET / GAP-CLOSURE |
 | R59 | Proposal/RFP | Providers can respond with versioned proposals that can be compared and accepted. | TARGET / GAP-CLOSURE |
 | R60 | External payment evidence | Record and verify bank/cash/external settlement evidence without misrepresenting it as provider-processed payment. | TARGET / GAP-CLOSURE |
