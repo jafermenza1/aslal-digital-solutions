@@ -25,17 +25,18 @@ export async function POST(request: Request) {
     const type = String(body.type ?? "AGENT").toUpperCase();
     const status = "PENDING";
     const code = String(body.code ?? "").trim().toLowerCase();
+    const phone = String(body.phone ?? "").trim() || null;
+    const country = String(body.country ?? "").trim() || "Ethiopia";
     const bio = String(body.bio ?? "").trim() || null;
     const specialties = String(body.specialties ?? "").trim() || null;
     const serviceAreas = String(body.serviceAreas ?? "").trim() || null;
     const audienceSize = body.audienceSize === undefined || body.audienceSize === "" ? null : Number(body.audienceSize);
-    const campaign = String(body.campaign ?? "").trim() || null;
-    const productSlug = String(body.productSlug ?? "").trim() || null;
-    let destinationPath = String(body.destinationPath ?? "/").trim() || "/";
 
     if (name.length < 2 || name.length > 160) return NextResponse.json({ error: "Partner name must be 2–160 characters." }, { status: 400 });
     if (!PARTNER_TYPES.has(type) || !PARTNER_STATUSES.has(status)) return NextResponse.json({ error: "Invalid partner type or status." }, { status: 400 });
     if (email && email.length > 190) return NextResponse.json({ error: "Email is too long." }, { status: 400 });
+    if (phone && phone.length > 40) return NextResponse.json({ error: "Phone number is too long." }, { status: 400 });
+    if (country.length > 100) return NextResponse.json({ error: "Country is too long." }, { status: 400 });
     if (bio && bio.length > 5000 || specialties && specialties.length > 5000 || serviceAreas && serviceAreas.length > 5000) return NextResponse.json({ error: "Partner profile text is too long." }, { status: 400 });
     if (audienceSize !== null && (!Number.isInteger(audienceSize) || audienceSize < 0)) return NextResponse.json({ error: "Audience size must be a non-negative integer." }, { status: 400 });
 
@@ -46,10 +47,6 @@ export async function POST(request: Request) {
     if (!/^[a-z0-9][a-z0-9_-]{2,99}$/.test(finalCode)) {
       return NextResponse.json({ error: "Referral code must be 3–100 lowercase letters, numbers, hyphens or underscores." }, { status: 400 });
     }
-    if (productSlug && destinationPath === "/") destinationPath = `/products/${encodeURIComponent(productSlug)}`;
-    if (!destinationPath.startsWith("/") || destinationPath.startsWith("//") || destinationPath.length > 500) {
-      return NextResponse.json({ error: "Destination must be an internal path." }, { status: 400 });
-    }
 
     const partnerId = crypto.randomUUID();
     let identityId = String(body.identityId ?? "").trim() || "";
@@ -59,7 +56,7 @@ export async function POST(request: Request) {
       if (!identityRows[0]) return NextResponse.json({ error: "Partner identity not found." }, { status: 404 });
     } else {
       identityId = crypto.randomUUID();
-      await db.query("INSERT INTO partner_identities (id,name,email,phone,created_at,updated_at) VALUES (?,?,?,?,NOW(),NOW())",[identityId,name,email,null]);
+      await db.query("INSERT INTO partner_identities (id,name,email,phone,created_at,updated_at) VALUES (?,?,?,?,NOW(),NOW())",[identityId,name,email,phone]);
       createdIdentity = true;
     }
     // Human-facing partner IDs are sequential business identifiers; the UUID remains the internal DB key.
@@ -70,14 +67,14 @@ export async function POST(request: Request) {
     );
     const nextNumber = Number(seqRows[0]?.next || 101);
     const partnerNumber = `ASL-${nextNumber}-${year}`;
-    await db.query("INSERT INTO partners (id, identity_id, workspace_id, partner_number, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-      partnerId, identityId, workspace.id, partnerNumber, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
+    await db.query("INSERT INTO partners (id, identity_id, workspace_id, partner_number, name, email, phone, country, type, status, account_status, onboarding_status, onboarding_step, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'REGISTERED', 'IN_PROGRESS', 'PROFILE', ?, ?, ?, ?, 0)", [
+      partnerId, identityId, workspace.id, partnerNumber, name, email, phone, country, type, status, bio, specialties, serviceAreas, audienceSize,
     ]);
 
     try {
       await db.query(
-        "INSERT INTO referral_links (id, workspace_id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [crypto.randomUUID(), workspace.id, partnerId, finalCode, campaign, productSlug, destinationPath],
+        "INSERT INTO referral_links (id, workspace_id, partner_id, code, campaign, product_slug, destination_path) VALUES (?, ?, ?, ?, NULL, NULL, '/')",
+        [crypto.randomUUID(), workspace.id, partnerId, finalCode],
       );
     } catch (error) {
       await db.query("DELETE FROM partners WHERE id = ?", [partnerId]);
