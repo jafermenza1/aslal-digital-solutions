@@ -16,10 +16,11 @@ function parse(body:any){
  const productId=clean(body.productId,36)||null;
  const ownerPartyId=clean(body.ownerPartyId,36)||null;
  const supplierPartyId=clean(body.supplierPartyId,36)||null;
+ const professionalProfileId=clean(body.professionalProfileId,36)||null;
  const slug=slugify(clean(body.slug,160)||title);
  const askingPrice=body.askingPrice===""||body.askingPrice==null?null:Number(body.askingPrice);
  return {
-  workspaceId,productId,ownerPartyId,supplierPartyId,title,slug,listingType,status,
+  workspaceId,productId,ownerPartyId,supplierPartyId,professionalProfileId,title,slug,listingType,status,
   description:clean(body.description,20000)||null,
   category:clean(body.category,100)||"General",
   condition:clean(body.condition,60)||null,
@@ -46,7 +47,7 @@ export async function GET(request:Request){
  const listings=await prisma.commercialListing.findMany({
   where:{workspaceId:access.workspace.id},
   orderBy:[{updatedAt:"desc"}],
-  include:{product:{select:{id:true,name:true,slug:true,kind:true}},ownerParty:{select:{id:true,name:true,type:true,status:true}},supplierParty:{select:{id:true,name:true,type:true,status:true}},workspace:{select:{id:true,name:true,slug:true}}}
+  include:{product:{select:{id:true,name:true,slug:true,kind:true}},professionalProfile:{select:{id:true,displayName:true,profession:true,verificationLevel:true,status:true}},ownerParty:{select:{id:true,name:true,type:true,status:true}},supplierParty:{select:{id:true,name:true,type:true,status:true}},workspace:{select:{id:true,name:true,slug:true}}}
  });
  const products=await prisma.product.findMany({where:{workspaceId:access.workspace.id},select:{id:true,name:true,slug:true,kind:true,active:true},orderBy:{name:"asc"}});
  return NextResponse.json({listings,products,workspace:access.workspace});
@@ -58,6 +59,7 @@ export async function POST(request:Request){
  if(p.workspaceId!==actor.workspace.id)return NextResponse.json({error:"Workspace access denied."},{status:403});
  if(!valid(p))return NextResponse.json({error:"Workspace, title, slug, listing type and valid status are required."},{status:400});
  if(p.ownerPartyId && !(await prisma.commercialParty.findFirst({where:{id:p.ownerPartyId,workspaceId:p.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected owner does not belong to this workspace or is archived."},{status:400});
+ if(p.professionalProfileId && !(await prisma.professionalProfile.findFirst({where:{id:p.professionalProfileId,workspaceId:p.workspaceId,status:{in:["PUBLISHED","PENDING_REVIEW"]}},select:{id:true}})))return NextResponse.json({error:"The selected professional profile is not available in this workspace."},{status:400});
  if(p.supplierPartyId && !(await prisma.commercialParty.findFirst({where:{id:p.supplierPartyId,workspaceId:p.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected supplier does not belong to this workspace or is archived."},{status:400});
  if(p.status==="PUBLISHED"&&!p.ownerPartyId)return NextResponse.json({error:"A listing cannot be published without an identified commercial owner."},{status:400});
  if(p.productId){
