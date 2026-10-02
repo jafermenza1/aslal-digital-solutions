@@ -19,7 +19,7 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
  const authorizations=await prisma.commercialListingAuthorization.findMany({
   where:{listingId:id,workspaceId:access.workspace.id},
   orderBy:{createdAt:"desc"},
-  include:{party:{select:{id:true,name:true,type:true,status:true}},partner:{select:{id:true,name:true,partnerNumber:true,type:true,status:true,verificationStatus:true}},user:{select:{id:true,name:true,email:true,active:true}}}
+  include:{party:{select:{id:true,name:true,type:true,status:true}},program:{select:{id:true,name:true,status:true,admissionMode:true}},partner:{select:{id:true,name:true,partnerNumber:true,type:true,status:true,verificationStatus:true}},user:{select:{id:true,name:true,email:true,active:true}}}
  });
  return NextResponse.json({listing,authorizations});
 }
