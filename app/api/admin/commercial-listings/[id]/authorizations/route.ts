@@ -31,11 +31,12 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
  const listing=await prisma.commercialListing.findFirst({where:{id,workspaceId:access.workspace.id},select:{id:true}});
  if(!listing)return NextResponse.json({error:"Listing not found."},{status:404});
- const partyId=clean(body.partyId,36)||null, partnerId=clean(body.partnerId,36)||null, userId=clean(body.userId,36)||null;
+ const partyId=clean(body.partyId,36)||null, partnerId=clean(body.partnerId,36)||null, userId=clean(body.userId,36)||null, programId=clean(body.programId,36)||null;
  if([partyId,partnerId,userId].filter(Boolean).length!==1)
   return NextResponse.json({error:"Select exactly one authorized party, partner, or staff user."},{status:400});
  if(partyId && !(await prisma.commercialParty.findFirst({where:{id:partyId,workspaceId:access.workspace.id,status:{not:"ARCHIVED"}},select:{id:true}})))
   return NextResponse.json({error:"Commercial party does not belong to this workspace or is archived."},{status:400});
+ if(programId && !(await prisma.partnerProgram.findFirst({where:{id:programId,workspaceId:access.workspace.id},select:{id:true}})))return NextResponse.json({error:"Partner program does not belong to this workspace."},{status:400});
  if(partnerId && !(await prisma.partner.findFirst({where:{id:partnerId,workspaceId:access.workspace.id},select:{id:true}})))
   return NextResponse.json({error:"Partner does not belong to this workspace."},{status:400});
  if(userId && !(await prisma.workspaceUser.findFirst({where:{workspaceId:access.workspace.id,userId,status:"ACTIVE"},select:{id:true}})))
@@ -44,7 +45,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  if(!TYPES.includes(authorizationType as any)||!STATUSES.includes(status as any))
   return NextResponse.json({error:"Invalid authorization type or status."},{status:400});
  const authorization=await prisma.commercialListingAuthorization.create({data:{
-  id:randomUUID(),workspaceId:access.workspace.id,listingId:id,partyId,partnerId,userId,
+  id:randomUUID(),workspaceId:access.workspace.id,listingId:id,partyId,partnerId,userId,programId,
   authorizationType:authorizationType as any,status:status as any,
   effectiveAt:body.effectiveAt?new Date(body.effectiveAt):new Date(),
   expiresAt:body.expiresAt?new Date(body.expiresAt):null,
@@ -56,5 +57,13 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   approvedBy:["APPROVED","ACTIVE"].includes(status)?access.user.id:null,
   approvedAt:["APPROVED","ACTIVE"].includes(status)?new Date():null
  },include:{party:true,partner:true,user:true}});
+ if(partnerId && ["APPROVED","ACTIVE"].includes(status)){
+   const { evaluateCommercialPartnerEligibility } = await import("@/lib/commercial-eligibility");
+   const eligibility=await evaluateCommercialPartnerEligibility({workspaceId:access.workspace.id,listingId:id,partnerId,authorizationId:authorization.id,channel:clean(body.channel,100)||null,territory:clean(body.territory,190)||null,actorId:access.user.id});
+   if(eligibility.decision!=="ELIGIBLE"){
+     const held=await prisma.commercialListingAuthorization.update({where:{id:authorization.id},data:{status:"SUSPENDED"}});
+     return NextResponse.json({ok:false,error:"Authorization recorded but not activated because the partner is not currently eligible.",authorization:held,eligibility},{status:422});
+   }
+ }
  return NextResponse.json({ok:true,authorization},{status:201});
 }
