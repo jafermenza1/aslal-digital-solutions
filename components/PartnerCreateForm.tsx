@@ -24,6 +24,7 @@ type PartnerCreateFormProps = {
 export default function PartnerCreateForm({ products = [], openInitially = false, showTrigger = true, canIssueCredentials = false, adminOnlyActions, workspaceId }: PartnerCreateFormProps) {
   const credentialsAllowed = adminOnlyActions ?? canIssueCredentials;
   const [open, setOpen] = useState(openInitially);
+  const [partnerType, setPartnerType] = useState("AGENT");
   const [busy, setBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState("");
   const [message, setMessage] = useState("");
@@ -103,7 +104,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
   return (
     <>
       {showTrigger && (
-        <button type="button" onClick={() => { setOpen(true); setCreated(null); setCredentials(null); setMessage(""); }} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-[#0b3475]">
+        <button type="button" onClick={() => { setOpen(true); setCreated(null); setCredentials(null); setMessage(""); setPartnerType("AGENT"); }} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-[#0b3475]">
           + Add partner
         </button>
       )}
@@ -126,7 +127,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   <Field label="Name" name="name" required placeholder="Partner or agent name" />
                   <Field label="Registered email" name="email" type="email" placeholder="name@example.com" />
-                  <label className="text-sm font-bold text-slate-700">Type<select name="type" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option>AGENT</option><option>INFLUENCER</option><option>AFFILIATE</option><option>RESELLER</option></select></label>
+                  <label className="text-sm font-bold text-slate-700">Type<select name="type" value={partnerType} onChange={event => setPartnerType(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option>AGENT</option><option>INFLUENCER</option><option>AFFILIATE</option><option>RESELLER</option></select></label>
                   <label className="text-sm font-bold text-slate-700">Registration status<select name="status" defaultValue="PENDING" disabled className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><option>PENDING</option></select><input type="hidden" name="status" value="PENDING" /></label>
                   <Field label="Referral code" name="code" placeholder="e.g. agent-abebe" />
                   <Field label="Campaign" name="campaign" placeholder="e.g. september" />
