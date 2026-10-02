@@ -2067,6 +2067,10 @@ model CommercialDistributionItem {
   inventoryLimit Int? @map("inventory_limit")
   startsAt DateTime? @map("starts_at") @db.DateTime(0)
   endsAt DateTime? @map("ends_at") @db.DateTime(0)
+  rsvpRequired Boolean @default(false) @map("rsvp_required")
+  rsvpOpensAt DateTime? @map("rsvp_opens_at") @db.DateTime(0)
+  rsvpClosesAt DateTime? @map("rsvp_closes_at") @db.DateTime(0)
+  rsvps SalesAssetRsvp[]
   redemptionInstructions String? @map("redemption_instructions") @db.Text
   orders Order[]
   status CommercialDistributionAssetStatus @default(DRAFT)
@@ -2077,6 +2081,28 @@ model CommercialDistributionItem {
   @@index([workspaceId,campaignId], map:"idx_dist_item_workspace_campaign")
   @@index([workspaceId,productId], map:"idx_dist_item_workspace_product")
   @@map("commercial_distribution_items")
+}
+
+model SalesAssetRsvp {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  assetId String @map("asset_id") @db.Char(36)
+  issuedAssetId String? @map("issued_asset_id") @db.Char(36)
+  attendeeName String @map("attendee_name") @db.VarChar(190)
+  attendeePhone String? @map("attendee_phone") @db.VarChar(40)
+  attendeeEmail String? @map("attendee_email") @db.VarChar(190)
+  status String @default("CONFIRMED") @db.VarChar(20)
+  reservedAt DateTime @default(now()) @map("reserved_at") @db.DateTime(0)
+  cancelledAt DateTime? @map("cancelled_at") @db.DateTime(0)
+  checkedInAt DateTime? @map("checked_in_at") @db.DateTime(0)
+  checkedInBy String? @map("checked_in_by") @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  asset CommercialDistributionItem @relation(fields:[assetId], references:[id], onDelete:Restrict)
+  @@unique([issuedAssetId], map:"uq_sales_asset_rsvp_issued_asset")
+  @@index([workspaceId,assetId,status], map:"idx_sales_asset_rsvp_asset_status")
+  @@index([workspaceId,attendeePhone], map:"idx_sales_asset_rsvp_phone")
+  @@map("sales_asset_rsvps")
 }
 
 model PartnerSalesAssetAllocation {
