@@ -57,7 +57,8 @@ const ITEMS:Item[]=[
 {key:"publicContent",href:"/dashboard/social-profiles",permission:"content.manage",icon:"message",group:"administration",nested:true,label:"Social Profiles"},
 
 {key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"},
-{key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"}
+{key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"},
+{key:"partnerPortal",href:"/dashboard/partner/sales-assets",permission:"partner.portal.view",icon:"store",group:"explore",nested:true,label:"Sell & Print"}
 ];
 
 export function DashboardNav({locale,permissions,mobile=false,open=false,onClose}:{locale:Locale;permissions:string[];mobile?:boolean;open?:boolean;onClose?:()=>void}) {
