@@ -4,17 +4,17 @@ import { useRouter } from "next/navigation";
 
 type Product={id:string;name:string;slug:string};
 type Campaign={id:string;name:string;deliveryMode:"ONLINE"|"OFFLINE"|"HYBRID";serviceAreas:Array<{id:string;name:string;areaType:"CITY"|"EVENT"}>;partners:Array<{id:string;name:string;partnerNumber:string;type:string}>};
-type Props={openDefault?:boolean;products?:Product[];campaigns?:Campaign[]};
+type Props={openDefault?:boolean;products?:Product[];campaigns?:Campaign[];serviceAreas?:Array<{id:string;name:string;areaType:"CITY"|"EVENT"}>};
 
 const channels=[
   ["PHONE","Phone call"],["PHYSICAL_MEETING","Physical meeting / walk-in"],["EVENT","Event / exhibition"],["FLYER","Flyer / brochure"],["RADIO","Radio campaign"],["TELEVISION","Television campaign"],["OUTDOOR","Outdoor / billboard"],["FIELD_AGENT","Field sales / agent"],["WORD_OF_MOUTH","Word of mouth"],["OTHER_OFFLINE","Other offline"],
 ];
 
-export function OfflineLeadForm({openDefault=false,products=[],campaigns=[]}:Props){
+export function OfflineLeadForm({openDefault=false,products=[],campaigns=[],serviceAreas=[]}:Props){
  const router=useRouter();
  const [open,setOpen]=useState(openDefault),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[campaignId,setCampaignId]=useState(""),[serviceAreaId,setServiceAreaId]=useState(""),[partnerId,setPartnerId]=useState("");
  const campaign=campaigns.find(c=>c.id===campaignId);
- const areas=campaign?.serviceAreas||[];
+ const areas=campaign?.serviceAreas.length?campaign.serviceAreas:serviceAreas;
  const partners=campaign?.partners||[];
  const requiresArea=campaign?.deliveryMode!=="ONLINE";
  const availablePartners=useMemo(()=>partners,[partners]);
@@ -42,7 +42,7 @@ export function OfflineLeadForm({openDefault=false,products=[],campaigns=[]}:Pro
     <input name="phone" placeholder="Phone / WhatsApp" className="rounded-xl border border-slate-200 px-4 py-3"/>
     <select name="leadCategory" required defaultValue="" className="rounded-xl border border-slate-200 px-4 py-3"><option value="" disabled>How did the customer arrive?</option>{channels.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>
     <select value={campaignId} onChange={e=>{setCampaignId(e.target.value);setServiceAreaId("");setPartnerId("");}} className="rounded-xl border border-slate-200 px-4 py-3"><option value="">Campaign / promotion (optional)</option>{campaigns.map(c=><option key={c.id} value={c.id}>{c.name} · {c.deliveryMode}</option>)}</select>
-    <select value={serviceAreaId} onChange={e=>setServiceAreaId(e.target.value)} disabled={!campaign||!requiresArea} required={Boolean(campaign&&requiresArea)} className="rounded-xl border border-slate-200 px-4 py-3 disabled:bg-slate-50"><option value="">{campaign&&requiresArea?"Supported city / event":"Service area (select campaign first)"}</option>{areas.map(a=><option key={a.id} value={a.id}>{a.areaType}: {a.name}</option>)}</select>
+    <select value={serviceAreaId} onChange={e=>setServiceAreaId(e.target.value)} disabled={false} required={Boolean(campaign&&requiresArea)} className="rounded-xl border border-slate-200 px-4 py-3 disabled:bg-slate-50"><option value="">{campaign&&requiresArea?"Supported city / event":campaign?"Service area (optional)":"City / event (optional)"}</option>{areas.map(a=><option key={a.id} value={a.id}>{a.areaType}: {a.name}</option>)}</select>
     <select value={partnerId} onChange={e=>setPartnerId(e.target.value)} disabled={!campaign||availablePartners.length===0} className="rounded-xl border border-slate-200 px-4 py-3 disabled:bg-slate-50"><option value="">Partner attribution (optional)</option>{availablePartners.map(p=><option key={p.id} value={p.id}>{p.name} · {p.partnerNumber}</option>)}</select>
     <select name="productId" defaultValue="" className="rounded-xl border border-slate-200 px-4 py-3"><option value="">Product / service interest (optional)</option>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
    </div>
