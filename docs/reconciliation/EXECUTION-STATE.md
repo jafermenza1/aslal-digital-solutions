@@ -470,3 +470,29 @@ Not implemented by CE-2:
 - leakage/dispute automation.
 
 CE-2 is **not accepted** from code existence alone. Required evidence includes Prisma migration/application validation, local typecheck/lint/build, Workspace A/B authorization isolation tests, owner/supplier mismatch rejection, staff/partner workspace membership rejection, publication-without-owner rejection, authorization lifecycle transitions, and revoked-history preservation.
+
+## Main Commercial Engine — CE-3 implementation update
+
+**Increment:** CE-3 — Partner Eligibility  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented:
+- explicit eligibility decision record with ELIGIBLE, INELIGIBLE and REVIEW_REQUIRED outcomes;
+- auditable reason codes and criteria snapshots rather than an opaque boolean;
+- checks for partner status, account restrictions, verification suspension and onboarding completion;
+- authorization status and listing publication/availability checks;
+- optional partner-program checks for published program, allowed partner types, active commission contract and accepted terms;
+- authorization-level partner type, territory and channel restrictions;
+- program association on commercial listing authorizations;
+- workspace-scoped eligibility evaluation API and dashboard evaluation control;
+- ACTIVE/APPROVED partner authorization is held in SUSPENDED state when current eligibility is not proven, preserving the authorization history rather than silently granting distribution rights.
+
+Not implemented by CE-3:
+- automatic deal registration;
+- attribution protection;
+- inspection/appointment;
+- demand matching;
+- commission calculation;
+- leakage/dispute automation.
+
+Required acceptance evidence remains: Prisma migration/application validation, typecheck/lint/build, Workspace A/B eligibility isolation, eligible/ineligible partner fixtures, program/contract/terms cases, partner-type/territory/channel cases, expired/unpublished listing cases, and proof that ineligible partners cannot receive an ACTIVE commercial authorization.
