@@ -29,7 +29,8 @@ export default function PartnerGrowthEngine(){
    setPartners(a.partners||[]);setCampaigns(b.campaigns||[]);setProducts(b.products||[]);setResources(b.resources||[]);setServiceAreas(b.serviceAreas||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
   }catch(e){setMessage(e instanceof Error?e.message:"Could not load partner engine.");}
  }
- // Load partner-engine data after mount.\n useEffect(()=>{void load()},[]);
+ // Load partner-engine data after mount.
+ useEffect(()=>{void load()},[]);
 
  async function addServiceArea(){ const name=newAreaName.trim(); if(!name)return; setBusy("area"); try{const r=await fetch("/api/admin/partner-engine/service-areas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({areaType:newAreaType,name})}); const d=await r.json().catch(()=>({})); if(!r.ok)throw new Error(d.error||"Could not create service area."); setServiceAreas(prev=>[...prev,{id:String(d.id),area_type:newAreaType,name:String(d.name)}]); setForm(f=>({...f,serviceAreaIds:[...f.serviceAreaIds,String(d.id)]})); setNewAreaName("");setNewAreaOpen(false); }catch(e){setMessage(e instanceof Error?e.message:"Could not create service area.");}finally{setBusy("");}}
  async function createCampaign(e:React.FormEvent){
