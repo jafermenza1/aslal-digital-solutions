@@ -1983,9 +1983,31 @@ Implemented on PR #99:
 
 CE-5 does not yet provide QR image generation/printing, notifications/reminders, calendar synchronization, or a full appointment rescheduling workflow. Those are later UI/integration refinements.
 
-### CE-6 — Demand / Wanted Requests
+### CE-6 — Complete Demand / Wanted Request Business Flow
 
-BUY_REQUEST, ASSET_REQUEST, SERVICE_REQUEST and RFP intake.
+**IMPLEMENTED — VERIFICATION PENDING**
+
+CE-6 is intentionally **not a foundation-only intake increment**. It implements the demand-side commercial workflow as one coherent business journey while reusing the existing CRM and commerce spine.
+
+Implemented:
+- first-class `CommercialRequest` for BUY_REQUEST, ASSET_REQUEST, SERVICE_REQUEST and RFP;
+- controlled public demand submission at `/wanted?workspace=<workspace-slug>`;
+- automatic Lead creation and partner attribution reuse;
+- structured demand fields: category, requested item/service, quantity, condition preference, budget, currency, location/service area, deadline, organization/requester identity, contact preference, specifications, attachments and privacy visibility;
+- demand lifecycle: SUBMITTED → QUALIFYING → RESPONSES_OPEN/MATCHING → NEGOTIATING → FULFILLED/CANCELLED/EXPIRED/CLOSED;
+- workspace-scoped operator workbench;
+- supplier/provider/partner responses with optional listing linkage, availability, quoted amount, delivery expectation, terms and evidence;
+- response acceptance/shortlisting/rejection controls;
+- demand-to-Opportunity conversion using the existing Opportunity model;
+- response-to-Quote creation using the existing Quote/QuoteItem model;
+- quote acceptance using the existing Quote lifecycle;
+- quote-to-Order creation using the existing Order/OrderItem model;
+- customer creation from the existing opportunity lead when an order is committed;
+- request/response links preserve the complete demand-to-commercial record without creating replacement CRM, quote or order systems;
+- workspace authorization is enforced on administrative operations;
+- private requester contact data is not exposed by public request listing because the public surface is submission-only.
+
+CE-6 deliberately keeps payment, revenue recognition, commission qualification and external payment evidence in their owning later gates. CE-7 can add richer deterministic supply-demand scoring and automated matching on top of the CE-6 response workflow; CE-9 can add richer RFP proposal versioning/comparison without creating a second demand pipeline.
 
 ### CE-7 — Matching
 
