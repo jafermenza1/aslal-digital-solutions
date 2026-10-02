@@ -878,8 +878,8 @@ model Partner {
   @@index([accountStatus], map: "idx_partners_account_status")
   @@index([verificationLevel], map: "idx_partners_verification_level")
   @@index([identityId], map:"idx_partners_identity")
-  @@map("partners")
   professionalProposals ProfessionalProposal[]
+  @@map("partners")
 }
 
 model PartnerVerificationChallenge {
@@ -1280,8 +1280,8 @@ model CommercialParty {
   commercialMatchesAsSupplier CommercialMatch[] @relation("CommercialMatchSupplierParty")
 
   @@index([workspaceId,status,name], map:"idx_commercial_party_workspace_status_name")
-  @@map("commercial_parties")
   professionalProposals ProfessionalProposal[]
+  @@map("commercial_parties")
 }
 
 model CommercialDealRegistration {
@@ -2487,6 +2487,7 @@ model Workspace {
   professionalCredentials ProfessionalCredential[]
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
+  professionalProposals ProfessionalProposal[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
