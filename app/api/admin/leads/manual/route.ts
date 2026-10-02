@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const message = clean(body.message,5000);
 
   if (!name || !businessType || !leadCategory || !message) return NextResponse.json({ error: "Name, business type, offline source and customer request are required." }, { status:400 });
-  if (!OFFLINE_CHANNELS.includes(leadCategory)) return NextResponse.json({ error: "Choose a valid offline source channel." }, { status:400 });
+  if (!OFFLINE_CHANNELS.includes(leadCategory)) return NextResponse.json({ error: "Choose a valid offline source channel." }, { status:400 });\n  const validAttributionMethods = ["DIRECT_OFFLINE","MANUAL_PARTNER","PARTNER_BROUGHT_CUSTOMER","OFFLINE_CODE","CAMPAIGN_EVENT","STAFF_CAPTURE"];\n  if (!validAttributionMethods.includes(attributionMethod)) return NextResponse.json({ error: "Choose a valid offline attribution method." }, { status:400 });\n  if (attributionMethod !== "DIRECT_OFFLINE" && !reasonNotes) return NextResponse.json({ error: "Attribution reason or evidence is required for an attributed offline lead." }, { status:400 });\n  if (partnerId && attributionMethod === "DIRECT_OFFLINE") return NextResponse.json({ error: "Choose a partner attribution method when assigning a partner." }, { status:400 });
   if (serviceAreaId) {
     const areaRows = await prisma.$queryRawUnsafe<any[]>(`SELECT id,name,area_type FROM campaign_service_area_options WHERE id=? AND workspace_id=? AND active=1 LIMIT 1`,serviceAreaId,workspace.workspace.id);
     if (!areaRows?.[0]) return NextResponse.json({ error: "Selected city or event is not available in this workspace." }, { status: 400 });
