@@ -7,6 +7,7 @@ import { CommercialInspectionManager } from "@/components/CommercialInspectionMa
 import { CommercialDemandWorkbench } from "@/components/CommercialDemandWorkbench";
 import { ProfessionalProfileManager } from "@/components/ProfessionalProfileManager";
 import { ProfessionalProposalWorkbench } from "@/components/ProfessionalProposalWorkbench";
+import { CommercialAgreementManager } from "@/components/CommercialAgreementManager";
 
 export const dynamic="force-dynamic";
 
@@ -35,5 +36,6 @@ export default async function CommercialListingsPage(){
   {workspaceId&&<CommercialAuthorizationManager workspaceId={workspaceId} initialParties={parties} listings={listings.map(x=>({id:x.id,title:x.title}))} users={workspaceUsers.map(x=>({id:x.user.id,name:x.user.name,email:x.user.email}))} partners={partners}/>}\n  {workspaceId&&<CommercialDealRegistrationManager workspaceId={workspaceId} listings={listings.map(x=>({id:x.id,title:x.title}))} partners={partners} leads={leads}/>}\n  {workspaceId&&<CommercialInspectionManager workspaceId={workspaceId} listings={listings.map(x=>({id:x.id,title:x.title}))} registrations={dealRegistrations}/>} 
   {workspaceId&&<ProfessionalProfileManager workspaceId={workspaceId} parties={parties} initial={professionalProfiles.map(x=>({id:x.id,displayName:x.displayName,profession:x.profession,status:x.status,verificationLevel:x.verificationLevel,party:x.party,partner:x.partner,credentials:x.credentials}))}/>}\n  {workspaceId&&<CommercialDemandWorkbench workspaceId={workspaceId} initial={commercialRequests.map(x=>({id:x.id,requestType:x.requestType,status:x.status,title:x.title,requestedItem:x.requestedItem,contactName:x.contactName,lead:x.lead,opportunity:x.opportunity,responses:x.responses}))} initialMatches={commercialMatches.map(x=>({id:x.id,requestId:x.requestId,listingId:x.listingId,status:x.status,score:x.score,reasons:x.reasons,eligibility:x.eligibility,listing:x.listing}))} parties={parties} partners={partners} listings={listings.map(x=>({id:x.id,title:x.title}))}/>}
   <ProfessionalProposalWorkbench workspaceId={workspaceId}/>
+  <CommercialAgreementManager workspaceId={workspaceId||""} parties={parties} partners={partners}/>
  </div></main>;
 }
