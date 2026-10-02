@@ -12,18 +12,18 @@ const channels=[
 
 export function OfflineLeadForm({openDefault=false,products=[],campaigns=[],serviceAreas=[]}:Props){
  const router=useRouter();
- const [open,setOpen]=useState(openDefault),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[campaignId,setCampaignId]=useState(""),[serviceAreaId,setServiceAreaId]=useState(""),[partnerId,setPartnerId]=useState("");
+ const [open,setOpen]=useState(openDefault),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[campaignId,setCampaignId]=useState(""),[serviceAreaId,setServiceAreaId]=useState(""),[partnerId,setPartnerId]=useState(""),[attributionMethod,setAttributionMethod]=useState("DIRECT_OFFLINE");
  const campaign=campaigns.find(c=>c.id===campaignId);
  const areas=campaign?.serviceAreas.length?campaign.serviceAreas:serviceAreas;
  const partners=campaign?.partners||[];
  const requiresArea=campaign?.deliveryMode!=="ONLINE";
  const availablePartners=useMemo(()=>partners,[partners]);
- function reset(){setCampaignId("");setServiceAreaId("");setPartnerId("");}
+ function reset(){setCampaignId("");setServiceAreaId("");setPartnerId("");setAttributionMethod("DIRECT_OFFLINE");}
  async function submit(e:React.FormEvent<HTMLFormElement>){
   e.preventDefault();setBusy(true);setMessage("");
   try{
    const data=Object.fromEntries(new FormData(e.currentTarget).entries());
-   const res=await fetch("/api/admin/leads/manual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...data,campaignId,serviceAreaId,partnerId,campaignName:campaign?.name||"",locationName:areas.find(a=>a.id===serviceAreaId)?.name||""})});
+   const res=await fetch("/api/admin/leads/manual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...data,campaignId,serviceAreaId,partnerId,attributionMethod,campaignName:campaign?.name||"",locationName:areas.find(a=>a.id===serviceAreaId)?.name||""})});
    const json=await res.json().catch(()=>({}));
    if(!res.ok)throw new Error(json.error||"Could not create offline lead.");
    setMessage("Lead captured and linked to the normal sales workflow.");(e.target as HTMLFormElement).reset();reset();setOpen(false);router.refresh();
@@ -44,9 +44,9 @@ export function OfflineLeadForm({openDefault=false,products=[],campaigns=[],serv
     <select value={campaignId} onChange={e=>{setCampaignId(e.target.value);setServiceAreaId("");setPartnerId("");}} className="rounded-xl border border-slate-200 px-4 py-3"><option value="">Campaign / promotion (optional)</option>{campaigns.map(c=><option key={c.id} value={c.id}>{c.name} · {c.deliveryMode}</option>)}</select>
     <select value={serviceAreaId} onChange={e=>setServiceAreaId(e.target.value)} disabled={false} required={Boolean(campaign&&requiresArea)} className="rounded-xl border border-slate-200 px-4 py-3 disabled:bg-slate-50"><option value="">{campaign&&requiresArea?"Supported city / event":campaign?"Service area (optional)":"City / event (optional)"}</option>{areas.map(a=><option key={a.id} value={a.id}>{a.areaType}: {a.name}</option>)}</select>
     <select value={partnerId} onChange={e=>setPartnerId(e.target.value)} disabled={!campaign||availablePartners.length===0} className="rounded-xl border border-slate-200 px-4 py-3 disabled:bg-slate-50"><option value="">Partner attribution (optional)</option>{availablePartners.map(p=><option key={p.id} value={p.id}>{p.name} · {p.partnerNumber}</option>)}</select>
-    <select name="productId" defaultValue="" className="rounded-xl border border-slate-200 px-4 py-3"><option value="">Product / service interest (optional)</option>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
+    <select name="attributionMethod" value={attributionMethod} onChange={e=>setAttributionMethod(e.target.value)} className="rounded-xl border border-slate-200 px-4 py-3"><option value="DIRECT_OFFLINE">Direct offline — no partner claim</option><option value="MANUAL_PARTNER">Customer named partner</option><option value="PARTNER_BROUGHT_CUSTOMER">Partner brought customer</option><option value="OFFLINE_CODE">Offline/referral code</option><option value="CAMPAIGN_EVENT">Campaign / event attribution</option><option value="STAFF_CAPTURE">Staff-recorded attribution</option></select>\n    <select name="productId" defaultValue="" className="rounded-xl border border-slate-200 px-4 py-3"><option value="">Product / service interest (optional)</option>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
    </div>
-   <textarea name="message" required rows={4} placeholder="Customer request, need, product/service context, and useful sales notes." className="mt-4 w-full rounded-xl border border-slate-200 px-4 py-3"/>
+   <textarea name="reasonNotes" required={Boolean(partnerId)||attributionMethod!=="DIRECT_OFFLINE"} rows={3} placeholder="Attribution reason / evidence. Example: customer named Ahmed; Ahmed brought customer at event; code AHMED26." className="mt-4 w-full rounded-xl border border-slate-200 px-4 py-3" />\n   <textarea name="message" required rows={4} placeholder="Customer request, need, product/service context, and useful sales notes." className="mt-4 w-full rounded-xl border border-slate-200 px-4 py-3"/>
    {message&&<div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm font-semibold">{message}</div>}
    <button disabled={busy} className="mt-4 rounded-full bg-[#0F3E8A] px-6 py-3 font-black text-white disabled:opacity-50">{busy?"Saving…":"Capture offline lead"}</button>
   </form>}
