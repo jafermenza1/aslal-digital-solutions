@@ -31,14 +31,14 @@ export async function GET(req:Request){
     prisma.revenue.count({where:{workspaceId:w,recognizedAt:period,status:"RECOGNIZED"}}),
     prisma.revenue.aggregate({where:{workspaceId:w,recognizedAt:period,status:"RECOGNIZED"},_sum:{recognizedAmount:true,commissionableAmount:true,collectedAmount:true}}),
     prisma.revenue.aggregate({where:{workspaceId:w,recognizedAt:period,status:"RECOGNIZED",partnerId:{not:null}},_sum:{recognizedAmount:true}}),
-    prisma.commission.aggregate({where:{workspaceId:w,createdAt:period,status:{not:"VOID"}},_sum:{amount:true}}),
+    prisma.commission.aggregate({where:{workspaceId:w,createdAt:period,status:{in:["PENDING","QUALIFIED","APPROVED","PAYABLE"]}},_sum:{amount:true}}),
     prisma.commission.aggregate({where:{workspaceId:w,createdAt:period,status:"PAID"},_sum:{amount:true}}),
     prisma.partnerPayout.aggregate({where:{workspaceId:w,createdAt:period,status:"PAID"},_sum:{amount:true}}),
     prisma.commercialMatch.count({where:{workspaceId:w,createdAt:period}}),
     prisma.commercialAppointment.count({where:{workspaceId:w,createdAt:period}}),
     prisma.commercialDispute.count({where:{workspaceId:w,createdAt:period}}),
     prisma.externalPaymentEvidence.count({where:{workspaceId:w,createdAt:period,status:"VERIFIED"}}),
-    prisma.order.groupBy({by:["customerId"],where:{workspaceId:w,createdAt:period,customerId:{not:null}},_count:{_all:true},having:{id:{_count:{gt:1}}}} as any).catch(()=>[]),
+    prisma.order.groupBy({by:["customerId"],where:{workspaceId:w,createdAt:period,customerId:{not:null}},_count:{_all:true}}),
     prisma.commercialRequest.groupBy({by:["requestType"],where:{workspaceId:w,createdAt:period},_count:{_all:true}}),
     prisma.order.groupBy({by:["status"],where:{workspaceId:w,createdAt:period},_count:{_all:true},_sum:{total:true}}),
     prisma.revenue.groupBy({by:["partnerId"],where:{workspaceId:w,recognizedAt:period,status:"RECOGNIZED",partnerId:{not:null}},_sum:{recognizedAmount:true},_count:{_all:true},orderBy:{_sum:{recognizedAmount:"desc"}},take:10})
@@ -48,7 +48,7 @@ export async function GET(req:Request){
   const nameMap=new Map(partnerNames.map(x=>[x.id,x]));
   const responseEligible=await prisma.commercialRequest.count({where:{workspaceId:w,createdAt:period,status:{in:["RESPONSES_OPEN","NEGOTIATING","FULFILLED","CLOSED"]}}});
   const responseRequestGroups=await prisma.commercialRequestResponse.groupBy({by:["requestId"],where:{workspaceId:w,createdAt:period},_count:{_all:true}});
-  const partnerAttributed=Number(money(revenueTotal._sum?.recognizedAmount))?Number(money(partnerRevenue._sum?.recognizedAmount)):0;
+  const partnerAttributed=Number(money(partnerRevenue._sum?.recognizedAmount));
   const recognized=Number(money(revenueTotal._sum?.recognizedAmount));
   return NextResponse.json({
     ok:true,workspace:{id:w,name:access.workspace.name},period:{start:from.toISOString(),end:to.toISOString(),days:Math.max(1,Math.round((to.getTime()-from.getTime())/DAY))},
@@ -58,7 +58,7 @@ export async function GET(req:Request){
       commissionableRevenue:money(revenueTotal._sum?.commissionableAmount), partnerAttributedRevenue:money(partnerRevenue._sum?.recognizedAmount),
       commissionLiability:money(commissions._sum?.amount), commissionPaid:money(commissionPaid._sum?.amount),
       payoutsPaid:money(payouts._sum?.amount), matches, appointments, verifiedExternalPayments:externalEvidence, disputes,
-      repeatCustomers:repeatCustomers.length,
+      repeatCustomers:repeatCustomers.filter((x:any)=>x._count._all>1).length,
       responseRate:pct(new Set(responseRequestGroups.map(x=>x.requestId)).size,responseEligible),
       leadToOpportunityRate:pct(opportunities,leads), opportunityToQuoteRate:pct(quotes,opportunities),
       quoteToOrderRate:pct(orders,quotes), orderToPaidRate:pct(paidOrders,orders),
