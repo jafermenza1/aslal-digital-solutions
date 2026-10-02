@@ -129,7 +129,9 @@ export async function POST(request: Request) {
       createdBy: actor.email,
       reasonNotes: reasonNotes || null,
     });
-  } catch(error) {\n    console.error("OFFLINE_LEAD_ATTRIBUTION_ERROR",error);\n    return NextResponse.json({error:"Lead was created, but its attribution audit could not be recorded. Do not treat this lead as attributed until it is reviewed."},{status:500});\n  }
+  } catch(error) {
+    console.error("OFFLINE_LEAD_ATTRIBUTION_ERROR",error);
+    return NextResponse.json({error:"Lead was created, but its attribution audit could not be recorded. Do not treat this lead as attributed until it is reviewed."},{status:500});\n  }
   try { await recalculateLeadScore(lead.id); } catch(error) { console.error("OFFLINE_LEAD_SCORE_ERROR",error); }
   try { await runLeadCreatedAutomation(lead.id); } catch(error) { console.error("OFFLINE_LEAD_AUTOMATION_ERROR",error); }
   return NextResponse.json({ok:true,leadId:lead.id});
