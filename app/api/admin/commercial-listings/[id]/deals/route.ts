@@ -135,6 +135,9 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
     const conflict=await conflictFor(accessResult.workspace.id,current.listingId,current.leadId,current.buyerEmail||"",current.buyerPhone||"",registrationId);
     if(conflict)return NextResponse.json({error:"Another active/protected registration conflicts with this buyer/listing.",conflict},{status:409});
     const now=new Date();
+    if(current.lead.attributionLockedAt && current.lead.attributionExpiresAt && current.lead.attributionExpiresAt>now && current.lead.attributionLockedBy && current.lead.attributionLockedBy!==current.partnerId){
+      return NextResponse.json({error:"The lead already has an active attribution lock for another partner; open a commercial dispute instead of overwriting it."},{status:409});
+    }
     const protectionDays=current.authorization?.protectionDays&&current.authorization.protectionDays>0?current.authorization.protectionDays:90;
     const until=new Date(now.getTime()+protectionDays*86400000);
     const updated=await prisma.$transaction(async tx=>{
