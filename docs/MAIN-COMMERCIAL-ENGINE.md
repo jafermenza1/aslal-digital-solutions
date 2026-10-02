@@ -2102,7 +2102,25 @@ CE-9 does not yet implement legal agreement execution, payment evidence, leakage
 
 ### CE-10 — Commercial Agreements
 
-Protection, commission, territory, payment basis and attribution terms.
+**IMPLEMENTED — VERIFICATION PENDING**
+
+CE-10 formalizes the commercial relationship layer around CE-4 deal registration, CE-8 provider relationships and CE-9 proposals without creating a second commission-contract system.
+
+Implemented:
+- `CommercialAgreement` as the commercial relationship record for partner, supplier, reseller, provider, deal-protection and customer-commercial arrangements;
+- flexible workspace-scoped participants using existing `CommercialParty` and `Partner` identities;
+- configurable protection period, attribution policy/window, commission model/rate/amount, payment basis, territory, channel, exclusions and anti-circumvention terms;
+- optional linkage to listing, partner program, existing `CommissionContract`, deal registration and professional proposal;
+- immutable agreement version snapshots;
+- participant acceptance records tied to the exact version acknowledged;
+- agreement event history for submission, activation, versioning, suspension and termination;
+- agreement lifecycle: DRAFT → PENDING_ACCEPTANCE → ACTIVE, with SUSPENDED / EXPIRED / TERMINATED / DECLINED states;
+- activation only after all recorded participants acknowledge the current version;
+- approved deal registration can be moved to PROTECTED using the agreement's explicit protection period when the agreement becomes active;
+- fresh participant acknowledgment is required for a new agreement version;
+- workspace authorization on all agreement mutations.
+
+CE-10 does not itself calculate commissions, process payments, provide legal advice, or claim external legal signature/verification. Existing `CommissionContract` remains the primary program commission contract; CE-10 records the broader commercial relationship and its applicable terms.
 
 ### CE-11 — External Payment Evidence
 
