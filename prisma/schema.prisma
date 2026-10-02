@@ -1217,6 +1217,7 @@ model CommercialListing {
 
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatches CommercialMatch[]
+  commercialAgreements CommercialAgreement[]
   professionalProfile ProfessionalProfile? @relation(fields:[professionalProfileId], references:[id], onDelete:SetNull)
   professionalProfileId String? @map("professional_profile_id") @db.Char(36)
 
@@ -1353,6 +1354,7 @@ model CommercialDealRegistration {
   partner          Partner                        @relation(fields:[partnerId], references:[id], onDelete:Restrict)
   authorization    CommercialListingAuthorization? @relation(fields:[authorizationId], references:[id], onDelete:SetNull)
   lead             Lead                           @relation(fields:[leadId], references:[id], onDelete:Restrict)
+  commercialAgreements CommercialAgreement[]
   opportunity      Opportunity?                   @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
 
   @@index([workspaceId,status,requestedAt], map:"idx_commercial_deal_workspace_status")
@@ -1587,6 +1589,7 @@ model ProfessionalProposal {
   response          CommercialRequestResponse @relation(fields:[responseId], references:[id], onDelete:Cascade)
   responderParty    CommercialParty?        @relation(fields:[responderPartyId], references:[id], onDelete:SetNull)
   partner           Partner?                @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  commercialAgreements CommercialAgreement[]
   versions          ProfessionalProposalVersion[]
 
   @@unique([responseId], map:"uq_professional_proposal_response")
