@@ -1,0 +1,21 @@
+import { requirePermission } from "@/lib/authorization";
+import { prisma } from "@/lib/prisma";
+import { CommercialListingManager } from "@/components/CommercialListingManager";
+
+export const dynamic="force-dynamic";
+
+export default async function CommercialListingsPage(){
+ const user=await requirePermission("products.manage");
+ const workspaceId=user.workspaceId;
+ const [listings,products]=await Promise.all([
+  prisma.commercialListing.findMany({where:workspaceId?{workspaceId}:undefined,orderBy:{updatedAt:"desc"},include:{product:{select:{id:true,name:true,slug:true,kind:true}},workspace:{select:{id:true,name:true,slug:true}}}}),
+  prisma.product.findMany({where:workspaceId?{workspaceId,active:true}:{active:true},select:{id:true,name:true,slug:true,kind:true},orderBy:{name:"asc"}})
+ ]);
+ return <main className="dashboard-page min-h-screen py-10"><div className="container-aslal">
+  <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+   <div><div className="text-xs font-black uppercase tracking-[.2em] text-[#D97706]">Growth OS / Commercial Engine / CE-1</div><h1 className="mt-2 text-4xl font-black tracking-tight">Commercial Listings</h1><p className="mt-2 max-w-3xl text-slate-500">Publish a controlled commercial representation of an existing product/service, asset or property without replacing the canonical catalog. Authorization, partner eligibility, deal registration and matching are later commercial-engine gates.</p></div>
+   <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-500">{user.workspaceName||"Workspace"}</span>
+  </div>
+  <div className="mt-8"><CommercialListingManager initial={listings.map(x=>({id:x.id,workspaceId:x.workspaceId,workspaceName:x.workspace.name,productId:x.productId,productName:x.product?.name||null,title:x.title,slug:x.slug,listingType:x.listingType,status:x.status,description:x.description,category:x.category,condition:x.condition,location:x.location,askingPrice:x.askingPrice?String(x.askingPrice):null,currency:x.currency,priceLabel:x.priceLabel,inspectionRequired:x.inspectionRequired,requestQuote:x.requestQuote,publicVisible:x.publicVisible,featured:x.featured,expiresAt:x.expiresAt?.toISOString()||null}))} products={products}/></div>
+ </div></main>;
+}
