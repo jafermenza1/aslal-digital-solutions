@@ -60,6 +60,7 @@ export async function POST(request:Request){
       id:randomUUID(),workspaceId:accessResult.workspace.id,registrationId,listingId:registration.listingId,
       partnerId:registration.partnerId,leadId:registration.leadId,
       status:start?"SCHEDULED":"REQUESTED",
+      checkInTokenHash:hashToken(rawToken),
       outcome:"PENDING",appointmentType:clean(body.appointmentType,60)||"INSPECTION",
       scheduledStart:start,scheduledEnd:end,location:clean(body.location,500)||registration.listing.location||null,
       meetingNotes:clean(body.meetingNotes,20000)||null,createdBy:accessResult.user.id,
