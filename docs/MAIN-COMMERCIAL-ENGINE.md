@@ -1941,6 +1941,8 @@ Listing authorization, staff ownership and distribution controls.
 
 ### CE-3 — Partner Eligibility
 
+**IMPLEMENTED — VERIFICATION PENDING**
+
 Listing/program eligibility by partner, contract, territory and channel.
 
 ### CE-4 — Deal Registration
