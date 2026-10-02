@@ -617,3 +617,29 @@ Verification levels are evidence labels only. The system must not mark a profile
 **IMPLEMENTED — VERIFICATION PENDING**
 
 Versioned commercial agreements, participant acknowledgment, protection/attribution terms, event history and deal-registration protection integration are implemented. Runtime verification and controlled acceptance evidence remain pending.
+
+
+## CE-11 — External Payment Evidence
+
+**Branch:** `docs/main-commercial-engine-prd`
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented:
+- first-class external payment evidence for bank transfer, cash, institutional procurement and external gateways;
+- evidence lifecycle with submission, review, verification, rejection and void states;
+- workspace-scoped finance mutation authorization;
+- optional links to Order, Payment, Revenue, CommercialAgreement and DealRegistration;
+- verified evidence reconciliation into the canonical Payment record, including creation of an `EXTERNAL_EVIDENCE` Payment when an order is linked and no canonical Payment exists;
+- no automatic Revenue fabrication and no automatic commission creation;
+- dashboard recording/review/verification controls.
+
+Required evidence before CE-11 is accepted:
+- Prisma migration/application validation;
+- `npm run typecheck`;
+- `npm run lint`;
+- `npm run build`;
+- Workspace A/B isolation for evidence records and mutation APIs;
+- controlled bank-transfer, cash, external-gateway and institutional-procurement evidence journeys;
+- duplicate/idempotent verification and rejected/resubmitted evidence tests;
+- partial-payment and full-payment reconciliation tests;
+- downstream Payment → Revenue → Commission reconciliation evidence.
