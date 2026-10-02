@@ -1,41 +1,32 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { authorizePermission } from "@/lib/authorization";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
  const user=await authorizePermission("partner.portal.view");if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
- const {id}=await params;
- const b=await request.json();
- const holderName=String(b.holderName??"").trim()||null;
- const holderPhone=String(b.holderPhone??"").trim()||null;
- const conn=await db.getConnection();
+ const {id}=await params;const body=await request.json().catch(()=>({}));
+ const [u]=await prisma.$queryRawUnsafe<any[]>(`SELECT partner_id FROM users WHERE id=? LIMIT 1`,user.id);
+ const partnerId=u?.partner_id;if(!partnerId)return NextResponse.json({error:"Partner account is not linked."},{status:409});
  try{
-  await conn.beginTransaction();
-  const [u]=await conn.query<any[]>(`SELECT partner_id FROM users WHERE id=? LIMIT 1 FOR UPDATE`,[user.id]);
-  const partnerId=u[0]?.partner_id;if(!partnerId)throw new Error("Partner account is not linked.");
-  const [rows]=await conn.query<any[]>(`
-   SELECT al.*,a.name,a.asset_type,a.price,a.value,a.currency,a.inventory_limit,a.starts_at,a.ends_at,a.status asset_status
-   FROM partner_sales_asset_allocations al JOIN commercial_distribution_items a ON a.id=al.asset_id AND a.workspace_id=al.workspace_id
-   JOIN partners p ON p.id=al.partner_id AND p.workspace_id=al.workspace_id
-   WHERE al.id=? AND al.partner_id=? AND al.workspace_id=p.workspace_id LIMIT 1 FOR UPDATE`,[id,partnerId]);
-  const row=rows[0];if(!row)throw new Error("Allocation not found.");
-  if(row.status!=="ACTIVE"||row.asset_status!=="ACTIVE")throw new Error("This allocation is not active.");
-  if(row.ends_at&&new Date(row.ends_at)<new Date())throw new Error("This allocation has expired.");
-  if(row.quantity_issued>=row.quantity_allocated)throw new Error("No allocated inventory remains.");
-  if(row.inventory_limit!==null){const [issuedCount]=await conn.query<any[]>(`SELECT COUNT(*) count FROM issued_sales_assets WHERE asset_id=? AND status NOT IN ("VOID","EXPIRED") FOR UPDATE`,[row.asset_id]);if(Number(issuedCount[0]?.count||0)>=Number(row.inventory_limit))throw new Error("Asset inventory limit has been reached.");}
-  const issuedId=randomUUID();
-  const serial="ASL-"+new Date().getFullYear()+"-"+randomUUID().replaceAll("-","").slice(0,10).toUpperCase();
-  const qrPayload=`ASLAL:ASSET:${serial}`;
-  await conn.query(`INSERT INTO issued_sales_assets
-   (id,workspace_id,asset_id,allocation_id,partner_id,serial_number,qr_payload,holder_name,holder_phone,issued_price,issued_value,status,issued_at,valid_from,valid_until,issued_by,created_at)
-   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())`,[
-    issuedId,row.workspace_id,row.asset_id,row.id,partnerId,serial,qrPayload,holderName,holderPhone,row.price,row.value,"VALID",
-    new Date(),row.starts_at||new Date(),row.ends_at||null,user.email
-  ]);
-  await conn.query(`UPDATE partner_sales_asset_allocations SET quantity_issued=quantity_issued+1,updated_at=NOW() WHERE id=?`,[row.id]);
-  await conn.commit();
-  return NextResponse.json({ok:true,id:issuedId,serialNumber:serial,qrPayload},{status:201});
- }catch(error){await conn.rollback();const message=error instanceof Error?error.message:"Could not issue sales asset.";return NextResponse.json({error:message},{status:409});}
- finally{conn.release();}
+  const result=await prisma.$transaction(async tx=>{
+   const allocation=await tx.partnerSalesAssetAllocation.findFirst({where:{id,partnerId,status:"ACTIVE"},include:{asset:true,partner:true}});
+   if(!allocation)throw new Error("Active sales asset allocation not found.");
+   if(allocation.asset.status!=="ACTIVE")throw new Error("Sales asset is not active.");
+   if(allocation.endsAt&&allocation.endsAt<new Date())throw new Error("Allocation has expired.");
+   if(allocation.quantityIssued>=allocation.quantityAllocated)throw new Error("No allocated inventory remains.");
+   if(allocation.asset.inventoryLimit!==null){
+    const issued=await tx.issuedSalesAsset.count({where:{assetId:allocation.assetId,status:{notIn:["VOID","EXPIRED"]}}});
+    if(issued>=allocation.asset.inventoryLimit)throw new Error("Asset inventory limit has been reached.");
+   }
+   const holderName=String(body.holderName??"").trim()||null,holderPhone=String(body.holderPhone??"").trim()||null;
+   const issuedId=randomUUID(),serial=`ASL-${new Date().getFullYear()}-${randomUUID().replaceAll("-","").slice(0,10).toUpperCase()}`;
+   const issued=await tx.issuedSalesAsset.create({data:{id:issuedId,workspaceId:allocation.workspaceId,assetId:allocation.assetId,allocationId:allocation.id,partnerId,serialNumber:serial,qrPayload:`ASLAL:ASSET:${serial}`,holderName,holderPhone,issuedPrice:allocation.asset.price,issuedValue:allocation.asset.value,status:"VALID",validFrom:allocation.asset.startsAt||new Date(),validUntil:allocation.asset.endsAt,issuedBy:user.email}});
+   const quantity=Number(allocation.asset.price??allocation.asset.value??0);
+   const order=await tx.order.create({data:{id:randomUUID(),workspaceId:allocation.workspaceId,orderNumber:`SO-ASSET-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${randomUUID().slice(0,8).toUpperCase()}`,status:"CONFIRMED",currency:allocation.asset.currency,subtotal:quantity,discount:0,total:quantity,paymentState:"PENDING",fulfillmentState:"ISSUED",source:"partner_sales_asset",campaign:allocation.campaignId||undefined,partnerId,distributionAssetId:allocation.assetId,salesOwnerEmail:user.email,confirmedAt:new Date(),items:{create:{id:randomUUID(),description:allocation.asset.name,quantity:1,unitPrice:quantity,lineTotal:quantity}}}});
+   await tx.partnerSalesAssetAllocation.update({where:{id:allocation.id},data:{quantityIssued:{increment:1}}});
+   return {issued,order};
+  });
+  return NextResponse.json({ok:true,issued:result.issued,order:result.order},{status:201});
+ }catch(error){return NextResponse.json({error:error instanceof Error?error.message:"Could not record partner sale."},{status:409});}
 }
