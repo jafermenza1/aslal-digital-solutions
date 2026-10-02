@@ -104,7 +104,7 @@ The following requirements extend the existing baseline without invalidating ear
 | R62 | Commercial self-service | Business owners, staff, partners and providers have role-appropriate interfaces for the commercial lifecycle. | TARGET / GAP-CLOSURE |
 | R63 | Commercial marketplace | Discovery is a surface over the canonical commercial chain, not a parallel transaction system. | TARGET / GAP-CLOSURE |
 | R64 | QR/ticket/coupon continuity | Existing redemption assets can participate in the commercial attribution and audit model. | PARTIAL / RECONCILE |
-| R65 | Commercial reporting | Supply, demand, matching, conversion, revenue and commission reports reconcile to source records. | TARGET / GAP-CLOSURE |
+| R65 | Commercial reporting | Supply, demand, matching, conversion, revenue and commission reports reconcile to source records. | IMPLEMENTED-UNVERIFIED | CE-13 adds workspace-scoped read-only analytics, conversion metrics, recognized/partner-attributed revenue, commission/payout reporting, operational breakdowns and CSV export derived from canonical records; source reconciliation and runtime acceptance remain required. |
 
 These IDs are domain-gap identifiers. They do not independently move the development roadmap. Status can change only when the owning phase provides evidence.
 
