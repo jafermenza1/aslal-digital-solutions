@@ -611,3 +611,9 @@ Not yet accepted:
 
 Verification levels are evidence labels only. The system must not mark a profile verified unless an authorized operator records the applicable verification state.
 \n\n## CE-9 — Professional RFP / Proposal\n\n**IMPLEMENTED — VERIFICATION PENDING**\n\nImplemented on `docs/main-commercial-engine-prd`: versioned professional proposals, immutable proposal versions, factual comparison, proposal acceptance/supersession, revision guard, and handoff to the existing Quote/Negotiation domain. Runtime verification remains pending.\n
+
+## CE-10 — Commercial Agreements
+
+**IMPLEMENTED — VERIFICATION PENDING**
+
+Versioned commercial agreements, participant acknowledgment, protection/attribution terms, event history and deal-registration protection integration are implemented. Runtime verification and controlled acceptance evidence remain pending.
