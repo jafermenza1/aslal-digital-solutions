@@ -496,3 +496,29 @@ Not implemented by CE-3:
 - leakage/dispute automation.
 
 Required acceptance evidence remains: Prisma migration/application validation, typecheck/lint/build, Workspace A/B eligibility isolation, eligible/ineligible partner fixtures, program/contract/terms cases, partner-type/territory/channel cases, expired/unpublished listing cases, and proof that ineligible partners cannot receive an ACTIVE commercial authorization.
+
+
+## Main Commercial Engine — CE-4 Deal Registration — 2026-10-02
+
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented on PR #99:
+- CommercialDealRegistration schema and Prisma migration;
+- workspace/listing/partner/lead/authorization/opportunity relationships;
+- eligibility re-check at registration and approval;
+- active registration conflict detection by lead and buyer contact identifiers;
+- explicit approval/rejection/protection/conversion/dispute/expiry lifecycle;
+- authorization-configured protection period with 90-day fallback;
+- explicit lead attribution lock integration on approval;
+- protection against silently overwriting another active attribution lock;
+- dashboard registration/review workbench.
+
+Not yet accepted:
+- Prisma migration application against a real database;
+- typecheck/lint/build;
+- workspace A/B behavioral isolation;
+- duplicate/conflict scenarios with real fixtures;
+- approval/rejection/protection/expiry/conversion/dispute behavioral evidence;
+- reconciliation against actual partner attribution and downstream commission/order workflows.
+
+CE-4 does not yet implement inspection, commission calculation, payment evidence, leakage automation, or dispute resolution beyond recording the commercial registration as DISPUTED.
