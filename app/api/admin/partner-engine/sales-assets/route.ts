@@ -51,7 +51,7 @@ export async function POST(request:Request){
   const id=randomUUID();
   await db.query(`INSERT INTO commercial_distribution_items
    (id,workspace_id,name,asset_type,description,product_id,campaign_id,price,value,currency,inventory_limit,starts_at,ends_at,rsvp_required,rsvp_opens_at,rsvp_closes_at,redemption_instructions,status,created_by,created_at,updated_at)
-   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())`,[
+   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())`,[
     id,access.workspace.id,name,assetType,String(b.description??"").trim()||null,productId,campaignId,
     price,value,String(b.currency??"ETB").trim().toUpperCase()||"ETB",inventoryLimit,
     b.startsAt?new Date(b.startsAt):null,b.endsAt?new Date(b.endsAt):null,rsvpRequired,rsvpOpensAt,rsvpClosesAt,
