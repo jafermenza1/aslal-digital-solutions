@@ -1945,7 +1945,23 @@ Listing/program eligibility by partner, contract, territory and channel.
 
 ### CE-4 — Deal Registration
 
+**IMPLEMENTED — VERIFICATION PENDING**
+
 Registration, approval/rejection, duplicate detection and protection period.
+
+Implemented on the commercial-engine workstream:
+- first-class CommercialDealRegistration linked to existing listing, partner, authorization, Lead and optional Opportunity records;
+- workspace-scoped registration creation and review APIs;
+- eligibility re-check before registration and again before approval;
+- duplicate/conflict detection across active registrations for the same listing and buyer/lead;
+- explicit REQUESTED -> PROTECTED / REJECTED, PROTECTED -> CONVERTED / DISPUTED and expiry/dispute lifecycle controls;
+- configurable protection period from partner authorization with a 90-day fallback;
+- approval writes an auditable protection window and updates the existing Lead attribution lock rather than creating a parallel attribution system;
+- existing active attribution locks for another partner cannot be silently overwritten;
+- dashboard workbench for registration and approval/rejection;
+- registration evidence records actor/time/protection context.
+
+CE-4 does not calculate commission, convert an external payment into revenue, or prove that an off-platform sale occurred. Those remain later commercial gates.
 
 ### CE-5 — Inspection & Appointment
 
