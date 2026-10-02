@@ -32,17 +32,17 @@ export async function POST(request: Request) {
   if (!name || !businessType || !leadCategory || !message) return NextResponse.json({ error: "Name, business type, offline source and customer request are required." }, { status:400 });
   if (!OFFLINE_CHANNELS.includes(leadCategory)) return NextResponse.json({ error: "Choose a valid offline source channel." }, { status:400 });
   if (campaignId) {
-    const [rows] = await prisma.$queryRawUnsafe<any[]>(`SELECT c.id,c.name,c.delivery_mode FROM partner_campaigns c WHERE c.id=? AND c.workspace_id=? LIMIT 1`,campaignId,workspace.workspace.id);
+    const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT c.id,c.name,c.delivery_mode FROM partner_campaigns c WHERE c.id=? AND c.workspace_id=? LIMIT 1`,campaignId,workspace.workspace.id);
     if (!rows?.[0]) return NextResponse.json({ error: "Selected campaign was not found in this workspace." }, { status:400 });
     const campaignRow=rows[0];
     if (campaignRow.delivery_mode !== "ONLINE" && serviceAreaId) {
-      const [areaRows] = await prisma.$queryRawUnsafe<any[]>(`SELECT 1 FROM partner_campaign_service_areas ca JOIN campaign_service_area_options o ON o.id=ca.service_area_id WHERE ca.campaign_id=? AND ca.service_area_id=? AND o.workspace_id=? AND o.active=1 LIMIT 1`,campaignId,serviceAreaId,workspace.workspace.id);
+      const areaRows = await prisma.$queryRawUnsafe<any[]>(`SELECT 1 FROM partner_campaign_service_areas ca JOIN campaign_service_area_options o ON o.id=ca.service_area_id WHERE ca.campaign_id=? AND ca.service_area_id=? AND o.workspace_id=? AND o.active=1 LIMIT 1`,campaignId,serviceAreaId,workspace.workspace.id);
       if (!areaRows?.[0]) return NextResponse.json({ error: "Selected service area is not supported by this campaign." }, { status: 400 });
     }
     if (campaignRow.delivery_mode !== "ONLINE" && !serviceAreaId) return NextResponse.json({ error: "Select the supported city or event for an offline campaign." }, { status: 400 });
   }
   if (partnerId) {
-    const [rows] = await prisma.$queryRawUnsafe<any[]>(`SELECT cp.id FROM campaign_partners cp JOIN partners p ON p.id=cp.partner_id WHERE cp.partner_id=? AND cp.campaign_id=? AND cp.status IN ('APPROVED','ACTIVE','COMPLETED') AND p.workspace_id=? AND p.status='ACTIVE' LIMIT 1`,partnerId,campaignId,workspace.workspace.id);
+    const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT cp.id FROM campaign_partners cp JOIN partners p ON p.id=cp.partner_id WHERE cp.partner_id=? AND cp.campaign_id=? AND cp.status IN ('APPROVED','ACTIVE','COMPLETED') AND p.workspace_id=? AND p.status='ACTIVE' LIMIT 1`,partnerId,campaignId,workspace.workspace.id);
     if (!campaignId || !rows?.[0]) return NextResponse.json({ error: "Select a campaign before assigning a campaign partner." }, { status: 400 });
   }
   if (email && !/^\S+@\S+\.\S+$/.test(email)) return NextResponse.json({ error: "Enter a valid email address." }, { status:400 });
