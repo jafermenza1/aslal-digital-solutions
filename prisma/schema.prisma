@@ -1070,6 +1070,7 @@ model CommercialListing {
   supplierParty     CommercialParty?       @relation("CommercialListingSupplier", fields:[supplierPartyId], references:[id], onDelete:SetNull)
   authorizations    CommercialListingAuthorization[]
   eligibilityDecisions CommercialEligibilityDecisionRecord[]
+  commercialDealRegistrations CommercialDealRegistration[]
 
   @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
   @@index([workspaceId, status, publicVisible], map:"idx_commercial_listing_workspace_status_public")
