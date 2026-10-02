@@ -44,6 +44,7 @@ const ITEMS:Item[]=[
 {key:"partners",href:"/dashboard/partner-settings",permission:"partners.manage",icon:"partner",group:"growth",nested:true,label:"Partner Registration Settings"},
 {key:"partners",href:"/dashboard/partner-sales-assets",permission:"partners.manage",icon:"store",group:"growth",nested:true,label:"Partner Sales Assets"},
 {key:"partners",href:"/dashboard/partner-sales-assets/redemption",permission:"partners.manage",icon:"store",group:"growth",nested:true,label:"Verify & Redeem"},
+{key:"partners",href:"/dashboard/partner-sales-assets/offline",permission:"partners.manage",icon:"store",group:"growth",nested:true,label:"Offline Verify & Redeem"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"commerce"},
