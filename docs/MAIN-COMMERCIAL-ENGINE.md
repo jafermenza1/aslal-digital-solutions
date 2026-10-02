@@ -2041,6 +2041,20 @@ Implemented:
 
 CE-7 deliberately does not treat a high score as automatic acceptance or commission entitlement. A match is a recommendation/evidence record; staff remain able to reject it and commercial authorization/eligibility remains separately enforced.
 
+### CE-7 Demo Dataset — Migration Seed
+
+A deployable demo migration now seeds five workspace-scoped demand scenarios, five published supply listings and eight persisted CE-7 match examples. The scenarios cover:
+
+- business laptops in Addis Ababa;
+- office furniture in Shashemene;
+- commercial office space in Hawassa;
+- digital marketing/content services in Addis Ababa;
+- local delivery/logistics in Addis Ababa.
+
+The seed includes varied match scores and statuses (including SUGGESTED, SHORTLISTED and CONTACTED), human-readable reasons and score breakdowns. It is deliberately synthetic/demo data and is not presented as historical customer activity. The seed targets the first active workspace and safely inserts nothing when no workspace exists.
+
+Migration: `prisma/migrations/20261003020000_commercial_demo_demand_matching/migration.sql`.
+
 ### CE-8 — Professional Profiles
 
 Provider/service profile and verification.
