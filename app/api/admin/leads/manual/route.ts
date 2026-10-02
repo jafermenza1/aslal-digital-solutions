@@ -5,7 +5,8 @@ import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { runLeadCreatedAutomation } from "@/lib/automation";
 import { LeadCaptureMode } from "@prisma/client";
 import { randomUUID } from "node:crypto";
-import { authorizeWorkspacePermission } from "@/lib/workspaces";\nimport { recordLeadAttribution } from "@/lib/attribution";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { recordLeadAttribution } from "@/lib/attribution";
 
 const OFFLINE_CHANNELS = ["PHONE","PHYSICAL_MEETING","EVENT","FLYER","RADIO","TELEVISION","OUTDOOR","FIELD_AGENT","WORD_OF_MOUTH","OTHER_OFFLINE"];
 const clean = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -23,14 +24,21 @@ export async function POST(request: Request) {
   const phoneInput = clean(body.phone,40);
   const phone = normalizeEthiopianPhone(phoneInput);
   const leadCategory = clean(body.leadCategory,100);
-  const campaignId = clean(body.campaignId,36);\n  const campaign = clean(body.campaignName,190);
+  const campaignId = clean(body.campaignId,36);
+  const campaign = clean(body.campaignName,190);
   const productId = clean(body.productId,36);
-  const serviceAreaId = clean(body.serviceAreaId,36);\n  const partnerId = clean(body.partnerId,36);\n  const location = clean(body.locationName,190);
+  const serviceAreaId = clean(body.serviceAreaId,36);
+  const partnerId = clean(body.partnerId,36);\n  const location = clean(body.locationName,190);
   const reference = clean(body.reference,500);
+  const attributionMethod = clean(body.attributionMethod,40) || "DIRECT_OFFLINE";
+  const reasonNotes = clean(body.reasonNotes,2000);
   const message = clean(body.message,5000);
 
   if (!name || !businessType || !leadCategory || !message) return NextResponse.json({ error: "Name, business type, offline source and customer request are required." }, { status:400 });
-  if (!OFFLINE_CHANNELS.includes(leadCategory)) return NextResponse.json({ error: "Choose a valid offline source channel." }, { status:400 });\n  const validAttributionMethods = ["DIRECT_OFFLINE","MANUAL_PARTNER","PARTNER_BROUGHT_CUSTOMER","OFFLINE_CODE","CAMPAIGN_EVENT","STAFF_CAPTURE"];\n  if (!validAttributionMethods.includes(attributionMethod)) return NextResponse.json({ error: "Choose a valid offline attribution method." }, { status:400 });\n  if (attributionMethod !== "DIRECT_OFFLINE" && !reasonNotes) return NextResponse.json({ error: "Attribution reason or evidence is required for an attributed offline lead." }, { status:400 });\n  if (partnerId && attributionMethod === "DIRECT_OFFLINE") return NextResponse.json({ error: "Choose a partner attribution method when assigning a partner." }, { status:400 });
+  if (!OFFLINE_CHANNELS.includes(leadCategory)) return NextResponse.json({ error: "Choose a valid offline source channel." }, { status:400 });
+  const validAttributionMethods = ["DIRECT_OFFLINE","MANUAL_PARTNER","PARTNER_BROUGHT_CUSTOMER","OFFLINE_CODE","CAMPAIGN_EVENT","STAFF_CAPTURE"];\n  if (!validAttributionMethods.includes(attributionMethod)) return NextResponse.json({ error: "Choose a valid offline attribution method." }, { status:400 });
+  if (attributionMethod !== "DIRECT_OFFLINE" && !reasonNotes) return NextResponse.json({ error: "Attribution reason or evidence is required for an attributed offline lead." }, { status:400 });
+  if (partnerId && attributionMethod === "DIRECT_OFFLINE") return NextResponse.json({ error: "Choose a partner attribution method when assigning a partner." }, { status:400 });
   if (serviceAreaId) {
     const areaRows = await prisma.$queryRawUnsafe<any[]>(`SELECT id,name,area_type FROM campaign_service_area_options WHERE id=? AND workspace_id=? AND active=1 LIMIT 1`,serviceAreaId,workspace.workspace.id);
     if (!areaRows?.[0]) return NextResponse.json({ error: "Selected city or event is not available in this workspace." }, { status: 400 });
@@ -115,6 +123,9 @@ export async function POST(request: Request) {
       campaignId: campaignId || null,
       partnerId: partnerId || null,
       productId: productId || null,
+      attributionMethod: attributionMethod as any,
+      createdBy: actor.email,
+      reasonNotes: reasonNotes || null,
     });
   } catch(error) { console.error("OFFLINE_LEAD_ATTRIBUTION_ERROR",error); }
   try { await recalculateLeadScore(lead.id); } catch(error) { console.error("OFFLINE_LEAD_SCORE_ERROR",error); }
