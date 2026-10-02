@@ -9,15 +9,6 @@ const date=(v:unknown)=>{const d=new Date(String(v));return Number.isNaN(d.getTi
 const access=async(workspaceId:string)=>authorizeWorkspacePermission("commerce.manage",workspaceId);
 const ref=()=>`EPE-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${randomUUID().slice(0,8).toUpperCase()}`;
 
-async function sameWorkspace(id:string|undefined|null, workspaceId:string, kind:"order"|"payment"|"revenue"|"agreement"|"deal"){
- if(!id)return null;
- if(kind==="order")return prisma.order.findFirst({where:{id,workspaceId}});
- if(kind==="payment")return prisma.payment.findFirst({where:{id,workspaceId}});
- if(kind==="revenue")return prisma.revenue.findFirst({where:{id,workspaceId}});
- if(kind==="agreement")return prisma.commercialAgreement.findFirst({where:{id,workspaceId}});
- return prisma.commercialDealRegistration.findFirst({where:{id,workspaceId}});
-}
-
 export async function GET(req:Request){
  const u=new URL(req.url),workspaceId=s(u.searchParams.get("workspaceId"),36),status=s(u.searchParams.get("status"),30);
  const a=await access(workspaceId); if(!a)return NextResponse.json({error:"Workspace access denied."},{status:403});
@@ -42,7 +33,11 @@ export async function POST(req:Request){
  if(!amount||amount<=0||!paymentDate||!source||!paymentMethod)return NextResponse.json({error:"source, paymentMethod, positive amount and paymentDate are required."},{status:422});
  const orderId=s(body.orderId,36)||null,paymentId=s(body.paymentId,36)||null,revenueId=s(body.revenueId,36)||null,commercialAgreementId=s(body.commercialAgreementId,36)||null,dealRegistrationId=s(body.dealRegistrationId,36)||null;
  const [order,payment,revenue,agreement,deal]=await Promise.all([
-  sameWorkspace(orderId,workspaceId,"order"),sameWorkspace(paymentId,workspaceId,"payment"),sameWorkspace(revenueId,workspaceId,"revenue"),sameWorkspace(commercialAgreementId,workspaceId,"agreement"),sameWorkspace(dealRegistrationId,workspaceId,"deal")
+  orderId?prisma.order.findFirst({where:{id:orderId,workspaceId}}):Promise.resolve(null),
+  paymentId?prisma.payment.findFirst({where:{id:paymentId,workspaceId}}):Promise.resolve(null),
+  revenueId?prisma.revenue.findFirst({where:{id:revenueId,workspaceId}}):Promise.resolve(null),
+  commercialAgreementId?prisma.commercialAgreement.findFirst({where:{id:commercialAgreementId,workspaceId}}):Promise.resolve(null),
+  dealRegistrationId?prisma.commercialDealRegistration.findFirst({where:{id:dealRegistrationId,workspaceId}}):Promise.resolve(null)
  ]);
  if(orderId&&!order)return NextResponse.json({error:"Order is outside this workspace or does not exist."},{status:422});
  if(paymentId&&!payment)return NextResponse.json({error:"Payment is outside this workspace or does not exist."},{status:422});
