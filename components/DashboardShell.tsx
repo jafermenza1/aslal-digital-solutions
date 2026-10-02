@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import { useState } from "react";
 import { usePathname,useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
 import { DashboardNav } from "@/components/DashboardNav";
@@ -20,20 +21,20 @@ function titleFor(pathname:string,t:ReturnType<typeof getAppUi>){const entries:[
 ["/dashboard/insights",t.nav.insights],["/dashboard/journey",t.nav.journey],["/dashboard/operations",t.nav.operations],["/dashboard/partners",t.nav.partners],["/dashboard/finance","Finance & Payouts"],["/dashboard/workspaces","Workspaces"],["/dashboard/partner",t.nav.partnerPortal],["/dashboard/products",t.nav.products],["/dashboard/users",t.nav.users],["/dashboard/telegram",t.nav.telegramSales],["/dashboard",t.nav.overview]
 ];return entries.find(([href])=>pathname===href||pathname.startsWith(href+"/"))?.[1]||t.nav.overview;}
 
-export function DashboardShell({user,locale,children}:{user:User;locale:Locale;children:React.ReactNode}){const pathname=usePathname();const router=useRouter();const t=getAppUi(locale);const title=titleFor(pathname,t);
+export function DashboardShell({user,locale,children}:{user:User;locale:Locale;children:React.ReactNode}){const [mobileNavOpen,setMobileNavOpen]=useState(false);const pathname=usePathname();const router=useRouter();const t=getAppUi(locale);const title=titleFor(pathname,t);
  React.useEffect(()=>{let lastActivity=Date.now();let stopped=false;const mark=()=>{lastActivity=Date.now();};const events=["pointerdown","keydown","touchstart","scroll"];events.forEach(event=>window.addEventListener(event,mark,{passive:true}));const timer=window.setInterval(async()=>{if(stopped||Date.now()-lastActivity>4*60*1000)return;try{const response=await fetch("/api/auth/heartbeat",{method:"POST",cache:"no-store",credentials:"same-origin"});if(response.status===401)router.push("/login?error=session-expired");}catch{}},2*60*1000);return()=>{stopped=true;window.clearInterval(timer);events.forEach(event=>window.removeEventListener(event,mark));};},[router]);
-return <div className="dashboard-app">
+return <div className="dashboard-app overflow-x-hidden">
  <aside className="dashboard-sidebar">
-  <div className="dashboard-sidebar-top"><BrandLogo href="/dashboard"/><div className="dashboard-role">{roleLabels[user.role]||user.role}</div>{user.workspaceName&&<div className="mt-1 text-[10px] font-black uppercase tracking-[.14em] text-white/40">{user.workspaceName} · {user.workspaceRole||"Member"}</div>}</div>
+  <div className="dashboard-sidebar-top"><BrandLogo href="/dashboard"/><div className="dashboard-role">{roleLabels[user.role]||user.role}</div>{user.workspaceName&&<div className="dashboard-workspace-context">{user.workspaceName} · {user.workspaceRole||"Member"}</div>}</div>
   <DashboardNav locale={locale} permissions={user.permissions}/>
   <div className="dashboard-sidebar-bottom"><div className="dashboard-status"><span className="dashboard-status-dot" aria-hidden="true"/><div><strong>System online</strong><span>Database-backed workspace</span></div></div><Link href="/" className="dashboard-website-link">↗ {t.shell.website}</Link></div>
  </aside>
  <div className="dashboard-main">
   <header className="dashboard-topbar">
-   <div className="dashboard-topbar-heading"><span>{t.dashboard.eyebrow}</span><div className="mt-1 text-xs font-bold text-white/55">Business · {user.workspaceName||"No active workspace"}</div><div className="dashboard-topbar-title-row"><h1>{title}</h1><Link href={`/dashboard/help/${pathname==="/dashboard"?"overview":pathname.split("/").filter(Boolean).slice(1).join("-")}`} target="_blank" rel="noopener noreferrer" className="dashboard-topbar-help" aria-label={`Help for ${title}`}>?</Link></div></div>
+   <button type="button" className="dashboard-mobile-menu-button" aria-label={mobileNavOpen?"Close navigation":"Open navigation"} aria-expanded={mobileNavOpen} onClick={()=>setMobileNavOpen(value=>!value)}><span/><span/><span/></button><div className="dashboard-topbar-heading"><span>{t.dashboard.eyebrow}</span><div className="mt-1 text-xs font-bold text-white/55">Business · {user.workspaceName||"No active workspace"}</div><div className="dashboard-topbar-title-row"><h1>{title}</h1><Link href={`/dashboard/help/${pathname==="/dashboard"?"overview":pathname.split("/").filter(Boolean).slice(1).join("-")}`} target="_blank" rel="noopener noreferrer" className="dashboard-topbar-help" aria-label={`Help for ${title}`}>?</Link></div></div>
    <div className="dashboard-topbar-actions"><WorkspaceSwitcher activeWorkspaceId={user.workspaceId} activeWorkspaceName={user.workspaceName}/><div className="dashboard-user-chip"><span className="dashboard-user-avatar">{(user.name||user.email).charAt(0).toUpperCase()}</span><span className="dashboard-user-name">{user.name}</span></div><ThemeToggle compact/><LanguageToggle locale={locale}/><Link href="/" className="dashboard-top-link">{t.shell.website}</Link><form action="/api/auth/logout" method="post"><button className="dashboard-signout">{t.shell.signOut}</button></form></div>
   </header>
-  <div className="dashboard-mobile-nav-wrap"><DashboardNav locale={locale} permissions={user.permissions} mobile/></div>
-  <main className="dashboard-content">{children}</main>
+  <DashboardNav locale={locale} permissions={user.permissions} mobile open={mobileNavOpen} onClose={()=>setMobileNavOpen(false)}/>
+  <main className="dashboard-content min-w-0">{children}</main>
  </div>
 </div>;}
