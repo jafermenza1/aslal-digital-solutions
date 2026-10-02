@@ -978,8 +978,6 @@ model Partner {
   commercialLeakageSignals CommercialLeakageSignal[]
   commercialDisputes CommercialDispute[]
   commercialAppointments CommercialAppointment[]
-  commercialLeakageSignals CommercialLeakageSignal[]
-  commercialDisputes CommercialDispute[]
   commercialAgreements CommercialAgreement[]
   commercialRequests CommercialRequest[]
 
