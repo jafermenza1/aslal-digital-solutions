@@ -276,6 +276,29 @@ enum CommercialDealRegistrationStatus {
   DISPUTED
 }
 
+enum CommercialAppointmentStatus {
+  REQUESTED
+  SCHEDULED
+  CONFIRMED
+  ATTENDED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum CommercialAppointmentOutcome {
+  PENDING
+  INSPECTION_COMPLETED
+  INTERESTED
+  NEEDS_QUOTE
+  NEGOTIATING
+  NOT_INTERESTED
+  RESCHEDULE_REQUIRED
+  NOT_AS_DESCRIBED
+  NO_DECISION
+  OTHER
+}
+
 enum CommercialEligibilityReason {
   PARTNER_INACTIVE
   ACCOUNT_RESTRICTED
@@ -760,6 +783,7 @@ model Partner {
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
+  commercialAppointments CommercialAppointment[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
@@ -1144,6 +1168,45 @@ model CommercialDealRegistration {
   @@index([leadId,status], map:"idx_commercial_deal_lead_status")
   @@index([opportunityId], map:"idx_commercial_deal_opportunity")
   @@map("commercial_deal_registrations")
+}
+
+model CommercialAppointment {
+  id               String                      @id @db.Char(36)
+  workspaceId      String                      @map("workspace_id") @db.Char(36)
+  registrationId   String                      @map("registration_id") @db.Char(36)
+  listingId        String                      @map("listing_id") @db.Char(36)
+  partnerId        String                      @map("partner_id") @db.Char(36)
+  leadId           String                      @map("lead_id") @db.Char(36)
+  status           CommercialAppointmentStatus @default(REQUESTED)
+  outcome          CommercialAppointmentOutcome @default(PENDING)
+  appointmentType  String                      @default("INSPECTION") @map("appointment_type") @db.VarChar(60)
+  scheduledStart   DateTime?                   @map("scheduled_start") @db.DateTime(0)
+  scheduledEnd     DateTime?                   @map("scheduled_end") @db.DateTime(0)
+  location         String?                     @db.VarChar(500)
+  meetingNotes     String?                     @map("meeting_notes") @db.Text
+  customerNotes    String?                     @map("customer_notes") @db.Text
+  evidence         Json?
+  checkInTokenHash String?                     @unique @map("check_in_token_hash") @db.VarChar(128)
+  checkInAt        DateTime?                   @map("check_in_at") @db.DateTime(0)
+  checkInBy        String?                     @map("check_in_by") @db.VarChar(190)
+  completedAt      DateTime?                   @map("completed_at") @db.DateTime(0)
+  cancelledAt      DateTime?                   @map("cancelled_at") @db.DateTime(0)
+  createdBy        String?                     @map("created_by") @db.Char(36)
+  createdAt        DateTime                    @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime                    @updatedAt @map("updated_at") @db.DateTime(0)
+
+  workspace       Workspace                 @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  registration    CommercialDealRegistration @relation(fields:[registrationId], references:[id], onDelete:Restrict)
+  listing         CommercialListing           @relation(fields:[listingId], references:[id], onDelete:Restrict)
+  partner         Partner                    @relation(fields:[partnerId], references:[id], onDelete:Restrict)
+  lead            Lead                       @relation(fields:[leadId], references:[id], onDelete:Restrict)
+
+  @@index([workspaceId,status,scheduledStart], map:"idx_commercial_appt_workspace_status")
+  @@index([registrationId,createdAt], map:"idx_commercial_appt_registration_created")
+  @@index([listingId,scheduledStart], map:"idx_commercial_appt_listing_schedule")
+  @@index([partnerId,status], map:"idx_commercial_appt_partner_status")
+  @@index([leadId,scheduledStart], map:"idx_commercial_appt_lead_schedule")
+  @@map("commercial_appointments")
 }
 
 model CommercialEligibilityDecisionRecord {
@@ -2055,7 +2118,8 @@ model Workspace {
   products Product[]
   commercialListings CommercialListing[]
   commercialDealRegistrations CommercialDealRegistration[]
-  commercialParties CommercialParty[]
+  commercialAppointments CommercialAppointment[]
+  commercialParties/ CommercialParty[]
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   socialProfiles SocialProfile[]
