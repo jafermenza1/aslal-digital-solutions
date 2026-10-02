@@ -1095,6 +1095,7 @@ model CommercialListing {
   authorizations    CommercialListingAuthorization[]
   eligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
+  commercialAppointments CommercialAppointment[]
 
   @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
   @@index([workspaceId, status, publicVisible], map:"idx_commercial_listing_workspace_status_public")
