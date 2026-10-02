@@ -835,6 +835,7 @@ model PartnerProgram {
   contracts          CommissionContract[]
   termsAcceptances PartnerTermsAcceptance[]
   campaigns          PartnerCampaign[]
+  commercialListingAuthorizations CommercialListingAuthorization[]
 
   @@unique([workspaceId, slug], map: "uq_partner_program_workspace_slug")
   @@index([workspaceId, status], map: "idx_partner_program_workspace_status")
