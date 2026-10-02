@@ -266,6 +266,35 @@ enum CommercialEligibilityDecision {
   REVIEW_REQUIRED
 }
 
+enum CommercialAgreementType {
+  PARTNER_COMMERCIAL
+  SUPPLIER
+  RESELLER
+  SERVICE_PROVIDER
+  DEAL_PROTECTION
+  CUSTOMER_COMMERCIAL
+  CUSTOM
+}
+
+enum CommercialAgreementStatus {
+  DRAFT
+  PENDING_ACCEPTANCE
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  TERMINATED
+  DECLINED
+}
+
+enum CommercialAgreementParticipantRole {
+  BUSINESS
+  SUPPLIER
+  PROVIDER
+  PARTNER
+  CUSTOMER
+  OWNER
+}
+
 enum CommercialDealRegistrationStatus {
   REQUESTED
   APPROVED
@@ -1278,6 +1307,7 @@ model CommercialParty {
 
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatchesAsSupplier CommercialMatch[] @relation("CommercialMatchSupplierParty")
+  agreementParticipants CommercialAgreementParticipant[]
 
   @@index([workspaceId,status,name], map:"idx_commercial_party_workspace_status_name")
   professionalProposals ProfessionalProposal[]
@@ -1520,6 +1550,7 @@ model CommercialRequestResponse {
 
   commercialMatches CommercialMatch[]
   professionalProposals ProfessionalProposal[]
+  commercialAgreements CommercialAgreement[]
   order             Order?                        @relation(fields:[orderId], references:[id], onDelete:SetNull)
 
   @@index([workspaceId,requestId,status], map:"idx_commercial_response_request_status")
@@ -1590,6 +1621,121 @@ model ProfessionalProposalVersion {
   @@index([proposalId,createdAt], map:"idx_professional_proposal_version_created")
   @@index([validityUntil], map:"idx_professional_proposal_version_validity")
   @@map("professional_proposal_versions")
+}
+
+model CommercialAgreement {
+  id                    String                    @id @db.Char(36)
+  workspaceId           String                    @map("workspace_id") @db.Char(36)
+  agreementType         CommercialAgreementType   @map("agreement_type")
+  status                CommercialAgreementStatus @default(DRAFT)
+  title                 String                    @db.VarChar(190)
+  referenceNumber       String                    @unique @map("reference_number") @db.VarChar(80)
+  listingId             String?                   @map("listing_id") @db.Char(36)
+  programId             String?                   @map("program_id") @db.Char(36)
+  commissionContractId  String?                   @map("commission_contract_id") @db.Char(36)
+  dealRegistrationId    String?                   @map("deal_registration_id") @db.Char(36)
+  proposalId            String?                   @map("proposal_id") @db.Char(36)
+  protectionDays        Int?                      @map("protection_days")
+  attributionPolicy     AttributionPolicy?        @map("attribution_policy")
+  attributionWindowDays Int?                      @map("attribution_window_days")
+  commissionModel       String?                   @map("commission_model") @db.VarChar(80)
+  commissionRate        Decimal?                  @map("commission_rate") @db.Decimal(15,4)
+  commissionAmount      Decimal?                  @map("commission_amount") @db.Decimal(15,2)
+  commissionCurrency    String                    @default("ETB") @map("commission_currency") @db.VarChar(10)
+  paymentBasis          String?                   @map("payment_basis") @db.VarChar(190)
+  territory             String?                   @db.VarChar(190)
+  channel               String?                   @db.VarChar(100)
+  exclusions            String?                   @db.Text
+  antiCircumvention     String?                   @map("anti_circumvention") @db.Text
+  termsText             String?                   @map("terms_text") @db.Text
+  effectiveAt           DateTime?                 @map("effective_at") @db.DateTime(0)
+  expiresAt             DateTime?                 @map("expires_at") @db.DateTime(0)
+  acceptedAt            DateTime?                 @map("accepted_at") @db.DateTime(0)
+  acceptedBy            String?                   @map("accepted_by") @db.Char(36)
+  createdBy             String?                   @map("created_by") @db.Char(36)
+  createdAt             DateTime                  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt             DateTime                  @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace             Workspace                 @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  listing               CommercialListing?        @relation(fields:[listingId], references:[id], onDelete:SetNull)
+  program               PartnerProgram?           @relation(fields:[programId], references:[id], onDelete:SetNull)
+  commissionContract    CommissionContract?       @relation(fields:[commissionContractId], references:[id], onDelete:SetNull)
+  dealRegistration     CommercialDealRegistration? @relation(fields:[dealRegistrationId], references:[id], onDelete:SetNull)
+  proposal              ProfessionalProposal?     @relation(fields:[proposalId], references:[id], onDelete:SetNull)
+  participants          CommercialAgreementParticipant[]
+  versions              CommercialAgreementVersion[]
+  acceptances           CommercialAgreementAcceptance[]
+  events                CommercialAgreementEvent[]
+
+  @@index([workspaceId,status,effectiveAt], map:"idx_commercial_agreement_workspace_status")
+  @@index([workspaceId,agreementType,status], map:"idx_commercial_agreement_type_status")
+  @@index([listingId,status], map:"idx_commercial_agreement_listing_status")
+  @@index([programId,status], map:"idx_commercial_agreement_program_status")
+  @@index([dealRegistrationId], map:"idx_commercial_agreement_deal")
+  @@index([proposalId], map:"idx_commercial_agreement_proposal")
+  @@map("commercial_agreements")
+}
+
+model CommercialAgreementParticipant {
+  id             String                           @id @db.Char(36)
+  agreementId    String                           @map("agreement_id") @db.Char(36)
+  role           CommercialAgreementParticipantRole
+  partyId        String?                          @map("party_id") @db.Char(36)
+  partnerId      String?                          @map("partner_id") @db.Char(36)
+  displayName    String                           @map("display_name") @db.VarChar(190)
+  contactSnapshot Json?                           @map("contact_snapshot")
+  acceptedAt     DateTime?                        @map("accepted_at") @db.DateTime(0)
+  acceptedBy     String?                          @map("accepted_by") @db.Char(36)
+  createdAt      DateTime                         @default(now()) @map("created_at") @db.DateTime(0)
+  agreement      CommercialAgreement              @relation(fields:[agreementId], references:[id], onDelete:Cascade)
+  party          CommercialParty?                 @relation(fields:[partyId], references:[id], onDelete:SetNull)
+  partner        Partner?                         @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  @@index([agreementId,role], map:"idx_agreement_participant_role")
+  @@index([partyId], map:"idx_agreement_participant_party")
+  @@index([partnerId], map:"idx_agreement_participant_partner")
+  @@map("commercial_agreement_participants")
+}
+
+model CommercialAgreementVersion {
+  id             String              @id @db.Char(36)
+  agreementId    String              @map("agreement_id") @db.Char(36)
+  versionNumber  Int                 @map("version_number")
+  termsSnapshot  Json                @map("terms_snapshot")
+  createdBy      String?             @map("created_by") @db.Char(36)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+  supersededAt   DateTime?           @map("superseded_at") @db.DateTime(0)
+  agreement      CommercialAgreement @relation(fields:[agreementId], references:[id], onDelete:Cascade)
+  @@unique([agreementId,versionNumber], map:"uq_commercial_agreement_version")
+  @@index([agreementId,createdAt], map:"idx_commercial_agreement_version_created")
+  @@map("commercial_agreement_versions")
+}
+
+model CommercialAgreementAcceptance {
+  id             String              @id @db.Char(36)
+  agreementId    String              @map("agreement_id") @db.Char(36)
+  participantId  String              @map("participant_id") @db.Char(36)
+  versionNumber  Int                 @map("version_number")
+  acceptedAt     DateTime            @default(now()) @map("accepted_at") @db.DateTime(0)
+  acceptedBy     String?             @map("accepted_by") @db.Char(36)
+  acceptanceText String?             @map("acceptance_text") @db.Text
+  evidence       Json?
+  agreement      CommercialAgreement @relation(fields:[agreementId], references:[id], onDelete:Cascade)
+  participant    CommercialAgreementParticipant @relation(fields:[participantId], references:[id], onDelete:Cascade)
+  @@unique([agreementId,participantId,versionNumber], map:"uq_commercial_agreement_acceptance")
+  @@index([participantId,acceptedAt], map:"idx_commercial_agreement_acceptance_participant")
+  @@map("commercial_agreement_acceptances")
+}
+
+model CommercialAgreementEvent {
+  id           String              @id @db.Char(36)
+  agreementId  String              @map("agreement_id") @db.Char(36)
+  eventType    String              @map("event_type") @db.VarChar(60)
+  actorId      String?             @map("actor_id") @db.Char(36)
+  note         String?             @db.Text
+  snapshot     Json?
+  createdAt    DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+  agreement    CommercialAgreement @relation(fields:[agreementId], references:[id], onDelete:Cascade)
+  @@index([agreementId,createdAt], map:"idx_commercial_agreement_event_created")
+  @@map("commercial_agreement_events")
 }
 
 model CommercialListingAuthorization {
