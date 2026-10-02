@@ -1,0 +1,68 @@
+-- CE-8 Professional Profiles
+CREATE TABLE professional_profiles (
+  id CHAR(36) NOT NULL,
+  workspace_id CHAR(36) NOT NULL,
+  party_id CHAR(36) NOT NULL,
+  partner_id CHAR(36) NULL,
+  status ENUM('DRAFT','PENDING_REVIEW','PUBLISHED','PAUSED','SUSPENDED','ARCHIVED') NOT NULL DEFAULT 'DRAFT',
+  verification_level ENUM('UNVERIFIED','IDENTITY_VERIFIED','BUSINESS_VERIFIED','PROFESSIONAL_DOCUMENTS_VERIFIED','AUTHORIZED_PROVIDER') NOT NULL DEFAULT 'UNVERIFIED',
+  display_name VARCHAR(190) NOT NULL,
+  headline VARCHAR(250) NULL,
+  profession VARCHAR(160) NOT NULL,
+  specialties JSON NULL,
+  service_categories JSON NULL,
+  qualifications JSON NULL,
+  service_areas JSON NULL,
+  languages JSON NULL,
+  portfolio JSON NULL,
+  availability JSON NULL,
+  pricing_model VARCHAR(80) NULL,
+  starting_price DECIMAL(15,2) NULL,
+  currency VARCHAR(10) NOT NULL DEFAULT 'ETB',
+  response_time VARCHAR(100) NULL,
+  bio TEXT NULL,
+  visibility VARCHAR(30) NOT NULL DEFAULT 'PUBLIC',
+  verification_notes TEXT NULL,
+  verified_at DATETIME(0) NULL,
+  verified_by CHAR(36) NULL,
+  created_at DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_professional_profile_party (party_id),
+  UNIQUE KEY uq_professional_profile_partner (partner_id),
+  KEY idx_professional_profile_workspace_status_verification (workspace_id,status,verification_level),
+  KEY idx_professional_profile_workspace_profession (workspace_id,profession,status),
+  CONSTRAINT fk_professional_profile_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_professional_profile_party FOREIGN KEY (party_id) REFERENCES commercial_parties(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_professional_profile_partner FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE professional_credentials (
+  id CHAR(36) NOT NULL,
+  workspace_id CHAR(36) NOT NULL,
+  profile_id CHAR(36) NOT NULL,
+  name VARCHAR(190) NOT NULL,
+  issuer VARCHAR(190) NULL,
+  credential_type VARCHAR(100) NULL,
+  credential_number VARCHAR(120) NULL,
+  issued_at DATETIME(0) NULL,
+  expires_at DATETIME(0) NULL,
+  evidence JSON NULL,
+  status ENUM('SUBMITTED','VERIFIED','REJECTED','EXPIRED') NOT NULL DEFAULT 'SUBMITTED',
+  verified_at DATETIME(0) NULL,
+  verified_by CHAR(36) NULL,
+  review_notes TEXT NULL,
+  created_at DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_professional_credential_workspace_status_expiry (workspace_id,status,expires_at),
+  KEY idx_professional_credential_profile_status (profile_id,status),
+  CONSTRAINT fk_professional_credential_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_professional_credential_profile FOREIGN KEY (profile_id) REFERENCES professional_profiles(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+ALTER TABLE commercial_listings
+  ADD COLUMN professional_profile_id CHAR(36) NULL,
+  ADD KEY idx_commercial_listing_professional_profile (professional_profile_id),
+  ADD CONSTRAINT fk_commercial_listing_professional_profile
+    FOREIGN KEY (professional_profile_id) REFERENCES professional_profiles(id) ON DELETE SET NULL;
