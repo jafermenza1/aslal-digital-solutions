@@ -25,19 +25,22 @@ store:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10h16l
 
 const ITEMS:Item[]=[
 {key:"overview",href:"/dashboard",permission:"dashboard.view",icon:"home",group:"command"},
+{key:"overview",href:"/dashboard/workbench",permission:"dashboard.view",icon:"home",group:"command",label:"My Workbench"},
+{key:"insights",href:"/dashboard/reports",permission:"dashboard.view",icon:"chart",group:"command",label:"Reports Center"},
 {key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"command"},
 {key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"command"},
 
 {key:"leads",href:"/dashboard/leads",permission:"leads.view",icon:"leads",group:"revenue"},
 {key:"customers",href:"/dashboard/customers",permission:"customers.view",icon:"users",group:"revenue"},
-{key:"quotes",href:"/dashboard/quotes",permission:"leads.view",icon:"quotes",group:"revenue"},
-{key:"quotes",href:"/dashboard/orders",permission:"leads.view",icon:"box",group:"revenue",label:"Orders"},
+{key:"quotes",href:"/dashboard/quotes",permission:"commerce.view",icon:"quotes",group:"revenue"},
+{key:"quotes",href:"/dashboard/orders",permission:"commerce.view",icon:"box",group:"revenue",label:"Orders"},
 {key:"conversations",href:"/dashboard/conversations",permission:"conversations.view",icon:"message",group:"revenue"},
 {key:"emailTemplates",href:"/dashboard/email",permission:"email.view",icon:"mail",group:"revenue",label:"Email Operations"},
 {key:"telegramSales",href:"/dashboard/telegram",permission:"telegram.view",icon:"message",group:"revenue",label:"Telegram Sales"},
 
 {key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"growth",label:"Partners & Commissions"},
 {key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Marketplace"},
+{key:"partners",href:"/dashboard/partners/network",permission:"partners.manage",icon:"partner",group:"growth",label:"Partner Network"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"commerce"},

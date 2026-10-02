@@ -52,6 +52,16 @@ export async function POST(request: Request) {
     }
 
     const partnerId = crypto.randomUUID();
+    let identityId = String(body.identityId ?? "").trim() || "";
+    let createdIdentity = false;
+    if (identityId) {
+      const [identityRows] = await db.query<any[]>("SELECT id FROM partner_identities WHERE id=? LIMIT 1",[identityId]);
+      if (!identityRows[0]) return NextResponse.json({ error: "Partner identity not found." }, { status: 404 });
+    } else {
+      identityId = crypto.randomUUID();
+      await db.query("INSERT INTO partner_identities (id,name,email,phone,created_at,updated_at) VALUES (?,?,?,?,NOW(),NOW())",[identityId,name,email,null]);
+      createdIdentity = true;
+    }
     // Human-facing partner IDs are sequential business identifiers; the UUID remains the internal DB key.
     const year = new Date().getFullYear();
     const [seqRows] = await db.query<{ next: number }[] & import("mysql2").RowDataPacket[]>(
@@ -60,8 +70,8 @@ export async function POST(request: Request) {
     );
     const nextNumber = Number(seqRows[0]?.next || 101);
     const partnerNumber = `ASL-${nextNumber}-${year}`;
-    await db.query("INSERT INTO partners (id, workspace_id, partner_number, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-      partnerId, workspace.id, partnerNumber, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
+    await db.query("INSERT INTO partners (id, identity_id, workspace_id, partner_number, name, email, type, status, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+      partnerId, identityId, workspace.id, partnerNumber, name, email, type, status, bio, specialties, serviceAreas, audienceSize, 0,
     ]);
 
     try {
@@ -71,6 +81,7 @@ export async function POST(request: Request) {
       );
     } catch (error) {
       await db.query("DELETE FROM partners WHERE id = ?", [partnerId]);
+      if (createdIdentity) await db.query("DELETE FROM partner_identities WHERE id = ?", [identityId]);
       const message = error instanceof Error && /duplicate|unique/i.test(error.message) ? "That referral code already exists." : "Could not create referral link.";
       return NextResponse.json({ error: message }, { status: 409 });
     }
@@ -81,6 +92,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       partnerId,
+      identityId,
       partnerNumber,
       code: finalCode,
       referralUrl: publicUrl,

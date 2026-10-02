@@ -68,6 +68,30 @@ export function defaultPermissionsForRole(role: UserRole) {
   return [...sets[role]];
 }
 
+const workspaceSets: Record<string, Permission[]> = {
+  OWNER: [...sets.BUSINESS_OWNER],
+  ADMIN: [...PERMISSIONS],
+  MANAGER: [...sets.SALES_MANAGER, "partners.manage", "products.manage", "content.manage", "email.manage", "telegram.manage", "email_templates.manage"],
+  SALES: [...sets.SALES_OPERATOR, "commerce.view", "commerce.manage", "operations.view"],
+  FINANCE: [...sets.FINANCE],
+  AUDITOR: [...sets.AUDITOR],
+  CLIENT: [...sets.CLIENT],
+  PARTNER: [...sets.PARTNER],
+  MEMBER: ["dashboard.view"],
+};
+
+export function defaultPermissionsForWorkspaceRole(role: string) {
+  return [...(workspaceSets[role] || workspaceSets.MEMBER)];
+}
+
+export function resolveWorkspacePermissions(accountRole: UserRole, accountRaw: unknown, workspaceRole: string) {
+  const account = new Set(resolvePermissions(accountRole, accountRaw));
+  const workspace = new Set(defaultPermissionsForWorkspaceRole(workspaceRole));
+  // Workspace role is the active operational scope. Account-level grants can only
+  // narrow or extend capabilities that are valid for the user's account ceiling.
+  return [...workspace].filter(permission => account.has(permission));
+}
+
 export function allPermissions() {
   return [...PERMISSIONS];
 }

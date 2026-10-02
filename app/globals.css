@@ -911,3 +911,71 @@ html[data-theme="light"] .dashboard-website-link{color:var(--ui-secondary-text)}
   .dashboard-command-bar{padding:14px}
   .dashboard-kpi-card{min-height:96px;padding:12px}
 }
+
+
+/* =========================================================
+   PUBLIC SITE CONTRAST + STACKING HARDENING
+   ========================================================= */
+.site-header{
+  position:sticky!important;
+  top:0!important;
+  z-index:100!important;
+  isolation:isolate;
+}
+.site-header-inner{position:relative;z-index:1}
+.site-header .desktop-actions,
+.site-header .mobile-nav-wrap{position:relative;z-index:2}
+.site-footer .footer-links a,
+.site-footer .footer-links span{
+  color:var(--ui-dark-primary-text)!important;
+  opacity:1!important;
+}
+.site-footer .footer-links a:hover{
+  color:var(--ui-dark-amber)!important;
+}
+.site-footer .footer-copy{color:var(--ui-dark-secondary-text)!important;opacity:1!important}
+.site-footer .footer-bottom{color:var(--ui-dark-secondary-text)!important}
+html[data-theme="light"] .site-footer .footer-links a,
+html[data-theme="light"] .site-footer .footer-links span{
+  color:var(--ui-primary-text)!important;
+}
+html[data-theme="light"] .site-footer .footer-copy,
+html[data-theme="light"] .site-footer .footer-bottom{
+  color:var(--ui-secondary-text)!important;
+}
+
+/* Public CTA/header surfaces use one semantic palette and never sit under the sticky header. */
+.landing-page .hero-actions,
+.landing-page .hero-system,
+.landing-page .hero-copy{
+  position:relative;
+  z-index:2;
+}
+.landing-page .landing-section{
+  position:relative;
+  z-index:1;
+}
+.landing-page .landing-section.bg-white{
+  background:var(--ui-surface-1)!important;
+  border-top:1px solid var(--ui-border);
+  border-bottom:1px solid var(--ui-border);
+}
+.landing-page .landing-section.bg-\[\#F8FAFC\]{
+  background:var(--ui-surface-2)!important;
+}
+.landing-page .landing-section.bg-\[\#0F3E8A\]{
+  background:linear-gradient(135deg,var(--ui-dark-surface-1),var(--ui-dark-canvas))!important;
+}
+.landing-page .hero-primary{
+  background:var(--ui-amber)!important;
+  color:#fff!important;
+}
+.landing-page .hero-secondary{
+  background:rgba(255,255,255,.08)!important;
+  border-color:rgba(255,255,255,.22)!important;
+  color:var(--ui-dark-primary-text)!important;
+}
+.landing-page .hero-primary:hover{filter:brightness(1.05)}
+.landing-page > section:last-child{
+  background:var(--ui-surface-2)!important;
+}

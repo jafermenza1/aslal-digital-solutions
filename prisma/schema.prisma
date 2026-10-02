@@ -223,6 +223,12 @@ enum UserRole {
 }
 
 
+enum WorkspaceMembershipStatus {
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
 enum WorkspaceRole {
   OWNER
   ADMIN
@@ -598,7 +604,21 @@ model Event {
   @@map("events")
 }
 
+model PartnerIdentity {
+  id        String   @id @db.Char(36)
+  name      String   @db.VarChar(160)
+  email     String?  @db.VarChar(190)
+  phone     String?  @db.VarChar(40)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  partners  Partner[]
+  @@index([email], map:"idx_partner_identity_email")
+  @@index([phone], map:"idx_partner_identity_phone")
+  @@map("partner_identities")
+}
+
 model Partner {
+  identityId String? @map("identity_id") @db.Char(36)
   workspaceId String @map("workspace_id") @db.Char(36)
   id             String          @id @db.Char(36)
   partnerNumber  String          @unique @map("partner_number") @db.VarChar(30)
@@ -638,6 +658,7 @@ model Partner {
   revenues           Revenue[]
   orders             Order[]
   user               User?
+  identity           PartnerIdentity? @relation(fields:[identityId], references:[id], onDelete:SetNull)
   campaignPartners   CampaignPartner[]
   commissionContracts CommissionContract[]
   disputes           PartnerDispute[]
@@ -655,6 +676,7 @@ model Partner {
   @@index([status], map: "idx_partners_status")
   @@index([accountStatus], map: "idx_partners_account_status")
   @@index([verificationLevel], map: "idx_partners_verification_level")
+  @@index([identityId], map:"idx_partners_identity")
   @@map("partners")
 }
 
@@ -1728,6 +1750,7 @@ model Workspace {
   telegramOutbox TelegramOutbox[]
   telegramTemplates TelegramTemplate[]
   commissionContracts CommissionContract[]
+  membershipHistory WorkspaceMembershipHistory[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
   @@map("workspaces")
@@ -1738,13 +1761,38 @@ model WorkspaceUser {
   workspaceId String    @map("workspace_id") @db.Char(36)
   userId      String    @map("user_id") @db.Char(36)
   role        WorkspaceRole @default(MEMBER)
+  status      WorkspaceMembershipStatus @default(ACTIVE)
+  suspendedAt DateTime? @map("suspended_at") @db.DateTime(0)
+  removedAt   DateTime? @map("removed_at") @db.DateTime(0)
   createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(0)
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history     WorkspaceMembershipHistory[]
 
   @@unique([workspaceId, userId], map: "uq_workspace_user")
   @@index([userId], map: "idx_workspace_user_user")
   @@map("workspace_users")
+}
+
+model WorkspaceMembershipHistory {
+  id           String   @id @db.Char(36)
+  workspaceId  String   @map("workspace_id") @db.Char(36)
+  userId       String   @map("user_id") @db.Char(36)
+  membershipId String   @map("membership_id") @db.Char(36)
+  action       String   @db.VarChar(40)
+  fromRole     WorkspaceRole? @map("from_role")
+  toRole       WorkspaceRole? @map("to_role")
+  fromStatus   WorkspaceMembershipStatus? @map("from_status")
+  toStatus     WorkspaceMembershipStatus? @map("to_status")
+  reason       String   @db.Text
+  actorId      String   @map("actor_id") @db.Char(36)
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  workspace    Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  user         User @relation(fields:[userId], references:[id], onDelete:Restrict)
+  membership   WorkspaceUser @relation(fields:[membershipId], references:[id], onDelete:Restrict)
+
+  @@index([workspaceId,userId,createdAt], map:"idx_workspace_membership_history")
+  @@map("workspace_membership_history")
 }
 
 model User {
@@ -1765,6 +1813,7 @@ model User {
   telegramLinkedAt DateTime? @map("telegram_linked_at") @db.DateTime(0)
   partner         Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   workspaceUsers   WorkspaceUser[]
+  membershipHistory WorkspaceMembershipHistory[]
   audits          UserAudit[]
 
   @@index([active, role], map: "idx_users_active_role")

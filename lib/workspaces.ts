@@ -34,7 +34,7 @@ export async function getWorkspaceForUser(user: CurrentUser, workspaceId?: strin
     `SELECT w.id,w.name,w.slug,w.client_type
        FROM workspaces w
        JOIN workspace_users wu ON wu.workspace_id=w.id
-      WHERE wu.user_id=? AND w.id=? AND w.active=1
+      WHERE wu.user_id=? AND w.id=? AND w.active=1 AND wu.status='ACTIVE'
       LIMIT 1`,
     [user.id === "legacy-admin" ? null : user.id, requested]
   );
