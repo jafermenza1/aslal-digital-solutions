@@ -41,6 +41,7 @@ const ITEMS:Item[]=[
 {key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"growth",label:"Partners & Commissions"},
 {key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Marketplace"},
 {key:"partners",href:"/dashboard/partners/network",permission:"partners.manage",icon:"partner",group:"growth",label:"Partner Network"},
+{key:"partners",href:"/dashboard/partner-settings",permission:"partners.manage",icon:"partner",group:"growth",nested:true,label:"Partner Registration Settings"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"commerce"},
