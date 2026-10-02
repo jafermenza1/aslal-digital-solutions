@@ -559,3 +559,10 @@ Known CE-5 follow-on work:
 **Status: IMPLEMENTED — VERIFICATION PENDING**
 
 The implementation now covers public demand capture, Lead creation, qualification, controlled publication/response intake, supplier/provider/partner response, response acceptance, Opportunity creation, Quote creation/acceptance, Order creation and fulfillment closure. Existing Lead, Opportunity, Quote and Order domains are reused. Runtime migration, typecheck, lint, build, E2E and workspace-isolation verification remain outstanding.
+
+
+## CE-7 — Supply/Demand Matching
+
+**Status: IMPLEMENTED — VERIFICATION PENDING**
+
+The matching engine evaluates published listings against open CE-6 demand, persists weighted score/reasons, records partner eligibility where applicable, prevents duplicate request/listing matches, and provides shortlist/reject/contact/create-response controls. Runtime migration, typecheck, lint, build, E2E and workspace-isolation verification remain outstanding.
