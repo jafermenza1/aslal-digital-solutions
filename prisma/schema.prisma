@@ -892,6 +892,7 @@ model Partner {
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
   commercialAppointments CommercialAppointment[]
+  commercialAgreements CommercialAgreement[]
   commercialRequests CommercialRequest[]
 
   commercialRequestResponses CommercialRequestResponse[]
@@ -986,6 +987,7 @@ model PartnerProgram {
   contracts          CommissionContract[]
   termsAcceptances PartnerTermsAcceptance[]
   campaigns          PartnerCampaign[]
+  commercialAgreements CommercialAgreement[]
   commercialListingAuthorizations CommercialListingAuthorization[]
 
   @@unique([workspaceId, slug], map: "uq_partner_program_workspace_slug")
@@ -1036,6 +1038,7 @@ model CommissionContract {
   terms           ProgramTerms   @relation(fields: [termsId], references: [id], onDelete: Restrict)
   partner         Partner        @relation(fields: [partnerId], references: [id], onDelete: Restrict)
   termsAcceptances PartnerTermsAcceptance[]
+  commercialAgreements CommercialAgreement[]
 
   @@unique([programId, partnerId], map: "uq_program_contract_partner")
   @@index([workspaceId, partnerId, status], map: "idx_contract_workspace_partner_status")
@@ -1303,6 +1306,7 @@ model CommercialParty {
   ownedListings CommercialListing[]   @relation("CommercialListingOwner")
   suppliedListings CommercialListing[] @relation("CommercialListingSupplier")
   professionalProfile ProfessionalProfile?
+  commercialAgreements CommercialAgreement[]
   authorizations CommercialListingAuthorization[]
 
   commercialRequestResponses CommercialRequestResponse[]
