@@ -566,3 +566,21 @@ The implementation now covers public demand capture, Lead creation, qualificatio
 **Status: IMPLEMENTED — VERIFICATION PENDING**
 
 The matching engine evaluates published listings against open CE-6 demand, persists weighted score/reasons, records partner eligibility where applicable, prevents duplicate request/listing matches, and provides shortlist/reject/contact/create-response controls. Runtime migration, typecheck, lint, build, E2E and workspace-isolation verification remain outstanding.
+
+
+## CE-7 Demo Demand & Matching Dataset — 2026-10-03
+
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+A migration-seeded demonstration dataset has been added before CE-8 so the deployed environment can immediately demonstrate the CE-6/CE-7 commercial flow after migrations are applied.
+
+Seeded:
+- 5 synthetic wanted-demand requests;
+- 5 published commercial supply listings;
+- 5 demo supplier/owner parties;
+- 8 persisted match records with score breakdowns and human-readable reasons;
+- varied match states including SUGGESTED, SHORTLISTED and CONTACTED.
+
+The records are scoped to the first active workspace, use clearly synthetic demo names/contact values, and do not represent historical customer activity. The seed is intentionally migration-based and therefore does not depend on CI or a separate application seed command.
+
+Required acceptance evidence remains: migration application, dashboard visibility, workspace isolation, matching behavior, duplicate/idempotency tests and CE-7 response handoff.
