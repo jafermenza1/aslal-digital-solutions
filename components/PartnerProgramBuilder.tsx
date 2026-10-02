@@ -10,7 +10,7 @@ export default function PartnerProgramBuilder(){
  const [step,setStep]=useState(0); const [busy,setBusy]=useState(false); const [message,setMessage]=useState("");
  const [form,setForm]=useState({name:"",slug:"",description:"",admissionMode:"OPEN",allowedPartnerTypes:"AFFILIATE,INFLUENCER",earningsDescription:"",qualifyingEvent:"Confirmed sale",attributionPolicy:"LAST_CLICK",attributionWindowDays:"30",refundHoldDays:"14",payoutSchedule:"MONTHLY",minimumPayout:"0",exclusions:"",currency:"ETB"});
  async function load(){const r=await fetch("/api/admin/partner-engine/programs");const d=await r.json();if(r.ok)setPrograms(d.programs||[]);else setMessage(d.error||"Could not load programs.");}
- useEffect(()=>{void load()},[]);
+ useEffect(()=>{let cancelled=false;(async()=>{const r=await fetch("/api/admin/partner-engine/programs");const d=await r.json();if(cancelled)return;if(r.ok)setPrograms(d.programs||[]);else setMessage(d.error||"Could not load programs.");})().catch(()=>{if(!cancelled)setMessage("Could not load programs.");});return()=>{cancelled=true}},[]);
  const set=(k:string,v:string)=>setForm(x=>({...x,[k]:v}));
  async function publish(){
   setBusy(true);setMessage("");
