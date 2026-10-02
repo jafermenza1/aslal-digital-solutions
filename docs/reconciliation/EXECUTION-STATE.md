@@ -584,3 +584,29 @@ Seeded:
 The records are scoped to the first active workspace, use clearly synthetic demo names/contact values, and do not represent historical customer activity. The seed is intentionally migration-based and therefore does not depend on CI or a separate application seed command.
 
 Required acceptance evidence remains: migration application, dashboard visibility, workspace isolation, matching behavior, duplicate/idempotency tests and CE-7 response handoff.
+
+
+## CE-8 — Professional Profiles — 2026-10-03
+
+**Status: IMPLEMENTED — VERIFICATION PENDING**
+
+Implemented on PR #99:
+- ProfessionalProfile linked to CommercialParty and optionally Partner;
+- professional specialties, categories, qualifications, service areas, languages, portfolio, availability, pricing and response-time fields;
+- explicit profile lifecycle and verification levels;
+- ProfessionalCredential evidence/review records;
+- admin profile/credential APIs and commercial dashboard workbench;
+- public published profile endpoint/page;
+- CommercialListing linkage to professional profiles;
+- CE-7 matching integration using professional profile information for service/RFP demand.
+
+Not yet accepted:
+- Prisma migration application;
+- generated Prisma client/typecheck/lint/build;
+- workspace A/B isolation;
+- public profile privacy/authorization tests;
+- credential expiry/review behavior;
+- service listing/profile linkage E2E;
+- CE-7 scoring regression and end-to-end provider response evidence.
+
+Verification levels are evidence labels only. The system must not mark a profile verified unless an authorized operator records the applicable verification state.
