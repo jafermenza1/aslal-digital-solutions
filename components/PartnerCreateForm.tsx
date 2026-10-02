@@ -9,6 +9,9 @@ type Created = {
   code: string;
   url: string;
   email: string;
+  status: string;
+  accountStatus: string;
+  verificationStatus: string;
 };
 
 type PartnerCreateFormProps = {
@@ -55,6 +58,9 @@ export default function PartnerCreateForm({ products = [], openInitially = false
         code: String(data.code || ""),
         url: String(data.referralUrl || ""),
         email: String(payload.email || ""),
+        status: String(data.status || "PENDING"),
+        accountStatus: String(data.accountStatus || "REGISTERED"),
+        verificationStatus: String(data.verificationStatus || "REGISTERED"),
       });
       setMessage("Registration submitted. Partner ID and referral identity are created; next steps are profile review → verification → approval → credentials → campaign matching.");
     } catch (error) {
@@ -151,7 +157,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                   <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-50 text-3xl font-black text-emerald-600">✓</div>
                   <div className="mt-4 text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Registration received</div>
                   <h2 className="mt-2 text-2xl font-black">{created.name}</h2>
-                  <p className="mt-2 text-sm text-slate-500">The partner record and referral link are ready. The registration is Pending until an authorized manager verifies the profile.</p>
+                  <p className="mt-2 text-sm text-slate-500">The partner record is registered but not active. Verification and activation are completed from Partner Engine → Partner directory.</p>
                 </div>
 
                 <div className="mt-6 rounded-2xl bg-[#F8FAFC] p-5">
@@ -165,9 +171,9 @@ export default function PartnerCreateForm({ products = [], openInitially = false
                   {credentialsAllowed ? (<section className="rounded-2xl border border-slate-200 p-5">
                     <div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 2</div>
                     <h3 className="mt-1 font-black">Portal credentials</h3>
-                    <p className="mt-1 text-sm text-slate-500">Create the PARTNER login independently. The password is hashed and never displayed again.</p>
+                    <p className="mt-1 text-sm text-slate-500">Credentials are available only after verification and activation. Current state: <b>{created.verificationStatus}</b> / <b>{created.status}</b>.</p>
                     {credentials ? <div className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">Username: <span className="font-mono">{credentials.username}</span><br/>{credentials.emailSent ? "Credentials emailed to " + credentials.emailRecipient + "." : "Credentials created; email delivery needs attention."}</div> : null}
-                    <button type="button" onClick={issueCredentials} disabled={actionBusy === "credentials" || Boolean(credentials)} className="mt-4 rounded-full bg-[#0F3E8A] px-4 py-2.5 text-sm font-black text-white disabled:opacity-50">{actionBusy === "credentials" ? "Issuing…" : credentials ? "Credentials issued" : "Issue portal credentials"}</button>
+                    {created.verificationStatus==="VERIFIED" && created.status==="ACTIVE" && created.accountStatus==="ACTIVE" ? <button type="button" onClick={issueCredentials} disabled={actionBusy === "credentials" || Boolean(credentials)} className="mt-4 rounded-full bg-[#0F3E8A] px-4 py-2.5 text-sm font-black text-white disabled:opacity-50">{actionBusy === "credentials" ? "Issuing…" : credentials ? "Credentials issued" : "Issue portal credentials"}</button> : <div className="mt-4 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-800">Verify and activate this partner in the Partner Engine before issuing portal credentials.</div>}
                   </section>
 
                                       ) : (<section className="rounded-2xl border border-slate-200 p-5"><div className="text-xs font-black uppercase tracking-wider text-[#0F3E8A]">Step 2</div><h3 className="mt-1 font-black">Portal credentials</h3><p className="mt-1 text-sm text-slate-500">Credential issuance is restricted to administrators. Ask an administrator to complete this step.</p></section>)}
