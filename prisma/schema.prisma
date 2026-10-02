@@ -1317,7 +1317,7 @@ model CommercialMatch {
   request        CommercialRequest    @relation(fields:[requestId], references:[id], onDelete:Cascade)
   listing        CommercialListing    @relation(fields:[listingId], references:[id], onDelete:Restrict)
   partner        Partner?             @relation(fields:[partnerId], references:[id], onDelete:SetNull)
-  supplierParty  CommercialParty?     @relation(fields:[supplierPartyId], references:[id], onDelete:SetNull)
+  supplierParty  CommercialParty?     @relation("CommercialMatchSupplierParty", fields:[supplierPartyId], references:[id], onDelete:SetNull)
   response       CommercialRequestResponse? @relation(fields:[responseId], references:[id], onDelete:SetNull)
 
   @@unique([requestId,listingId], map:"uq_commercial_match_request_listing")
