@@ -13,6 +13,8 @@ function parse(body:any,current:any){
  return {
   workspaceId:clean(body.workspaceId??current.workspaceId,36),
   productId:clean(body.productId??current.productId??"",36)||null,
+  ownerPartyId:clean(body.ownerPartyId??current.ownerPartyId??"",36)||null,
+  supplierPartyId:clean(body.supplierPartyId??current.supplierPartyId??"",36)||null,
   title:clean(body.title??current.title,190),
   slug:clean(body.slug??current.slug,160),
   listingType,status,
@@ -41,6 +43,9 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const data=parse(body,current);
  if(data.workspaceId!==current.workspaceId)return NextResponse.json({error:"A listing cannot be moved between workspaces from this operation."},{status:400});
  if(!data.title||!data.slug||!TYPES.includes(data.listingType)||!STATUSES.includes(data.status)||data.askingPrice!==null&&!Number.isFinite(data.askingPrice))return NextResponse.json({error:"Invalid listing data."},{status:400});
+ if(data.ownerPartyId && !(await prisma.commercialParty.findFirst({where:{id:data.ownerPartyId,workspaceId:current.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected owner does not belong to this workspace or is archived."},{status:400});
+ if(data.supplierPartyId && !(await prisma.commercialParty.findFirst({where:{id:data.supplierPartyId,workspaceId:current.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected supplier does not belong to this workspace or is archived."},{status:400});
+ if(data.status==="PUBLISHED"&&!data.ownerPartyId)return NextResponse.json({error:"A listing cannot be published without an identified commercial owner."},{status:400});
  if(data.productId){
   const product=await prisma.product.findFirst({where:{id:data.productId,workspaceId:current.workspaceId},select:{id:true}});
   if(!product)return NextResponse.json({error:"The selected catalog item does not belong to this workspace."},{status:400});
@@ -50,6 +55,6 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(duplicate)return NextResponse.json({error:"That listing slug is already in use in this workspace."},{status:409});
  }
  const published=data.status==="PUBLISHED"&&data.publicVisible;
- const listing=await prisma.commercialListing.update({where:{id},data:{...data,publishedAt:published?(current.publishedAt||new Date()):null},include:{product:{select:{id:true,name:true,slug:true,kind:true}},workspace:{select:{id:true,name:true,slug:true}}}});
+ const listing=await prisma.commercialListing.update({where:{id},data:{...data,publishedAt:published?(current.publishedAt||new Date()):null},include:{product:{select:{id:true,name:true,slug:true,kind:true}},ownerParty:{select:{id:true,name:true,type:true,status:true}},supplierParty:{select:{id:true,name:true,type:true,status:true}},workspace:{select:{id:true,name:true,slug:true}}}});
  return NextResponse.json({ok:true,listing});
 }
