@@ -1748,6 +1748,7 @@ model Workspace {
   telegramOutbox TelegramOutbox[]
   telegramTemplates TelegramTemplate[]
   commissionContracts CommissionContract[]
+  membershipHistory WorkspaceMembershipHistory[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
   @@map("workspaces")
