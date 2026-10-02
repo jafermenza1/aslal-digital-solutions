@@ -5774,3 +5774,242 @@ The required demonstration is:
 `new BASIC affiliate → self-register → email verify → ACTIVE → complete profile/payout → join OPEN program → accept active terms → CommissionContract → referral identity → partner portal`
 
 P2 work already present remains preserved, but P2 should not be declared the next completed roadmap milestone until this P1-R demonstration is executed successfully.
+
+
+---
+
+# 265. Partner Sales Assets — Tickets, Coupons, Vouchers and Passes
+
+## 265.1 Purpose
+
+The Growth OS may allow an approved partner to distribute or sell controlled commercial assets such as printable tickets, coupons, vouchers, passes, gift certificates, or similar customer entitlements.
+
+This capability is an extension of the existing Partner-to-Revenue Continuity model. It is **not** a general-purpose event-ticketing platform, standalone coupon marketplace, or replacement for a business's existing fulfillment system.
+
+The feature exists to give partners a simple physical/digital sales instrument while preserving the same commercial chain already used by Aslal:
+
+**Campaign → Commercial Distribution Item → Partner Allocation → Partner Sale → Order/Payment → Revenue → Commission → Redemption/Fulfillment**
+
+A direct partner sale does not require a Lead record. Where customer acquisition information exists, attribution may additionally connect the sale to the originating campaign, partner, referral identity, or offline attribution record.
+
+## 265.2 Supported asset types
+
+Phase 1 supports these controlled asset types:
+
+- **TICKET** — an entitlement to attend or access a defined event, activity, service, or appointment.
+- **COUPON** — a discount or promotional entitlement.
+- **VOUCHER** — a prepaid or value-bearing entitlement for a defined product/service.
+- **PASS** — a reusable or time-bound access entitlement.
+
+Future types may include gift certificates or other controlled commercial instruments only when their lifecycle can be represented by the same issuance, status, ownership, and audit controls.
+
+## 265.3 Asset definition
+
+A Commercial Distribution Item must have:
+
+- workspace;
+- name;
+- type;
+- description;
+- linked Product/Service where applicable;
+- linked Campaign where applicable;
+- face value or selling price;
+- currency;
+- quantity/issuance limit where applicable;
+- validity start and end;
+- redemption instructions;
+- printable/visual configuration;
+- status;
+- creator and creation timestamp.
+
+The asset definition is a master record. Individual issued units must have their own immutable serial identity.
+
+## 265.4 Partner allocation
+
+An asset may be allocated to a specific active, verified partner.
+
+The allocation must record:
+
+- asset;
+- partner;
+- campaign where applicable;
+- quantity allocated;
+- quantity sold/issued;
+- quantity remaining;
+- allocation status;
+- effective period;
+- creator;
+- timestamps.
+
+Only partners that satisfy the applicable verification, account, campaign, and program rules may receive an allocation.
+
+A partner must never be able to allocate assets to itself or another partner.
+
+## 265.5 Individual issued asset
+
+Every issued ticket, coupon, voucher, or pass must receive a unique human-readable serial number and a machine-readable QR representation.
+
+The serial must be unique within the workspace and must not be reused after cancellation, redemption, expiration, or voiding.
+
+The minimum lifecycle is:
+
+**ISSUED → VALID → REDEEMED**
+
+with controlled terminal alternatives:
+
+**ISSUED → VOID**  
+**ISSUED → EXPIRED**
+
+The system must preserve the complete lifecycle history.
+
+## 265.6 Printable asset
+
+A printable asset should contain, as applicable:
+
+- Aslal/business identity;
+- asset name;
+- asset type;
+- unique serial number;
+- customer/holder name where supplied;
+- selling price or value;
+- issue date;
+- validity period;
+- partner ID/name;
+- campaign reference where applicable;
+- redemption instructions;
+- QR code;
+- verification message or URL.
+
+The printable representation must not expose internal database identifiers or private customer information unnecessarily.
+
+## 265.7 Partner sales rules
+
+A partner may sell or issue an asset only when:
+
+1. the partner account is active;
+2. the partner is verified according to the asset's required level;
+3. the partner has an active allocation;
+4. inventory remains available;
+5. the asset is within its sale/validity window;
+6. the sale price is within the authorized commercial rules;
+7. the transaction is recorded against the correct workspace;
+8. the issued unit receives a unique serial;
+9. the commercial result is linked to the partner and campaign where applicable.
+
+A partner must not be able to change the official asset price, validity, commission rule, or redemption state.
+
+## 265.8 Relationship to Orders, Payments and Leads
+
+Partner Sales Assets must reuse the existing commercial infrastructure.
+
+A completed paid sale should use the existing Order and Payment lifecycle wherever a monetary transaction occurs.
+
+The Order must be capable of identifying:
+
+- partner;
+- campaign;
+- referral identity where applicable;
+- commercial distribution item;
+- issued serial/unit where applicable.
+
+A sale may exist without a Lead.
+
+A Lead should be created only when the customer-acquisition workflow actually requires a lead record.
+
+This distinction prevents the Growth OS from forcing every physical transaction into a CRM lead model.
+
+## 265.9 Commission
+
+Commission must use the existing partner program and commission contract rules.
+
+The system must not create a separate commission calculator for tickets or vouchers.
+
+The commissionable basis may be:
+
+- fixed amount;
+- percentage of qualifying sale;
+- margin;
+- another published program rule.
+
+The applicable historical contract must remain identifiable for every commission event.
+
+## 265.10 Redemption and verification
+
+Phase 1 establishes the data model and issuance controls.
+
+A later phase may provide a dedicated redemption interface allowing an authorized operator to:
+
+- scan QR;
+- enter serial;
+- verify status;
+- confirm asset identity;
+- see validity;
+- redeem;
+- record redemption actor and timestamp.
+
+Redemption must be idempotent. A second redemption attempt must not create a second successful redemption.
+
+## 265.11 Fraud and audit controls
+
+The system must record:
+
+- who defined the asset;
+- who allocated inventory;
+- who issued each unit;
+- who amended controlled fields;
+- who voided a unit;
+- who redeemed a unit;
+- timestamps;
+- relevant before/after state for controlled amendments.
+
+Serial numbers, QR payloads, allocation quantities, order references, and redemption records must be workspace-scoped.
+
+## 265.12 Phase 1 implementation scope
+
+Phase 1 — **Partner Sales Asset Foundation** — delivers:
+
+1. asset definition for Ticket/Coupon/Voucher/Pass;
+2. workspace-scoped asset records;
+3. Product/Service and Campaign association;
+4. price/value and validity;
+5. inventory/issuance limit;
+6. active/inactive lifecycle;
+7. partner allocation;
+8. unique serial generation;
+9. QR generation;
+10. printable PDF generation;
+11. partner/admin visibility of allocated assets;
+12. audit-ready issuance records.
+
+Phase 1 does **not** attempt to deliver:
+
+- general event management;
+- seat maps;
+- venue management;
+- public ticket marketplace;
+- complex coupon stacking;
+- automated payment-provider settlement specific to tickets;
+- offline synchronization;
+- advanced redemption operations.
+
+## 265.13 Roadmap
+
+**P1 — Partner Sales Asset Foundation:** define, allocate, issue, serialise, QR and print.
+
+**P2 — Partner Sales Capture:** partner sells/records asset sales through the existing Order/Payment flow and sees inventory and commission impact.
+
+**P3 — Redemption:** authorized operators verify and redeem QR/serial assets with an immutable redemption history.
+
+**P4 — Offline Commerce Extensions:** support controlled offline issuance/synchronization where connectivity is limited.
+
+## 265.14 Product-value rule
+
+This feature is aligned with Aslal's Growth OS because it strengthens an existing commercial network rather than creating an unrelated module.
+
+It gives partners a concrete sales instrument, extends Aslal's offline-commerce capability, creates attributable commercial transactions even where no lead exists, increases partner utility and retention, and allows Aslal to measure distribution activity through the same order, payment, revenue, commission, and reporting infrastructure.
+
+The implementation must remain deliberately narrow: **commercial distribution assets inside Growth OS**, not a separate ticketing company.
+
+## 265.15 Phase 1 exit condition
+
+Phase 1 is complete when an authorized administrator can define a commercial distribution asset, associate it with an existing Product/Service and/or Campaign, allocate controlled inventory to an eligible partner, issue a uniquely serialized unit, generate a QR code, and produce a printable representation without bypassing workspace isolation or partner authorization.
