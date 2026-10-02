@@ -407,3 +407,36 @@ Added docs/ops/Q1-OPERATOR-SOP-EVIDENCE.md. It maps the required Q1 operator pro
 **Required evidence:** one controlled execution per SOP, authorization/state-transition evidence, failed-transaction rollback proof, receipt-exception proof and payout settlement evidence.
 
 Q1 remains **NOT ACCEPTED**.
+
+
+## Main Commercial Engine — CE-1 implementation update
+
+**Increment:** CE-1 — Commercial Listing Foundation  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+The first commercial-engine increment is now implemented on the PR #99 branch as an extension of the existing Product/Service catalog.
+
+Implemented:
+- `CommercialListing` Prisma model and lifecycle/type enums;
+- checked-in Prisma migration;
+- workspace-scoped listing create/read/update API;
+- existing `products.manage` authorization boundary reused for CE-1;
+- listing manager under Dashboard → Commercial Listings;
+- public `/marketplace` discovery surface;
+- public `/marketplace/listings/[slug]` detail surface;
+- optional linkage from a listing to an existing workspace Product/Service;
+- support for standalone asset/property listings without creating a second product catalog.
+
+Not implemented by CE-1:
+- partner authorization;
+- partner eligibility;
+- deal registration;
+- attribution protection;
+- inspection scheduling;
+- wanted requests;
+- supply-demand matching;
+- provider/RFP workflows;
+- external payment evidence;
+- leakage/dispute automation.
+
+CE-1 is **not accepted** from code existence alone. Required evidence includes Prisma migration/application validation, local typecheck/lint/build, workspace A/B authorization tests, public visibility/status tests, product-to-listing workspace mismatch rejection, and controlled create/edit/publish behavior.
