@@ -9,6 +9,7 @@ import { ProfessionalProfileManager } from "@/components/ProfessionalProfileMana
 import { ProfessionalProposalWorkbench } from "@/components/ProfessionalProposalWorkbench";
 import { CommercialAgreementManager } from "@/components/CommercialAgreementManager";
 import { ExternalPaymentEvidenceManager } from "@/components/ExternalPaymentEvidenceManager";
+import { CommercialControlsManager } from "@/components/CommercialControlsManager";
 
 export const dynamic="force-dynamic";
 
@@ -38,6 +39,6 @@ export default async function CommercialListingsPage(){
   {workspaceId&&<ProfessionalProfileManager workspaceId={workspaceId} parties={parties} initial={professionalProfiles.map(x=>({id:x.id,displayName:x.displayName,profession:x.profession,status:x.status,verificationLevel:x.verificationLevel,party:x.party,partner:x.partner,credentials:x.credentials}))}/>}\n  {workspaceId&&<CommercialDemandWorkbench workspaceId={workspaceId} initial={commercialRequests.map(x=>({id:x.id,requestType:x.requestType,status:x.status,title:x.title,requestedItem:x.requestedItem,contactName:x.contactName,lead:x.lead,opportunity:x.opportunity,responses:x.responses}))} initialMatches={commercialMatches.map(x=>({id:x.id,requestId:x.requestId,listingId:x.listingId,status:x.status,score:x.score,reasons:x.reasons,eligibility:x.eligibility,listing:x.listing}))} parties={parties} partners={partners} listings={listings.map(x=>({id:x.id,title:x.title}))}/>}
   <ProfessionalProposalWorkbench workspaceId={workspaceId}/>
   <CommercialAgreementManager workspaceId={workspaceId||""} parties={parties} partners={partners}/>
-  {workspaceId&&<ExternalPaymentEvidenceManager workspaceId={workspaceId}/>}
+  {workspaceId&&<ExternalPaymentEvidenceManager workspaceId={workspaceId}/>}\n  {workspaceId&&<CommercialControlsManager workspaceId={workspaceId}/>}
  </div></main>;
 }
