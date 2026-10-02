@@ -11,8 +11,8 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const {id}=await params;
   try{
     const b=await request.json();
-    const [partnerRows]=await db.query<(RowDataPacket & {id:string;workspace_id:string;verification_status:string;status:string})[]>(
-      "SELECT id,workspace_id,verification_status,status FROM partners WHERE id=? LIMIT 1",[id]
+    const [partnerRows]=await db.query<(RowDataPacket & {id:string;workspace_id:string;verification_status:string;status:string;account_status:string})[]>(
+      "SELECT id,workspace_id,verification_status,status,account_status FROM partners WHERE id=? LIMIT 1",[id]
     );
     const current=partnerRows[0];
     if(!current)return NextResponse.json({error:"Partner not found."},{status:404});
@@ -53,9 +53,10 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
       fields.push("status=?");values.push(v);
     }
 
-    for(const [key,column] of [["bio","bio"],["specialties","specialties"],["serviceAreas","service_areas"],["verificationNotes","verification_notes"]] as const){
+    for(const [key,column] of [["bio","bio"],["specialties","specialties"],["serviceAreas","service_areas"],["verificationNotes","verification_notes"],["logoUrl","logo_url"]] as const){
       if(b[key]!==undefined){
         const v=String(b[key]??"").trim();
+        if(key==="logoUrl" && v && !/^https:\/\//i.test(v))return NextResponse.json({error:"Partner logo must be an HTTPS URL."},{status:400});
         if(v.length>5000)return NextResponse.json({error:"Profile text is too long."},{status:400});
         fields.push(column+"=?");values.push(v||null);
       }
