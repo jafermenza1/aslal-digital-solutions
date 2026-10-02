@@ -15,9 +15,3 @@ CREATE TABLE issued_sales_asset_redemptions (
   CONSTRAINT fk_asset_redemption_asset FOREIGN KEY (issued_asset_id) REFERENCES issued_sales_assets(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-DELIMITER $$
-CREATE TRIGGER trg_issued_asset_redemption_no_update BEFORE UPDATE ON issued_sales_asset_redemptions
-FOR EACH ROW BEGIN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Redemption history is immutable'; END$$
-CREATE TRIGGER trg_issued_asset_redemption_no_delete BEFORE DELETE ON issued_sales_asset_redemptions
-FOR EACH ROW BEGIN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Redemption history is immutable'; END$$
-DELIMITER ;
