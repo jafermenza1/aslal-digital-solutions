@@ -17,7 +17,7 @@ export async function POST(request:Request){
   if(item.rsvp_closes_at&&now>new Date(item.rsvp_closes_at))return NextResponse.json({error:"The RSVP window has closed."},{status:409});
   if(item.valid_from&&now<new Date(item.valid_from))return NextResponse.json({error:"This ticket is not valid yet."},{status:409});
   if(item.valid_until&&now>new Date(item.valid_until))return NextResponse.json({error:"This ticket has expired."},{status:409});
-  if(item.holder_phone&&phone&&item.holder_phone!==phone)return NextResponse.json({error:"The supplied phone does not match the ticket holder record."},{status:403});
+  if(item.holder_phone&&(!phone||item.holder_phone!==phone))return NextResponse.json({error:"The supplied phone does not match the ticket holder record."},{status:403});
   const [existing]=await db.query<RowDataPacket[]>('SELECT id,status FROM sales_asset_rsvps WHERE issued_asset_id=? LIMIT 1',[item.issued_asset_id]);
   if(existing[0]&&existing[0].status==="CONFIRMED")return NextResponse.json({ok:true,status:"ALREADY_CONFIRMED",rsvpId:existing[0].id});
   const id=randomUUID();
