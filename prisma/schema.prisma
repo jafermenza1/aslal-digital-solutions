@@ -227,6 +227,39 @@ enum CommercialListingStatus {
   REJECTED
 }
 
+enum CommercialPartyType {
+  BUSINESS
+  SUPPLIER
+  ASSET_OWNER
+  SERVICE_PROVIDER
+  EXTERNAL_OWNER
+}
+
+enum CommercialPartyStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum CommercialAuthorizationType {
+  OWNED
+  SUPPLIED
+  RESELLER_AUTHORIZED
+  IMPLEMENTATION_PARTNER
+  AFFILIATE_PROMOTION
+  SERVICE_PROVIDER
+  CUSTOM
+}
+
+enum CommercialAuthorizationStatus {
+  REQUESTED
+  APPROVED
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  REVOKED
+}
+
 enum UserRole {
   SUPER_ADMIN
   ADMIN
@@ -688,6 +721,7 @@ model Partner {
   verificationChallenges PartnerVerificationChallenge[]
   payoutProfile PartnerPayoutProfile?
   termsAcceptances PartnerTermsAcceptance[]
+  commercialListingAuthorizations CommercialListingAuthorization[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
@@ -774,6 +808,7 @@ model PartnerProgram {
   terms              ProgramTerms[]
   contracts          CommissionContract[]
   termsAcceptances PartnerTermsAcceptance[]
+  commercialListingAuthorizations CommercialListingAuthorization[]
   campaigns          PartnerCampaign[]
 
   @@unique([workspaceId, slug], map: "uq_partner_program_workspace_slug")
@@ -968,6 +1003,8 @@ model CommercialListing {
   id                String                   @id @db.Char(36)
   workspaceId       String                   @map("workspace_id") @db.Char(36)
   productId         String?                  @map("product_id") @db.Char(36)
+  ownerPartyId       String?                  @map("owner_party_id") @db.Char(36)
+  supplierPartyId    String?                  @map("supplier_party_id") @db.Char(36)
   title             String                   @db.VarChar(190)
   slug              String                   @db.VarChar(160)
   listingType       CommercialListingType    @map("listing_type")
@@ -991,12 +1028,75 @@ model CommercialListing {
   updatedAt         DateTime                 @updatedAt @map("updated_at") @db.DateTime(0)
   workspace         Workspace                @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
   product           Product?                @relation(fields:[productId], references:[id], onDelete:SetNull)
+  ownerParty        CommercialParty?       @relation("CommercialListingOwner", fields:[ownerPartyId], references:[id], onDelete:SetNull)
+  supplierParty     CommercialParty?       @relation("CommercialListingSupplier", fields:[supplierPartyId], references:[id], onDelete:SetNull)
+  authorizations    CommercialListingAuthorization[]
 
   @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
   @@index([workspaceId, status, publicVisible], map:"idx_commercial_listing_workspace_status_public")
   @@index([productId], map:"idx_commercial_listing_product")
   @@index([listingType, category, status], map:"idx_commercial_listing_type_category_status")
   @@map("commercial_listings")
+}
+
+model CommercialParty {
+  id          String                 @id @db.Char(36)
+  workspaceId String                 @map("workspace_id") @db.Char(36)
+  name        String                 @db.VarChar(190)
+  type        CommercialPartyType    @default(BUSINESS)
+  status      CommercialPartyStatus  @default(ACTIVE)
+  email       String?                @db.VarChar(190)
+  phone       String?                @db.VarChar(40)
+  contactName String?                @map("contact_name") @db.VarChar(160)
+  description String?                @db.Text
+  metadata    Json?
+  createdAt   DateTime               @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime               @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace   Workspace              @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  ownedListings CommercialListing[]   @relation("CommercialListingOwner")
+  suppliedListings CommercialListing[] @relation("CommercialListingSupplier")
+  authorizations CommercialListingAuthorization[]
+
+  @@index([workspaceId,status,name], map:"idx_commercial_party_workspace_status_name")
+  @@map("commercial_parties")
+}
+
+model CommercialListingAuthorization {
+  id            String                        @id @db.Char(36)
+  workspaceId   String                        @map("workspace_id") @db.Char(36)
+  listingId     String                        @map("listing_id") @db.Char(36)
+  partyId       String?                       @map("party_id") @db.Char(36)
+  partnerId     String?                       @map("partner_id") @db.Char(36)
+  userId        String?                       @map("user_id") @db.Char(36)
+  authorizationType CommercialAuthorizationType @map("authorization_type")
+  status        CommercialAuthorizationStatus @default(REQUESTED)
+  effectiveAt   DateTime                      @default(now()) @map("effective_at") @db.DateTime(0)
+  expiresAt     DateTime?                     @map("expires_at") @db.DateTime(0)
+  territory     String?                       @db.VarChar(190)
+  channel       String?                       @db.VarChar(100)
+  partnerTypes  String?                       @map("partner_types") @db.VarChar(250)
+  quantityLimit Decimal?                      @map("quantity_limit") @db.Decimal(15,3)
+  commissionRule String?                      @map("commission_rule") @db.VarChar(500)
+  protectionDays Int?                         @map("protection_days")
+  exclusions    String?                       @db.Text
+  approvedBy   String?                        @map("approved_by") @db.Char(36)
+  approvedAt   DateTime?                      @map("approved_at") @db.DateTime(0)
+  revokedAt    DateTime?                      @map("revoked_at") @db.DateTime(0)
+  revocationReason String?                    @map("revocation_reason") @db.Text
+  createdAt    DateTime                        @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime                        @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace    Workspace                      @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  listing      CommercialListing             @relation(fields:[listingId], references:[id], onDelete:Restrict)
+  party        CommercialParty?             @relation(fields:[partyId], references:[id], onDelete:SetNull)
+  partner      Partner?                     @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  user         User?                        @relation(fields:[userId], references:[id], onDelete:SetNull)
+
+  @@index([workspaceId,status], map:"idx_commercial_auth_workspace_status")
+  @@index([listingId,status], map:"idx_commercial_auth_listing_status")
+  @@index([partyId,status], map:"idx_commercial_auth_party_status")
+  @@index([partnerId,status], map:"idx_commercial_auth_partner_status")
+  @@index([userId,status], map:"idx_commercial_auth_user_status")
+  @@map("commercial_listing_authorizations")
 }
 
 model Revenue {
@@ -1838,6 +1938,8 @@ model Workspace {
   telegramDestinations TelegramDestination[]
   products Product[]
   commercialListings CommercialListing[]
+  commercialParties CommercialParty[]
+  commercialListingAuthorizations CommercialListingAuthorization[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
