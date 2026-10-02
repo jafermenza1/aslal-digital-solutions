@@ -2150,7 +2150,30 @@ Runtime Prisma migration, typecheck, lint, build, workspace isolation and contro
 
 ### CE-12 — Leakage / Dispute Controls
 
-Evidence-driven commercial leakage review and dispute resolution.
+**IMPLEMENTED — VERIFICATION PENDING**
+
+CE-12 adds an evidence-driven integrity layer over the existing commercial timeline.
+
+Implemented:
+- CommercialLeakageSignal for suspicious patterns including repeated introductions followed by direct closure, repeated inspections without outcomes, attribution changes after quotation, duplicate customer identity, seller-reported external sales, repeated disputes and suspicious attribution changes;
+- signal lifecycle OPEN → ACKNOWLEDGED → INVESTIGATING → SUBSTANTIATED / DISMISSED → RESOLVED;
+- signals are review triggers, not proof, and do not automatically invalidate attribution or earnings;
+- CommercialDispute supports attribution, duplicate lead/customer, deal registration, commission, refund, payment evidence, order value, partner contribution, seller circumvention and provider performance disputes;
+- disputes preserve affected entities and evidence references, disputed amount, resolution, resolver and timestamps;
+- workspace-scoped integrity APIs and operator workbench;
+- explicit resolutions including preserve attribution, adjust attribution, preserve commission, adjust/void commission, restrict participation, suspend authorization, no breach and insufficient evidence;
+- CE-11 payment evidence can be attached to disputes;
+- leakage signals can be attached to disputes and resolved alongside them;
+- commission remains unchanged by default; only an explicit authorized VOID_COMMISSION resolution changes the canonical commission;
+- original evidence is retained rather than overwritten or silently invalidated.
+
+CE-12 deliberately does not:
+- automatically punish partners or suppliers because a signal was detected;
+- infer circumvention from a single event;
+- silently remove legitimate commissions;
+- replace existing attribution, commission, agreement or payment domains.
+
+Runtime migration, typecheck, lint, build, workspace isolation and controlled leakage/dispute acceptance remain pending.
 
 ### CE-13 — Commercial Analytics
 
