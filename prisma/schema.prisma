@@ -832,7 +832,6 @@ model Partner {
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatches CommercialMatch[]
 
-  commercialMatchesAsSupplier CommercialMatch[] @relation("CommercialMatchSupplierParty")
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
