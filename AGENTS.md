@@ -6,11 +6,12 @@ This repository is governed by the Aslal Growth OS PRD and reconciliation contro
 
 Required reading order:
 1. docs/PRD-ASLAL-GROWTH-OS-v1.0.md — product authority.
-2. docs/reconciliation/README.md — phase boundaries and integrity rules.
-3. docs/reconciliation/TRACEABILITY.md — requirement IDs and evidence.
-4. docs/reconciliation/EXECUTION-STATE.md — current phase, completed work, active work, and the single next action.
-5. docs/reconciliation/DOMAIN-CONTRACT.md — canonical entities and relationships.
-6. The implementation document for the phase being changed.
+2. docs/MAIN-COMMERCIAL-ENGINE.md — detailed commercial-domain contract and gap reconciliation.
+3. docs/reconciliation/README.md — phase boundaries and integrity rules.
+4. docs/reconciliation/TRACEABILITY.md — requirement IDs and evidence.
+5. docs/reconciliation/EXECUTION-STATE.md — current phase, completed work, active work, and the single next action.
+6. docs/reconciliation/DOMAIN-CONTRACT.md — canonical entities and relationships.
+7. The implementation document for the phase being changed.
 
 Do not infer project state from filenames, routes, database tables, dashboards, comments, or memory.
 
