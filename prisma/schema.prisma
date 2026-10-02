@@ -503,6 +503,7 @@ model Lead {
   stageHistory      LeadStageHistory[]
   productInterests  LeadProductInterest[]
   attributions      LeadAttribution[]
+  attributionAudits LeadAttributionAudit[]
   commissions       Commission[]
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
@@ -865,6 +866,7 @@ model ReferralLink {
   partner         Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   partnerCampaign PartnerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   leadAttributions LeadAttribution[]
+  leadAttributionAudits LeadAttributionAudit[]
   resourceAttributions ResourceAttribution[]
   clicks          ReferralClick[]
   commissions     Commission[]
