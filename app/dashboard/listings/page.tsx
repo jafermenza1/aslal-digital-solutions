@@ -3,20 +3,22 @@ import { prisma } from "@/lib/prisma";
 import { CommercialListingManager } from "@/components/CommercialListingManager";
 import { CommercialAuthorizationManager } from "@/components/CommercialAuthorizationManager";
 import { CommercialDealRegistrationManager } from "@/components/CommercialDealRegistrationManager";
+import { CommercialInspectionManager } from "@/components/CommercialInspectionManager";
 
 export const dynamic="force-dynamic";
 
 export default async function CommercialListingsPage(){
  const user=await requirePermission("products.manage");
  const workspaceId=user.workspaceId;
- const [listings,products,parties,workspaceUsers,partners,programs,leads]=await Promise.all([
+ const [listings,products,parties,workspaceUsers,partners,programs,leads,dealRegistrations]=await Promise.all([
   prisma.commercialListing.findMany({where:workspaceId?{workspaceId}:undefined,orderBy:{updatedAt:"desc"},include:{product:{select:{id:true,name:true,slug:true,kind:true}},ownerParty:{select:{id:true,name:true,type:true,status:true}},supplierParty:{select:{id:true,name:true,type:true,status:true}},workspace:{select:{id:true,name:true,slug:true}}}}),
   prisma.product.findMany({where:workspaceId?{workspaceId,active:true}:{active:true},select:{id:true,name:true,slug:true,kind:true},orderBy:{name:"asc"}}),
   prisma.commercialParty.findMany({where:workspaceId?{workspaceId}:{},orderBy:{name:"asc"},select:{id:true,name:true,type:true,status:true}}),
   prisma.workspaceUser.findMany({where:workspaceId?{workspaceId,status:"ACTIVE"}:{},include:{user:{select:{id:true,name:true,email:true,active:true}}},orderBy:{createdAt:"asc"}}),
   prisma.partner.findMany({where:workspaceId?{workspaceId,status:"ACTIVE"}:{},select:{id:true,name:true,partnerNumber:true,type:true,status:true,verificationStatus:true},orderBy:{name:"asc"}}),
   prisma.partnerProgram.findMany({where:workspaceId?{workspaceId}:{},select:{id:true,name:true,status:true,admissionMode:true},orderBy:{name:"asc"}}),
-  prisma.lead.findMany({where:workspaceId?{workspaceId}:{},select:{id:true,name:true,email:true,phone:true,status:true},orderBy:{createdAt:"desc"},take:200})
+  prisma.lead.findMany({where:workspaceId?{workspaceId}:{},select:{id:true,name:true,email:true,phone:true,status:true},orderBy:{createdAt:"desc"},take:200}),
+  prisma.commercialDealRegistration.findMany({where:workspaceId?{workspaceId,status:{in:["PROTECTED","CONVERTED"]}}:{status:{in:["PROTECTED","CONVERTED"]}},orderBy:{createdAt:"desc"},take:200,select:{id:true,status:true,buyerName:true,partner:{select:{id:true,name:true,partnerNumber:true}},lead:{select:{id:true,name:true}}}})
  ]);
  return <main className="dashboard-page min-h-screen py-10"><div className="container-aslal">
   <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
@@ -24,6 +26,6 @@ export default async function CommercialListingsPage(){
    <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-500">{user.workspaceName||"Workspace"}</span>
   </div>
   <div className="mt-8"><CommercialListingManager initial={listings.map(x=>({id:x.id,workspaceId:x.workspaceId,workspaceName:x.workspace.name,productId:x.productId,productName:x.product?.name||null,ownerPartyId:x.ownerPartyId,ownerPartyName:x.ownerParty?.name||null,supplierPartyId:x.supplierPartyId,supplierPartyName:x.supplierParty?.name||null,title:x.title,slug:x.slug,listingType:x.listingType,status:x.status,description:x.description,category:x.category,condition:x.condition,location:x.location,askingPrice:x.askingPrice?String(x.askingPrice):null,currency:x.currency,priceLabel:x.priceLabel,inspectionRequired:x.inspectionRequired,requestQuote:x.requestQuote,publicVisible:x.publicVisible,featured:x.featured,expiresAt:x.expiresAt?.toISOString()||null}))} products={products} parties={parties} workspaceId={workspaceId||""}/></div>
-  {workspaceId&&<CommercialAuthorizationManager workspaceId={workspaceId} initialParties={parties} listings={listings.map(x=>({id:x.id,title:x.title}))} users={workspaceUsers.map(x=>({id:x.user.id,name:x.user.name,email:x.user.email}))} partners={partners}/>}\n  {workspaceId&&<CommercialDealRegistrationManager workspaceId={workspaceId} listings={listings.map(x=>({id:x.id,title:x.title}))} partners={partners} leads={leads}/>}
+  {workspaceId&&<CommercialAuthorizationManager workspaceId={workspaceId} initialParties={parties} listings={listings.map(x=>({id:x.id,title:x.title}))} users={workspaceUsers.map(x=>({id:x.user.id,name:x.user.name,email:x.user.email}))} partners={partners}/>}\n  {workspaceId&&<CommercialDealRegistrationManager workspaceId={workspaceId} listings={listings.map(x=>({id:x.id,title:x.title}))} partners={partners} leads={leads}/>}\n  {workspaceId&&<CommercialInspectionManager workspaceId={workspaceId} listings={listings.map(x=>({id:x.id,title:x.title}))} registrations={dealRegistrations}/>}
  </div></main>;
 }
