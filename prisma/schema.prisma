@@ -147,6 +147,35 @@ enum CampaignServiceAreaType {
   EVENT
 }
 
+enum CommercialDistributionAssetType {
+  TICKET
+  COUPON
+  VOUCHER
+  PASS
+}
+
+enum CommercialDistributionAssetStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum PartnerSalesAllocationStatus {
+  ACTIVE
+  PAUSED
+  EXPIRED
+  CLOSED
+}
+
+enum IssuedSalesAssetStatus {
+  ISSUED
+  VALID
+  REDEEMED
+  EXPIRED
+  VOID
+}
+
 enum CampaignAssetType {
   CREATIVE
   COPY
@@ -2018,6 +2047,79 @@ model PartnerCampaignServiceArea {
   @@id([campaignId, serviceAreaId])
   @@index([serviceAreaId], map:"idx_partner_campaign_service_area_option")
   @@map("partner_campaign_service_areas")
+}
+
+
+model CommercialDistributionItem {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  name String @db.VarChar(190)
+  assetType CommercialDistributionAssetType @map("asset_type")
+  description String? @db.Text
+  productId String? @map("product_id") @db.Char(36)
+  campaignId String? @map("campaign_id") @db.Char(36)
+  price Decimal? @db.Decimal(15,2)
+  value Decimal? @db.Decimal(15,2)
+  currency String @default("ETB") @db.VarChar(10)
+  inventoryLimit Int? @map("inventory_limit")
+  startsAt DateTime? @map("starts_at") @db.DateTime(0)
+  endsAt DateTime? @map("ends_at") @db.DateTime(0)
+  redemptionInstructions String? @map("redemption_instructions") @db.Text
+  status CommercialDistributionAssetStatus @default(DRAFT)
+  createdBy String? @map("created_by") @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  @@index([workspaceId,status], map:"idx_dist_item_workspace_status")
+  @@index([workspaceId,campaignId], map:"idx_dist_item_workspace_campaign")
+  @@index([workspaceId,productId], map:"idx_dist_item_workspace_product")
+  @@map("commercial_distribution_items")
+}
+
+model PartnerSalesAssetAllocation {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  assetId String @map("asset_id") @db.Char(36)
+  partnerId String @map("partner_id") @db.Char(36)
+  campaignId String? @map("campaign_id") @db.Char(36)
+  quantityAllocated Int @map("quantity_allocated")
+  quantityIssued Int @default(0) @map("quantity_issued")
+  status PartnerSalesAllocationStatus @default(ACTIVE)
+  startsAt DateTime? @map("starts_at") @db.DateTime(0)
+  endsAt DateTime? @map("ends_at") @db.DateTime(0)
+  createdBy String? @map("created_by") @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  @@unique([assetId,partnerId], map:"uq_sales_asset_allocation_asset_partner")
+  @@index([workspaceId,partnerId,status], map:"idx_sales_asset_allocation_partner")
+  @@index([workspaceId,assetId,status], map:"idx_sales_asset_allocation_asset")
+  @@map("partner_sales_asset_allocations")
+}
+
+model IssuedSalesAsset {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  assetId String @map("asset_id") @db.Char(36)
+  allocationId String @map("allocation_id") @db.Char(36)
+  partnerId String @map("partner_id") @db.Char(36)
+  serialNumber String @map("serial_number") @db.VarChar(50)
+  qrPayload String @map("qr_payload") @db.VarChar(500)
+  holderName String? @map("holder_name") @db.VarChar(190)
+  holderPhone String? @map("holder_phone") @db.VarChar(40)
+  issuedPrice Decimal? @map("issued_price") @db.Decimal(15,2)
+  issuedValue Decimal? @map("issued_value") @db.Decimal(15,2)
+  status IssuedSalesAssetStatus @default(ISSUED)
+  issuedAt DateTime @default(now()) @map("issued_at") @db.DateTime(0)
+  validFrom DateTime? @map("valid_from") @db.DateTime(0)
+  validUntil DateTime? @map("valid_until") @db.DateTime(0)
+  issuedBy String? @map("issued_by") @db.VarChar(190)
+  redeemedAt DateTime? @map("redeemed_at") @db.DateTime(0)
+  redeemedBy String? @map("redeemed_by") @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  @@unique([workspaceId,serialNumber], map:"uq_issued_sales_asset_workspace_serial")
+  @@index([workspaceId,assetId,status], map:"idx_issued_sales_asset_asset_status")
+  @@index([workspaceId,partnerId,issuedAt], map:"idx_issued_sales_asset_partner_issued")
+  @@index([allocationId,issuedAt], map:"idx_issued_sales_asset_allocation_issued")
+  @@map("issued_sales_assets")
 }
 
 model CampaignAsset {
