@@ -90,7 +90,7 @@ The following requirements extend the existing baseline without invalidating ear
 | ID | Requirement | Target behavior | Initial status |
 |---|---|---|---|
 | R50 | Commercial listing | Publish controlled products/assets/properties/services with owner, status and distribution controls. | IMPLEMENTED-UNVERIFIED | CE-1 schema, migration, workspace-scoped owner API/UI and public listing surface are implemented; migration, typecheck/build and controlled behavioral evidence remain required. |
-| R51 | Listing authorization | Explicit supplier/owner/staff/partner authorization with dates, territory, channel and terms. | TARGET / GAP-CLOSURE |
+| R51 | Listing authorization | Explicit supplier/owner/staff/partner authorization with dates, territory, channel and terms. | IMPLEMENTED-UNVERIFIED | CE-2 commercial parties, listing owner/supplier references, workspace-scoped authorization records, lifecycle controls and dashboard workbench are implemented; migration, typecheck/build and controlled isolation/lifecycle evidence remain required. |
 | R52 | Partner eligibility | Determine whether a partner may promote a listing/program under current status and contract. | TARGET / GAP-CLOSURE |
 | R53 | Deal registration | Partner can register an opportunity; seller can approve/reject/request information; approved registration can create protection. | TARGET / GAP-CLOSURE |
 | R54 | Attribution protection | Preserve protected partner contribution through inspection, quote, order and external payment evidence where terms apply. | TARGET / GAP-CLOSURE |
