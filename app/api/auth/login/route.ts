@@ -43,7 +43,7 @@ export async function POST(request:NextRequest) {
       if(user) {
         valid=user.active&&verifyPassword(password,user.passwordHash);
         if(valid && user.role==="PARTNER"){
-          const partner=await prisma.partner.findUnique({where:{user:{id:user.id}},select:{accountStatus:true}});
+          const partner=await prisma.partner.findFirst({where:{user:{is:{id:user.id}}},select:{accountStatus:true}});
           if(!partner || ["REGISTERED","SUSPENDED","CLOSED"].includes(partner.accountStatus)) valid=false;
         }
         if(valid) await prisma.user.update({where:{id:user.id},data:{lastLoginAt:new Date()}});
