@@ -979,3 +979,208 @@ html[data-theme="light"] .site-footer .footer-bottom{
 .landing-page > section:last-child{
   background:var(--ui-surface-2)!important;
 }
+
+
+/* =========================================================
+   UI LAYOUT / THEME REFACTOR — canonical dashboard rules
+   ========================================================= */
+:root{
+  --bg-primary:#F8FAFC;
+  --bg-card:#FFFFFF;
+  --bg-sidebar:#070C18;
+  --border-color:#E2E8F0;
+  --text-primary:#0F172A;
+  --text-muted:#475569;
+  --text-brand:#B45309;
+  --text-on-dark:#F8FAFC;
+  --text-muted-on-dark:#9CA3AF;
+}
+html[data-theme="dark"]{
+  --bg-primary:#070C18;
+  --bg-card:#0F172A;
+  --bg-sidebar:#070C18;
+  --border-color:#29445F;
+  --text-primary:#F8FAFC;
+  --text-muted:#CBD5E1;
+  --text-brand:#F59E0B;
+  --text-on-dark:#F8FAFC;
+  --text-muted-on-dark:#9CA3AF;
+}
+body{background:var(--bg-primary);color:var(--text-primary)}
+.dashboard-app{
+  display:flex;
+  min-height:100vh;
+  width:100%;
+  min-width:0;
+  overflow-x:hidden;
+  background:var(--bg-primary);
+  color:var(--text-primary);
+}
+.dashboard-sidebar{
+  position:sticky;
+  top:0;
+  width:16rem;
+  min-width:16rem;
+  height:100vh;
+  flex-shrink:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  background:var(--bg-sidebar);
+  border-right:1px solid var(--border-color);
+}
+.dashboard-main{
+  flex:1 1 auto;
+  min-width:0;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+}
+.dashboard-topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  flex-shrink:0;
+  min-width:0;
+  background:color-mix(in srgb,var(--bg-card) 94%,transparent);
+  color:var(--text-primary);
+  border-bottom:1px solid var(--border-color);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.dashboard-topbar-heading,.dashboard-topbar-actions{min-width:0}
+.dashboard-topbar-heading{overflow:hidden}
+.dashboard-topbar-heading h1,.dashboard-topbar-heading>div,.dashboard-user-name{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.dashboard-topbar-title-row{display:flex;align-items:center;gap:8px;min-width:0}
+.dashboard-topbar-title-row h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dashboard-content{
+  flex:1 1 auto;
+  min-width:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.dashboard-workspace-context{
+  margin-top:4px;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--text-muted);
+  font-size:.75rem;
+  font-weight:700;
+}
+.dashboard-mobile-menu-button{
+  display:none;
+  width:40px;height:40px;flex:none;
+  align-items:center;justify-content:center;
+  flex-direction:column;gap:4px;
+  border:1px solid var(--border-color);
+  border-radius:10px;
+  background:var(--bg-card);
+  color:var(--text-primary);
+}
+.dashboard-mobile-menu-button span{display:block;width:18px;height:2px;border-radius:99px;background:currentColor}
+.dashboard-mobile-drawer-backdrop{
+  position:fixed;inset:0;z-index:90;
+  border:0;padding:0;
+  background:rgba(2,6,23,.55);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s ease;
+}
+.dashboard-mobile-drawer-backdrop.is-open{opacity:1;pointer-events:auto}
+.dashboard-mobile-drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:100;
+  width:min(88vw,340px);
+  padding:18px 14px 24px;
+  overflow-y:auto;overflow-x:hidden;
+  background:var(--bg-sidebar);
+  color:var(--text-on-dark);
+  border-right:1px solid var(--border-color);
+  box-shadow:24px 0 70px rgba(2,6,23,.35);
+  transform:translateX(-105%);
+  transition:transform .22s ease;
+}
+.dashboard-mobile-drawer.is-open{transform:translateX(0)}
+.dashboard-mobile-drawer-group{
+  overflow:hidden;
+  margin-top:8px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+}
+.dashboard-mobile-drawer-group-button{
+  display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;
+  min-width:0;padding:12px 13px;
+  border:0;background:transparent;color:var(--text-muted-on-dark);
+  text-align:left;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+}
+.dashboard-mobile-drawer-items{
+  display:grid;gap:3px;
+  padding:6px;
+  border-top:1px solid rgba(255,255,255,.10);
+}
+.dashboard-mobile-drawer .dashboard-nav-item.mobile{
+  width:100%;
+  min-width:0;
+  color:var(--text-muted-on-dark);
+  background:transparent;
+  border:0;
+}
+.dashboard-mobile-drawer .dashboard-nav-item.mobile.active{
+  background:rgba(245,158,11,.16);
+  color:var(--text-on-dark);
+}
+.dashboard-mobile-drawer .dashboard-nav-item.mobile:hover{color:var(--text-on-dark)}
+.dashboard-kpi-grid-primary{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:12px;
+}
+.dashboard-kpi-card,.dashboard-panel,.dashboard-workspace-card,.dashboard-command-bar{
+  min-width:0;
+}
+.dashboard-kpi-card span,.dashboard-panel p,.dashboard-workspace-card p{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.dashboard-kpi-card span{white-space:nowrap}
+.dashboard-panel-heading h3,.dashboard-panel-heading span,.dashboard-feature-card h3{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media (max-width:1023px){
+  .dashboard-app{display:block}
+  .dashboard-sidebar{display:none}
+  .dashboard-mobile-menu-button{display:inline-flex}
+  .dashboard-topbar{padding:10px 16px}
+  .dashboard-topbar-heading{flex:1;min-width:0}
+  .dashboard-topbar-actions{max-width:calc(100% - 50px);overflow:hidden}
+  .dashboard-topbar-actions>*{flex-shrink:0}
+  .dashboard-mobile-drawer{display:block}
+  .dashboard-kpi-grid-primary{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:767px){
+  .dashboard-topbar{gap:9px}
+  .dashboard-topbar-actions{gap:5px}
+  .dashboard-topbar-actions .dashboard-user-chip{display:none}
+  .dashboard-kpi-grid-primary{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+}
+@media (max-width:479px){
+  .dashboard-topbar{padding:9px 10px}
+  .dashboard-topbar-heading h1{font-size:16px}
+  .dashboard-topbar-heading>span{font-size:8px}
+  .dashboard-topbar-actions .dashboard-top-link,.dashboard-topbar-actions form{display:none}
+  .dashboard-kpi-grid-primary{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .dashboard-mobile-drawer,.dashboard-mobile-drawer-backdrop{transition:none}
+}
