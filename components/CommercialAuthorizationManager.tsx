@@ -1,7 +1,7 @@
 "use client";
 import {useState} from "react";
 
-type Party={id:string;name:string;type:string;status:string;email?:string|null;phone?:string|null};
+type Party={id:string;name:string;type:string;status:string;email?:string|null;phone?:string|null;contactName?:string|null};
 type Target={id:string;name:string;partnerNumber?:string;email?:string;type?:string};
 type Listing={id:string;title:string};
 type Authorization={id:string;authorizationType:string;status:string;party?:Party|null;partner?:Target|null;user?:Target|null;effectiveAt:string;expiresAt?:string|null;territory?:string|null;channel?:string|null;protectionDays?:number|null};
@@ -12,10 +12,10 @@ const AUTH_STATUSES=["REQUESTED","APPROVED","ACTIVE","SUSPENDED","EXPIRED","REVO
 
 export function CommercialAuthorizationManager({workspaceId,initialParties,listings,users,partners}:{workspaceId:string;initialParties:Party[];listings:Listing[];users:Target[];partners:Target[]}){
  const [parties,setParties]=useState(initialParties),[selected,setSelected]=useState(listings[0]?.id||""),[auths,setAuths]=useState<Authorization[]>([]),[notice,setNotice]=useState(""),[busy,setBusy]=useState(false);
- const [party,setParty]=useState({name:"",type:"SUPPLIER",email:"",phone:""});
+ const [party,setParty]=useState({name:"",type:"SUPPLIER",email:"",phone:"",contactName:""});
  const [target,setTarget]=useState({kind:"PARTNER",id:"",authorizationType:"RESELLER_AUTHORIZED",status:"REQUESTED",territory:"",channel:"",protectionDays:""});
  const loadAuth=async(id:string)=>{setSelected(id);if(!id){setAuths([]);return;}const r=await fetch("/api/admin/commercial-listings/"+id+"/authorizations?workspaceId="+encodeURIComponent(workspaceId));const d=await r.json().catch(()=>({}));setAuths(r.ok?d.authorizations||[]:[]);};
- const addParty=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);setNotice("");try{const r=await fetch("/api/admin/commercial-parties",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...party,workspaceId})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Could not create party.");setParties([d.party,...parties]);setParty({name:"",type:"SUPPLIER",email:"",phone:""});setNotice("Owner/supplier saved.");}catch(e){setNotice(e instanceof Error?e.message:"Could not save party.");}finally{setBusy(false);}};
+ const addParty=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);setNotice("");try{const r=await fetch("/api/admin/commercial-parties",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...party,workspaceId})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Could not create party.");setParties([d.party,...parties]);setParty({name:"",type:"SUPPLIER",email:"",phone:"",contactName:""});setNotice("Owner/supplier saved.");}catch(e){setNotice(e instanceof Error?e.message:"Could not save party.");}finally{setBusy(false);}};
  const addAuth=async(e:React.FormEvent)=>{e.preventDefault();if(!selected||!target.id){setNotice("Choose a listing and an authorized target.");return;}setBusy(true);setNotice("");try{const body:any={workspaceId,authorizationType:target.authorizationType,status:target.status,territory:target.territory,channel:target.channel,protectionDays:target.protectionDays?Number(target.protectionDays):null};body[target.kind==="PARTNER"?"partnerId":target.kind==="USER"?"userId":"partyId"]=target.id;const r=await fetch("/api/admin/commercial-listings/"+selected+"/authorizations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.error||"Could not create authorization.");setAuths([d.authorization,...auths]);setNotice("Commercial authorization recorded.");}catch(e){setNotice(e instanceof Error?e.message:"Could not save authorization.");}finally{setBusy(false);}};
  const setStatus=async(a:Authorization,status:string)=>{const r=await fetch("/api/admin/commercial-listings/"+selected+"/authorizations/"+a.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceId,status})});const d=await r.json().catch(()=>({}));if(r.ok)setAuths(auths.map(x=>x.id===a.id?{...x,...d.authorization}:x));else setNotice(d.error||"Could not change authorization.");};
  return <div className="mt-8 grid gap-6 xl:grid-cols-2">
@@ -26,7 +26,7 @@ export function CommercialAuthorizationManager({workspaceId,initialParties,listi
    <form onSubmit={addParty} className="mt-5 grid gap-3 sm:grid-cols-2">
     <input required value={party.name} onChange={e=>setParty({...party,name:e.target.value})} placeholder="Party / supplier name" className="rounded-xl border border-slate-200 px-4 py-3"/>
     <select value={party.type} onChange={e=>setParty({...party,type:e.target.value})} className="rounded-xl border border-slate-200 px-4 py-3">{PARTY_TYPES.map(x=><option key={x}>{x}</option>)}</select>
-    <input value={party.contactName||""} onChange={e=>setParty({...party,contactName:e.target.value} as any)} placeholder="Contact name (optional)" className="rounded-xl border border-slate-200 px-4 py-3"/>
+    <input value={party.contactName||""} onChange={e=>setParty({...party,contactName:e.target.value})} placeholder="Contact name (optional)" className="rounded-xl border border-slate-200 px-4 py-3"/>
     <input value={party.email} onChange={e=>setParty({...party,email:e.target.value})} placeholder="Email (optional)" className="rounded-xl border border-slate-200 px-4 py-3"/>
     <input value={party.phone} onChange={e=>setParty({...party,phone:e.target.value})} placeholder="Phone (optional)" className="rounded-xl border border-slate-200 px-4 py-3"/>
     <button disabled={busy} className="rounded-xl bg-[#0F3E8A] px-4 py-3 font-black text-white">Add party</button>
