@@ -643,3 +643,28 @@ Required evidence before CE-11 is accepted:
 - duplicate/idempotent verification and rejected/resubmitted evidence tests;
 - partial-payment and full-payment reconciliation tests;
 - downstream Payment → Revenue → Commission reconciliation evidence.
+
+
+## CE-12 — Leakage / Dispute Controls
+
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented:
+- leakage signal domain and review lifecycle;
+- commercial dispute domain covering attribution, deal registration, commission, payment evidence, order value, partner contribution, circumvention and provider performance;
+- evidence references and affected-entity links;
+- explicit resolution actions;
+- commission preservation by default;
+- workspace-scoped APIs and operator review workbench.
+
+Required before acceptance:
+- Prisma migration/application validation;
+- npm run typecheck;
+- npm run lint;
+- npm run build;
+- workspace A/B isolation;
+- controlled signal detection/review journeys;
+- dispute evidence/additional-evidence workflows;
+- resolution idempotency and authorization tests;
+- proof that legitimate commissions are preserved unless an explicit resolution changes them;
+- cross-link tests from leakage signal → dispute → agreement/deal/payment evidence.
