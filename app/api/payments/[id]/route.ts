@@ -135,14 +135,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             throw new Error("Payment order referral link is outside the active workspace or partner attribution.");
           }
           if (referralLink) requireSameWorkspace(workspace.id, referralLink.workspaceId, referralLink.partner.workspaceId);
-          const campaign = referralLink?.campaignId
+          const asset = payment.order.distributionAssetId
+            ? await tx.commercialDistributionItem.findFirst({
+                where: { id: payment.order.distributionAssetId, workspaceId: workspace.id },
+                select: { id: true, campaignId: true, workspaceId: true },
+              })
+            : null;
+          if (payment.order.distributionAssetId && !asset) {
+            throw new Error("Payment order distribution asset is outside the active workspace.");
+          }
+          if (asset) requireSameWorkspace(workspace.id, asset.workspaceId);
+
+          const effectiveCampaignId = referralLink?.campaignId || asset?.campaignId || payment.order.campaign || null;
+          const campaign = effectiveCampaignId
             ? await tx.partnerCampaign.findFirst({
-                where: { id: referralLink.campaignId, workspaceId: workspace.id },
+                where: { id: effectiveCampaignId, workspaceId: workspace.id },
                 select: { rewardType: true, rewardAmount: true, rewardRate: true, workspaceId: true, programId: true },
               })
             : null;
-          if (referralLink?.campaignId && !campaign) {
-            throw new Error("Payment referral campaign is outside the active workspace.");
+          if (effectiveCampaignId && !campaign) {
+            throw new Error("Payment campaign is outside the active workspace or no longer exists.");
           }
           if (campaign) requireSameWorkspace(workspace.id, campaign.workspaceId);
 
