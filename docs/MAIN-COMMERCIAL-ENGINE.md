@@ -2076,13 +2076,29 @@ Implemented:
 - CE-7 matching now incorporates professional profile specialties/service categories/service areas and a bounded professional-fit component for service requests/RFPs;
 - high match score and profile verification remain separate from authorization and commission entitlement.
 
-CE-8 deliberately does not implement proposal versioning/comparison, formal commercial agreements, payment evidence, leakage/dispute resolution or commission logic; those remain CE-9 onward.
+CE-8 deliberately does not implement formal proposal versioning/comparison, commercial agreements, payment evidence, leakage/dispute resolution or commission logic; those remain CE-9 onward.
 
 A follow-up demo migration seeds two synthetic published professional profiles and links them to the existing CE-7 digital-marketing and logistics service listings, so provider-aware matching can be demonstrated immediately after migration.
 
 ### CE-9 — RFP / Proposal
 
-Provider proposals, versioning and comparison.
+**IMPLEMENTED — VERIFICATION PENDING**
+
+CE-9 adds the professional RFP/proposal workflow without creating a second negotiation or order system.
+
+Implemented:
+- versioned `ProfessionalProposal` linked to one existing CommercialRequestResponse;
+- immutable `ProfessionalProposalVersion` records preserving scope, methodology, deliverables, timeline, assumptions, exclusions, price, validity, team, qualifications, attachments and terms;
+- proposal lifecycle: DRAFT, SUBMITTED, SHORTLISTED, NEGOTIATING, ACCEPTED, REJECTED, WITHDRAWN, EXPIRED, SUPERSEDED;
+- one proposal per provider response, with workspace-scoped authorization;
+- explicit acceptance that supersedes competing active proposals without deleting their evidence;
+- factual proposal comparison by provider, version, amount, timeline and validity without an opaque ranking score;
+- controlled new-version workflow that refuses silent amendment of accepted/final proposals;
+- accepted proposal can create the existing canonical Quote plus QuoteItem and NegotiationEvent, preserving the existing Quote/Negotiation domain;
+- accepted proposal retains the original request/response and CRM opportunity relationship;
+- operator dashboard for creating, submitting, shortlisting, negotiating, accepting, revising and converting accepted proposals to quotes.
+
+CE-9 does not yet implement legal agreement execution, payment evidence, leakage/dispute resolution or commission qualification; those remain later commercial-engine increments.
 
 ### CE-10 — Commercial Agreements
 
