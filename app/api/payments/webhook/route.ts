@@ -70,7 +70,7 @@ export async function POST(request: Request) {
           eventType,
           paymentId: payment.id,
           workspaceId: payment.workspaceId,
-          payload: body,
+          payload: body as Prisma.InputJsonValue,
           processedAt: new Date(),
         },
       });
