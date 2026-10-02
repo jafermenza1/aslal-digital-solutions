@@ -286,6 +286,37 @@ enum CommercialAppointmentStatus {
   NO_SHOW
 }
 
+
+enum CommercialRequestType {
+  BUY_REQUEST
+  ASSET_REQUEST
+  SERVICE_REQUEST
+  RFP
+}
+
+enum CommercialRequestStatus {
+  DRAFT
+  SUBMITTED
+  QUALIFYING
+  PUBLISHED
+  MATCHING
+  RESPONSES_OPEN
+  NEGOTIATING
+  FULFILLED
+  CANCELLED
+  EXPIRED
+  CLOSED
+}
+
+enum CommercialRequestResponseStatus {
+  INVITED
+  RESPONDED
+  SHORTLISTED
+  REJECTED
+  WITHDRAWN
+  ACCEPTED
+}
+
 enum CommercialAppointmentOutcome {
   PENDING
   INSPECTION_COMPLETED
@@ -605,6 +636,7 @@ model Lead {
   commissions       Commission[]
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
+  commercialRequests CommercialRequest[]
   conversations     Conversation[]
   partnerDisputes    PartnerDispute[]
   commercialDealRegistrations CommercialDealRegistration[]
@@ -784,6 +816,8 @@ model Partner {
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
   commercialAppointments CommercialAppointment[]
+  commercialRequests CommercialRequest[]
+  commercialRequestResponses CommercialRequestResponse[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
@@ -1236,6 +1270,100 @@ model CommercialEligibilityDecisionRecord {
   @@map("commercial_eligibility_decisions")
 }
 
+
+model CommercialRequest {
+  id                  String                    @id @db.Char(36)
+  workspaceId         String                    @map("workspace_id") @db.Char(36)
+  requestType         CommercialRequestType
+  status              CommercialRequestStatus   @default(SUBMITTED)
+  title               String                    @db.VarChar(190)
+  category            String?                   @db.VarChar(100)
+  requestedItem       String?                   @map("requested_item") @db.VarChar(250)
+  description         String?                   @db.Text
+  quantity            Decimal?                  @db.Decimal(15,3)
+  conditionPreference String?                   @map("condition_preference") @db.VarChar(60)
+  budgetMin           Decimal?                  @map("budget_min") @db.Decimal(15,2)
+  budgetMax           Decimal?                  @map("budget_max") @db.Decimal(15,2)
+  currency            String                    @default("ETB") @db.VarChar(10)
+  location            String?                   @db.VarChar(190)
+  serviceArea         String?                   @map("service_area") @db.VarChar(190)
+  deadline            DateTime?                 @db.DateTime(0)
+  organizationName    String?                   @map("organization_name") @db.VarChar(190)
+  contactName         String                    @map("contact_name") @db.VarChar(160)
+  contactEmail        String?                   @map("contact_email") @db.VarChar(190)
+  contactPhone        String?                   @map("contact_phone") @db.VarChar(40)
+  contactPreference   String?                   @map("contact_preference") @db.VarChar(40)
+  privacyVisibility   String                    @default("CONTROLLED") @map("privacy_visibility") @db.VarChar(30)
+  source              String?                   @db.VarChar(100)
+  campaign            String?                   @db.VarChar(150)
+  partnerId           String?                   @map("partner_id") @db.Char(36)
+  leadId              String?                   @map("lead_id") @db.Char(36)
+  opportunityId       String?                   @map("opportunity_id") @db.Char(36)
+  specifications      Json?
+  attachments         Json?
+  qualificationNotes  String?                   @map("qualification_notes") @db.Text
+  publishedAt         DateTime?                 @map("published_at") @db.DateTime(0)
+  qualifiedAt         DateTime?                 @map("qualified_at") @db.DateTime(0)
+  closedAt            DateTime?                 @map("closed_at") @db.DateTime(0)
+  createdBy           String?                   @map("created_by") @db.Char(36)
+  createdAt           DateTime                  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt           DateTime                  @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace           Workspace                 @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  partner             Partner?                 @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  lead                Lead?                    @relation(fields:[leadId], references:[id], onDelete:SetNull)
+  opportunity         Opportunity?              @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
+  responses           CommercialRequestResponse[]
+
+  @@index([workspaceId,status,createdAt], map:"idx_commercial_request_workspace_status")
+  @@index([workspaceId,requestType,status], map:"idx_commercial_request_type_status")
+  @@index([leadId,status], map:"idx_commercial_request_lead_status")
+  @@index([opportunityId], map:"idx_commercial_request_opportunity")
+  @@index([partnerId,status], map:"idx_commercial_request_partner_status")
+  @@index([deadline,status], map:"idx_commercial_request_deadline_status")
+  @@map("commercial_requests")
+}
+
+model CommercialRequestResponse {
+  id                String                         @id @db.Char(36)
+  workspaceId       String                         @map("workspace_id") @db.Char(36)
+  requestId         String                         @map("request_id") @db.Char(36)
+  responderPartyId  String?                        @map("responder_party_id") @db.Char(36)
+  partnerId         String?                        @map("partner_id") @db.Char(36)
+  listingId         String?                        @map("listing_id") @db.Char(36)
+  status            CommercialRequestResponseStatus @default(RESPONDED)
+  responderName     String                         @map("responder_name") @db.VarChar(190)
+  message           String?                        @db.Text
+  quotedAmount      Decimal?                       @map("quoted_amount") @db.Decimal(15,2)
+  currency          String                        @default("ETB") @db.VarChar(10)
+  availability      String?                       @db.VarChar(190)
+  estimatedDelivery String?                       @map("estimated_delivery") @db.VarChar(190)
+  terms             String?                       @db.Text
+  evidence          Json?
+  opportunityId     String?                       @map("opportunity_id") @db.Char(36)
+  quoteId           String?                       @map("quote_id") @db.Char(36)
+  orderId           String?                       @map("order_id") @db.Char(36)
+  acceptedAt        DateTime?                     @map("accepted_at") @db.DateTime(0)
+  rejectedAt        DateTime?                     @map("rejected_at") @db.DateTime(0)
+  createdBy         String?                       @map("created_by") @db.Char(36)
+  createdAt         DateTime                      @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime                      @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace         Workspace                     @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  request           CommercialRequest             @relation(fields:[requestId], references:[id], onDelete:Cascade)
+  responderParty    CommercialParty?              @relation(fields:[responderPartyId], references:[id], onDelete:SetNull)
+  partner           Partner?                      @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  listing           CommercialListing?            @relation(fields:[listingId], references:[id], onDelete:SetNull)
+  opportunity       Opportunity?                 @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
+  quote             Quote?                        @relation(fields:[quoteId], references:[id], onDelete:SetNull)
+  order             Order?                        @relation(fields:[orderId], references:[id], onDelete:SetNull)
+
+  @@index([workspaceId,requestId,status], map:"idx_commercial_response_request_status")
+  @@index([workspaceId,status,createdAt], map:"idx_commercial_response_workspace_status")
+  @@index([responderPartyId,status], map:"idx_commercial_response_party_status")
+  @@index([partnerId,status], map:"idx_commercial_response_partner_status")
+  @@index([listingId,status], map:"idx_commercial_response_listing_status")
+  @@map("commercial_request_responses")
+}
+
 model CommercialListingAuthorization {
   id            String                        @id @db.Char(36)
   workspaceId   String                        @map("workspace_id") @db.Char(36)
@@ -1527,6 +1655,7 @@ model Opportunity {
   quotes          Quote[]
   orders          Order[]
   commercialDealRegistrations CommercialDealRegistration[]
+  commercialRequests CommercialRequest[]
 
   @@index([leadId, stage], map: "idx_opportunities_lead_stage")
   @@index([ownerEmail, stage], map: "idx_opportunities_owner_stage")
@@ -2120,7 +2249,9 @@ model Workspace {
   commercialListings CommercialListing[]
   commercialDealRegistrations CommercialDealRegistration[]
   commercialAppointments CommercialAppointment[]
-  commercialParties/ CommercialParty[]
+  commercialRequests CommercialRequest[]
+  commercialRequestResponses CommercialRequestResponse[]
+  commercialParties CommercialParty[]
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   socialProfiles SocialProfile[]
