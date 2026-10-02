@@ -295,6 +295,30 @@ enum CommercialRequestType {
 }
 
 
+enum ProfessionalVerificationLevel {
+  UNVERIFIED
+  IDENTITY_VERIFIED
+  BUSINESS_VERIFIED
+  PROFESSIONAL_DOCUMENTS_VERIFIED
+  AUTHORIZED_PROVIDER
+}
+
+enum ProfessionalProfileStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  PAUSED
+  SUSPENDED
+  ARCHIVED
+}
+
+enum ProfessionalCredentialStatus {
+  SUBMITTED
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
 enum CommercialMatchStatus {
   SUGGESTED
   SHORTLISTED
@@ -1147,12 +1171,76 @@ model CommercialListing {
 
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatches CommercialMatch[]
+  professionalProfile ProfessionalProfile? @relation(fields:[professionalProfileId], references:[id], onDelete:SetNull)
+  professionalProfileId String? @map("professional_profile_id") @db.Char(36)
 
   @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
   @@index([workspaceId, status, publicVisible], map:"idx_commercial_listing_workspace_status_public")
   @@index([productId], map:"idx_commercial_listing_product")
   @@index([listingType, category, status], map:"idx_commercial_listing_type_category_status")
   @@map("commercial_listings")
+}
+
+model ProfessionalProfile {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  partyId String @unique @map("party_id") @db.Char(36)
+  partnerId String? @unique @map("partner_id") @db.Char(36)
+  status ProfessionalProfileStatus @default(DRAFT)
+  verificationLevel ProfessionalVerificationLevel @default(UNVERIFIED) @map("verification_level")
+  displayName String @map("display_name") @db.VarChar(190)
+  headline String? @db.VarChar(250)
+  profession String @db.VarChar(160)
+  specialties Json?
+  serviceCategories Json? @map("service_categories")
+  qualifications Json?
+  serviceAreas Json? @map("service_areas")
+  languages Json?
+  portfolio Json?
+  availability Json?
+  pricingModel String? @map("pricing_model") @db.VarChar(80)
+  startingPrice Decimal? @map("starting_price") @db.Decimal(15,2)
+  currency String @default("ETB") @db.VarChar(10)
+  responseTime String? @map("response_time") @db.VarChar(100)
+  bio String? @db.Text
+  visibility String @default("PUBLIC") @db.VarChar(30)
+  verificationNotes String? @map("verification_notes") @db.Text
+  verifiedAt DateTime? @map("verified_at") @db.DateTime(0)
+  verifiedBy String? @map("verified_by") @db.Char(36)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  party CommercialParty @relation(fields:[partyId], references:[id], onDelete:Restrict)
+  partner Partner? @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  credentials ProfessionalCredential[]
+  listings CommercialListing[]
+  @@index([workspaceId,status,verificationLevel], map:"idx_professional_profile_workspace_status_verification")
+  @@index([workspaceId,profession,status], map:"idx_professional_profile_workspace_profession")
+  @@map("professional_profiles")
+}
+
+model ProfessionalCredential {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  profileId String @map("profile_id") @db.Char(36)
+  name String @db.VarChar(190)
+  issuer String? @db.VarChar(190)
+  credentialType String? @map("credential_type") @db.VarChar(100)
+  credentialNumber String? @map("credential_number") @db.VarChar(120)
+  issuedAt DateTime? @map("issued_at") @db.DateTime(0)
+  expiresAt DateTime? @map("expires_at") @db.DateTime(0)
+  evidence Json?
+  status ProfessionalCredentialStatus @default(SUBMITTED)
+  verifiedAt DateTime? @map("verified_at") @db.DateTime(0)
+  verifiedBy String? @map("verified_by") @db.Char(36)
+  reviewNotes String? @map("review_notes") @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  profile ProfessionalProfile @relation(fields:[profileId], references:[id], onDelete:Cascade)
+  @@index([workspaceId,status,expiresAt], map:"idx_professional_credential_workspace_status_expiry")
+  @@index([profileId,status], map:"idx_professional_credential_profile_status")
+  @@map("professional_credentials")
 }
 
 model CommercialParty {
@@ -1171,6 +1259,7 @@ model CommercialParty {
   workspace   Workspace              @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
   ownedListings CommercialListing[]   @relation("CommercialListingOwner")
   suppliedListings CommercialListing[] @relation("CommercialListingSupplier")
+  professionalProfile ProfessionalProfile?
   authorizations CommercialListingAuthorization[]
 
   commercialRequestResponses CommercialRequestResponse[]
@@ -2315,6 +2404,8 @@ model Workspace {
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatches CommercialMatch[]
   commercialParties CommercialParty[]
+  professionalProfiles ProfessionalProfile[]
+  professionalCredentials ProfessionalCredential[]
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   socialProfiles SocialProfile[]
