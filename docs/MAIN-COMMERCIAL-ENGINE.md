@@ -2124,7 +2124,29 @@ CE-10 does not itself calculate commissions, process payments, provide legal adv
 
 ### CE-11 — External Payment Evidence
 
-Bank/cash/external settlement evidence and finance verification.
+**IMPLEMENTED — VERIFICATION PENDING**
+
+CE-11 adds a first-class external payment evidence layer for bank transfer, cash, institutional procurement and external gateways without pretending Aslal processed the external settlement.
+
+Implemented:
+- `ExternalPaymentEvidence` with source, payment method, amount/currency/date, payer/payee references, external reference, evidence attachment metadata, notes and audit fields;
+- lifecycle `DRAFT → SUBMITTED → UNDER_REVIEW → VERIFIED` with `REJECTED` and `VOIDED` exception states;
+- workspace-scoped finance authorization using `commerce.manage`;
+- optional links to canonical `Order`, `Payment`, `Revenue`, `CommercialAgreement` and `CommercialDealRegistration`;
+- verification can reconcile an existing canonical `Payment`, or create a canonical `Payment` with provider `EXTERNAL_EVIDENCE` when an order is linked;
+- verified evidence never fabricates a `Revenue` record; revenue remains governed by the existing payment/revenue reconciliation rules;
+- order payment state is only advanced to `CONFIRMED` when verified evidence covers the order total;
+- evidence remains distinct from provider-backed payment processing;
+- dashboard workbench for recording, submitting, reviewing, verifying, rejecting and voiding evidence.
+
+CE-11 deliberately does **not**:
+- claim bank/cash/external gateway processing occurred through Aslal;
+- automatically recognize revenue merely because evidence was entered;
+- automatically create commissions;
+- replace the existing `Payment`, `Revenue` or `Commission` domains;
+- expose raw account credentials; payer/payee references are operator-entered references and should be masked where sensitive.
+
+Runtime Prisma migration, typecheck, lint, build, workspace isolation and controlled payment/revenue acceptance remain pending.
 
 ### CE-12 — Leakage / Dispute Controls
 
