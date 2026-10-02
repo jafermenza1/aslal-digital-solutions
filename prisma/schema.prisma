@@ -1796,6 +1796,7 @@ model Workspace {
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
   resources Resource[]
+  campaignServiceAreaOptions CampaignServiceAreaOption[]
   emailOutbox EmailOutbox[]
   partnerPayoutProfiles PartnerPayoutProfile[]
   partnerTermsAcceptances PartnerTermsAcceptance[]
