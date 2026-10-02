@@ -572,6 +572,62 @@ enum ExternalPaymentMethod {
   OTHER
 }
 
+enum CommercialLeakageSignalType {
+  REPEATED_INTRODUCTION_DIRECT_CLOSURE
+  REPEATED_INSPECTION_NO_OUTCOME
+  ATTRIBUTION_REMOVED_AFTER_QUOTE
+  DUPLICATE_CUSTOMER_IDENTITY
+  EXTERNAL_SALE_REPORTED
+  REPEATED_DISPUTES
+  SUSPICIOUS_ATTRIBUTION_CHANGE
+}
+
+enum CommercialLeakageSignalStatus {
+  OPEN
+  ACKNOWLEDGED
+  INVESTIGATING
+  SUBSTANTIATED
+  DISMISSED
+  RESOLVED
+}
+
+enum CommercialDisputeType {
+  ATTRIBUTION
+  DUPLICATE_LEAD
+  DUPLICATE_CUSTOMER
+  DEAL_REGISTRATION
+  COMMISSION_RATE
+  REFUND
+  PAYMENT_EVIDENCE
+  ORDER_VALUE
+  PARTNER_CONTRIBUTION
+  SELLER_CIRCUMVENTION
+  PROVIDER_PERFORMANCE
+  OTHER
+}
+
+enum CommercialDisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  EVIDENCE_REQUESTED
+  RESOLVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum CommercialDisputeResolution {
+  PRESERVE_ATTRIBUTION
+  ADJUST_ATTRIBUTION
+  PRESERVE_COMMISSION
+  ADJUST_COMMISSION
+  VOID_COMMISSION
+  RESTRICT_PARTICIPATION
+  SUSPEND_AUTHORIZATION
+  NO_BREACH
+  INSUFFICIENT_EVIDENCE
+  OTHER
+}
+
 enum InvoiceStatus {
   DRAFT
   ISSUED
@@ -919,7 +975,11 @@ model Partner {
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
   externalPaymentEvidence ExternalPaymentEvidence[]
+  commercialLeakageSignals CommercialLeakageSignal[]
+  commercialDisputes CommercialDispute[]
   commercialAppointments CommercialAppointment[]
+  commercialLeakageSignals CommercialLeakageSignal[]
+  commercialDisputes CommercialDispute[]
   commercialAgreements CommercialAgreement[]
   commercialRequests CommercialRequest[]
 
@@ -1861,6 +1921,88 @@ model ExternalPaymentEvidence {
   @@index([paymentDate,status], map:"idx_external_payment_evidence_payment_date")
   @@index([dealRegistrationId], map:"idx_external_payment_evidence_deal")
   @@map("external_payment_evidence")
+}
+
+model CommercialLeakageSignal {
+  id                String                       @id @db.Char(36)
+  workspaceId       String                       @map("workspace_id") @db.Char(36)
+  type              CommercialLeakageSignalType
+  status            CommercialLeakageSignalStatus @default(OPEN)
+  severity          Int                          @default(1)
+  summary           String                       @db.VarChar(500)
+  details           Json?
+  listingId         String?                      @map("listing_id") @db.Char(36)
+  partnerId         String?                      @map("partner_id") @db.Char(36)
+  leadId            String?                      @map("lead_id") @db.Char(36)
+  dealRegistrationId String?                    @map("deal_registration_id") @db.Char(36)
+  appointmentId     String?                      @map("appointment_id") @db.Char(36)
+  orderId           String?                      @map("order_id") @db.Char(36)
+  evidenceRef       String?                      @map("evidence_ref") @db.VarChar(1000)
+  reviewedBy        String?                      @map("reviewed_by") @db.Char(36)
+  reviewedAt        DateTime?                    @map("reviewed_at") @db.DateTime(0)
+  resolutionNote    String?                      @map("resolution_note") @db.Text
+  createdAt         DateTime                     @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime                     @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace         Workspace                    @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+  listing           CommercialListing?           @relation(fields:[listingId],references:[id],onDelete:SetNull)
+  partner           Partner?                     @relation(fields:[partnerId],references:[id],onDelete:SetNull)
+  lead              Lead?                        @relation(fields:[leadId],references:[id],onDelete:SetNull)
+  dealRegistration  CommercialDealRegistration?  @relation(fields:[dealRegistrationId],references:[id],onDelete:SetNull)
+  appointment       CommercialAppointment?       @relation(fields:[appointmentId],references:[id],onDelete:SetNull)
+  order             Order?                       @relation(fields:[orderId],references:[id],onDelete:SetNull)
+  disputes          CommercialDispute[]
+  @@index([workspaceId,status,severity,createdAt],map:"idx_commercial_leakage_workspace")
+  @@index([partnerId,status,createdAt],map:"idx_commercial_leakage_partner")
+  @@index([leadId,status],map:"idx_commercial_leakage_lead")
+  @@index([listingId,status],map:"idx_commercial_leakage_listing")
+  @@map("commercial_leakage_signals")
+}
+
+model CommercialDispute {
+  id                String                    @id @db.Char(36)
+  workspaceId       String                    @map("workspace_id") @db.Char(36)
+  type              CommercialDisputeType
+  status            CommercialDisputeStatus  @default(OPEN)
+  subject           String                    @db.VarChar(190)
+  description       String                    @db.Text
+  disputedAmount    Decimal?                  @map("disputed_amount") @db.Decimal(15,2)
+  currency          String                    @default("ETB") @db.VarChar(10)
+  partnerId         String?                   @map("partner_id") @db.Char(36)
+  competingPartnerId String?                 @map("competing_partner_id") @db.Char(36)
+  listingId         String?                   @map("listing_id") @db.Char(36)
+  leadId            String?                   @map("lead_id") @db.Char(36)
+  dealRegistrationId String?                 @map("deal_registration_id") @db.Char(36)
+  commercialAgreementId String?              @map("commercial_agreement_id") @db.Char(36)
+  proposalId        String?                   @map("proposal_id") @db.Char(36)
+  orderId           String?                   @map("order_id") @db.Char(36)
+  paymentEvidenceId String?                  @map("payment_evidence_id") @db.Char(36)
+  commissionId      String?                   @map("commission_id") @db.Char(36)
+  leakageSignalId   String?                   @map("leakage_signal_id") @db.Char(36)
+  evidence          Json?
+  resolution       CommercialDisputeResolution?
+  resolutionNotes  String?                    @map("resolution_notes") @db.Text
+  resolvedBy       String?                    @map("resolved_by") @db.Char(36)
+  resolvedAt       DateTime?                  @map("resolved_at") @db.DateTime(0)
+  createdBy        String?                    @map("created_by") @db.Char(36)
+  createdAt        DateTime                   @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime                   @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace         Workspace                 @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+  partner           Partner?                  @relation("CommercialDisputePartner",fields:[partnerId],references:[id],onDelete:SetNull)
+  competingPartner  Partner?                  @relation("CommercialDisputeCompetingPartner",fields:[competingPartnerId],references:[id],onDelete:SetNull)
+  listing           CommercialListing?         @relation(fields:[listingId],references:[id],onDelete:SetNull)
+  lead              Lead?                      @relation(fields:[leadId],references:[id],onDelete:SetNull)
+  dealRegistration  CommercialDealRegistration? @relation(fields:[dealRegistrationId],references:[id],onDelete:SetNull)
+  commercialAgreement CommercialAgreement?     @relation(fields:[commercialAgreementId],references:[id],onDelete:SetNull)
+  proposal           ProfessionalProposal?     @relation(fields:[proposalId],references:[id],onDelete:SetNull)
+  order              Order?                    @relation(fields:[orderId],references:[id],onDelete:SetNull)
+  paymentEvidence    ExternalPaymentEvidence?  @relation(fields:[paymentEvidenceId],references:[id],onDelete:SetNull)
+  commission         Commission?               @relation(fields:[commissionId],references:[id],onDelete:SetNull)
+  leakageSignal      CommercialLeakageSignal?  @relation(fields:[leakageSignalId],references:[id],onDelete:SetNull)
+  @@index([workspaceId,status,createdAt],map:"idx_commercial_dispute_workspace")
+  @@index([partnerId,status],map:"idx_commercial_dispute_partner")
+  @@index([commissionId,status],map:"idx_commercial_dispute_commission")
+  @@index([leadId,status],map:"idx_commercial_dispute_lead")
+  @@map("commercial_disputes")
 }
 
 model Revenue {
