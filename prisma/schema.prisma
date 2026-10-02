@@ -647,7 +647,7 @@ model Lead {
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
   commercialRequests CommercialRequest[]
-  commercialMatches CommercialMatch[]
+
   conversations     Conversation[]
   partnerDisputes    PartnerDispute[]
   commercialDealRegistrations CommercialDealRegistration[]
@@ -828,9 +828,10 @@ model Partner {
   commercialDealRegistrations CommercialDealRegistration[]
   commercialAppointments CommercialAppointment[]
   commercialRequests CommercialRequest[]
-  commercialMatches CommercialMatch[]
+
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatches CommercialMatch[]
+
   commercialMatchesAsSupplier CommercialMatch[] @relation("CommercialMatchSupplierParty")
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
@@ -1144,8 +1145,9 @@ model CommercialListing {
   eligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
   commercialAppointments CommercialAppointment[]
-  commercialMatches CommercialMatch[]
+
   commercialRequestResponses CommercialRequestResponse[]
+  commercialMatches CommercialMatch[]
 
   @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
   @@index([workspaceId, status, publicVisible], map:"idx_commercial_listing_workspace_status_public")
@@ -1171,8 +1173,9 @@ model CommercialParty {
   ownedListings CommercialListing[]   @relation("CommercialListingOwner")
   suppliedListings CommercialListing[] @relation("CommercialListingSupplier")
   authorizations CommercialListingAuthorization[]
-  commercialMatchesAsSupplier CommercialMatch[] @relation("CommercialMatchSupplierParty")
+
   commercialRequestResponses CommercialRequestResponse[]
+  commercialMatchesAsSupplier CommercialMatch[] @relation("CommercialMatchSupplierParty")
 
   @@index([workspaceId,status,name], map:"idx_commercial_party_workspace_status_name")
   @@map("commercial_parties")
@@ -1368,6 +1371,7 @@ model CommercialRequest {
   lead                Lead?                    @relation(fields:[leadId], references:[id], onDelete:SetNull)
   opportunity         Opportunity?              @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
   responses           CommercialRequestResponse[]
+  commercialMatches   CommercialMatch[]
 
   @@index([workspaceId,status,createdAt], map:"idx_commercial_request_workspace_status")
   @@index([workspaceId,requestType,status], map:"idx_commercial_request_type_status")
@@ -1409,6 +1413,7 @@ model CommercialRequestResponse {
   listing           CommercialListing?            @relation(fields:[listingId], references:[id], onDelete:SetNull)
   opportunity       Opportunity?                 @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
   quote             Quote?                        @relation(fields:[quoteId], references:[id], onDelete:SetNull)
+
   commercialMatches CommercialMatch[]
   order             Order?                        @relation(fields:[orderId], references:[id], onDelete:SetNull)
 
@@ -2309,6 +2314,7 @@ model Workspace {
   commercialAppointments CommercialAppointment[]
   commercialRequests CommercialRequest[]
   commercialRequestResponses CommercialRequestResponse[]
+  commercialMatches CommercialMatch[]
   commercialParties CommercialParty[]
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
