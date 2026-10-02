@@ -69,7 +69,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
     if(b.status!==undefined || b.verificationStatus!==undefined){
       if(nextStatus==="ACTIVE"){
         if(nextVerification!=="VERIFIED")return NextResponse.json({error:"Activation requires a VERIFIED partner."},{status:409});
-        fields.push("account_status='ACTIVE'","onboarding_status='COMPLETE'","onboarding_step='COMPLETE'");
+        fields.push("account_status='ACTIVE'","onboarding_status='IN_PROGRESS'","onboarding_step='PAYOUT'");
       } else if(nextVerification==="SUSPENDED" || nextStatus==="PAUSED"){
         fields.push("account_status='SUSPENDED'");
       } else {
@@ -87,7 +87,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
       verificationStatus:nextVerification,
       status:nextStatus,
       accountStatus:nextStatus==="ACTIVE"?"ACTIVE":nextVerification==="SUSPENDED"||nextStatus==="PAUSED"?"SUSPENDED":"REGISTERED",
-      nextStep:nextStatus==="ACTIVE"?"Issue portal credentials or match the partner to an eligible campaign.":nextVerification==="VERIFIED"?"Activate the verified partner.":"Complete profile review and verification.",
+      nextStep:nextStatus==="ACTIVE"?"Complete payout/terms onboarding, then issue portal credentials or match the partner to an eligible campaign.":nextVerification==="VERIFIED"?"Complete the remaining onboarding checks, then activate the verified partner.":"Complete profile review and verification.",
     });
   }catch(error){
     console.error("PARTNER_PROFILE_UPDATE_ERROR",error);
