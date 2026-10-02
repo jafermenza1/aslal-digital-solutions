@@ -1130,6 +1130,7 @@ model CommercialListing {
   eligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
   commercialAppointments CommercialAppointment[]
+  commercialRequestResponses CommercialRequestResponse[]
 
   @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
   @@index([workspaceId, status, publicVisible], map:"idx_commercial_listing_workspace_status_public")
@@ -1155,6 +1156,7 @@ model CommercialParty {
   ownedListings CommercialListing[]   @relation("CommercialListingOwner")
   suppliedListings CommercialListing[] @relation("CommercialListingSupplier")
   authorizations CommercialListingAuthorization[]
+  commercialRequestResponses CommercialRequestResponse[]
 
   @@index([workspaceId,status,name], map:"idx_commercial_party_workspace_status_name")
   @@map("commercial_parties")
@@ -1742,6 +1744,7 @@ model Quote {
   items           QuoteItem[]
   events          NegotiationEvent[]
   order           Order?
+  commercialRequestResponses CommercialRequestResponse[]
 
   @@index([customerId, createdAt], map: "idx_quotes_customer_created")
   @@index([opportunityId, createdAt], map: "idx_quotes_opportunity_created")
@@ -1816,6 +1819,7 @@ model Order {
   revenues           Revenue[]
   invoices           Invoice[]
   commissions        Commission[]
+  commercialRequestResponses CommercialRequestResponse[]
 
   @@index([customerId, createdAt], map: "idx_orders_customer_created")
   @@index([opportunityId, createdAt], map: "idx_orders_opportunity_created")
