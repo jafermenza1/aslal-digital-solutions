@@ -1405,6 +1405,7 @@ model Order {
   referralCode       String?     @map("referral_code") @db.VarChar(100)
   promoCode          String?     @map("promo_code") @db.VarChar(100)
   partnerId          String?     @map("partner_id") @db.Char(36)
+  distributionAssetId String?    @map("distribution_asset_id") @db.Char(36)
   referralLinkId     String?     @map("referral_link_id") @db.Char(36)
   salesOwnerEmail    String?     @map("sales_owner_email") @db.VarChar(190)
   createdAt          DateTime    @default(now()) @map("created_at") @db.DateTime(0)
@@ -1416,6 +1417,7 @@ model Order {
   customer           Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
   opportunity        Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   partner            Partner?    @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  distributionAsset  CommercialDistributionItem? @relation(fields: [distributionAssetId], references: [id], onDelete: SetNull)
   referralLink       ReferralLink? @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
   items              OrderItem[]
   payments           Payment[]
@@ -1427,6 +1429,7 @@ model Order {
   @@index([opportunityId, createdAt], map: "idx_orders_opportunity_created")
   @@index([status, createdAt], map: "idx_orders_status_created")
   @@index([partnerId, createdAt], map: "idx_orders_partner_created")
+  @@index([distributionAssetId, createdAt], map: "idx_orders_distribution_asset_created")
   @@index([referralCode], map: "idx_orders_referral")
   @@map("orders")
   workspace          Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
@@ -2065,6 +2068,7 @@ model CommercialDistributionItem {
   startsAt DateTime? @map("starts_at") @db.DateTime(0)
   endsAt DateTime? @map("ends_at") @db.DateTime(0)
   redemptionInstructions String? @map("redemption_instructions") @db.Text
+  orders Order[]
   status CommercialDistributionAssetStatus @default(DRAFT)
   createdBy String? @map("created_by") @db.VarChar(190)
   createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
