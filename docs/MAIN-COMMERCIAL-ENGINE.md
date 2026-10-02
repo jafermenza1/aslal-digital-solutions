@@ -2078,6 +2078,8 @@ Implemented:
 
 CE-8 deliberately does not implement proposal versioning/comparison, formal commercial agreements, payment evidence, leakage/dispute resolution or commission logic; those remain CE-9 onward.
 
+A follow-up demo migration seeds two synthetic published professional profiles and links them to the existing CE-7 digital-marketing and logistics service listings, so provider-aware matching can be demonstrated immediately after migration.
+
 ### CE-9 — RFP / Proposal
 
 Provider proposals, versioning and comparison.
