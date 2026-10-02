@@ -552,3 +552,10 @@ Known CE-5 follow-on work:
 - calendar synchronization;
 - rescheduling workflow;
 - richer inspection evidence attachments.
+
+
+## CE-6 — Complete Demand/Wanted Request Workflow
+
+**Status: IMPLEMENTED — VERIFICATION PENDING**
+
+The implementation now covers public demand capture, Lead creation, qualification, controlled publication/response intake, supplier/provider/partner response, response acceptance, Opportunity creation, Quote creation/acceptance, Order creation and fulfillment closure. Existing Lead, Opportunity, Quote and Order domains are reused. Runtime migration, typecheck, lint, build, E2E and workspace-isolation verification remain outstanding.
