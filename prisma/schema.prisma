@@ -635,6 +635,7 @@ model Partner {
   id             String          @id @db.Char(36)
   partnerNumber  String          @unique @map("partner_number") @db.VarChar(30)
   name           String          @db.VarChar(160)
+  logoUrl        String?         @map("logo_url") @db.VarChar(1000)
   email          String?         @db.VarChar(190)
   username       String?         @unique @db.VarChar(190)
   passwordHash   String?         @map("password_hash") @db.VarChar(255)
