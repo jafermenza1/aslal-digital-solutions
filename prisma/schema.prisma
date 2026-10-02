@@ -545,6 +545,33 @@ enum PaymentReconciliationStatus {
   EXCEPTION
 }
 
+enum ExternalPaymentEvidenceStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  VERIFIED
+  REJECTED
+  VOIDED
+}
+
+enum ExternalPaymentEvidenceSource {
+  SELLER_REPORTED
+  CUSTOMER_REPORTED
+  PARTNER_REPORTED
+  OPERATOR_RECORDED
+  EXTERNAL_GATEWAY
+  INSTITUTIONAL_PROCUREMENT
+}
+
+enum ExternalPaymentMethod {
+  BANK_TRANSFER
+  CASH
+  EXTERNAL_GATEWAY
+  INSTITUTIONAL_PROCUREMENT
+  CHEQUE
+  OTHER
+}
+
 enum InvoiceStatus {
   DRAFT
   ISSUED
@@ -891,6 +918,7 @@ model Partner {
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
+  externalPaymentEvidence ExternalPaymentEvidence[]
   commercialAppointments CommercialAppointment[]
   commercialAgreements CommercialAgreement[]
   commercialRequests CommercialRequest[]
@@ -1590,6 +1618,7 @@ model ProfessionalProposal {
   responderParty    CommercialParty?        @relation(fields:[responderPartyId], references:[id], onDelete:SetNull)
   partner           Partner?                @relation(fields:[partnerId], references:[id], onDelete:SetNull)
   commercialAgreements CommercialAgreement[]
+  externalPaymentEvidence ExternalPaymentEvidence[]
   versions          ProfessionalProposalVersion[]
 
   @@unique([responseId], map:"uq_professional_proposal_response")
@@ -1667,6 +1696,7 @@ model CommercialAgreement {
   program               PartnerProgram?           @relation(fields:[programId], references:[id], onDelete:SetNull)
   commissionContract    CommissionContract?       @relation(fields:[commissionContractId], references:[id], onDelete:SetNull)
   dealRegistration     CommercialDealRegistration? @relation(fields:[dealRegistrationId], references:[id], onDelete:SetNull)
+  externalPaymentEvidence ExternalPaymentEvidence[]
   proposal              ProfessionalProposal?     @relation(fields:[proposalId], references:[id], onDelete:SetNull)
   participants          CommercialAgreementParticipant[]
   versions              CommercialAgreementVersion[]
@@ -1787,6 +1817,52 @@ model CommercialListingAuthorization {
   @@map("commercial_listing_authorizations")
 }
 
+model ExternalPaymentEvidence {
+  workspaceId           String                         @map("workspace_id") @db.Char(36)
+  id                    String                         @id @db.Char(36)
+  evidenceNumber        String                         @unique @map("evidence_number") @db.VarChar(80)
+  status                ExternalPaymentEvidenceStatus @default(DRAFT)
+  source                ExternalPaymentEvidenceSource
+  paymentMethod         ExternalPaymentMethod         @map("payment_method")
+  orderId               String?                        @map("order_id") @db.Char(36)
+  paymentId             String?                        @unique @map("payment_id") @db.Char(36)
+  revenueId             String?                        @unique @map("revenue_id") @db.Char(36)
+  commercialAgreementId String?                       @map("commercial_agreement_id") @db.Char(36)
+  dealRegistrationId   String?                        @map("deal_registration_id") @db.Char(36)
+  amount                Decimal                        @db.Decimal(15,2)
+  currency              String                         @default("ETB") @db.VarChar(10)
+  paymentDate           DateTime                       @map("payment_date") @db.DateTime(0)
+  payerName             String?                        @map("payer_name") @db.VarChar(190)
+  payerReference        String?                        @map("payer_reference") @db.VarChar(190)
+  payeeName             String?                        @map("payee_name") @db.VarChar(190)
+  payeeReference        String?                        @map("payee_reference") @db.VarChar(190)
+  externalReference     String?                        @map("external_reference") @db.VarChar(190)
+  evidenceAttachments   Json?                          @map("evidence_attachments")
+  notes                 String?                        @db.Text
+  recordedBy            String?                        @map("recorded_by") @db.Char(36)
+  verifiedBy            String?                        @map("verified_by") @db.Char(36)
+  verifiedAt            DateTime?                      @map("verified_at") @db.DateTime(0)
+  rejectedAt            DateTime?                      @map("rejected_at") @db.DateTime(0)
+  rejectionReason       String?                        @map("rejection_reason") @db.Text
+  voidedAt              DateTime?                      @map("voided_at") @db.DateTime(0)
+  createdAt             DateTime                       @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt             DateTime                       @updatedAt @map("updated_at") @db.DateTime(0)
+
+  workspace             Workspace                      @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  order                 Order?                         @relation(fields:[orderId], references:[id], onDelete:SetNull)
+  payment               Payment?                       @relation(fields:[paymentId], references:[id], onDelete:SetNull)
+  revenue               Revenue?                       @relation(fields:[revenueId], references:[id], onDelete:SetNull)
+  commercialAgreement   CommercialAgreement?           @relation(fields:[commercialAgreementId], references:[id], onDelete:SetNull)
+  dealRegistration     CommercialDealRegistration?     @relation(fields:[dealRegistrationId], references:[id], onDelete:SetNull)
+
+  @@index([workspaceId,status,createdAt], map:"idx_external_payment_evidence_workspace_status")
+  @@index([workspaceId,orderId,createdAt], map:"idx_external_payment_evidence_order")
+  @@index([externalReference], map:"idx_external_payment_evidence_external_ref")
+  @@index([paymentDate,status], map:"idx_external_payment_evidence_payment_date")
+  @@index([dealRegistrationId], map:"idx_external_payment_evidence_deal")
+  @@map("external_payment_evidence")
+}
+
 model Revenue {
   workspaceId String @map("workspace_id") @db.Char(36)
   id                String        @id @db.Char(36)
@@ -1811,6 +1887,7 @@ model Revenue {
   referralLink      ReferralLink? @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
   commission        Commission?
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  externalPaymentEvidence ExternalPaymentEvidence?
 
   @@index([orderId, createdAt], map: "idx_revenue_order_created")
   @@index([partnerId, createdAt], map: "idx_revenue_partner_created")
@@ -2255,6 +2332,8 @@ model Payment {
   invoicePayments        InvoicePayment[]
   refunds                PaymentRefund[]
   webhookEvents          PaymentWebhookEvent[]
+  externalPaymentEvidence ExternalPaymentEvidence?
+
 
   @@index([orderId, createdAt], map: "idx_payments_order_created")
   @@index([status, createdAt], map: "idx_payments_status_created")
