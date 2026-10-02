@@ -1825,6 +1825,7 @@ model Workspace {
   products Product[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
+  leadAttributionAudits LeadAttributionAudit[]
   resourceAttributions ResourceAttribution[]
   resources Resource[]
   campaignServiceAreaOptions CampaignServiceAreaOption[]
