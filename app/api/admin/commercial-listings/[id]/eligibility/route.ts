@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { prisma } from "@/lib/prisma";
 import { evaluateCommercialPartnerEligibility } from "@/lib/commercial-eligibility";
 
 const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):"";
