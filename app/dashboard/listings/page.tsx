@@ -8,12 +8,13 @@ export const dynamic="force-dynamic";
 export default async function CommercialListingsPage(){
  const user=await requirePermission("products.manage");
  const workspaceId=user.workspaceId;
- const [listings,products,parties,workspaceUsers,partners]=await Promise.all([
+ const [listings,products,parties,workspaceUsers,partners,programs]=await Promise.all([
   prisma.commercialListing.findMany({where:workspaceId?{workspaceId}:undefined,orderBy:{updatedAt:"desc"},include:{product:{select:{id:true,name:true,slug:true,kind:true}},ownerParty:{select:{id:true,name:true,type:true,status:true}},supplierParty:{select:{id:true,name:true,type:true,status:true}},workspace:{select:{id:true,name:true,slug:true}}}}),
   prisma.product.findMany({where:workspaceId?{workspaceId,active:true}:{active:true},select:{id:true,name:true,slug:true,kind:true},orderBy:{name:"asc"}}),
   prisma.commercialParty.findMany({where:workspaceId?{workspaceId}:{},orderBy:{name:"asc"},select:{id:true,name:true,type:true,status:true}}),
   prisma.workspaceUser.findMany({where:workspaceId?{workspaceId,status:"ACTIVE"}:{},include:{user:{select:{id:true,name:true,email:true,active:true}}},orderBy:{createdAt:"asc"}}),
-  prisma.partner.findMany({where:workspaceId?{workspaceId,status:"ACTIVE"}:{},select:{id:true,name:true,partnerNumber:true,type:true,status:true,verificationStatus:true},orderBy:{name:"asc"}})
+  prisma.partner.findMany({where:workspaceId?{workspaceId,status:"ACTIVE"}:{},select:{id:true,name:true,partnerNumber:true,type:true,status:true,verificationStatus:true},orderBy:{name:"asc"}}),
+  prisma.partnerProgram.findMany({where:workspaceId?{workspaceId}:{},select:{id:true,name:true,status:true,admissionMode:true},orderBy:{name:"asc"}})
  ]);
  return <main className="dashboard-page min-h-screen py-10"><div className="container-aslal">
   <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
