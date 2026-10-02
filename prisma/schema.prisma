@@ -294,6 +294,16 @@ enum CommercialRequestType {
   RFP
 }
 
+
+enum CommercialMatchStatus {
+  SUGGESTED
+  SHORTLISTED
+  CONTACTED
+  RESPONDED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
 enum CommercialRequestStatus {
   DRAFT
   SUBMITTED
@@ -637,6 +647,7 @@ model Lead {
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
   commercialRequests CommercialRequest[]
+  commercialMatches CommercialMatch[]
   conversations     Conversation[]
   partnerDisputes    PartnerDispute[]
   commercialDealRegistrations CommercialDealRegistration[]
@@ -817,7 +828,10 @@ model Partner {
   commercialDealRegistrations CommercialDealRegistration[]
   commercialAppointments CommercialAppointment[]
   commercialRequests CommercialRequest[]
+  commercialMatches CommercialMatch[]
   commercialRequestResponses CommercialRequestResponse[]
+  commercialMatches CommercialMatch[]
+  commercialMatchesAsSupplier CommercialMatch[] @relation("CommercialMatchSupplierParty")
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([verificationStatus], map: "idx_partners_verification")
@@ -1130,6 +1144,7 @@ model CommercialListing {
   eligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
   commercialAppointments CommercialAppointment[]
+  commercialMatches CommercialMatch[]
   commercialRequestResponses CommercialRequestResponse[]
 
   @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
@@ -1156,6 +1171,7 @@ model CommercialParty {
   ownedListings CommercialListing[]   @relation("CommercialListingOwner")
   suppliedListings CommercialListing[] @relation("CommercialListingSupplier")
   authorizations CommercialListingAuthorization[]
+  commercialMatchesAsSupplier CommercialMatch[] @relation("CommercialMatchSupplierParty")
   commercialRequestResponses CommercialRequestResponse[]
 
   @@index([workspaceId,status,name], map:"idx_commercial_party_workspace_status_name")
@@ -1273,6 +1289,43 @@ model CommercialEligibilityDecisionRecord {
 }
 
 
+
+model CommercialMatch {
+  id             String               @id @db.Char(36)
+  workspaceId    String               @map("workspace_id") @db.Char(36)
+  requestId      String               @map("request_id") @db.Char(36)
+  listingId      String               @map("listing_id") @db.Char(36)
+  partnerId      String?              @map("partner_id") @db.Char(36)
+  supplierPartyId String?             @map("supplier_party_id") @db.Char(36)
+  status         CommercialMatchStatus @default(SUGGESTED)
+  score          Int
+  scoreBreakdown Json                 @map("score_breakdown")
+  reasons        Json
+  eligibility    String?              @db.VarChar(40)
+  eligibilityReasons Json?            @map("eligibility_reasons")
+  evaluatedAt    DateTime             @default(now()) @map("evaluated_at") @db.DateTime(0)
+  expiresAt      DateTime?            @map("expires_at") @db.DateTime(0)
+  reviewedAt     DateTime?            @map("reviewed_at") @db.DateTime(0)
+  reviewedBy     String?              @map("reviewed_by") @db.Char(36)
+  reviewReason   String?              @map("review_reason") @db.Text
+  responseId     String?              @map("response_id") @db.Char(36)
+  createdAt      DateTime             @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime             @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace      Workspace            @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  request        CommercialRequest    @relation(fields:[requestId], references:[id], onDelete:Cascade)
+  listing        CommercialListing    @relation(fields:[listingId], references:[id], onDelete:Restrict)
+  partner        Partner?             @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  supplierParty  CommercialParty?     @relation(fields:[supplierPartyId], references:[id], onDelete:SetNull)
+  response       CommercialRequestResponse? @relation(fields:[responseId], references:[id], onDelete:SetNull)
+
+  @@unique([requestId,listingId], map:"uq_commercial_match_request_listing")
+  @@index([workspaceId,status,score], map:"idx_commercial_match_workspace_status_score")
+  @@index([requestId,status,score], map:"idx_commercial_match_request_status_score")
+  @@index([listingId,status], map:"idx_commercial_match_listing_status")
+  @@index([partnerId,status], map:"idx_commercial_match_partner_status")
+  @@map("commercial_matches")
+}
+
 model CommercialRequest {
   id                  String                    @id @db.Char(36)
   workspaceId         String                    @map("workspace_id") @db.Char(36)
@@ -1356,6 +1409,7 @@ model CommercialRequestResponse {
   listing           CommercialListing?            @relation(fields:[listingId], references:[id], onDelete:SetNull)
   opportunity       Opportunity?                 @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
   quote             Quote?                        @relation(fields:[quoteId], references:[id], onDelete:SetNull)
+  commercialMatches CommercialMatch[]
   order             Order?                        @relation(fields:[orderId], references:[id], onDelete:SetNull)
 
   @@index([workspaceId,requestId,status], map:"idx_commercial_response_request_status")
