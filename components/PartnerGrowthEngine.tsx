@@ -6,14 +6,17 @@ type Partner={id:string;name:string;type:string;status:string;verification_statu
 type Program={id:string;name:string;status:string};
 type Campaign={id:string;name:string;status:string;target_description:string|null;delivery_mode:string;location:string|null;budget:number|string;partner_budget:number|string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;program_id:string|null;program_name:string|null;product_id:string|null;product_name:string|null;resource_id:string|null;resource_title:string|null;currency:string;partner_count:number;active_partner_count:number;service_area_names:string|null};
 type Product={id:string;name:string;kind:string};
+type ServiceArea={id:string;area_type:"CITY"|"EVENT";name:string};
+type CampaignForm={name:string;targetDescription:string;deliveryMode:"ONLINE"|"OFFLINE"|"HYBRID";serviceAreaIds:string[];budget:string;partnerBudget:string;rewardType:string;rewardAmount:string;rewardRate:string;requiredPartnerTypes:string[];productId:string;resourceId:string;programId:string;startsAt:string;endsAt:string;description:string};
 type Dispute={id:string;partner_name:string;campaign_name:string|null;subject:string;description:string;status:string};
 type Payout={id:string;partner_name:string;amount:number|string;currency:string;status:string;reference:string|null;commission_count:number;created_at:string;paid_at:string|null};
 const money=(v:number|string|null|undefined)=>Number(v??0).toLocaleString("en-ET",{maximumFractionDigits:2});
 
 export default function PartnerGrowthEngine(){
- const [partners,setPartners]=useState<Partner[]>([]),[campaigns,setCampaigns]=useState<Campaign[]>([]),[programs,setPrograms]=useState<Program[]>([]),[products,setProducts]=useState<Product[]>([]),[resources,setResources]=useState<{id:string;title:string;category:string}[]>([]),[disputes,setDisputes]=useState<Dispute[]>([]),[payouts,setPayouts]=useState<Payout[]>([]);
- const [message,setMessage]=useState(""),[busy,setBusy]=useState("");
- const [form,setForm]=useState({name:"",targetDescription:"",location:"",budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:"AGENT,INFLUENCER",productId:"",resourceId:"",programId:"",description:""});
+ const [partners,setPartners]=useState<Partner[]>([]),[campaigns,setCampaigns]=useState<Campaign[]>([]),[programs,setPrograms]=useState<Program[]>([]),[products,setProducts]=useState<Product[]>([]),[resources,setResources]=useState<{id:string;title:string;category:string}[]>([]),[serviceAreas,setServiceAreas]=useState<ServiceArea[]>([]),[disputes,setDisputes]=useState<Dispute[]>([]),[payouts,setPayouts]=useState<Payout[]>([]);
+ const [message,setMessage]=useState(""),[busy,setBusy]=useState(""),[newAreaOpen,setNewAreaOpen]=useState(false),[newAreaType,setNewAreaType]=useState<"CITY"|"EVENT">("CITY"),[newAreaName,setNewAreaName]=useState("");
+ const emptyCampaign=():CampaignForm=>({name:"",targetDescription:"",deliveryMode:"ONLINE",serviceAreaIds:[],budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:["AGENT","INFLUENCER"],productId:"",resourceId:"",programId:"",startsAt:"",endsAt:"",description:""});
+ const [form,setForm]=useState<CampaignForm>(emptyCampaign());
  const [payout,setPayout]=useState({partnerId:"",amount:"",status:"PENDING",reference:"",notes:""});
 
  async function load(){
@@ -23,14 +26,15 @@ export default function PartnerGrowthEngine(){
    const [a,b,c,d]=await Promise.all(rs.map(r=>r.json()));
    const pr=await fetch("/api/admin/partner-engine/programs"); const pd=await pr.json();
    setPrograms(pd.programs||[]);
-   setPartners(a.partners||[]);setCampaigns(b.campaigns||[]);setProducts(b.products||[]);setResources(b.resources||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
+   setPartners(a.partners||[]);setCampaigns(b.campaigns||[]);setProducts(b.products||[]);setResources(b.resources||[]);setServiceAreas(b.serviceAreas||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
   }catch(e){setMessage(e instanceof Error?e.message:"Could not load partner engine.");}
  }
  // Load partner-engine data after mount.\n useEffect(()=>{void load()},[]);
 
+ async function addServiceArea(){ const name=newAreaName.trim(); if(!name)return; setBusy("area"); try{const r=await fetch("/api/admin/partner-engine/service-areas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({areaType:newAreaType,name})}); const d=await r.json().catch(()=>({})); if(!r.ok)throw new Error(d.error||"Could not create service area."); setServiceAreas(prev=>[...prev,{id:String(d.id),area_type:newAreaType,name:String(d.name)}]); setForm(f=>({...f,serviceAreaIds:[...f.serviceAreaIds,String(d.id)]})); setNewAreaName("");setNewAreaOpen(false); }catch(e){setMessage(e instanceof Error?e.message:"Could not create service area.");}finally{setBusy("");}}
  async function createCampaign(e:React.FormEvent){
   e.preventDefault();setBusy("campaign");setMessage("");
-  try{const r=await fetch("/api/admin/partner-engine/campaigns",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...form,status:"DRAFT",currency:"ETB"})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign creation failed.");setMessage("Campaign draft created. Open it when ready for partner applications.");setForm({name:"",targetDescription:"",location:"",budget:"",partnerBudget:"",rewardType:"FIXED",rewardAmount:"",rewardRate:"",requiredPartnerTypes:"AGENT,INFLUENCER",productId:"",resourceId:"",programId:"",description:""});await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign creation failed.")}finally{setBusy("")}
+  try{const r=await fetch("/api/admin/partner-engine/campaigns",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...form,status:"DRAFT",currency:"ETB"})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign creation failed.");setMessage("Campaign draft created. Open it when ready for partner applications.");setForm(emptyCampaign());await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign creation failed.")}finally{setBusy("")}
  }
  async function updateCampaign(id:string,value:string){setBusy("campaign:"+id);try{const r=await fetch("/api/admin/partner-engine/campaigns/"+encodeURIComponent(id),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:value})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Campaign update failed.");await load()}catch(e){setMessage(e instanceof Error?e.message:"Campaign update failed.")}finally{setBusy("")}}
  async function updatePartner(id:string,field:string,value:string){
