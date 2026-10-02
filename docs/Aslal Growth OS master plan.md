@@ -6013,3 +6013,35 @@ The implementation must remain deliberately narrow: **commercial distribution as
 ## 265.15 Phase 1 exit condition
 
 Phase 1 is complete when an authorized administrator can define a commercial distribution asset, associate it with an existing Product/Service and/or Campaign, allocate controlled inventory to an eligible partner, issue a uniquely serialized unit, generate a QR code, and produce a printable representation without bypassing workspace isolation or partner authorization.
+
+
+### 265.16 Phase 2 — Partner Sales Capture
+
+Phase 2 extends Phase 1 issuance into the existing Aslal commercial transaction model.
+
+When a partner sells/issues a paid commercial distribution asset, the platform creates the **IssuedSalesAsset and Order atomically in one transaction**. The issued asset remains the fulfillment instrument; the Order becomes the financial/commercial record.
+
+The transaction must preserve workspace, partner, campaign where applicable, distribution asset, issued serial, quantity, price/value, currency, holder information where supplied, order number, payment state, and fulfillment state.
+
+The feature must not create a second payment, revenue, or commission ledger.
+
+**Phase 2 flow:**
+
+**Partner allocation → Partner sells asset → Issued asset → Order → Payment → Revenue → Commission**
+
+The initial sale creates an Order with payment state `PENDING`. Existing payment infrastructure is responsible for confirmation, reconciliation, refunds and webhook processing. Existing commission infrastructure remains responsible for commission qualification/calculation.
+
+A sale may be recorded without creating a Lead. Lead creation remains optional and is reserved for acquisition workflows where the customer should enter the CRM pipeline.
+
+Phase 2 acceptance requires:
+
+1. an authorized partner can see only its own allocations;
+2. a partner cannot sell beyond allocation quantity;
+3. global asset inventory limits are enforced;
+4. each sale receives a unique issued serial;
+5. each sale creates exactly one Order;
+6. the Order identifies partner and distribution asset;
+7. issuance and Order creation succeed or fail together;
+8. payment remains in the existing payment lifecycle;
+9. workspace isolation is preserved;
+10. the printable issued asset remains available after sale.
