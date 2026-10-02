@@ -208,6 +208,25 @@ enum ProductKind {
   SERVICE
 }
 
+enum CommercialListingType {
+  PRODUCT
+  SERVICE
+  ASSET
+  PROPERTY
+}
+
+enum CommercialListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  PUBLISHED
+  PAUSED
+  SOLD_OUT
+  EXPIRED
+  ARCHIVED
+  REJECTED
+}
+
 enum UserRole {
   SUPER_ADMIN
   ADMIN
@@ -935,12 +954,49 @@ model Product {
   campaigns        PartnerCampaign[]
   attributions     LeadAttribution[]
   workspace        Workspace? @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
+  commercialListings CommercialListing[]
 
   @@index([kind, active, sortOrder], map: "idx_products_kind_active_sort")
   @@index([featured], map: "idx_products_featured")
   @@index([active], map: "idx_products_active")
   @@index([workspaceId], map: "idx_products_workspace")
   @@map("products")
+}
+
+
+model CommercialListing {
+  id                String                   @id @db.Char(36)
+  workspaceId       String                   @map("workspace_id") @db.Char(36)
+  productId         String?                  @map("product_id") @db.Char(36)
+  title             String                   @db.VarChar(190)
+  slug              String                   @db.VarChar(160)
+  listingType       CommercialListingType    @map("listing_type")
+  status            CommercialListingStatus  @default(DRAFT)
+  description       String?                  @db.Text
+  category          String                   @default("General") @db.VarChar(100)
+  condition        String?                  @db.VarChar(60)
+  location          String?                  @db.VarChar(190)
+  askingPrice       Decimal?                 @map("asking_price") @db.Decimal(15, 2)
+  currency          String                   @default("ETB") @db.VarChar(10)
+  priceLabel        String?                  @map("price_label") @db.VarChar(100)
+  inspectionRequired Boolean                 @default(false) @map("inspection_required")
+  requestQuote      Boolean                 @default(true) @map("request_quote")
+  publicVisible     Boolean                 @default(false) @map("public_visible")
+  featured          Boolean                 @default(false)
+  metadata          Json?
+  publishedAt       DateTime?                @map("published_at") @db.DateTime(0)
+  expiresAt         DateTime?                @map("expires_at") @db.DateTime(0)
+  createdBy         String?                  @map("created_by") @db.Char(36)
+  createdAt         DateTime                 @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime                 @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace         Workspace                @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  product           Product?                @relation(fields:[productId], references:[id], onDelete:SetNull)
+
+  @@unique([workspaceId, slug], map:"uq_commercial_listing_workspace_slug")
+  @@index([workspaceId, status, publicVisible], map:"idx_commercial_listing_workspace_status_public")
+  @@index([productId], map:"idx_commercial_listing_product")
+  @@index([listingType, category, status], map:"idx_commercial_listing_type_category_status")
+  @@map("commercial_listings")
 }
 
 model Revenue {
@@ -1781,6 +1837,7 @@ model Workspace {
   conversations Conversation[]
   telegramDestinations TelegramDestination[]
   products Product[]
+  commercialListings CommercialListing[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
