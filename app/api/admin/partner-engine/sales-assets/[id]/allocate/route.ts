@@ -19,6 +19,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   const [partner]=await db.query<RowDataPacket[]>(`SELECT id,status,account_status,verification_status FROM partners WHERE id=? AND workspace_id=? LIMIT 1`,[partnerId,access.workspace.id]);
   if(!partner[0])return NextResponse.json({error:"Partner not found in this workspace."},{status:404});
   if(partner[0].status!=="ACTIVE"||partner[0].account_status!=="ACTIVE"||partner[0].verification_status!=="VERIFIED")return NextResponse.json({error:"Partner must be ACTIVE, account ACTIVE and VERIFIED before receiving sales assets."},{status:409});
+  if(asset[0].campaign_id){const [cp]=await db.query<RowDataPacket[]>(`SELECT id FROM campaign_partners WHERE campaign_id=? AND partner_id=? AND status IN ("APPROVED","ACTIVE","COMPLETED") LIMIT 1`,[asset[0].campaign_id,partnerId]);if(!cp[0])return NextResponse.json({error:"Partner is not an approved/active participant in the asset campaign."},{status:409});}
   const [existing]=await db.query<RowDataPacket[]>(`SELECT id,quantity_allocated,quantity_issued,status FROM partner_sales_asset_allocations WHERE asset_id=? AND partner_id=? LIMIT 1`,[id,partnerId]);
   if(existing[0]){
    if(existing[0].status==="CLOSED")return NextResponse.json({error:"This partner allocation is closed."},{status:409});
