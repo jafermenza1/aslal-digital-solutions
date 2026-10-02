@@ -31,6 +31,10 @@ export async function POST(request: Request) {
 
   if (!name || !businessType || !leadCategory || !message) return NextResponse.json({ error: "Name, business type, offline source and customer request are required." }, { status:400 });
   if (!OFFLINE_CHANNELS.includes(leadCategory)) return NextResponse.json({ error: "Choose a valid offline source channel." }, { status:400 });
+  if (serviceAreaId) {
+    const [areaRows] = await prisma.$queryRawUnsafe<any[]>(`SELECT id,name,area_type FROM campaign_service_area_options WHERE id=? AND workspace_id=? AND active=1 LIMIT 1`,serviceAreaId,workspace.workspace.id);
+    if (!areaRows?.[0]) return NextResponse.json({ error: "Selected city or event is not available in this workspace." }, { status: 400 });
+  }
   if (campaignId) {
     const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT c.id,c.name,c.delivery_mode FROM partner_campaigns c WHERE c.id=? AND c.workspace_id=? LIMIT 1`,campaignId,workspace.workspace.id);
     if (!rows?.[0]) return NextResponse.json({ error: "Selected campaign was not found in this workspace." }, { status:400 });
