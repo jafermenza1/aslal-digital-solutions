@@ -2855,6 +2855,8 @@ model Workspace {
   commercialRequests CommercialRequest[]
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatches CommercialMatch[]
+  commercialLeakageSignals CommercialLeakageSignal[]
+  commercialDisputes CommercialDispute[]
   commercialParties CommercialParty[]
   professionalProfiles ProfessionalProfile[]
   professionalCredentials ProfessionalCredential[]
