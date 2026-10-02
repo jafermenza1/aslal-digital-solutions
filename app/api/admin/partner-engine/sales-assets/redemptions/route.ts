@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   const now = new Date();
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRawUnsafe<any[]>(`SELECT i.*,a.name asset_name,a.asset_type,a.status asset_definition_status,a.currency,p.name partner_name,p.partner_number,o.id order_id,o.order_number FROM issued_sales_assets i JOIN commercial_distribution_items a ON a.id=i.asset_id AND a.workspace_id=i.workspace_id JOIN partners p ON p.id=i.partner_id AND p.workspace_id=i.workspace_id LEFT JOIN orders o ON o.distribution_asset_id=i.asset_id AND o.workspace_id=i.workspace_id AND o.source='partner_sales_asset' WHERE i.workspace_id=? AND i.serial_number=? LIMIT 1 FOR UPDATE`, access.workspace.id, serial);
+      const rows = await tx.$queryRawUnsafe<any[]>(`SELECT i.*,a.name asset_name,a.asset_type,a.status asset_definition_status,a.currency,a.rsvp_required,p.name partner_name,p.partner_number,o.id order_id,o.order_number FROM issued_sales_assets i JOIN commercial_distribution_items a ON a.id=i.asset_id AND a.workspace_id=i.workspace_id JOIN partners p ON p.id=i.partner_id AND p.workspace_id=i.workspace_id LEFT JOIN orders o ON o.distribution_asset_id=i.asset_id AND o.workspace_id=i.workspace_id AND o.source='partner_sales_asset' WHERE i.workspace_id=? AND i.serial_number=? LIMIT 1 FOR UPDATE`, access.workspace.id, serial);
       const item = rows[0];
       if (!item) throw Object.assign(new Error("Asset not found in this workspace."), { status: 404 });
       if (item.status === "REDEEMED") {
@@ -37,11 +37,13 @@ export async function POST(request: Request) {
       if (item.status === "VOID") throw Object.assign(new Error("This asset has been voided and cannot be redeemed."), { status: 409 });
       if (item.status === "EXPIRED") throw Object.assign(new Error("This asset has expired and cannot be redeemed."), { status: 409 });
       if (item.status !== "VALID") throw Object.assign(new Error("This asset is not in a redeemable state."), { status: 409 });
+      if (item.rsvp_required) { const rsvp = await tx.$queryRawUnsafe<any[]>(`SELECT id,status FROM sales_asset_rsvps WHERE issued_asset_id=? LIMIT 1`, item.id); if (!rsvp[0] || rsvp[0].status !== "CONFIRMED") throw Object.assign(new Error("RSVP is required and this attendee has not confirmed RSVP."), { status: 409 }); }
       if (item.asset_definition_status !== "ACTIVE") throw Object.assign(new Error("The underlying sales asset is no longer active."), { status: 409 });
       if (item.valid_from && new Date(item.valid_from) > now) throw Object.assign(new Error("This asset is not valid yet."), { status: 409 });
       if (item.valid_until && new Date(item.valid_until) < now) { await tx.$executeRawUnsafe("UPDATE issued_sales_assets SET status='EXPIRED' WHERE id=? AND status='VALID'", item.id); throw Object.assign(new Error("This asset has expired and cannot be redeemed."), { status: 409 }); }
       const redemptionId = randomUUID();
       await tx.$executeRawUnsafe("INSERT INTO issued_sales_asset_redemptions (id,workspace_id,issued_asset_id,serial_number,asset_id,allocation_id,partner_id,order_id,redeemed_by,redeemed_at,redemption_method,verification_payload,holder_name,holder_phone,asset_status_before,valid_from,valid_until) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", redemptionId,access.workspace.id,item.id,item.serial_number,item.asset_id,item.allocation_id,item.partner_id,item.order_id || null,access.user.email,now,method,raw || item.qr_payload,item.holder_name || null,item.holder_phone || null,item.status,item.valid_from || null,item.valid_until || null);
+      if (item.rsvp_required) await tx.$executeRawUnsafe("UPDATE sales_asset_rsvps SET checked_in_at=?,checked_in_by=? WHERE issued_asset_id=? AND status='CONFIRMED'", now,access.user.email,item.id);
       await tx.$executeRawUnsafe("UPDATE issued_sales_assets SET status='REDEEMED',redeemed_at=?,redeemed_by=? WHERE id=? AND workspace_id=? AND status='VALID'", now,access.user.email,item.id,access.workspace.id);
       return { alreadyRedeemed: false, item, history: { id:redemptionId,serial_number:item.serial_number,redeemed_at:now,redeemed_by:access.user.email,redemption_method:method,holder_name:item.holder_name,holder_phone:item.holder_phone } };
     });
