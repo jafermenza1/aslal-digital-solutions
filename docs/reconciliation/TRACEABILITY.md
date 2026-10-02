@@ -126,3 +126,5 @@ The current mainline was audited against the controlled Q1 journey before accept
 Open reconciliation items remain: dispute-driven commercial attribution reassignment, trusted public workspace routing for multi-anchor public capture, duplicate-customer acceptance rules, complete financial/attribution/permission audit coverage, representative 100-partner fixture, and controlled mobile/localization/behavioral evidence.
 
 See `docs/qa/Q1-E2E-GAP-RECONCILIATION.md`. Statuses remain evidence-gated.
+
+| R55 | CE-6 Complete Demand Workflow | IMPLEMENTED-UNVERIFIED | CommercialRequest supports BUY_REQUEST/ASSET_REQUEST/SERVICE_REQUEST/RFP from public intake through Lead, qualification, supplier/provider response, Opportunity, Quote and Order handoff; runtime acceptance and workspace-isolation tests remain pending. |
