@@ -610,3 +610,4 @@ Not yet accepted:
 - CE-7 scoring regression and end-to-end provider response evidence.
 
 Verification levels are evidence labels only. The system must not mark a profile verified unless an authorized operator records the applicable verification state.
+\n\n## CE-9 — Professional RFP / Proposal\n\n**IMPLEMENTED — VERIFICATION PENDING**\n\nImplemented on `docs/main-commercial-engine-prd`: versioned professional proposals, immutable proposal versions, factual comparison, proposal acceptance/supersession, revision guard, and handoff to the existing Quote/Negotiation domain. Runtime verification remains pending.\n
