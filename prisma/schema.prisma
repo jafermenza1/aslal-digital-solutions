@@ -2276,6 +2276,7 @@ model Order {
   invoices           Invoice[]
   commissions        Commission[]
   commercialRequestResponses CommercialRequestResponse[]
+  externalPaymentEvidence ExternalPaymentEvidence[]
 
   @@index([customerId, createdAt], map: "idx_orders_customer_created")
   @@index([opportunityId, createdAt], map: "idx_orders_opportunity_created")
