@@ -351,6 +351,18 @@ enum CommercialRequestResponseStatus {
   ACCEPTED
 }
 
+enum ProfessionalProposalStatus {
+  DRAFT
+  SUBMITTED
+  SHORTLISTED
+  NEGOTIATING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  EXPIRED
+  SUPERSEDED
+}
+
 enum CommercialAppointmentOutcome {
   PENDING
   INSPECTION_COMPLETED
@@ -867,6 +879,7 @@ model Partner {
   @@index([verificationLevel], map: "idx_partners_verification_level")
   @@index([identityId], map:"idx_partners_identity")
   @@map("partners")
+  professionalProposals ProfessionalProposal[]
 }
 
 model PartnerVerificationChallenge {
@@ -1268,6 +1281,7 @@ model CommercialParty {
 
   @@index([workspaceId,status,name], map:"idx_commercial_party_workspace_status_name")
   @@map("commercial_parties")
+  professionalProposals ProfessionalProposal[]
 }
 
 model CommercialDealRegistration {
@@ -1461,6 +1475,7 @@ model CommercialRequest {
   opportunity         Opportunity?              @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
   responses           CommercialRequestResponse[]
   commercialMatches   CommercialMatch[]
+  professionalProposals ProfessionalProposal[]
 
   @@index([workspaceId,status,createdAt], map:"idx_commercial_request_workspace_status")
   @@index([workspaceId,requestType,status], map:"idx_commercial_request_type_status")
@@ -1504,6 +1519,7 @@ model CommercialRequestResponse {
   quote             Quote?                        @relation(fields:[quoteId], references:[id], onDelete:SetNull)
 
   commercialMatches CommercialMatch[]
+  professionalProposals ProfessionalProposal[]
   order             Order?                        @relation(fields:[orderId], references:[id], onDelete:SetNull)
 
   @@index([workspaceId,requestId,status], map:"idx_commercial_response_request_status")
@@ -1512,6 +1528,68 @@ model CommercialRequestResponse {
   @@index([partnerId,status], map:"idx_commercial_response_partner_status")
   @@index([listingId,status], map:"idx_commercial_response_listing_status")
   @@map("commercial_request_responses")
+}
+
+model ProfessionalProposal {
+  id                String                  @id @db.Char(36)
+  workspaceId       String                  @map("workspace_id") @db.Char(36)
+  requestId         String                  @map("request_id") @db.Char(36)
+  responseId        String                  @map("response_id") @db.Char(36)
+  responderPartyId  String?                 @map("responder_party_id") @db.Char(36)
+  partnerId         String?                 @map("partner_id") @db.Char(36)
+  status            ProfessionalProposalStatus @default(DRAFT)
+  title             String                  @db.VarChar(190)
+  currentVersion    Int                     @default(1) @map("current_version")
+  selectedAt        DateTime?               @map("selected_at") @db.DateTime(0)
+  acceptedAt        DateTime?               @map("accepted_at") @db.DateTime(0)
+  rejectedAt        DateTime?               @map("rejected_at") @db.DateTime(0)
+  withdrawnAt       DateTime?               @map("withdrawn_at") @db.DateTime(0)
+  createdBy         String?                 @map("created_by") @db.Char(36)
+  createdAt         DateTime                @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime                @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace         Workspace               @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  request           CommercialRequest       @relation(fields:[requestId], references:[id], onDelete:Cascade)
+  response          CommercialRequestResponse @relation(fields:[responseId], references:[id], onDelete:Cascade)
+  responderParty    CommercialParty?        @relation(fields:[responderPartyId], references:[id], onDelete:SetNull)
+  partner           Partner?                @relation(fields:[partnerId], references:[id], onDelete:SetNull)
+  versions          ProfessionalProposalVersion[]
+
+  @@unique([responseId], map:"uq_professional_proposal_response")
+  @@index([workspaceId,requestId,status], map:"idx_professional_proposal_request_status")
+  @@index([workspaceId,status,createdAt], map:"idx_professional_proposal_workspace_status")
+  @@index([responderPartyId,status], map:"idx_professional_proposal_party_status")
+  @@index([partnerId,status], map:"idx_professional_proposal_partner_status")
+  @@map("professional_proposals")
+}
+
+model ProfessionalProposalVersion {
+  id                String              @id @db.Char(36)
+  proposalId        String              @map("proposal_id") @db.Char(36)
+  versionNumber     Int                 @map("version_number")
+  scope             String?             @db.Text
+  methodology       String?             @db.Text
+  deliverables      Json?
+  timeline          String?             @db.Text
+  assumptions       String?             @db.Text
+  exclusions        String?             @db.Text
+  amount            Decimal?            @db.Decimal(15,2)
+  currency          String              @default("ETB") @db.VarChar(10)
+  taxesAndFees      String?             @map("taxes_and_fees") @db.Text
+  validityUntil     DateTime?            @map("validity_until") @db.DateTime(0)
+  team              Json?
+  qualifications    Json?
+  attachments       Json?
+  terms             String?             @db.Text
+  snapshot          Json?
+  supersededAt      DateTime?           @map("superseded_at") @db.DateTime(0)
+  createdBy         String?             @map("created_by") @db.Char(36)
+  createdAt         DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+  proposal          ProfessionalProposal @relation(fields:[proposalId], references:[id], onDelete:Cascade)
+
+  @@unique([proposalId,versionNumber], map:"uq_professional_proposal_version")
+  @@index([proposalId,createdAt], map:"idx_professional_proposal_version_created")
+  @@index([validityUntil], map:"idx_professional_proposal_version_validity")
+  @@map("professional_proposal_versions")
 }
 
 model CommercialListingAuthorization {
