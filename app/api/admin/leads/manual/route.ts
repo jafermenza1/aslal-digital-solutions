@@ -28,7 +28,8 @@ export async function POST(request: Request) {
   const campaign = clean(body.campaignName,190);
   const productId = clean(body.productId,36);
   const serviceAreaId = clean(body.serviceAreaId,36);
-  const partnerId = clean(body.partnerId,36);\n  const location = clean(body.locationName,190);
+  const partnerId = clean(body.partnerId,36);
+  const location = clean(body.locationName,190);
   const reference = clean(body.reference,500);
   const attributionMethod = clean(body.attributionMethod,40) || "DIRECT_OFFLINE";
   const reasonNotes = clean(body.reasonNotes,2000);
@@ -36,7 +37,8 @@ export async function POST(request: Request) {
 
   if (!name || !businessType || !leadCategory || !message) return NextResponse.json({ error: "Name, business type, offline source and customer request are required." }, { status:400 });
   if (!OFFLINE_CHANNELS.includes(leadCategory)) return NextResponse.json({ error: "Choose a valid offline source channel." }, { status:400 });
-  const validAttributionMethods = ["DIRECT_OFFLINE","MANUAL_PARTNER","PARTNER_BROUGHT_CUSTOMER","OFFLINE_CODE","CAMPAIGN_EVENT","STAFF_CAPTURE"];\n  if (!validAttributionMethods.includes(attributionMethod)) return NextResponse.json({ error: "Choose a valid offline attribution method." }, { status:400 });
+  const validAttributionMethods = ["DIRECT_OFFLINE","MANUAL_PARTNER","PARTNER_BROUGHT_CUSTOMER","OFFLINE_CODE","CAMPAIGN_EVENT","STAFF_CAPTURE"];
+  if (!validAttributionMethods.includes(attributionMethod)) return NextResponse.json({ error: "Choose a valid offline attribution method." }, { status:400 });
   if (attributionMethod !== "DIRECT_OFFLINE" && !reasonNotes) return NextResponse.json({ error: "Attribution reason or evidence is required for an attributed offline lead." }, { status:400 });
   if (partnerId && attributionMethod === "DIRECT_OFFLINE") return NextResponse.json({ error: "Choose a partner attribution method when assigning a partner." }, { status:400 });
   if (serviceAreaId) {
