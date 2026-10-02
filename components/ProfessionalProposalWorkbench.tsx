@@ -11,6 +11,16 @@ export function ProfessionalProposalWorkbench({workspaceId}:{workspaceId:string}
  useEffect(()=>{load()},[]);
  const parse=(x:string)=>x.trim()?x.split(/\n|,/).map(v=>v.trim()).filter(Boolean):[];
  const create=async()=>{
+  const editing=!!editingId;
+  setBusy(editing?"NEW_VERSION":"CREATE");setMessage("");
+  const url="/api/admin/professional-proposals";
+  const payload=editing?{workspaceId,id:editingId,action:"NEW_VERSION",...form,deliverables:parse(form.deliverables),team:parse(form.team),qualifications:parse(form.qualifications)}:{workspaceId,...form,deliverables:parse(form.deliverables),team:parse(form.team),qualifications:parse(form.qualifications)};
+  const r=await fetch(url,{method:editing?"PATCH":"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
+  const d=await r.json();
+  setMessage(r.ok?(editing?"New proposal version created.":"Proposal draft created."):d.error||"Could not save proposal.");
+  if(r.ok){setEditingId(null);setForm({...form,responseId:"",title:"",scope:"",methodology:"",deliverables:"",timeline:"",assumptions:"",exclusions:"",amount:"",taxesAndFees:"",validityUntil:"",team:"",qualifications:"",terms:""});await load()}
+  setBusy("");
+ }
  const action=editingId?"NEW_VERSION":"CREATE";
  setBusy(action);setMessage("");const r=await fetch("/api/admin/professional-proposals",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(editingId?{workspaceId,id:editingId,action:"NEW_VERSION",...form,deliverables:parse(form.deliverables),team:parse(form.team),qualifications:parse(form.qualifications)}:{workspaceId,...form,deliverables:parse(form.deliverables),team:parse(form.team),qualifications:parse(form.qualifications)})});const d=await r.json();setMessage(r.ok?(editingId?"New proposal version created.":"Proposal draft created."):d.error||"Could not save proposal.");if(r.ok){setEditingId(null);setForm({...form,responseId:"",title:"",scope:"",methodology:"",deliverables:"",timeline:"",assumptions:"",exclusions:"",amount:"",taxesAndFees:"",validityUntil:"",team:"",qualifications:"",terms:""});await load()}setBusy("")};
  const action=async(id:string,actionName:string,extra:any={})=>{setBusy(actionName+id);const r=await fetch("/api/admin/professional-proposals",{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({workspaceId,id,action:actionName,...extra})});const d=await r.json();setMessage(r.ok?actionName.replaceAll("_"," ")+" completed.":d.error||"Operation failed.");if(r.ok)await load();setBusy("")};
