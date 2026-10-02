@@ -2009,9 +2009,37 @@ Implemented:
 
 CE-6 deliberately keeps payment, revenue recognition, commission qualification and external payment evidence in their owning later gates. CE-7 can add richer deterministic supply-demand scoring and automated matching on top of the CE-6 response workflow; CE-9 can add richer RFP proposal versioning/comparison without creating a second demand pipeline.
 
-### CE-7 — Matching
+### CE-7 — Supply/Demand Matching & Provider Response Workflow
 
-Supply-demand matching and provider responses.
+**IMPLEMENTED — VERIFICATION PENDING**
+
+CE-7 builds directly on CE-6's complete demand workflow.
+
+Implemented:
+- deterministic matching of published commercial listings to open demand requests;
+- request/listing type compatibility for BUY_REQUEST, ASSET_REQUEST, SERVICE_REQUEST and RFP;
+- weighted score using:
+  - type fit;
+  - category overlap;
+  - requested item/title/description overlap;
+  - buyer/request location;
+  - service area;
+  - condition preference;
+  - budget/asking-price fit;
+  - listing expiry relative to requested deadline;
+- persisted score breakdown and human-readable match reasons;
+- duplicate prevention for the same request/listing pair;
+- seven-day match expiry;
+- partner eligibility evaluation when the demand carries a partner attribution;
+- eligibility and reasons persisted with the match rather than silently granting distribution rights;
+- workspace-scoped matching and review API;
+- match workbench controls: run matching, shortlist, reject, contact and create a commercial response;
+- response creation reuses CE-6's `CommercialRequestResponse`;
+- matched listing supplier/owner and optional partner attribution are carried into the response;
+- request state advances to MATCHING/RESPONSES_OPEN as matching and responses proceed;
+- existing Opportunity → Quote → Order flow remains the downstream commercial path.
+
+CE-7 deliberately does not treat a high score as automatic acceptance or commission entitlement. A match is a recommendation/evidence record; staff remain able to reject it and commercial authorization/eligibility remains separately enforced.
 
 ### CE-8 — Professional Profiles
 
