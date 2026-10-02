@@ -668,3 +668,28 @@ Required before acceptance:
 - resolution idempotency and authorization tests;
 - proof that legitimate commissions are preserved unless an explicit resolution changes them;
 - cross-link tests from leakage signal → dispute → agreement/deal/payment evidence.
+
+
+## CE-13 — Commercial Analytics — 2026-10-03
+
+**Status: IMPLEMENTED — VERIFICATION PENDING**
+
+Implemented on the commercial-engine workstream:
+- workspace-scoped read-only commercial analytics API;
+- date-bounded supply, demand, CRM funnel, conversion, recognized revenue, partner-attributed revenue, commission and payout metrics;
+- demand/order/partner breakdowns;
+- verified external payment and dispute operational signals;
+- visible metric definitions and CSV export;
+- Reports Center integration.
+
+CE-13 reuses canonical Listing, CommercialRequest, Lead, Opportunity, Quote, Order, Payment, Revenue, Commission, PartnerPayout, Match, Appointment, ExternalPaymentEvidence and CommercialDispute records. No new analytics ledger or commercial outcome mutation was introduced.
+
+Required acceptance evidence remains:
+- Prisma migration/application validation where required by the branch;
+- `npm run typecheck`;
+- `npm run lint`;
+- `npm run build`;
+- workspace A/B isolation;
+- representative supply-led and demand-led commercial journeys;
+- reconciliation of displayed revenue/commission totals against canonical source records;
+- CSV export verification and date-range boundary checks.
