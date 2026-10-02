@@ -2,7 +2,7 @@
 import { useEffect,useState } from "react";
 import PartnerPayoutBatch from "./PartnerPayoutBatch";
 
-type Partner={id:string;name:string;logo_url:string|null;email:string|null;user_name:string|null;user_email:string|null;user_active:number|null;last_login_at:Date|string|null;partnerNumber:string;emailVerifiedAt:string|null;type:string;status:string;account_status:string;verification_status:string;verification_level:string;tier:string;audience_size:number|null;campaigns:number;active_campaigns:number;leads:number;won:number;revenue:number|string|null;open_disputes:number};
+type Partner={id:string;name:string;logo_url:string|null;email:string|null;user_name:string|null;user_email:string|null;user_active:number|null;last_login_at:Date|string|null;partnerNumber:string;emailVerifiedAt:string|null;specialties:string|null;service_areas:string|null;type:string;status:string;account_status:string;verification_status:string;verification_level:string;tier:string;audience_size:number|null;campaigns:number;active_campaigns:number;leads:number;won:number;revenue:number|string|null;open_disputes:number};
 type Program={id:string;name:string;status:string};
 type Campaign={id:string;name:string;status:string;target_description:string|null;delivery_mode:string;location:string|null;budget:number|string;partner_budget:number|string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;program_id:string|null;program_name:string|null;product_id:string|null;product_name:string|null;resource_id:string|null;resource_title:string|null;currency:string;partner_count:number;active_partner_count:number;service_area_names:string|null};
 type Product={id:string;name:string;kind:string};
@@ -26,7 +26,7 @@ export default function PartnerGrowthEngine(){
    const [a,b,c,d]=await Promise.all(rs.map(r=>r.json()));
    const pr=await fetch("/api/admin/partner-engine/programs"); const pd=await pr.json();
    setPrograms(pd.programs||[]);
-   setPartners(a.partners||[]);setCampaigns(b.campaigns||[]);setProducts(b.products||[]);setResources(b.resources||[]);setServiceAreas(b.serviceAreas||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
+   setPartners((a.partners||[]).map((p:Partner)=>({...p,emailVerifiedAt:p.email_verified_at?String(p.email_verified_at):null})));setCampaigns(b.campaigns||[]);setProducts(b.products||[]);setResources(b.resources||[]);setServiceAreas(b.serviceAreas||[]);setDisputes(c.disputes||[]);setPayouts(d.payouts||[]);
   }catch(e){setMessage(e instanceof Error?e.message:"Could not load partner engine.");}
  }
  // Load partner-engine data after mount.
