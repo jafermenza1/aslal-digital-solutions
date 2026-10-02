@@ -15,7 +15,7 @@ type CampaignRow = RowDataPacket & {
   reward_amount:number|string|null; reward_rate:number|string|null; required_partner_types:string|null;
   product_id:string|null; product_name:string|null; resource_id:string|null; resource_title:string|null;
   starts_at:Date|null; ends_at:Date|null; created_by:string|null; created_at:Date;
-  partner_count:number; active_partner_count:number;
+  partner_count:number; active_partner_count:number; service_area_names:string|null;
 };
 
 function parseIds(value: unknown): string[] {
@@ -37,7 +37,8 @@ export async function GET(request:Request) {
   const [campaignResult, productResult, resourceResult, areaResult] = await Promise.all([
     db.query<CampaignRow[]>(`SELECT c.*, pp.name program_name, p.name product_name, r.title resource_title,
       (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id) partner_count,
-      (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id AND cp.status IN ('APPROVED','ACTIVE','COMPLETED')) active_partner_count
+      (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.campaign_id=c.id AND cp.status IN ('APPROVED','ACTIVE','COMPLETED')) active_partner_count,
+      (SELECT GROUP_CONCAT(CONCAT(o.area_type, ': ', o.name) ORDER BY o.area_type,o.name SEPARATOR ', ') FROM partner_campaign_service_areas ca JOIN campaign_service_area_options o ON o.id=ca.service_area_id WHERE ca.campaign_id=c.id AND o.active=1) service_area_names
       FROM partner_campaigns c
       LEFT JOIN partner_programs pp ON pp.id=c.program_id AND pp.workspace_id=c.workspace_id
       LEFT JOIN products p ON p.id=c.product_id AND (p.workspace_id=c.workspace_id OR p.workspace_id IS NULL)
