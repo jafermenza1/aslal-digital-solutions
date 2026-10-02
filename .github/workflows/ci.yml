@@ -54,3 +54,41 @@ jobs:
 
       - name: Hardening control tests
         run: npm run hardening:test
+
+      - name: Package Emerald standalone bundle
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          rm -rf emerald-deploy
+          mkdir -p emerald-deploy
+          cp -R .next/standalone/. emerald-deploy/
+          mv emerald-deploy/server.js emerald-deploy/next-server.js
+          printf '%s\n' \
+            'const path = require("node:path");' \
+            'const Module = require("node:module");' \
+            'const runtimeNodeModules = path.join(__dirname, "node_modules");' \
+            'process.env.NODE_PATH = [runtimeNodeModules, process.env.NODE_PATH || ""]' \
+            '  .filter(Boolean)' \
+            '  .join(path.delimiter);' \
+            'Module._initPaths();' \
+            'require(path.join(__dirname, "next-server.js"));' \
+            > emerald-deploy/server.js
+          mkdir -p emerald-deploy/prisma emerald-deploy/.prisma-cli
+          cp -R prisma/. emerald-deploy/prisma/
+          printf '%s\n' '{"name":"aslal-prisma-migration-runtime","private":true}' > emerald-deploy/.prisma-cli/package.json
+          npm install --prefix emerald-deploy/.prisma-cli --no-audit --no-fund --no-package-lock prisma@6.19.0
+          test -f emerald-deploy/server.js
+          test -d emerald-deploy/.next/static
+          test -d emerald-deploy/public
+          test -x emerald-deploy/.prisma-cli/node_modules/.bin/prisma
+          test -d emerald-deploy/prisma/migrations
+          tar -czf aslal-emerald-${RELEASE_SHA}.tar.gz -C emerald-deploy .
+
+      - name: Upload Emerald deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aslal-emerald-${{ github.sha }}
+          path: aslal-emerald-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 3
