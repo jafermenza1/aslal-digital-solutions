@@ -313,6 +313,7 @@ enum PaymentStatus {
   FAILED
   REVERSED
   REFUNDED
+  PARTIALLY_REFUNDED
 }
 
 enum RevenueStatus {
@@ -1404,6 +1405,8 @@ model Payment {
   revenue                Revenue?
   commission             Commission?
   invoicePayments        InvoicePayment[]
+  refunds                PaymentRefund[]
+  webhookEvents          PaymentWebhookEvent[]
 
   @@index([orderId, createdAt], map: "idx_payments_order_created")
   @@index([status, createdAt], map: "idx_payments_status_created")
@@ -1411,6 +1414,42 @@ model Payment {
   @@index([provider, providerTransactionRef], map: "idx_payments_provider_ref")
   @@map("payments")
   workspace           Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+}
+
+model PaymentRefund {
+  id                String   @id @db.Char(36)
+  workspaceId       String   @map("workspace_id") @db.Char(36)
+  paymentId         String   @map("payment_id") @db.Char(36)
+  idempotencyKey    String   @unique @map("idempotency_key") @db.VarChar(255)
+  amount            Decimal  @db.Decimal(15,2)
+  currency          String   @db.VarChar(10)
+  reason            String?  @db.Text
+  providerRefundRef String?  @map("provider_refund_ref") @db.VarChar(190)
+  createdBy         String?  @map("created_by") @db.VarChar(190)
+  createdAt         DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  payment           Payment  @relation(fields:[paymentId], references:[id], onDelete:Restrict)
+  workspace         Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@index([paymentId, createdAt], map:"idx_payment_refunds_payment_created")
+  @@index([workspaceId, createdAt], map:"idx_payment_refunds_workspace_created")
+  @@map("payment_refunds")
+}
+
+model PaymentWebhookEvent {
+  id          String   @id @db.Char(36)
+  workspaceId String?  @map("workspace_id") @db.Char(36)
+  provider    String   @db.VarChar(80)
+  eventId     String   @db.VarChar(255)
+  eventType   String   @map("event_type") @db.VarChar(120)
+  paymentId   String?  @map("payment_id") @db.Char(36)
+  payload     Json?
+  processedAt DateTime? @map("processed_at") @db.DateTime(0)
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  payment     Payment? @relation(fields:[paymentId], references:[id], onDelete:SetNull)
+  workspace   Workspace? @relation(fields:[workspaceId], references:[id], onDelete:SetNull)
+  @@unique([provider,eventId], map:"uq_payment_webhook_provider_event")
+  @@index([paymentId, createdAt], map:"idx_payment_webhook_payment_created")
+  @@index([workspaceId, createdAt], map:"idx_payment_webhook_workspace_created")
+  @@map("payment_webhook_events")
 }
 
 model Invoice {
