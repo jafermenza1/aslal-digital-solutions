@@ -23,7 +23,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(row.status!=="ACTIVE"||row.asset_status!=="ACTIVE")throw new Error("This allocation is not active.");
   if(row.ends_at&&new Date(row.ends_at)<new Date())throw new Error("This allocation has expired.");
   if(row.quantity_issued>=row.quantity_allocated)throw new Error("No allocated inventory remains.");
-  if(row.inventory_limit!==null&&row.quantity_issued>=row.inventory_limit)throw new Error("Asset inventory limit has been reached.");
+  if(row.inventory_limit!==null){const [issuedCount]=await conn.query<any[]>(`SELECT COUNT(*) count FROM issued_sales_assets WHERE asset_id=? AND status NOT IN ("VOID","EXPIRED") FOR UPDATE`,[row.asset_id]);if(Number(issuedCount[0]?.count||0)>=Number(row.inventory_limit))throw new Error("Asset inventory limit has been reached.");}
   const issuedId=randomUUID();
   const serial="ASL-"+new Date().getFullYear()+"-"+randomUUID().replaceAll("-","").slice(0,10).toUpperCase();
   const qrPayload=`ASLAL:ASSET:${serial}`;
