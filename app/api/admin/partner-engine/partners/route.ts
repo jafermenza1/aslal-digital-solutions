@@ -5,8 +5,8 @@ import type { RowDataPacket } from "mysql2/promise";
 
 export async function GET() {
   if(!(await authorizePermission("partners.manage"))) return NextResponse.json({error:"Unauthorized"},{status:401});
-  type R=RowDataPacket&{id:string;name:string;email:string|null;type:string;status:string;verification_status:string;tier:string;bio:string|null;specialties:string|null;service_areas:string|null;audience_size:number|null;verified_at:Date|null;verified_by:string|null;campaigns:number;active_campaigns:number;clicks:number;leads:number;won:number;revenue:number|string|null;open_disputes:number;payouts_paid:number|string|null};
-  const [rows]=await db.query<R[]>(`SELECT p.id,p.name,p.email,p.type,p.status,p.verification_status,p.tier,p.bio,p.specialties,p.service_areas,p.audience_size,p.verified_at,p.verified_by,
+  type R=RowDataPacket&{id:string;name:string;logo_url:string|null;email:string|null;type:string;status:string;account_status:string;verification_status:string;verification_level:string;tier:string;bio:string|null;specialties:string|null;service_areas:string|null;audience_size:number|null;verified_at:Date|null;verified_by:string|null;campaigns:number;active_campaigns:number;clicks:number;leads:number;won:number;revenue:number|string|null;open_disputes:number;payouts_paid:number|string|null};
+  const [rows]=await db.query<R[]>(`SELECT p.id,p.name,p.logo_url,p.email,p.type,p.status,p.account_status,p.verification_status,p.verification_level,p.tier,p.bio,p.specialties,p.service_areas,p.audience_size,p.verified_at,p.verified_by,
     (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.partner_id=p.id) campaigns,
     (SELECT COUNT(*) FROM campaign_partners cp WHERE cp.partner_id=p.id AND cp.status IN ('APPROVED','ACTIVE')) active_campaigns,
     (SELECT COUNT(*) FROM referral_clicks rc JOIN referral_links rl ON rl.id=rc.referral_link_id WHERE rl.partner_id=p.id) clicks,
