@@ -855,6 +855,7 @@ model Partner {
 
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatches CommercialMatch[]
+  professionalProfile ProfessionalProfile?
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
