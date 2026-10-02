@@ -1,0 +1,67 @@
+import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { prisma } from "@/lib/prisma";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
+
+const TYPES=["PRODUCT","SERVICE","ASSET","PROPERTY"] as const;
+const STATUSES=["DRAFT","PENDING_REVIEW","APPROVED","PUBLISHED","PAUSED","SOLD_OUT","EXPIRED","ARCHIVED","REJECTED"] as const;
+const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):"";
+const slugify=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,160);
+
+function parse(body:any){
+ const title=clean(body.title,190);
+ const listingType=String(body.listingType||"PRODUCT");
+ const status=String(body.status||"DRAFT");
+ const workspaceId=clean(body.workspaceId,36);
+ const productId=clean(body.productId,36)||null;
+ const slug=slugify(clean(body.slug,160)||title);
+ const askingPrice=body.askingPrice===""||body.askingPrice==null?null:Number(body.askingPrice);
+ return {
+  workspaceId,productId,title,slug,listingType,status,
+  description:clean(body.description,20000)||null,
+  category:clean(body.category,100)||"General",
+  condition:clean(body.condition,60)||null,
+  location:clean(body.location,190)||null,
+  askingPrice:Number.isFinite(askingPrice)?askingPrice:null,
+  currency:clean(body.currency,10)||"ETB",
+  priceLabel:clean(body.priceLabel,100)||null,
+  inspectionRequired:Boolean(body.inspectionRequired),
+  requestQuote:body.requestQuote!==false,
+  publicVisible:Boolean(body.publicVisible),
+  featured:Boolean(body.featured),
+  metadata:body.metadata&&typeof body.metadata==="object"?body.metadata:null,
+  expiresAt:body.expiresAt?new Date(body.expiresAt):null
+ };
+}
+function valid(p:any){
+ return p.workspaceId&&p.title&&p.slug&&TYPES.includes(p.listingType)&&STATUSES.includes(p.status)&&
+   (p.askingPrice===null||Number.isFinite(p.askingPrice));
+}
+export async function GET(request:Request){
+ const workspaceId=new URL(request.url).searchParams.get("workspaceId")?.trim()||"";
+ const access=await authorizeWorkspacePermission("products.manage",workspaceId);
+ if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
+ const listings=await prisma.commercialListing.findMany({
+  where:{workspaceId:access.workspace.id},
+  orderBy:[{updatedAt:"desc"}],
+  include:{product:{select:{id:true,name:true,slug:true,kind:true}},workspace:{select:{id:true,name:true,slug:true}}}
+ });
+ const products=await prisma.product.findMany({where:{workspaceId:access.workspace.id},select:{id:true,name:true,slug:true,kind:true,active:true},orderBy:{name:"asc"}});
+ return NextResponse.json({listings,products,workspace:access.workspace});
+}
+export async function POST(request:Request){
+ const actor=await authorizeWorkspacePermission("products.manage",(await request.clone().json().catch(()=>({}))).workspaceId);
+ if(!actor)return NextResponse.json({error:"Workspace access denied."},{status:403});
+ const body=await request.json().catch(()=>({})); const p=parse(body);
+ if(p.workspaceId!==actor.workspace.id)return NextResponse.json({error:"Workspace access denied."},{status:403});
+ if(!valid(p))return NextResponse.json({error:"Workspace, title, slug, listing type and valid status are required."},{status:400});
+ if(p.productId){
+  const product=await prisma.product.findFirst({where:{id:p.productId,workspaceId:p.workspaceId},select:{id:true}});
+  if(!product)return NextResponse.json({error:"The selected catalog item does not belong to this workspace."},{status:400});
+ }
+ let slug=p.slug,suffix=2;
+ while(await prisma.commercialListing.findUnique({where:{workspaceId_slug:{workspaceId:p.workspaceId,slug}},select:{id:true}}))slug=slugify(p.slug+"-"+suffix++);
+ const publish=p.status==="PUBLISHED"&&p.publicVisible;
+ const listing=await prisma.commercialListing.create({data:{id:randomUUID(),...p,slug,createdBy:actor.user.id,publishedAt:publish?new Date():null},include:{product:{select:{id:true,name:true,slug:true,kind:true}},workspace:{select:{id:true,name:true,slug:true}}}});
+ return NextResponse.json({ok:true,listing});
+}
