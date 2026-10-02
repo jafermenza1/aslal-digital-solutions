@@ -1967,7 +1967,21 @@ CE-4 does not calculate commission, convert an external payment into revenue, or
 
 ### CE-5 — Inspection & Appointment
 
+**IMPLEMENTED — VERIFICATION PENDING**
+
 Inspection scheduling, QR/check-in, outcomes and commercial timeline.
+
+Implemented on PR #99:
+- first-class CommercialAppointment linked to the protected/converted deal registration, listing, partner and lead;
+- appointment lifecycle for requested, scheduled, confirmed, attended, completed, cancelled and no-show states;
+- inspection outcomes recorded separately from attendance so attendance is evidence, not a commission decision;
+- scheduled location, notes and auditable evidence fields;
+- server-generated one-time check-in token stored only as a SHA-256 hash;
+- public token check-in endpoint that records attendance without exposing buyer PII;
+- overlapping active appointment protection for the same partner;
+- dashboard scheduling, confirmation, check-in visibility, completion, cancellation and no-show controls.
+
+CE-5 does not yet provide QR image generation/printing, notifications/reminders, calendar synchronization, or a full appointment rescheduling workflow. Those are later UI/integration refinements.
 
 ### CE-6 — Demand / Wanted Requests
 
