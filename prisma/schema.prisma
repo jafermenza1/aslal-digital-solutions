@@ -808,7 +808,6 @@ model PartnerProgram {
   terms              ProgramTerms[]
   contracts          CommissionContract[]
   termsAcceptances PartnerTermsAcceptance[]
-  commercialListingAuthorizations CommercialListingAuthorization[]
   campaigns          PartnerCampaign[]
 
   @@unique([workspaceId, slug], map: "uq_partner_program_workspace_slug")
@@ -2013,6 +2012,7 @@ model User {
   telegramLinkedAt DateTime? @map("telegram_linked_at") @db.DateTime(0)
   partner         Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   workspaceUsers   WorkspaceUser[]
+  commercialListingAuthorizations CommercialListingAuthorization[]
   membershipHistory WorkspaceMembershipHistory[]
   audits          UserAudit[]
 
