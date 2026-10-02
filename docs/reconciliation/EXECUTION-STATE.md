@@ -522,3 +522,33 @@ Not yet accepted:
 - reconciliation against actual partner attribution and downstream commission/order workflows.
 
 CE-4 does not yet implement inspection, commission calculation, payment evidence, leakage automation, or dispute resolution beyond recording the commercial registration as DISPUTED.
+
+
+## Main Commercial Engine — CE-5 Inspection & Appointment — 2026-10-02
+
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented:
+- CommercialAppointment domain linked to CommercialDealRegistration;
+- protected/converted deal gate before appointment creation;
+- scheduled/confirmed/attended/completed/cancelled/no-show lifecycle;
+- separate commercial outcome recording;
+- hashed public check-in token and attendance endpoint;
+- appointment overlap guard for the same partner;
+- dashboard scheduling and operational controls.
+
+Not yet accepted:
+- Prisma migration application against a real database;
+- typecheck/lint/build;
+- public check-in behavioral test;
+- QR generation/print test;
+- workspace isolation test;
+- appointment conflict and state-transition test;
+- real end-to-end protected deal -> inspection -> outcome evidence.
+
+Known CE-5 follow-on work:
+- QR image/print surface;
+- notifications/reminders;
+- calendar synchronization;
+- rescheduling workflow;
+- richer inspection evidence attachments.
