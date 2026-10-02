@@ -5357,33 +5357,26 @@ Deliver:
 
 **Goal:** Make digital referral sales reliable from click to commission.
 
-**Implementation status:** P3 foundation implemented; controlled runtime certification remains.
+**Implementation status:** P3 foundation and hardening implementation complete; controlled runtime certification remains.
 
-Implemented in this P3 pass:
+Implemented in the P3 hardening layer:
 
-- referral-link public redirect;
-- referral click capture;
-- workspace/partner/program validation;
-- safe internal destination handling;
-- browser referral identity persistence;
-- attribution-window aware resolver;
-- FIRST_CLICK and LAST_CLICK deterministic selection;
-- explicit policy handling for LEAD_REGISTRATION, DEAL_REGISTRATION, PROMO_CODE and MANUAL_APPROVAL;
-- active CommissionContract requirement for P2 program-linked attribution;
-- integration of referralCode into existing browser attribution data;
-- P3 attribution policy tests and implementation documentation.
+- deterministic visitor → lead attribution using stored referral-click history;
+- actual program attribution-window enforcement;
+- competing-partner FIRST_CLICK/LAST_CLICK selection within a program;
+- LEAD_REGISTRATION and DEAL_REGISTRATION continuity from locked lead attribution;
+- order attribution re-resolution before order persistence;
+- optional commerce promoCode support using authorized referral codes;
+- self-referral prevention at order attribution;
+- duplicate customer reuse during quote → order conversion;
+- commission lead linkage;
+- published refund-hold calculation persisted as commission eligibleAt;
+- refund-hold enforcement at commission approval and payout boundaries;
+- partner-facing **Why you earned this** explanation;
+- existing payment idempotency/reconciliation safeguards retained;
+- P3 hardening implementation document and acceptance matrix.
 
-Remaining P3 certification/hardening:
-
-- production verification of visitor-to-lead persistence;
-- complete order attribution certification;
-- promo-code attribution implementation where a commerce promo-code field is available;
-- refund-hold verification;
-- partner-facing earning explanation;
-- self-referral and duplicate-customer controls;
-- complete end-to-end paid-sale test.
-
-**Exit condition:** A complete test sale can be traced from partner promotion to paid order and explainable commission. This exit condition is not yet declared complete until the deployed runtime passes the controlled acceptance suite.
+**Exit condition:** A complete test sale can be traced from partner promotion to paid order, reconciled revenue, explainable commission, refund hold and payout eligibility. This exit condition is not yet declared complete until the deployed runtime passes the controlled acceptance suite.
 
 ## P4 — Referral Agent Engine
 

@@ -138,13 +138,34 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           const campaign = referralLink?.campaignId
             ? await tx.partnerCampaign.findFirst({
                 where: { id: referralLink.campaignId, workspaceId: workspace.id },
-                select: { rewardType: true, rewardAmount: true, rewardRate: true, workspaceId: true },
+                select: { rewardType: true, rewardAmount: true, rewardRate: true, workspaceId: true, programId: true },
               })
             : null;
           if (referralLink?.campaignId && !campaign) {
             throw new Error("Payment referral campaign is outside the active workspace.");
           }
           if (campaign) requireSameWorkspace(workspace.id, campaign.workspaceId);
+
+          const terms = campaign?.programId
+            ? await tx.programTerms.findFirst({
+                where: { programId: campaign.programId, active: true },
+                orderBy: { version: "desc" },
+                select: {
+                  id: true, version: true, attributionPolicy: true, attributionWindowDays: true,
+                  refundHoldDays: true, qualifyingEvent: true, payoutSchedule: true, minimumPayout: true,
+                },
+              })
+            : null;
+          const contract = campaign?.programId
+            ? await tx.commissionContract.findFirst({
+                where: { programId: campaign.programId, partnerId: payment.order.partnerId, status: "ACTIVE", workspaceId: workspace.id },
+                select: { id: true, termsSnapshot: true },
+              })
+            : null;
+
+          if (campaign?.programId && (!terms || !contract)) {
+            throw new Error("Partner program terms/contract are not active for this sale.");
+          }
 
           if (campaign && ["FIXED", "PERCENT_SALE", "HYBRID"].includes(campaign.rewardType)) {
             const collected = Number(payment.amount);
@@ -169,6 +190,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                   amount: commissionAmount,
                   currency: payment.currency,
                   status: "QUALIFIED",
+                  leadId: payment.order.opportunityId
+                    ? (await tx.opportunity.findUnique({ where: { id: payment.order.opportunityId }, select: { leadId: true } }))?.leadId
+                    : undefined,
+                  eligibleAt: new Date((payment.confirmedAt || new Date()).getTime() + Number(terms?.refundHoldDays || 0) * 86400000),
                 },
                 update: {
                   amount: commissionAmount,
@@ -176,6 +201,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                   paymentId: payment.id,
                   orderId: payment.orderId,
                   partnerId: payment.order.partnerId,
+                  eligibleAt: new Date((payment.confirmedAt || new Date()).getTime() + Number(terms?.refundHoldDays || 0) * 86400000),
                 },
               });
             }

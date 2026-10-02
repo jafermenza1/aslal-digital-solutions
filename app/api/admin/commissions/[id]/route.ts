@@ -19,6 +19,7 @@ type CommissionStatusRow = RowDataPacket & {
   reconciliation_status: string | null;
   payment_status: string | null;
   payment_workspace_id: string | null;
+  eligible_at: Date | null;
 };
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -40,7 +41,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     }
 
     const [rows] = await db.query<CommissionStatusRow[]>(
-      `SELECT c.status,c.revenue_id,r.status revenue_status,p.reconciliation_status,p.status payment_status,p.workspace_id payment_workspace_id
+      `SELECT c.status,c.eligible_at,c.revenue_id,r.status revenue_status,p.reconciliation_status,p.status payment_status,p.workspace_id payment_workspace_id
        FROM commissions c
        LEFT JOIN revenues r ON r.id=c.revenue_id AND r.workspace_id=c.workspace_id
        LEFT JOIN payments p ON p.id=c.payment_id AND p.workspace_id=c.workspace_id
@@ -64,6 +65,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     }
     if (["APPROVED", "PAYABLE"].includes(nextStatus) && !paymentCleared) {
       return NextResponse.json({ error: "Commission can only advance after the linked payment is confirmed, reconciled, and revenue is recognized." }, { status: 409 });
+    }
+    if (["APPROVED", "PAYABLE"].includes(nextStatus) && rows[0]?.eligible_at && new Date(rows[0].eligible_at).getTime() > Date.now()) {
+      return NextResponse.json({ error: `Refund hold is active until ${new Date(rows[0].eligible_at).toISOString()}.` }, { status: 409 });
     }
 
     await db.query(`UPDATE commissions SET status=? WHERE id=? AND workspace_id=?`, [nextStatus, id, workspace.id]);
