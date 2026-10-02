@@ -2057,7 +2057,26 @@ Migration: `prisma/migrations/20261003020000_commercial_demo_demand_matching/mig
 
 ### CE-8 — Professional Profiles
 
-Provider/service profile and verification.
+**IMPLEMENTED — VERIFICATION PENDING**
+
+CE-8 adds a first-class professional/provider profile layer while reusing the existing CommercialParty and Partner identities.
+
+Implemented:
+- workspace-scoped ProfessionalProfile linked one-to-one to an existing CommercialParty;
+- optional one-to-one Partner association without creating a second partner identity;
+- professional role, headline, specialties, service categories, qualifications, service areas and languages;
+- portfolio and availability metadata suitable for low-bandwidth/mobile workflows;
+- pricing model, starting price, currency and expected response time;
+- explicit profile lifecycle: DRAFT, PENDING_REVIEW, PUBLISHED, PAUSED, SUSPENDED, ARCHIVED;
+- explicit verification levels: UNVERIFIED, IDENTITY_VERIFIED, BUSINESS_VERIFIED, PROFESSIONAL_DOCUMENTS_VERIFIED, AUTHORIZED_PROVIDER;
+- separate ProfessionalCredential evidence records with submitted/verified/rejected/expired lifecycle;
+- workspace-authorized operator APIs for profile creation/update and credential review;
+- public profile API/page exposing only published/public profiles and verified credentials;
+- service listing linkage through CommercialListing.professionalProfileId;
+- CE-7 matching now incorporates professional profile specialties/service categories/service areas and a bounded professional-fit component for service requests/RFPs;
+- high match score and profile verification remain separate from authorization and commission entitlement.
+
+CE-8 deliberately does not implement proposal versioning/comparison, formal commercial agreements, payment evidence, leakage/dispute resolution or commission logic; those remain CE-9 onward.
 
 ### CE-9 — RFP / Proposal
 
