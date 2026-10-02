@@ -2177,7 +2177,29 @@ Runtime migration, typecheck, lint, build, workspace isolation and controlled le
 
 ### CE-13 — Commercial Analytics
 
-Supply, demand, conversion, attribution, revenue and commission reporting.
+**IMPLEMENTED — VERIFICATION PENDING**
+
+CE-13 adds a read-only workspace-scoped commercial analytics surface derived from the canonical commercial records. It does not introduce an analytics ledger or rewrite transaction data.
+
+Implemented:
+- `/dashboard/commercial-analytics` with selectable date range up to 366 days;
+- workspace-scoped API `/api/admin/commercial-analytics` protected by `commerce.view`;
+- supply metrics: listings, demand requests, matches and appointments;
+- CRM/commercial funnel counts: leads, opportunities, quotes, orders and paid orders;
+- conversion rates for Lead → Opportunity → Quote → Order → Paid Order;
+- recognized, collected and commissionable revenue from canonical `Revenue` records;
+- partner-attributed recognized revenue using canonical `Revenue.partnerId`, never click-only attribution;
+- outstanding commission liability from canonical commission lifecycle states, commission paid and payouts paid;
+- verified external payment evidence and commercial dispute counts;
+- repeat-customer signal based on customers with more than one order in the selected period;
+- demand mix, order-status/value and top partner-attributed revenue breakdowns;
+- visible metric population, period, attribution and revenue/commission definitions;
+- CSV export of the core commercial metrics;
+- Reports Center link for authorized commercial roles.
+
+CE-13 deliberately does not create a snapshot/analytics table, duplicate revenue ledger, duplicate commission ledger, predictive score, opaque partner ranking, or financial outcome mutation path. All values remain derived from canonical records and are workspace-scoped.
+
+Runtime verification remains pending: Prisma/application validation, typecheck, lint, build, workspace A/B isolation, representative commercial journeys and reconciliation of analytics totals against source records.
 
 These increments must be assigned to the canonical roadmap rather than executed as an independent roadmap.
 
