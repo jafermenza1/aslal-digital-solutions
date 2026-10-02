@@ -9,10 +9,12 @@ export const options = {
 const base = __ENV.BASE_URL;
 if (!base) throw new Error("BASE_URL is required");
 
-export default function () {
+function commercialSmoke() {
   const health = http.get(base + "/api/health?deep=0");
   const home = http.get(base + "/");
   check(health, { "health 200": (r) => r.status === 200 });
   check(home, { "home 200": (r) => r.status === 200 });
   sleep(1);
 }
+
+export default commercialSmoke;
