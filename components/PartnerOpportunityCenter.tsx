@@ -4,7 +4,9 @@ import { useCallback,useEffect,useState } from "react";
 type Campaign={id:string;name:string;description:string|null;status:string;target_description:string|null;location:string|null;product_name:string|null;partner_budget:number|string;currency:string;reward_type:string;reward_amount:number|string|null;reward_rate:number|string|null;required_partner_types:string|null;application_status:string|null;referral_code:string|null};
 type Dispute={id:string;subject:string;description:string;status:string;resolution:string|null;created_at:string};
 type Payout={id:string;amount:number|string;currency:string;status:string;reference:string|null;created_at:string;paid_at:string|null};
-type Commission={id:string;amount:number|string;currency:string;status:string;referral_code:string|null;created_at:string};
+type Commission={id:string;amount:number|string;currency:string;status:string;referral_code:string|null;created_at:string;eligible_at:string|null;why_earned?:{
+ program:string|null;terms_version:number|null;referral_code:string|null;attribution_policy:string;attribution_window_days:number|null;qualifying_event:string;refund_hold_days:number;payout_schedule:string|null;reward_type:string|null;reward_amount:number|string|null;reward_rate:number|string|null;order_number:string|null;payment_status:string|null;reconciliation_status:string|null;eligible_at:string|null;explanation:string;
+}};
 const money=(v:number|string|null|undefined)=>Number(v??0).toLocaleString("en-ET",{maximumFractionDigits:2});
 
 export default function PartnerOpportunityCenter(){
@@ -65,7 +67,25 @@ export default function PartnerOpportunityCenter(){
     <h2 className="text-xl font-black text-slate-900">Your earnings</h2>
     <p className="mt-1 text-sm text-slate-500">Commission records and payout ledger history. A payout ledger record is an operational record and does not itself move money.</p>
     <div className="mt-5 grid gap-3 sm:grid-cols-3"><Stat label="Commission records" value={"ETB "+money(commissions.reduce((n,c)=>n+Number(c.amount),0))}/><Stat label="Paid ledger" value={"ETB "+money(payouts.filter(p=>p.status==="PAID").reduce((n,p)=>n+Number(p.amount),0))}/><Stat label="Payout records" value={String(payouts.length)}/></div>
-    <div className="mt-5 space-y-2">{payouts.map(p=><div key={p.id} className="flex flex-col gap-1 rounded-xl bg-slate-50 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"><span>{p.status} · {p.reference||"No reference"} · {new Date(p.created_at).toLocaleDateString("en-ET")}</span><b>ETB {money(p.amount)}</b></div>)}{!payouts.length&&<p className="text-sm text-slate-500">No payout records yet.</p>}</div>
+    <div className="mt-5 space-y-3">
+      {commissions.map(c=><div key={c.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><span className="font-bold">{c.status} · {c.order_number||"Attributed sale"} · {c.referral_code||"Referral"}</span><b>ETB {money(c.amount)}</b></div>
+        {c.why_earned&&<div className="mt-3 rounded-lg bg-white p-3 text-slate-600">
+          <div className="font-black text-slate-900">Why you earned this</div>
+          <p className="mt-1">{c.why_earned.explanation}</p>
+          <div className="mt-2 grid gap-2 text-xs sm:grid-cols-2">
+            <span>Attribution: <b>{c.why_earned.attribution_policy}</b></span>
+            <span>Window: <b>{c.why_earned.attribution_window_days ?? "—"} days</b></span>
+            <span>Qualifying event: <b>{c.why_earned.qualifying_event}</b></span>
+            <span>Refund hold: <b>{c.why_earned.refund_hold_days} days</b></span>
+            <span>Terms: <b>{c.why_earned.terms_version ? "v"+c.why_earned.terms_version : "Legacy"}</b></span>
+            <span>Eligible: <b>{c.why_earned.eligible_at ? new Date(c.why_earned.eligible_at).toLocaleString("en-ET") : "Now"}</b></span>
+          </div>
+        </div>}
+      </div>)}
+      {!commissions.length&&<p className="text-sm text-slate-500">No commission records yet.</p>}
+      {payouts.map(p=><div key={p.id} className="flex flex-col gap-1 rounded-xl bg-slate-50 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"><span>{p.status} · {p.reference||"No reference"} · {new Date(p.created_at).toLocaleDateString("en-ET")}</span><b>ETB {money(p.amount)}</b></div>)}
+    </div>
   </section>}
 
   {portalTab==="activity"&&<section className="grid gap-6 xl:grid-cols-2">

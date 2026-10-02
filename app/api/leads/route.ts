@@ -9,7 +9,8 @@ import { sendContactAutoReply } from "@/lib/contact-autoreply";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 import { resolvePublicWorkspaceId } from "@/lib/workspaces";
-import { recordLeadAttribution, type AttributionInput } from "@/lib/attribution";
+import type { AttributionInput } from "@/lib/attribution";
+import { applyLeadAffiliateAttribution } from "@/lib/affiliate-engine";
 
 type VisitorRow = RowDataPacket & {
   first_source: string | null;
@@ -211,6 +212,17 @@ export async function POST(request: NextRequest) {
       throw error;
     } finally {
       connection.release();
+    }
+
+    try {
+      await applyLeadAffiliateAttribution({
+        workspaceId,
+        leadId,
+        referralCode: referralCode || requestedReferralCode || attribution.referralCode || null,
+        promoCode: clean(body.promoCode, 100) || null,
+      });
+    } catch (error) {
+      console.error("AFFILIATE_LEAD_ATTRIBUTION_ERROR", error);
     }
 
     try {
