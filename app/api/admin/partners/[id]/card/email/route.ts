@@ -17,6 +17,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     );
     const partner = rows[0];
     if (!partner) return NextResponse.json({ error: "Partner not found." }, { status: 404 });
+    if (partner.status !== "ACTIVE" || partner.account_status !== "ACTIVE" || partner.verification_status !== "VERIFIED") {
+      return NextResponse.json({ error: "The official partner ID card is available only after verification and activation." }, { status: 409 });
+    }
     const pdf = await generatePartnerCardPdf(partner.id);
     const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com").replace(/\/$/, "");
     const [referrals] = await db.query<(RowDataPacket & { code: string })[]>(
