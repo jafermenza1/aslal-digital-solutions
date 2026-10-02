@@ -47,6 +47,17 @@ export default async function PartnerPortalPage() {
         {[["Referral clicks", partner.referralLinks.reduce((sum, item) => sum + item._count.clicks, 0)], ["Referred leads", leadCount], ["Won deals", wonCount], ["Attributed revenue", `ETB ${Number(revenue._sum.dealValue || 0).toLocaleString("en-ET")}`]].map(([label,value]) => <div key={String(label)} className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><div className="text-xs font-black uppercase tracking-wider text-slate-400">{label}</div><div className="mt-2 text-2xl font-black text-[#0F3E8A]">{value}</div></div>)}
       </section>
       <section className="mt-5 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Official partner identity</div>
+            <h2 className="mt-1 text-xl font-black text-slate-900">Partner ID card</h2>
+            <p className="mt-1 text-sm text-slate-500">Your official Aslal partner ID is available after activation. The PDF contains your partner number and referral identity with a QR code.</p>
+            <div className="mt-3 font-mono text-sm font-black text-[#0F3E8A]">{partner.partnerNumber}</div>
+          </div>
+          <a href="/api/partner/id-card" className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#E2B02A] px-5 py-3 text-sm font-black text-slate-950">Download partner ID</a>
+        </div>
+      </section>
+      <section className="mt-5 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-black text-slate-900">Referral links</h2>
         <p className="mt-1 text-sm text-slate-500">Use the approved link or the printed partner card to distribute your referral identity.</p>
         <div className="mt-5 space-y-3">{partner.referralLinks.map((link) => <div key={link.id} className="rounded-2xl border border-slate-100 p-4"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-mono text-sm font-black text-[#0F3E8A]">{link.code}</div><div className="mt-1 break-all text-xs text-slate-400">{baseUrl}/go/{link.code}</div></div><div className="text-xs font-bold text-slate-500">{link._count.clicks} clicks</div></div></div>)}</div>
