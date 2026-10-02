@@ -440,3 +440,33 @@ Not implemented by CE-1:
 - leakage/dispute automation.
 
 CE-1 is **not accepted** from code existence alone. Required evidence includes Prisma migration/application validation, local typecheck/lint/build, workspace A/B authorization tests, public visibility/status tests, product-to-listing workspace mismatch rejection, and controlled create/edit/publish behavior.
+## Main Commercial Engine — CE-2 implementation update
+
+**Increment:** CE-2 — Owner/Supplier Authorization  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+CE-2 extends CE-1 without replacing the existing Product/Service catalog or workspace authorization boundary.
+
+Implemented:
+- commercial party registry for business, supplier, asset-owner, service-provider and external-owner relationships;
+- explicit owner and supplier references on CommercialListing;
+- listing publication guard requiring an identified commercial owner;
+- listing distribution authorization records for staff users, partners and commercial parties;
+- authorization lifecycle: REQUESTED, APPROVED, ACTIVE, SUSPENDED, EXPIRED, REVOKED;
+- authorization scope fields for effective/expiry dates, territory, channel, partner types, quantity limit, commission rule, protection days and exclusions;
+- workspace-scoped owner/supplier/authorization APIs using existing `products.manage` permission;
+- workspace membership/partner validation before authorization can be attached;
+- dashboard owner/supplier selection and CE-2 authorization workbench;
+- historical authorization is retained when an authorization is revoked; revocation does not delete listing, attribution or commercial history.
+
+Not implemented by CE-2:
+- partner eligibility evaluation;
+- automatic promotion-asset blocking based on eligibility;
+- deal registration/protection;
+- commission-contract creation or automatic commission calculation;
+- inspection/appointment;
+- demand requests/matching;
+- external payment evidence;
+- leakage/dispute automation.
+
+CE-2 is **not accepted** from code existence alone. Required evidence includes Prisma migration/application validation, local typecheck/lint/build, Workspace A/B authorization isolation tests, owner/supplier mismatch rejection, staff/partner workspace membership rejection, publication-without-owner rejection, authorization lifecycle transitions, and revoked-history preservation.
