@@ -7,9 +7,9 @@ const TYPES=["PRODUCT","SERVICE","ASSET","PROPERTY"];
 const STATUSES=["DRAFT","PENDING_REVIEW","APPROVED","PUBLISHED","PAUSED","SOLD_OUT","EXPIRED","ARCHIVED","REJECTED"];
 const empty=(product?:Product):Omit<Row,"id"|"workspaceName">=>({workspaceId:"",productId:product?.id||null,productName:product?.name||null,title:product?.name||"",slug:"",listingType:product?.kind==="SERVICE"?"SERVICE":"PRODUCT",status:"DRAFT",description:"",category:"General",condition:"",location:"",askingPrice:"",currency:"ETB",priceLabel:"",inspectionRequired:false,requestQuote:true,publicVisible:false,featured:false,expiresAt:null});
 
-export function CommercialListingManager({initial,products}:{initial:Row[];products:Product[]}){
+export function CommercialListingManager({initial,products,workspaceId}:{initial:Row[];products:Product[];workspaceId:string}){
  const [rows,setRows]=useState(initial),[draft,setDraft]=useState<any>(initial[0]?{...initial[0]}:{...empty(products[0]),workspaceId:initial[0]?.workspaceId||""}),[editing,setEditing]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
- const begin=(row?:Row)=>{setDraft(row?{...row}:{...empty(products[0]),workspaceId:initial[0]?.workspaceId||""});setEditing(true);setNotice("")};
+ const begin=(row?:Row)=>{setDraft(row?{...row}:{...empty(products[0]),workspaceId});setEditing(true);setNotice("")};
  const save=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);setNotice("");
   try{const id=draft.id;const res=await fetch(id?"/api/admin/commercial-listings/"+id:"/api/admin/commercial-listings",{method:id?"PATCH":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(draft)});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"Could not save listing.");setRows(id?rows.map(x=>x.id===id?data.listing:x):[data.listing,...rows]);setEditing(false);setNotice("Commercial listing saved.");}catch(e){setNotice(e instanceof Error?e.message:"Could not save listing.");}finally{setBusy(false);}};
  const chooseProduct=(id:string)=>{const p=products.find(x=>x.id===id);setDraft((d:any)=>({...d,productId:id||null,productName:p?.name||null,title:d.title||p?.name||"",listingType:p?.kind==="SERVICE"?"SERVICE":"PRODUCT"}));};
