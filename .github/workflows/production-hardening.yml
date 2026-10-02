@@ -1,0 +1,63 @@
+name: Production Hardening
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  hardening:
+    name: Certification controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
+      - name: Prisma validation
+        run: npx prisma validate
+
+      - name: Hardening controls
+        run: npm run hardening:test
+
+      - name: Dependency security audit
+        run: npm run hardening:security
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Production load smoke
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_BASE_URL }}
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "PRODUCTION_BASE_URL is not configured; load smoke is skipped."
+            exit 0
+          fi
+          k6 run tests/load/commercial-smoke.js
+
+      - name: Alert on hardening failure
+        if: failure()
+        env:
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+        run: |
+          if [ -n "$ALERT_WEBHOOK_URL" ]; then
+            curl -fsS -X POST -H "content-type: application/json"               -d '{"text":"Aslal production hardening workflow failed. Inspect GitHub Actions immediately."}'               "$ALERT_WEBHOOK_URL"
+          else
+            echo "ALERT_WEBHOOK_URL is not configured; GitHub Actions remains the alert source."
+          fi
