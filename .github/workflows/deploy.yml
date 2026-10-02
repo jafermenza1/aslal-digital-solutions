@@ -1,0 +1,180 @@
+name: Deploy to Emerald
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Main commit SHA to deploy"
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: emerald-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Resolve deployment SHA and CI run
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_SHA: ${{ github.event.workflow_run.head_sha }}
+          DISPATCH_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          SHA="${EVENT_SHA:-$DISPATCH_SHA}"
+          test -n "$SHA"
+
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID="${{ github.event.workflow_run.id }}"
+          else
+            RUN_ID="$(gh run list --workflow CI --commit "$SHA" --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          fi
+
+          test -n "$RUN_ID"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Download successful CI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: aslal-emerald-${{ steps.release.outputs.sha }}
+          path: emerald-artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.release.outputs.run_id }}
+
+      - name: Verify deployment artifact
+        env:
+          SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          ARCHIVE="emerald-artifact/aslal-emerald-$SHA.tar.gz"
+          test -f "$ARCHIVE"
+          tar -tzf "$ARCHIVE" >/dev/null
+          echo "Artifact verified: $ARCHIVE"
+          sha256sum "$ARCHIVE"
+
+      - name: Configure SSH
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          EMERALD_SSH_KEY: ${{ secrets.EMERALD_SSH_KEY }}
+          EMERALD_KNOWN_HOSTS: ${{ secrets.EMERALD_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$EMERALD_HOST"
+          test -n "$EMERALD_USER"
+          test -n "$EMERALD_SSH_KEY"
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s
+' "$EMERALD_SSH_KEY" | tr -d '' > ~/.ssh/emerald_deploy
+          chmod 600 ~/.ssh/emerald_deploy
+          ssh-keygen -y -f ~/.ssh/emerald_deploy > /tmp/emerald_public_key
+
+          if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
+            printf '%s
+' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${EMERALD_PORT:-22}" "$EMERALD_HOST" >> ~/.ssh/known_hosts
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Upload artifact to Emerald
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          scp -i ~/.ssh/emerald_deploy -P "${EMERALD_PORT:-22}"             -o BatchMode=yes -o StrictHostKeyChecking=yes             "emerald-artifact/aslal-emerald-$SHA.tar.gz"             "${EMERALD_USER}@${EMERALD_HOST}:~/aslal-emerald-$SHA.tar.gz"
+
+      - name: Install release on Emerald
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          EMERALD_APP_PATH: ${{ secrets.EMERALD_APP_PATH }}
+          SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/emerald_deploy -p "${EMERALD_PORT:-22}"             -o BatchMode=yes -o StrictHostKeyChecking=yes             "${EMERALD_USER}@${EMERALD_HOST}"             "SHA='$SHA' APP_PATH='${EMERALD_APP_PATH:-/home/aslaldzn/aslal-digital-solutions}' bash -s" <<'REMOTE'
+          set -euo pipefail
+          ARCHIVE="$HOME/aslal-emerald-$SHA.tar.gz"
+          RELEASE_PATH="$APP_PATH/.releases/$SHA"
+          BACKUP_PATH="$APP_PATH/.releases/backup-$SHA"
+
+          test -f "$ARCHIVE"
+          mkdir -p "$APP_PATH/.releases"
+          rm -rf "$RELEASE_PATH"
+          mkdir -p "$RELEASE_PATH"
+          tar -xzf "$ARCHIVE" -C "$RELEASE_PATH"
+
+          test -f "$RELEASE_PATH/server.js"
+          test -f "$RELEASE_PATH/package.json"
+          test -d "$RELEASE_PATH/.next/static"
+          test -d "$RELEASE_PATH/public"
+          test -x "$RELEASE_PATH/.prisma-cli/node_modules/.bin/prisma"
+
+          if [ -f "$APP_PATH/.env" ]; then cp "$APP_PATH/.env" "$RELEASE_PATH/.env"; fi
+
+          cd "$RELEASE_PATH"
+          ./.prisma-cli/node_modules/.bin/prisma migrate deploy
+
+          rm -rf "$BACKUP_PATH"
+          mkdir -p "$BACKUP_PATH"
+          for item in server.js package.json node_modules .next public; do
+            if [ -e "$APP_PATH/$item" ]; then cp -a "$APP_PATH/$item" "$BACKUP_PATH/$item"; fi
+          done
+
+          rm -rf "$APP_PATH/.next" "$APP_PATH/node_modules" "$APP_PATH/public" "$APP_PATH/server.js" "$APP_PATH/package.json"
+          cp -a "$RELEASE_PATH/server.js" "$APP_PATH/server.js"
+          cp -a "$RELEASE_PATH/package.json" "$APP_PATH/package.json"
+          cp -a "$RELEASE_PATH/node_modules" "$APP_PATH/node_modules"
+          cp -a "$RELEASE_PATH/.next" "$APP_PATH/.next"
+          cp -a "$RELEASE_PATH/public" "$APP_PATH/public"
+
+          mkdir -p "$APP_PATH/tmp"
+          touch "$APP_PATH/tmp/restart.txt"
+          test -f "$APP_PATH/server.js"
+          test -d "$APP_PATH/.next/static"
+          rm -f "$ARCHIVE"
+          echo "Emerald deployment installed: $SHA"
+          REMOTE
+
+      - name: Verify production health endpoint
+        env:
+          EMERALD_HEALTH_URL: ${{ secrets.EMERALD_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          URL="${EMERALD_HEALTH_URL:-https://aslaldigital.com/api/health}"
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --max-time 20 "$URL"; then
+              echo "Production health check passed."
+              exit 0
+            fi
+            echo "Health check attempt $attempt failed; waiting 10 seconds..."
+            sleep 10
+          done
+          echo "Production health check failed."
+          exit 1
