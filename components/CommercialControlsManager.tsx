@@ -16,7 +16,7 @@ export function CommercialControlsManager({ workspaceId }: { workspaceId: string
     setDisputes(d.disputes || []);
   }
 
-  useEffect(() => { if (workspaceId) load(); }, [workspaceId]);
+  useEffect(() => { if (!workspaceId) return; void Promise.all([fetch("/api/admin/commercial-controls?workspaceId=" + workspaceId + "&kind=SIGNALS").then(r => r.json()), fetch("/api/admin/commercial-controls?workspaceId=" + workspaceId + "&kind=DISPUTES").then(r => r.json())]).then(([s,d]) => { setSignals(s.signals || []); setDisputes(d.disputes || []); }); }, [workspaceId]);
 
   async function update(kind: string, id: string, action: string, extra: Record<string, unknown> = {}) {
     const r = await fetch("/api/admin/commercial-controls", {
