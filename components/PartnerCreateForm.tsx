@@ -110,7 +110,7 @@ export default function PartnerCreateForm({ products = [], openInitially = false
   return (
     <>
       {showTrigger && (
-        <button type="button" onClick={() => { setOpen(true); setCreated(null); setCredentials(null); setMessage(""); setPartnerType("AGENT"); }} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-[#0b3475]">
+        <button type="button" onClick={() => { setOpen(true); setCreated(null); setCredentials(null); setMessage(""); setPartnerType("AGENT"); }} className="rounded-full bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-[#0F3E8A]">
           + Add partner
         </button>
       )}
