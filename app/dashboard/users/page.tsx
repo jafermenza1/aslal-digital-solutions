@@ -27,7 +27,7 @@ export default async function UsersPage() {
     user.role === "ADMIN" || user.role === "SUPER_ADMIN" ? [] : [user.id],
   );
   const rows=users.map(u=>({id:u.id,email:u.email,name:u.name,role:u.role,active:u.active,permissions:resolvePermissions(u.role,u.permissions),lastLoginAt:u.lastLoginAt?.toISOString()??null}));
-  return <main className="theme-panel-page min-h-screen py-10">
+  return <main className=" min-h-screen py-10">
     <div className="mx-auto max-w-[1380px] px-4 sm:px-7">
       <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div><div className="text-[10px] font-black uppercase tracking-[.2em] text-[#E2B02A]">Administration / Access</div><h1 className="mt-2 text-4xl font-black">Users & permissions</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-white/55">Create operators, assign a role, and fine-tune the permissions they need without sharing admin credentials.</p></div>
