@@ -183,7 +183,7 @@ SELECT
   'Demo Operations Officer', 'demo.operations@example.test', '+251900000002', 'PHONE',
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('30 workstations','durable','delivery','installation')),
-  NOW(), NOW(), NOW()
+  NOW(), NOW(), NOW(), NOW()
 WHERE @demo_workspace_id IS NOT NULL;
 
 INSERT INTO commercial_requests
@@ -202,7 +202,7 @@ SELECT
   'Demo Expansion Manager', 'demo.expansion@example.test', '+251900000003', 'PHONE',
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('central location','office use','training room preferred')),
-  NOW(), NOW(), NOW()
+  NOW(), NOW(), NOW(), NOW()
 WHERE @demo_workspace_id IS NOT NULL;
 
 INSERT INTO commercial_requests
@@ -221,7 +221,7 @@ SELECT
   'Demo Marketing Manager', 'demo.marketing@example.test', '+251900000004', 'EMAIL',
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('social media management','content creation','analytics','monthly reporting')),
-  NOW(), NOW(), NOW()
+  NOW(), NOW(), NOW(), NOW()
 WHERE @demo_workspace_id IS NOT NULL;
 
 INSERT INTO commercial_requests
@@ -240,7 +240,7 @@ SELECT
   'Demo Operations Manager', 'demo.logistics@example.test', '+251900000005', 'PHONE',
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('same-day delivery','order tracking','proof of delivery','business rates')),
-  NOW(), NOW(), NOW()
+  NOW(), NOW(), NOW(), NOW()
 WHERE @demo_workspace_id IS NOT NULL;
 
 -- Persisted CE-7 match examples. These are intentionally deterministic demo records,
