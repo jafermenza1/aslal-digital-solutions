@@ -84,6 +84,17 @@ export default async function Home() {
     <main className="landing-page bg-[#F8FAFC] text-[#1E293B]">
       <AslalInteractiveHero content={content}/>
 
+      <section className="landing-section bg-white" aria-labelledby="journey-title">
+        <div className="container-aslal py-2">
+          <div className="rounded-[2rem] border border-[#0F3E8A]/10 bg-[#F8FAFC] p-7 shadow-sm sm:p-9">
+            <div className="max-w-3xl"><span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">START HERE</span><h2 id="journey-title" className="mt-3 text-3xl font-black tracking-tight md:text-4xl">You bring the goal. Aslal connects the next step.</h2><p className="mt-4 text-base leading-7 text-slate-600">Choose what you are trying to accomplish. We will take you to the simplest path instead of making you learn our service catalog first.</p></div>
+            <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[["Get more customers","/contact?goal=Get%20more%20customers"],["Sell online","/products"],["Automate conversations","/growth-builder?goal=Automate%20conversations"],["Build a digital system","/growth-builder?goal=Build%20a%20digital%20system"]].map(([label,href])=><Link key={label} href={href} className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#E2B02A] hover:shadow-md"><div className="flex items-center justify-between gap-3"><span className="font-black text-[#1E293B]">{label}</span><ArrowRight size={17} className="text-[#0F3E8A] transition group-hover:translate-x-1"/></div><p className="mt-2 text-xs leading-5 text-slate-500">Start without choosing a technical service.</p></Link>)}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="landing-section bg-white" aria-labelledby="pain-title">
         <div className="container-aslal">
           <div className="section-heading max-w-3xl">
