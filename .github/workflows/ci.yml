@@ -55,3 +55,5 @@ jobs:
 
       - name: Hardening control tests
         run: npm run hardening:test
+
+# Validation gate remains enabled; production deployment remains manual-only.
