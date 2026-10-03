@@ -20,6 +20,10 @@ export async function PUT(request:Request){
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
   if(!body)return NextResponse.json({error:"Request body is required."},{status:400});
   const id=typeof body.id==="string"?body.id:""; if(!id)return NextResponse.json({error:"Resource id is required."},{status:400});
+  const slug=typeof body.slug==="string"?body.slug.trim().toLowerCase():"";
+  if(!/^[a-z0-9-]{3,160}$/.test(slug))return NextResponse.json({error:"Invalid slug."},{status:400});
+  const [duplicateRows]=await db.query<RowDataPacket[]>("SELECT id FROM resources WHERE slug=? AND id<>? LIMIT 1",[slug,id]);
+  if(duplicateRows[0])return NextResponse.json({error:"A resource with this slug already exists."},{status:409});
   const fields=["category","title","description","preview","cta","intent","downloadUrl"] as const;
   for(const f of fields)if(typeof body[f]!=="string"||!(body[f] as string).trim())return NextResponse.json({error:`${f} is required.`},{status:400});
   const downloadUrl=typeof body.downloadUrl==="string"?body.downloadUrl.trim():"";
@@ -34,8 +38,8 @@ export async function PUT(request:Request){
   const specifications=body.specifications&&typeof body.specifications==="object"?JSON.stringify(body.specifications):null;
   const publishedAt=typeof body?.publishedAt==="string"&&body.publishedAt?new Date(body.publishedAt):new Date();
   if(Number.isNaN(publishedAt.getTime()))return NextResponse.json({error:"Invalid publish date."},{status:400});
-  await db.query(`UPDATE resources SET category=?,title=?,description=?,preview=?,cta=?,intent=?,download_url=?,active=?,published_at=?,relationship_type=?,provider_name=?,workspace_id=?,campaign_id=?,media_urls=?,specifications=? WHERE id=?`,
-    [body.category,body.title,body.description,body.preview,body.cta,body.intent,downloadUrl||null,active?1:0,publishedAt,relationshipType,providerName,workspaceId,campaignId,mediaUrls,specifications,id]);
+  await db.query(`UPDATE resources SET slug=?,category=?,title=?,description=?,preview=?,cta=?,intent=?,download_url=?,active=?,published_at=?,relationship_type=?,provider_name=?,workspace_id=?,campaign_id=?,media_urls=?,specifications=? WHERE id=?`,
+    [slug,body.category,body.title,body.description,body.preview,body.cta,body.intent,downloadUrl||null,active?1:0,publishedAt,relationshipType,providerName,workspaceId,campaignId,mediaUrls,specifications,id]);
   return NextResponse.json({ok:true});
 }
 
