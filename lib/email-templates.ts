@@ -6,29 +6,29 @@ export const CONTACT_AUTOREPLY_KEY = "contact_request_confirmation";
 
 const defaultSubject = "We received your request — Aslal Digital Solutions";
 const defaultHtml = `<!doctype html>
-<html><body style="margin:0;background:#f4f8f6;font-family:Arial,Helvetica,sans-serif;color:#102a24">
+<html><body style="margin:0;background:#F8FAFC;font-family:Arial,Helvetica,sans-serif;color:#1E293B">
 <div style="max-width:680px;margin:0 auto;padding:28px 16px">
-  <div style="background:#062e24;border-radius:24px;padding:28px 30px;color:#fff">
+  <div style="background:#1E293B;border-radius:24px;padding:28px 30px;color:#F8FAFC">
     <div style="display:flex;align-items:center;gap:12px">
-      <img src="{{logoUrl}}" width="48" height="48" alt="Aslal Digital Solutions" style="display:block;border-radius:12px;background:#fff;padding:4px">
-      <div><div style="font-size:10px;letter-spacing:2px;font-weight:700;color:#e2b02a">ASLAL GROWTH OS</div><div style="font-size:20px;font-weight:800">Aslal Digital Solutions</div></div>
+      <img src="{{logoUrl}}" width="48" height="48" alt="Aslal Digital Solutions" style="display:block;border-radius:12px;background:#F8FAFC;padding:4px">
+      <div><div style="font-size:10px;letter-spacing:2px;font-weight:700;color:#E2B02A">ASLAL GROWTH OS</div><div style="font-size:20px;font-weight:800">Aslal Digital Solutions</div></div>
     </div>
     <div style="margin-top:28px;font-size:30px;line-height:1.15;font-weight:800">Thanks, {{name}}.</div>
-    <p style="margin:14px 0 0;color:#d8ebe4;font-size:16px;line-height:1.7">We received your request and it is now in our sales workflow. Our team will review it and follow up using the contact details you provided.</p>
+    <p style="margin:14px 0 0;color:#F8FAFC;font-size:16px;line-height:1.7">We received your request and it is now in our sales workflow. Our team will review it and follow up using the contact details you provided.</p>
   </div>
-  <div style="background:#fff;margin-top:14px;border-radius:24px;padding:28px 30px;box-shadow:0 10px 35px rgba(6,46,36,.08)">
-    <div style="font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#0f6b52;font-weight:800">Your request</div>
-    <div style="margin-top:16px;padding:18px;border-radius:18px;background:#f4f8f6">
+  <div style="background:#F8FAFC;margin-top:14px;border-radius:24px;padding:28px 30px;box-shadow:0 10px 35px rgba(30,41,59,.08)">
+    <div style="font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#1E293B;font-weight:800">Your request</div>
+    <div style="margin-top:16px;padding:18px;border-radius:18px;background:#F8FAFC">
       <div style="font-weight:800;font-size:18px">{{serviceOrProduct}}</div>
-      <div style="margin-top:8px;color:#52645e;line-height:1.7">{{message}}</div>
-      <div style="margin-top:12px;color:#52645e"><strong>Business:</strong> {{companyOrType}}</div>
-      <div style="margin-top:6px;color:#52645e"><strong>Request ID:</strong> {{leadId}}</div>
+      <div style="margin-top:8px;color:#1E293B;line-height:1.7">{{message}}</div>
+      <div style="margin-top:12px;color:#1E293B"><strong>Business:</strong> {{companyOrType}}</div>
+      <div style="margin-top:6px;color:#1E293B"><strong>Request ID:</strong> {{leadId}}</div>
     </div>
-    <a href="{{contactUrl}}" style="display:inline-block;margin-top:22px;background:#e2b02a;color:#15231f;text-decoration:none;padding:14px 20px;border-radius:999px;font-weight:800">View Aslal contact page</a>
+    <a href="{{contactUrl}}" style="display:inline-block;margin-top:22px;background:#E2B02A;color:#1E293B;text-decoration:none;padding:14px 20px;border-radius:999px;font-weight:800">View Aslal contact page</a>
   </div>
-  <p style="margin:18px 4px;color:#6b7b75;font-size:12px;line-height:1.6">This is a service-request acknowledgement, not a marketing subscription. You can manage communication preferences when applicable.</p>
-  <div style="padding:20px 4px;color:#6b7b75;font-size:12px;line-height:1.6">
-    <strong style="color:#102a24">Aslal Digital Solutions</strong><br>{{location}} · {{phone}} · {{email}}
+  <p style="margin:18px 4px;color:#0F3E8A;font-size:12px;line-height:1.6">This is a service-request acknowledgement, not a marketing subscription. You can manage communication preferences when applicable.</p>
+  <div style="padding:20px 4px;color:#0F3E8A;font-size:12px;line-height:1.6">
+    <strong style="color:#1E293B">Aslal Digital Solutions</strong><br>{{location}} · {{phone}} · {{email}}
   </div>
 </div></body></html>`;
 const defaultText = `Hello {{name}},
@@ -55,7 +55,7 @@ export const DEFAULT_CONTACT_TEMPLATE = {
 };
 
 
-const brandedHtml = (title: string, intro: string, ctaLabel: string, ctaUrl: string, footer = "{{location}} · {{phone}} · {{email}}") => `<!doctype html><html><body style="margin:0;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;color:#1e293b"><div style="max-width:680px;margin:0 auto;padding:28px 16px"><div style="background:#0F3E8A;border-radius:24px;padding:28px 30px;color:#fff"><div style="font-size:10px;letter-spacing:2px;font-weight:800;color:#E2B02A">ASLAL GROWTH OS</div><div style="margin-top:8px;font-size:25px;font-weight:800">Aslal Digital Solutions</div><div style="margin-top:24px;font-size:28px;line-height:1.2;font-weight:800">${title}</div><p style="margin:14px 0 0;color:#e2e8f0;font-size:16px;line-height:1.7">${intro}</p></div><div style="background:#fff;margin-top:14px;border-radius:24px;padding:28px 30px;box-shadow:0 10px 35px rgba(15,62,138,.08)"><div style="color:#475569;line-height:1.8">{{message}}</div><a href="${ctaUrl}" style="display:inline-block;margin-top:22px;background:#E2B02A;color:#1e293b;text-decoration:none;padding:14px 20px;border-radius:999px;font-weight:800">${ctaLabel}</a></div><div style="padding:20px 4px;color:#64748b;font-size:12px;line-height:1.6">${footer}</div></div></body></html>`;
+const brandedHtml = (title: string, intro: string, ctaLabel: string, ctaUrl: string, footer = "{{location}} · {{phone}} · {{email}}") => `<!doctype html><html><body style="margin:0;background:#F8FAFC;font-family:Arial,Helvetica,sans-serif;color:#1E293B"><div style="max-width:680px;margin:0 auto;padding:28px 16px"><div style="background:#0F3E8A;border-radius:24px;padding:28px 30px;color:#F8FAFC"><div style="font-size:10px;letter-spacing:2px;font-weight:800;color:#E2B02A">ASLAL GROWTH OS</div><div style="margin-top:8px;font-size:25px;font-weight:800">Aslal Digital Solutions</div><div style="margin-top:24px;font-size:28px;line-height:1.2;font-weight:800">${title}</div><p style="margin:14px 0 0;color:#F8FAFC;font-size:16px;line-height:1.7">${intro}</p></div><div style="background:#F8FAFC;margin-top:14px;border-radius:24px;padding:28px 30px;box-shadow:0 10px 35px rgba(15,62,138,.08)"><div style="color:#0F3E8A;line-height:1.8">{{message}}</div><a href="${ctaUrl}" style="display:inline-block;margin-top:22px;background:#E2B02A;color:#1E293B;text-decoration:none;padding:14px 20px;border-radius:999px;font-weight:800">${ctaLabel}</a></div><div style="padding:20px 4px;color:#0F3E8A;font-size:12px;line-height:1.6">${footer}</div></div></body></html>`;
 
 export const CORE_EMAIL_TEMPLATES = [
   DEFAULT_CONTACT_TEMPLATE,
