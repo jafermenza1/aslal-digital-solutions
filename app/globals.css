@@ -1325,3 +1325,33 @@ select:focus-visible {
   --color-orange-600: #E2B02A;
   --color-orange-700: #E2B02A;
 }
+
+
+/* =========================================================
+   PCCE-2 HOMEPAGE EXPERIENCE — DEMAND ATTRACTOR
+   ========================================================= */
+.aslal-hero{
+  background:
+    radial-gradient(circle at 76% 45%,rgba(226,176,42,.13),transparent 18%),
+    radial-gradient(circle at 18% 30%,rgba(15,62,138,.48),transparent 35%),
+    linear-gradient(115deg,#1E293B 0%,#0F3E8A 58%,#1E293B 100%);
+}
+.aslal-hero:before{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;opacity:.28;
+  background-image:linear-gradient(rgba(248,250,252,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(248,250,252,.055) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(circle at 68% 48%,black 0 34%,transparent 76%);
+}
+.aslal-hero-orbit{
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(226,176,42,.13),transparent 58%);
+  filter:blur(20px);
+  animation:aslalOrbitGlow 7s ease-in-out infinite;
+}
+@keyframes aslalOrbitGlow{0%,100%{transform:scale(.92);opacity:.55}50%{transform:scale(1.08);opacity:1}}
+@keyframes aslalMarquee{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){
+  .aslal-hero-orbit{animation:none}
+  .aslal-hero [class*="animate-\[aslalMarquee"]{animation:none}
+}
