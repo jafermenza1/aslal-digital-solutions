@@ -57,7 +57,7 @@ export default function PartnerGrowthEngine(){
  }
 
  return <section className="mt-8 space-y-8">
-  <div className="rounded-[2rem] bg-[#052B21] p-6 text-white shadow-sm sm:p-8">
+  <div className="rounded-[2rem] bg-[#0F3E8A] p-6 text-white shadow-sm sm:p-8">
    <div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Partner Engine / Phase F</div>
    <h2 className="mt-2 text-2xl font-black">Partner growth network</h2>
    <p className="mt-2 max-w-4xl text-sm text-white/70">Campaign opportunities, partner matching, verification, performance, tiers, disputes and payout history. Payout records remain a ledger until Order/Payment reconciliation is accepted.</p>
