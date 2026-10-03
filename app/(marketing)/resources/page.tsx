@@ -39,7 +39,7 @@ export default async function ResourcesPage({ searchParams }: { searchParams: Pr
             <p className="mt-6 text-lg leading-8 text-slate-600"><RichContent content={content} keyName="hero.body" fallback="Stop relying on guesswork. Access practical implementation guides, interactive calculators and automation frameworks built to connect digital marketing with sales execution." /></p>
           </div>
           <div className="mt-10 flex flex-wrap justify-center gap-2">
-            <Link href="/resources?days=3650" className={!category ? "rounded-full bg-[#0F3E8A] px-4 py-2 text-sm font-black text-white transition hover:bg-[#E2B02A] hover:text-[#071F47]" : "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-[#E2B02A] hover:bg-[#E2B02A] hover:text-[#071F47]"}>All</Link>
+            <Link href="/resources?days=3650" className={!category ? "rounded-full bg-[#0F3E8A] px-4 py-2 text-sm font-black text-white transition hover:bg-[#E2B02A] hover:text-[#0F3E8A]" : "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-[#E2B02A] hover:bg-[#E2B02A] hover:text-[#0F3E8A]"}>All</Link>
             {categories.map((item) => <Link key={item} href={"/resources?category=" + encodeURIComponent(item) + "&days=" + days} className={category === item ? "rounded-full bg-[#0F3E8A] px-4 py-2 text-sm font-black text-white" : "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700"}>{item}</Link>)}
           </div>
         </div>
@@ -62,7 +62,7 @@ export default async function ResourcesPage({ searchParams }: { searchParams: Pr
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-600">Skip the DIY trial-and-error. Book a consultation with the Aslal growth team to audit your current stack and plan the next implementation step.</p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href="/contact?goal=Growth%20system%20audit" className="w-full rounded-lg bg-[#E2B02A] px-8 py-3.5 font-black text-[#1E293B] shadow-[0_4px_14px_rgba(226,176,42,.35)] transition hover:-translate-y-0.5 hover:bg-[#0F3E8A] hover:text-white sm:w-auto">Book a 30-Min System Audit</Link>
-            <a href="https://t.me/aslal_digital" target="_blank" rel="noreferrer" className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-8 py-3.5 font-medium text-[#1E293B] transition hover:border-[#E2B02A] hover:bg-[#E2B02A] hover:text-[#071F47] sm:w-auto">Telegram — Chat with Architect</a>
+            <a href="https://t.me/aslal_digital" target="_blank" rel="noreferrer" className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-8 py-3.5 font-medium text-[#1E293B] transition hover:border-[#E2B02A] hover:bg-[#E2B02A] hover:text-[#0F3E8A] sm:w-auto">Telegram — Chat with Architect</a>
           </div>
         </div>
       </section>
@@ -85,7 +85,7 @@ function ResourceCard({ resource, featured = false, compact = false }: { resourc
         <h3 className={compact ? "mt-1 text-lg font-black text-[#1E293B]" : "mt-2 text-xl font-black text-[#1E293B]"}>{resource.title}</h3>
         <p className="mt-3 text-sm leading-6 text-slate-600">{resource.description}</p>
         {!compact && <p className="mt-5 flex-1 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600"><strong className="text-[#0F3E8A]">Preview:</strong> {resource.preview}</p>}
-        <div className="mt-5"><Link href={"/resources/" + resource.slug} className={compact ? "inline-flex items-center gap-1 text-sm font-black text-[#0F3E8A] transition hover:text-[#E2B02A]" : "inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0F3E8A] px-4 py-3 text-sm font-black text-white transition hover:bg-[#E2B02A] hover:text-[#071F47]"}>{downloadable ? "Get Resource" : resource.cta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link></div>
+        <div className="mt-5"><Link href={"/resources/" + resource.slug} className={compact ? "inline-flex items-center gap-1 text-sm font-black text-[#0F3E8A] transition hover:text-[#E2B02A]" : "inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0F3E8A] px-4 py-3 text-sm font-black text-white transition hover:bg-[#E2B02A] hover:text-[#0F3E8A]"}>{downloadable ? "Get Resource" : resource.cta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link></div>
       </div>
     </article>
   );
