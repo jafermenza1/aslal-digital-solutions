@@ -97,7 +97,7 @@ export default async function Home() {
               return <article key={title} className="group relative overflow-hidden rounded-[1.7rem] border border-slate-200 bg-[#F8FAFC] p-7 shadow-sm transition hover:-translate-y-1 hover:border-[#0F3E8A]/30 hover:shadow-xl">
                 <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-[#0F3E8A]/[.05] blur-2xl"/>
                 <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0F3E8A] text-[#E2B02A]"><Icon size={23}/></div>
-                <span className="mt-6 inline-flex rounded-full bg-[#E2B02A]/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#7a5b00]">{badge}</span>
+                <span className="mt-6 inline-flex rounded-full bg-[#E2B02A]/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#1E293B]">{badge}</span>
                 <h3 className="mt-4 text-xl font-black text-[#1E293B]">{title}</h3>
                 <p className="mt-3 text-sm leading-7 text-slate-600">{text}</p>
               </article>;
@@ -213,7 +213,7 @@ export default async function Home() {
             <h2 id="cta-title" className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">{t.ctaTitle}</h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-white/70">{t.ctaBody}</p>
             <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
-              <Link href="/growth-builder" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#efd05b]">{t.audit}<ArrowRight size={17}/></Link>
+              <Link href="/growth-builder" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#E2B02A]">{t.audit}<ArrowRight size={17}/></Link>
               <a href={telegramUsername ? `https://t.me/${telegramUsername}` : "https://t.me/"} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-4 font-bold text-white transition hover:border-[#E2B02A] hover:text-[#E2B02A]"><Send size={17}/>{t.telegram}</a>
               <a href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Hi Aslal, I want to discuss my growth system.")}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-4 font-bold text-white transition hover:border-[#E2B02A] hover:text-[#E2B02A]"><MessageCircle size={17}/>{t.whatsapp}</a>
               <a href={`mailto:${email}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-4 font-bold text-white transition hover:border-[#E2B02A] hover:text-[#E2B02A]"><Mail size={17}/>{t.email}</a>
