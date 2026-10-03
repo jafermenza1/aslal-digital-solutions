@@ -67,7 +67,7 @@ export function PublicProductCatalog({ products }: { products: CatalogItem[] }) 
         {visible.map((p) => (
           <article key={p.id} className="catalog-card group min-w-0 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.06] transition duration-300 hover:-translate-y-1 hover:border-[#E2B02A] hover:bg-white/[.1] hover:shadow-[0_0_28px_rgba(226,176,42,.14)]">
             <Link href={`/products/${p.slug}`} className="block">
-              <div className="relative h-52 overflow-hidden bg-gradient-to-br from-[#163f87] to-[#071F47]">
+              <div className="relative h-52 overflow-hidden bg-gradient-to-br from-[#163f87] to-[#0F3E8A]">
                 {p.imageUrl ? (
                   <Image src={p.imageUrl} alt="" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-105" unoptimized />
                 ) : (
