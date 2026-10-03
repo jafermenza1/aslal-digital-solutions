@@ -154,7 +154,7 @@ export default async function Home() {
                 <h3 className="mt-4 font-black text-white">{title}</h3><p className="mt-2 text-sm leading-6 text-white/60">{text}</p>
               </div>)}
             </div>
-            <div className="mt-5 flex items-center justify-center gap-3 rounded-2xl bg-[#071F47] p-4 text-xs font-black tracking-widest text-white"><Workflow size={16} className="text-[#E2B02A]"/> BUILD <ArrowRight size={13}/> AUTOMATE <ArrowRight size={13}/> GROW <ArrowRight size={13}/> MEASURE</div>
+            <div className="mt-5 flex items-center justify-center gap-3 rounded-2xl bg-[#0F3E8A] p-4 text-xs font-black tracking-widest text-white"><Workflow size={16} className="text-[#E2B02A]"/> BUILD <ArrowRight size={13}/> AUTOMATE <ArrowRight size={13}/> GROW <ArrowRight size={13}/> MEASURE</div>
           </div>
         </div>
       </section>
