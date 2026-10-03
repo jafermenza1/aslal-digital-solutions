@@ -77,8 +77,7 @@ jobs:
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s
-' "$EMERALD_SSH_KEY" | tr -d '' > ~/.ssh/emerald_deploy
+          printf '%s\n' "$EMERALD_SSH_KEY" | tr -d '\r' > ~/.ssh/emerald_deploy
           chmod 600 ~/.ssh/emerald_deploy
           ssh-keygen -y -f ~/.ssh/emerald_deploy > /tmp/emerald_public_key
 
