@@ -48,7 +48,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const requestUrl = `/contact?service=${encodeURIComponent(service.slug)}&goal=${encodeURIComponent(service.cta)}`;
 
   return <main>
-    <section className="overflow-hidden bg-[#071F47] text-white">
+    <section className="overflow-hidden bg-[#0F3E8A] text-white">
       <div className="container-aslal grid gap-10 py-16 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:py-24">
         <div>
           <div className="text-xs font-black uppercase tracking-[.18em] text-[#E2B02A]">Aslal service</div>
