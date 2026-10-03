@@ -15,7 +15,7 @@ CREATE TABLE `partner_programs` (
   UNIQUE KEY `uq_partner_program_workspace_slug` (`workspace_id`, `slug`),
   KEY `idx_partner_program_workspace_status` (`workspace_id`, `status`),
   CONSTRAINT `fk_partner_program_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspaces` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `program_terms` (
   `id` CHAR(36) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE `program_terms` (
   UNIQUE KEY `uq_program_terms_version` (`program_id`, `version`),
   KEY `idx_program_terms_program_active` (`program_id`, `active`),
   CONSTRAINT `fk_program_terms_program` FOREIGN KEY (`program_id`) REFERENCES `partner_programs` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `commission_contracts` (
   `id` CHAR(36) NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE `commission_contracts` (
   CONSTRAINT `fk_contract_program` FOREIGN KEY (`program_id`) REFERENCES `partner_programs` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_contract_terms` FOREIGN KEY (`terms_id`) REFERENCES `program_terms` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_contract_partner` FOREIGN KEY (`partner_id`) REFERENCES `partners` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE `partner_campaigns`
   ADD COLUMN `program_id` CHAR(36) NULL,
