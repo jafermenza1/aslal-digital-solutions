@@ -19,7 +19,7 @@ for (const root of SCAN_ROOTS) walk(path.join(ROOT, root));
 
 const violations = [];
 const hexPattern = /#[0-9A-Fa-f]{3,8}\b/g;
-const rgbPattern = /rgba?\([^)]*\)/g;
+const rgbPattern = /rgba?\(([^)]*)\)/g;
 
 for (const file of files) {
   const content = fs.readFileSync(file, "utf8");
@@ -30,7 +30,12 @@ for (const file of files) {
     }
   }
   for (const match of content.matchAll(rgbPattern)) {
-    violations.push({ file: path.relative(ROOT, file), value: match[0] });
+    const parts = match[1].split(",").map((part) => Number.parseFloat(part.trim()));
+    const rgb = parts.slice(0, 3);
+    const allowedRgb = [[15, 62, 138], [226, 176, 42], [30, 41, 59], [248, 250, 252]];
+    if (rgb.length !== 3 || !allowedRgb.some((value) => value.every((channel, index) => channel === rgb[index]))) {
+      violations.push({ file: path.relative(ROOT, file), value: match[0] });
+    }
   }
 }
 
