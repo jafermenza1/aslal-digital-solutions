@@ -27,7 +27,7 @@ CREATE TABLE professional_proposals (
   CONSTRAINT fk_professional_proposal_response FOREIGN KEY (response_id) REFERENCES commercial_request_responses(id) ON DELETE CASCADE,
   CONSTRAINT fk_professional_proposal_party FOREIGN KEY (responder_party_id) REFERENCES commercial_parties(id) ON DELETE SET NULL,
   CONSTRAINT fk_professional_proposal_partner FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE professional_proposal_versions (
   id CHAR(36) NOT NULL,
@@ -56,4 +56,4 @@ CREATE TABLE professional_proposal_versions (
   KEY idx_professional_proposal_version_created (proposal_id,created_at),
   KEY idx_professional_proposal_version_validity (validity_until),
   CONSTRAINT fk_professional_proposal_version_proposal FOREIGN KEY (proposal_id) REFERENCES professional_proposals(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
