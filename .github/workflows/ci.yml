@@ -1,6 +1,10 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -14,8 +18,8 @@ env:
   DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/aslal_ci
 
 jobs:
-  validate:
-    name: Lint, typecheck, Prisma, build
+  lint:
+    name: Lint
     # Validation-only gate: no deployment or production side effects.
     runs-on: ubuntu-latest
     timeout-minutes: 15
