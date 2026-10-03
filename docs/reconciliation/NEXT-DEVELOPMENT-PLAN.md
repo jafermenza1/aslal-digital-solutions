@@ -192,34 +192,16 @@ All channels must resolve to the same person/customer, lead, commercial demand, 
 **Status:** IMPLEMENTED — ACCEPTANCE PENDING
 
 Implemented on main:
-- `components/AslalInteractiveHero.tsx` now acts as the first intent gateway with four outcome-oriented paths: Get more customers, Sell online, Automate conversations, Build a digital system.
-- The hero explicitly tells visitors they do not need to know which technical service they need.
-- Direct fallback: “I’m not sure — tell Aslal what I need” routes to `/contact`.
-- Telegram is presented as a conversational continuation rather than as a separate marketing destination.
-- `app/page.tsx` adds a second “Start here” intent gateway below the hero so the primary routing choices remain available after the first screen.
-- Existing `/products`, `/growth-builder`, and `/contact` journeys are reused; no second lead/order/CRM ledger was introduced.
+- `components/AslalInteractiveHero.tsx` is the primary intent gateway and now consumes `lib/public-commerce-contract.ts`, keeping public intent routing centralized.
+- The gateway offers four outcome-oriented paths: Get more customers, Sell online, Automate conversations, Build a digital system.
+- Each path communicates the next step and routes into an existing Growth Builder/catalog journey rather than creating a new intake system.
+- Direct fallback: “I’m not sure — tell Aslal what I need” routes to the adaptive `/contact` experience; visitors can also choose human conversation through Telegram.
+- `app/page.tsx` replaces the duplicate second intent chooser with a “How the journey works” explanation: choose an outcome → take the simplest path → keep context.
+- Homepage messaging explicitly explains that selected goal/product/referral context continues into the existing operating system.
+- No new lead/order/CRM ledger was introduced.
+- Existing localized homepage structure remains intact.
 
-**Acceptance evidence still required:**
-- `npm run lint`
-- `npm run typecheck`
-- relevant homepage/browser checks on desktop and mobile
-- verify all four intent routes and `/contact` fallback
-- verify locale behavior and existing attribution/event tracking
-- confirm no broken route such as a missing Telegram page in the deployed build.
-
-### 2B.5 PCCE-3 — Public Catalog & Offer Experience
-
-**Goal:** make products and services commercially understandable and actionable.
-
-**Implementation:**
-- improve product discovery with category/search/filter appropriate to catalog size;
-- product pages show clear value, price/starting price when available, availability/context and legitimate trust information;
-- Product → Order; Service → Request service; Custom → Tell us what you need;
-- offer Telegram continuation where supported;
-- preserve partner/referral attribution on supported CTAs;
-- never imply inventory, price or provider availability unsupported by canonical data.
-
-**Acceptance:** a visitor can move from discovery to a tracked request/order/conversation without losing attribution.
+Remaining acceptance evidence: verify the four routes, fallback contact route, Telegram continuation, locale behavior, event attribution, `npm run lint`, `npm run typecheck`, and production browser behavior before marking the increment accepted.
 
 ### 2B.6 PCCE-4 — Growth Builder as Guided Demand Gateway
 
