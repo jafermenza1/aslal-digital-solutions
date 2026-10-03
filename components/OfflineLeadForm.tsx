@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Product={id:string;name:string;slug:string};
@@ -17,7 +17,7 @@ export function OfflineLeadForm({openDefault=false,products=[],campaigns=[],serv
  const areas=campaign?.serviceAreas.length?campaign.serviceAreas:serviceAreas;
  const partners=campaign?.partners||[];
  const requiresArea=campaign?.deliveryMode!=="ONLINE";
- const availablePartners=useMemo(()=>partners,[partners]);
+ const availablePartners=partners;
  function reset(){setCampaignId("");setServiceAreaId("");setPartnerId("");setAttributionMethod("DIRECT_OFFLINE");}
  async function submit(e:React.FormEvent<HTMLFormElement>){
   e.preventDefault();setBusy(true);setMessage("");
