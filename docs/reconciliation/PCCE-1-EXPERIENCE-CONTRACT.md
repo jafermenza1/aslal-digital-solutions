@@ -1,6 +1,6 @@
 # PCCE-1 — Public Commerce & Conversation Experience Contract
 
-**Status:** Implemented  
+**Status:** Implemented and contract-checked on mainline  
 **Increment:** PCCE-1  
 **Scope:** Public terminology, intent taxonomy, CTA semantics and channel boundaries  
 **Source of truth:** `lib/i18n.ts`
@@ -115,4 +115,5 @@ PCCE-1 is accepted when:
 - channel responsibilities are defined;
 - all supported public locales have the core commerce vocabulary;
 - the dictionary remains type-safe through the existing `as const` locale structure;
-- later PCCE increments can consume the same keys without introducing competing terminology.
+- later PCCE increments can consume the same keys without introducing competing terminology;
+- `npm run pcce-1:check` verifies the required vocabulary exists for `en`, `am`, `ar` and `om`.
