@@ -124,7 +124,7 @@ No CE increment is considered accepted merely because its schema or UI exists.
 ## 2B. Public Commerce & Conversation Experience — Increment Plan
 
 **Increment:** PCCE-1 through PCCE-10  
-**Status:** PCCE-1 IMPLEMENTED — ACCEPTANCE PENDING; PCCE-2 through PCCE-10 planned  
+**Status:** PCCE-1 IMPLEMENTED — ACCEPTANCE PENDING; PCCE-2 IMPLEMENTED — ACCEPTANCE PENDING; PCCE-3 through PCCE-10 planned  
 **Purpose:** turn the existing public website, Growth Builder, catalog, attribution, Telegram, WhatsApp and Email foundations into one simple customer-facing commerce and conversation experience without creating a second CRM, order ledger, attribution ledger or communication system.
 
 ### 2B.1 Product principle
@@ -186,6 +186,26 @@ All channels must resolve to the same person/customer, lead, commercial demand, 
 - ensure every CTA enters an existing tracked journey rather than a parallel intake.
 
 **Acceptance:** every primary CTA produces a measurable continuation to catalog, demand capture or conversation.
+
+### 2B.5 PCCE-2 implementation evidence
+
+**Status:** IMPLEMENTED — ACCEPTANCE PENDING
+
+Implemented on main:
+- `components/AslalInteractiveHero.tsx` now acts as the first intent gateway with four outcome-oriented paths: Get more customers, Sell online, Automate conversations, Build a digital system.
+- The hero explicitly tells visitors they do not need to know which technical service they need.
+- Direct fallback: “I’m not sure — tell Aslal what I need” routes to `/contact`.
+- Telegram is presented as a conversational continuation rather than as a separate marketing destination.
+- `app/page.tsx` adds a second “Start here” intent gateway below the hero so the primary routing choices remain available after the first screen.
+- Existing `/products`, `/growth-builder`, and `/contact` journeys are reused; no second lead/order/CRM ledger was introduced.
+
+**Acceptance evidence still required:**
+- `npm run lint`
+- `npm run typecheck`
+- relevant homepage/browser checks on desktop and mobile
+- verify all four intent routes and `/contact` fallback
+- verify locale behavior and existing attribution/event tracking
+- confirm no broken route such as a missing Telegram page in the deployed build.
 
 ### 2B.5 PCCE-3 — Public Catalog & Offer Experience
 
