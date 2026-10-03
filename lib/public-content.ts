@@ -2,6 +2,8 @@ import { cache } from "react";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2/promise";
 import { db } from "@/lib/db";
+import { cookies } from "next/headers";
+import { localeCookie, normalizeLocale, type Locale } from "@/lib/i18n";
 
 export const PUBLIC_FONT_OPTIONS = [
   { value: "inherit", label: "Site default" },
@@ -86,8 +88,9 @@ export type ContentMap=Record<string,{value:string;richHtml?:string;fontFamily:s
 
 type ContentRow=RowDataPacket&{page_path:string;content_key:string;label:string;value:string;rich_html:string|null;font_family:string;font_size:number;active:number};
 
-export const getPageContent=cache(async(pagePath:string)=>{
- const [rows]=await db.query<ContentRow[]>("SELECT page_path,content_key,label,value,rich_html,font_family,font_size,active FROM public_content WHERE page_path=? AND active=1",[pagePath]);
+export const getPageContent=cache(async(pagePath:string, requestedLocale?:Locale)=>{
+ const locale=normalizeLocale(requestedLocale || (await cookies()).get(localeCookie)?.value);
+ const [rows]=await db.query<ContentRow[]>(`SELECT p.page_path,p.content_key,p.label,COALESCE(t.translated_text,p.value) AS value,p.rich_html,p.font_family,p.font_size,p.active FROM public_content p LEFT JOIN translation_entries t ON t.workspace_id=? AND t.surface='SITE' AND t.locale=? AND t.translation_key=p.content_key AND t.active=1 WHERE p.page_path=? AND p.active=1`,["00000000-0000-0000-0000-000000000001",locale,pagePath]);
  const map:Record<string,{value:string;richHtml?:string;fontFamily:string;fontSize:number}>={};
  for(const row of rows) map[row.content_key]={value:row.value,richHtml:row.rich_html||"",fontFamily:row.font_family,fontSize:Number(row.font_size)};
  return map;
