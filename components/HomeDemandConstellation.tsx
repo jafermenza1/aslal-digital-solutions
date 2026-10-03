@@ -72,7 +72,7 @@ export function HomeDemandConstellation() {
                   filter="url(#aslal-glow)"
                   initial={{ cx: a.x, cy: a.y, opacity: 0 }}
                   animate={{ cx: [a.x, b.x], cy: [a.y, b.y], opacity: [0, 1, 0] }}
-                  transition={{ duration: 2.6, repeat: Infinity, ease: "linear", delay: Math.random() * 1.8 }}
+                  transition={{ duration: 2.6, repeat: Infinity, ease: "linear", delay: index * .23 }}
                 />
               )}
             </g>
