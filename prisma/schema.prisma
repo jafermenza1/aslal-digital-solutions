@@ -981,7 +981,6 @@ model Partner {
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
   commercialLeakageSignals CommercialLeakageSignal[]
-  commercialDisputes CommercialDispute[]
   commercialAppointments CommercialAppointment[]
   commercialRequests CommercialRequest[]
 
