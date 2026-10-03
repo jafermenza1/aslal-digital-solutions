@@ -42,6 +42,7 @@ const ITEMS:Item[]=[
 {key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Marketplace"},
 {key:"partners",href:"/dashboard/partners/network",permission:"partners.manage",icon:"partner",group:"growth",label:"Partner Network"},
 {key:"partners",href:"/dashboard/partner-settings",permission:"partners.manage",icon:"partner",group:"growth",nested:true,label:"Partner Registration Settings"},
+{key:"partners",href:"/dashboard/partner-sales-assets",permission:"partners.manage",icon:"store",group:"growth",nested:true,label:"Partner Sales Assets"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
 {key:"products",href:"/dashboard/listings",permission:"products.manage",icon:"store",group:"commerce",label:"Commercial Listings"},
@@ -57,7 +58,8 @@ const ITEMS:Item[]=[
 {key:"publicContent",href:"/dashboard/social-profiles",permission:"content.manage",icon:"message",group:"administration",nested:true,label:"Social Profiles"},
 
 {key:"publicCatalog",href:"/products",permission:"dashboard.view",icon:"store",group:"explore"},
-{key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"}
+{key:"partnerPortal",href:"/dashboard/partner",permission:"partner.portal.view",icon:"partner",group:"explore"},
+{key:"partnerPortal",href:"/dashboard/partner/sales-assets",permission:"partner.portal.view",icon:"store",group:"explore",nested:true,label:"Sell & Print"}
 ];
 
 export function DashboardNav({locale,permissions,mobile=false,open=false,onClose}:{locale:Locale;permissions:string[];mobile?:boolean;open?:boolean;onClose?:()=>void}) {
