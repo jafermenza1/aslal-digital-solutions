@@ -70,3 +70,26 @@ Components should use semantic dictionary keys for shared shell labels rather th
 
 This foundation centralizes the public/app locale model and translates the shared dashboard shell and major dashboard labels. It does **not** claim that every legacy dashboard paragraph is translated. Those pages can be migrated incrementally without changing business behavior.
 
+
+## Public Commerce terminology (PCCE-1)
+
+The public commerce vocabulary is centralized in the `commerce` dictionary under each locale in `lib/i18n.ts`. The contract is documented in `docs/reconciliation/PCCE-1-EXPERIENCE-CONTRACT.md`.
+
+Use these semantic keys for customer-facing commerce CTAs and intent paths rather than introducing screen-specific wording:
+
+- `commerce.intents.growth`
+- `commerce.intents.sell`
+- `commerce.intents.automate`
+- `commerce.intents.system`
+- `commerce.tellUs`
+- `commerce.findSolution`
+- `commerce.requestProduct`
+- `commerce.requestService`
+- `commerce.customNeed`
+- `commerce.talkSpecialist`
+- `commerce.order`
+- `commerce.browseProducts`
+- `commerce.exploreServices`
+- `commerce.talkTelegram`
+
+Do not expose internal terms such as CommercialRequest or CommercialMatch as the primary public label.
