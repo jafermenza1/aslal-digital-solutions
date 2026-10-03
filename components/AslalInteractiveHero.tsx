@@ -92,11 +92,3 @@ export function AslalInteractiveHero({content}:{content:HeroContent}){
     </div>
   <HomeSignalStrip /></section>;
 }
-  return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
-    <APlexusCanvas/><div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_45%,rgba(15,62,138,.14),transparent_42%),linear-gradient(90deg,rgba(30,41,59,.96)_0%,rgba(30,41,59,.88)_48%,rgba(30,41,59,.58)_100%)]"/>
-    <div className="relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
-      <div className="space-y-7 lg:col-span-7"><div className="inline-flex items-center gap-2 rounded-full border border-[#E2B02A]/40 bg-[#1E293B]/80 px-3 py-1.5 text-[10px] font-mono font-bold text-[#E2B02A] sm:text-xs"><span className="h-2 w-2 animate-pulse rounded-full bg-[#E2B02A]"/>PROVEN PRODUCTS · LOCAL IMPLEMENTATION · CUSTOM FIT</div><AnimatedHeroText content={content}/><div className="flex flex-wrap gap-3 pt-1"><Link href="/growth-builder" className="rounded-xl bg-[#E2B02A] px-6 py-3.5 text-sm font-bold text-[#1E293B] shadow-lg transition hover:bg-[#E2B02A] hover:shadow-[#E2B02A]/30 sm:px-7">Build My Growth System →</Link><Link href="/products" className="rounded-xl border border-slate-700 bg-[#1E293B]/60 px-6 py-3.5 text-sm font-semibold text-[#F8FAFC] backdrop-blur-sm transition hover:border-[#E2B02A] hover:text-[#E2B02A] sm:px-7">Explore Solutions</Link></div></div>
-      <div className="flex justify-center lg:col-span-5 lg:justify-end"><OutcomeDashboard/></div>
-    </div>
-  </section>;
-}
