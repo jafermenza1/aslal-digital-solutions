@@ -69,7 +69,7 @@ WHERE @demo_workspace_id IS NOT NULL
 -- Supply listings
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
-   description, category, condition, location, asking_price, currency, price_label,
+   description, category, `condition`, location, asking_price, currency, price_label,
    request_quote, public_visible, featured, metadata, published_at, expires_at, created_at, updated_at)
 SELECT
   'd2000000-0000-4000-8000-000000000001', @demo_workspace_id,
@@ -85,7 +85,7 @@ WHERE @demo_workspace_id IS NOT NULL;
 
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
-   description, category, condition, location, asking_price, currency, price_label,
+   description, category, `condition`, location, asking_price, currency, price_label,
    request_quote, public_visible, featured, metadata, published_at, expires_at, created_at, updated_at)
 SELECT
   'd2000000-0000-4000-8000-000000000002', @demo_workspace_id,
@@ -101,7 +101,7 @@ WHERE @demo_workspace_id IS NOT NULL;
 
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
-   description, category, condition, location, asking_price, currency, price_label,
+   description, category, `condition`, location, asking_price, currency, price_label,
    inspection_required, request_quote, public_visible, featured, metadata, published_at, expires_at, created_at, updated_at)
 SELECT
   'd2000000-0000-4000-8000-000000000003', @demo_workspace_id,
@@ -117,7 +117,7 @@ WHERE @demo_workspace_id IS NOT NULL;
 
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
-   description, category, condition, location, asking_price, currency, price_label,
+   description, category, `condition`, location, asking_price, currency, price_label,
    request_quote, public_visible, featured, metadata, published_at, expires_at, created_at, updated_at)
 SELECT
   'd2000000-0000-4000-8000-000000000004', @demo_workspace_id,
@@ -133,7 +133,7 @@ WHERE @demo_workspace_id IS NOT NULL;
 
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
-   description, category, condition, location, asking_price, currency, price_label,
+   description, category, `condition`, location, asking_price, currency, price_label,
    request_quote, public_visible, featured, metadata, published_at, expires_at, created_at, updated_at)
 SELECT
   'd2000000-0000-4000-8000-000000000005', @demo_workspace_id,
