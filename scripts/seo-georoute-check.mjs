@@ -6,7 +6,7 @@ const required=[
  ["app/robots.ts",["sitemap:","disallow"]],
  ["app/sitemap.ts",["alternates","languages","x-default","/platform","/marketplace","/wanted"]],
  ["proxy.ts",["supportedLocales","NextResponse.rewrite","x-aslal-locale"]],
- ["components/LanguageToggle.tsx",["window.location.assign","/am","/om"]],
+ ["components/LanguageToggle.tsx",["window.location.assign","next===","nextLocale"]],
  ["components/SearchStructuredData.tsx",["BreadcrumbList"]]
 ];
 const errors=[];
