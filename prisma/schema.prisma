@@ -866,7 +866,6 @@ model ReferralLink {
   partner         Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   partnerCampaign PartnerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   leadAttributions LeadAttribution[]
-  leadAttributionAudits LeadAttributionAudit[]
   resourceAttributions ResourceAttribution[]
   clicks          ReferralClick[]
   commissions     Commission[]
