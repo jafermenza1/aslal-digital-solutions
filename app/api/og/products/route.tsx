@@ -7,9 +7,9 @@ export const revalidate = 86400;
 export async function GET() {
   return new ImageResponse(
     (
-      <div style={{ width: "1200px", height: "630px", display: "flex", flexDirection: "column", justifyContent: "center", background: "#071F47", color: "white", padding: "72px 86px", fontFamily: "Arial" }}>
+      <div style={{ width: "1200px", height: "630px", display: "flex", flexDirection: "column", justifyContent: "center", background: "#0F3E8A", color: "white", padding: "72px 86px", fontFamily: "Arial" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "26px" }}>
-          <div style={{ width: "120px", height: "120px", borderRadius: "28px", background: "#E2B02A", display: "flex", alignItems: "center", justifyContent: "center", color: "#071F47", fontSize: "70px", fontWeight: 900 }}>A</div>
+          <div style={{ width: "120px", height: "120px", borderRadius: "28px", background: "#E2B02A", display: "flex", alignItems: "center", justifyContent: "center", color: "#0F3E8A", fontSize: "70px", fontWeight: 900 }}>A</div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: "54px", fontWeight: 900, letterSpacing: "-2px" }}>ASLAL DIGITAL SOLUTIONS</div>
             <div style={{ marginTop: "10px", fontSize: "32px", fontWeight: 800, color: "#E2B02A" }}>Products & Services</div>
