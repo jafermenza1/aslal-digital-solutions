@@ -39,4 +39,4 @@ CREATE TABLE `commercial_deal_registrations` (
   CONSTRAINT `fk_commercial_deal_authorization` FOREIGN KEY (`authorization_id`) REFERENCES `commercial_listing_authorizations` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_commercial_deal_lead` FOREIGN KEY (`lead_id`) REFERENCES `leads` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_commercial_deal_opportunity` FOREIGN KEY (`opportunity_id`) REFERENCES `opportunities` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE=InnoDB;
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
