@@ -45,7 +45,7 @@ CREATE TABLE commercial_agreements (
   CONSTRAINT fk_commercial_agreement_commission_contract FOREIGN KEY (commission_contract_id) REFERENCES commission_contracts(id) ON DELETE SET NULL,
   CONSTRAINT fk_commercial_agreement_deal FOREIGN KEY (deal_registration_id) REFERENCES commercial_deal_registrations(id) ON DELETE SET NULL,
   CONSTRAINT fk_commercial_agreement_proposal FOREIGN KEY (proposal_id) REFERENCES professional_proposals(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE commercial_agreement_participants (
   id CHAR(36) NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE commercial_agreement_participants (
   CONSTRAINT fk_agreement_participant_agreement FOREIGN KEY (agreement_id) REFERENCES commercial_agreements(id) ON DELETE CASCADE,
   CONSTRAINT fk_agreement_participant_party FOREIGN KEY (party_id) REFERENCES commercial_parties(id) ON DELETE SET NULL,
   CONSTRAINT fk_agreement_participant_partner FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE commercial_agreement_versions (
   id CHAR(36) NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE commercial_agreement_versions (
   UNIQUE KEY uq_commercial_agreement_version (agreement_id,version_number),
   KEY idx_commercial_agreement_version_created (agreement_id,created_at),
   CONSTRAINT fk_commercial_agreement_version_agreement FOREIGN KEY (agreement_id) REFERENCES commercial_agreements(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE commercial_agreement_acceptances (
   id CHAR(36) NOT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE commercial_agreement_acceptances (
   KEY idx_commercial_agreement_acceptance_participant (participant_id,accepted_at),
   CONSTRAINT fk_commercial_agreement_acceptance_agreement FOREIGN KEY (agreement_id) REFERENCES commercial_agreements(id) ON DELETE CASCADE,
   CONSTRAINT fk_commercial_agreement_acceptance_participant FOREIGN KEY (participant_id) REFERENCES commercial_agreement_participants(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE commercial_agreement_events (
   id CHAR(36) NOT NULL,
@@ -108,4 +108,4 @@ CREATE TABLE commercial_agreement_events (
   PRIMARY KEY (id),
   KEY idx_commercial_agreement_event_created (agreement_id,created_at),
   CONSTRAINT fk_commercial_agreement_event_agreement FOREIGN KEY (agreement_id) REFERENCES commercial_agreements(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
