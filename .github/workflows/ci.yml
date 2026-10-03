@@ -57,3 +57,4 @@ jobs:
         run: npm run hardening:test
 
 # Validation gate remains enabled; production deployment remains manual-only.
+# Typecheck fixes validated through GitHub Actions.
