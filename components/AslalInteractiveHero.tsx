@@ -59,11 +59,11 @@ function OutcomeDashboard(){
 
 export function AslalInteractiveHero({content}:{content:HeroContent}){
   const [intentOpen,setIntentOpen]=useState(false);
-  const intentDetails: Record<string, { hint: string; next: string }> = {
-    growth: { hint: "Marketing, SEO, campaigns & lead generation", next: "Open Growth Builder" },
-    sell: { hint: "Products, orders, payments & customer follow-up", next: "Browse solutions" },
-    automate: { hint: "Telegram, WhatsApp & human handoff", next: "Design the workflow" },
-    system: { hint: "Website, CRM, automation & connected workflows", next: "Design the system" },
+  const intentDetails: Record<string, { label: string; hint: string; next: string }> = {
+    growth: { label: "Get more customers", hint: "Marketing, SEO, campaigns & lead generation", next: "Open Growth Builder" },
+    sell: { label: "Sell online", hint: "Products, orders, payments & customer follow-up", next: "Browse solutions" },
+    automate: { label: "Automate conversations", hint: "Telegram, WhatsApp & human handoff", next: "Design the workflow" },
+    system: { label: "Build a digital system", hint: "Website, CRM, automation & connected workflows", next: "Design the system" },
   };
   const intents = publicCommerceIntents.map((intent) => ({
     ...intent,
