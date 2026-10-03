@@ -11,7 +11,6 @@
   --color-primary-text: #1E293B;
   --color-secondary-text: #1E293B;
   --color-amber: #E2B02A;
-  --color-amber-light: #E2B02A;
 }
 
 :root{
@@ -61,8 +60,6 @@
   --app-brand:#E2B02A;
   --app-deep:#1E293B;
   --app-gold:#E2B02A;
-  --app-cyan:#0F3E8A;
-  --app-indigo:#0F3E8A;
 }
 html[data-theme="dark"]{--app-bg:#1E293B;--app-surface:#1E293B;--app-surface-2:#1E293B;--app-border:#1E293B;--app-text:#F8FAFC;--app-muted:#F8FAFC;--app-brand:#F8FAFC;--app-deep:#1E293B}
 html[data-theme="dark"] body{background:var(--app-bg);color:var(--app-text);color-scheme:dark}html[data-theme="light"] body{color-scheme:light}
@@ -437,8 +434,6 @@ html[data-theme="dark"]{
   --app-brand:var(--ui-dark-amber);
   --app-deep:var(--ui-dark-canvas);
   --app-gold:var(--ui-dark-amber);
-  --app-cyan:var(--ui-cyan);
-  --app-indigo:var(--ui-indigo);
 }
 
 html[data-theme="light"]{
@@ -452,8 +447,6 @@ html[data-theme="light"]{
   --app-brand:var(--ui-amber);
   --app-deep:var(--ui-dark-canvas);
   --app-gold:var(--ui-amber);
-  --app-cyan:var(--ui-cyan);
-  --app-indigo:var(--ui-indigo);
 }
 
 body{
