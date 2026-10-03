@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import {
   ArrowRight, BarChart3, Bot, CheckCircle2, CreditCard,
-  Mail, MessageCircle, Send, ShoppingCart, Sparkles, TrendingUp, Workflow
+  Mail, MessageCircle, Send, ShoppingCart, Sparkles, TrendingUp, Workflow, Target, Route, ShieldCheck
 } from "lucide-react";
 import { AslalInteractiveHero } from "@/components/AslalInteractiveHero";
 import { HomeRoiEstimator } from "@/components/HomeRoiEstimator";
