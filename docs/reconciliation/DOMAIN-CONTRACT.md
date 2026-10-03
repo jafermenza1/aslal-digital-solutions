@@ -209,3 +209,31 @@ This contract is intentionally small. New entities must justify themselves again
 5. Did it produce revenue?
 
 If an entity does not improve the ability to answer one of those questions, it should not be introduced into the core domain without explicit justification.
+
+
+## Commercial Engine extensions
+
+The core domain contract is extended by docs/MAIN-COMMERCIAL-ENGINE.md for commercial operations. The following concepts must be treated as distinct where their business semantics require them:
+
+- **Commercial Listing** — a controlled published representation of a product, asset, property or service.
+- **Listing Authorization** — permission for a staff member, supplier, partner, reseller or other authorized party to distribute or sell a listing.
+- **Deal Registration** — a partner-originated commercial claim that can be approved and protected under applicable terms.
+- **Inspection Appointment** — a scheduled/attended physical-world commercial event tied to an opportunity.
+- **Commercial Request** — structured demand such as a buy request, asset request, service request or RFP.
+- **Request Match** — a traceable relationship between demand and an eligible supply/provider.
+- **Provider Profile** — professional/service-provider identity and capability information.
+- **Proposal** — a provider response to a service/RFP demand, distinct from a generic conversation.
+- **Payment Evidence** — evidence of an external settlement that is not the same as provider-confirmed payment.
+- **Commercial Agreement** — applicable attribution, protection, commission, territory and commercial terms where existing contracts do not already express them.
+
+These concepts must connect to the existing Lead, Opportunity, Quote, Order, Payment, Revenue, Partner, Campaign, Referral and Commission domains rather than creating disconnected parallel transaction systems.
+
+The canonical commercial relationship is:
+
+Commercial Request/Listing → Lead → Opportunity → Quote/Proposal → Negotiation → Order → Payment/Payment Evidence → Revenue → Commission → Fulfillment/Service → Customer/Retention
+
+The commercial engine also requires a distinction between **attribution evidence** and **commission entitlement**. A referral or deal registration is evidence of contribution; the applicable contract determines whether and when it produces a financial obligation.
+
+Physical activities such as inspection, demonstration, site visit and appointment are part of the commercial timeline and must not be treated as external to the system merely because they occur offline.
+
+Existing ProductRelationship, Partner, ResourceRequest, CampaignAsset, CommissionContract, QR/redemption and sales-asset concepts should be reused or explicitly reconciled before introducing replacements.

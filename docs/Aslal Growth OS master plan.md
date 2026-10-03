@@ -1,5 +1,7 @@
 # ASLAL GROWTH OS
 
+> **Commercial Engine reconciliation:** The detailed commercial-domain specification is maintained in [MAIN-COMMERCIAL-ENGINE.md](MAIN-COMMERCIAL-ENGINE.md). It expands the master plan's commercial chain with controlled listings, supply/demand requests, deal registration, attribution protection, physical inspection evidence, professional services/RFPs, external payment evidence, leakage/dispute controls and role-specific commercial self-service. It is a detailed domain specification, not a competing roadmap.
+
 ## Full Product Requirements Document
 
 **Product:** Aslal Growth OS

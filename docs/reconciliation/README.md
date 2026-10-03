@@ -6,6 +6,7 @@
 **Current mainline:** 383f849c18c8d40d3acd9560d3f941d91c419cc6
 **Latest verified deployment:** Emerald deployment run 35898297667 for current mainline 383f849c18c8d40d3acd9560d3f941d91c419cc6, successful
 **Product authority:** `docs/PRD-ASLAL-GROWTH-OS-v1.0.md` plus the expanded target-state product definition agreed on 2026-09-23  
+**Commercial domain specification:** `docs/MAIN-COMMERCIAL-ENGINE.md` — detailed commercial reconciliation and gap-filling contract; it does not replace the roadmap or current execution state.  
 **Roadmap:** `docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md`
 
 ---
@@ -29,6 +30,8 @@ This document must be read before any developer or AI coding agent changes a maj
 ## 2. Authority and document separation
 
 The checked-in PRD remains the product authority until the expanded target-state PRD is committed into the repository as its own versioned document.
+
+When changing catalog, marketplace, partner-commerce, demand, provider, quote/order/payment, attribution or commission behavior, this document must be read together with `docs/MAIN-COMMERCIAL-ENGINE.md`.
 
 The reconciliation documents answer:
 

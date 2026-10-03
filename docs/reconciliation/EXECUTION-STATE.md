@@ -407,3 +407,289 @@ Added docs/ops/Q1-OPERATOR-SOP-EVIDENCE.md. It maps the required Q1 operator pro
 **Required evidence:** one controlled execution per SOP, authorization/state-transition evidence, failed-transaction rollback proof, receipt-exception proof and payout settlement evidence.
 
 Q1 remains **NOT ACCEPTED**.
+
+
+## Main Commercial Engine — CE-1 implementation update
+
+**Increment:** CE-1 — Commercial Listing Foundation  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+The first commercial-engine increment is now implemented on the PR #99 branch as an extension of the existing Product/Service catalog.
+
+Implemented:
+- `CommercialListing` Prisma model and lifecycle/type enums;
+- checked-in Prisma migration;
+- workspace-scoped listing create/read/update API;
+- existing `products.manage` authorization boundary reused for CE-1;
+- listing manager under Dashboard → Commercial Listings;
+- public `/marketplace` discovery surface;
+- public `/marketplace/listings/[slug]` detail surface;
+- optional linkage from a listing to an existing workspace Product/Service;
+- support for standalone asset/property listings without creating a second product catalog.
+
+Not implemented by CE-1:
+- partner authorization;
+- partner eligibility;
+- deal registration;
+- attribution protection;
+- inspection scheduling;
+- wanted requests;
+- supply-demand matching;
+- provider/RFP workflows;
+- external payment evidence;
+- leakage/dispute automation.
+
+CE-1 is **not accepted** from code existence alone. Required evidence includes Prisma migration/application validation, local typecheck/lint/build, workspace A/B authorization tests, public visibility/status tests, product-to-listing workspace mismatch rejection, and controlled create/edit/publish behavior.
+## Main Commercial Engine — CE-2 implementation update
+
+**Increment:** CE-2 — Owner/Supplier Authorization  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+CE-2 extends CE-1 without replacing the existing Product/Service catalog or workspace authorization boundary.
+
+Implemented:
+- commercial party registry for business, supplier, asset-owner, service-provider and external-owner relationships;
+- explicit owner and supplier references on CommercialListing;
+- listing publication guard requiring an identified commercial owner;
+- listing distribution authorization records for staff users, partners and commercial parties;
+- authorization lifecycle: REQUESTED, APPROVED, ACTIVE, SUSPENDED, EXPIRED, REVOKED;
+- authorization scope fields for effective/expiry dates, territory, channel, partner types, quantity limit, commission rule, protection days and exclusions;
+- workspace-scoped owner/supplier/authorization APIs using existing `products.manage` permission;
+- workspace membership/partner validation before authorization can be attached;
+- dashboard owner/supplier selection and CE-2 authorization workbench;
+- historical authorization is retained when an authorization is revoked; revocation does not delete listing, attribution or commercial history.
+
+Not implemented by CE-2:
+- partner eligibility evaluation;
+- automatic promotion-asset blocking based on eligibility;
+- deal registration/protection;
+- commission-contract creation or automatic commission calculation;
+- inspection/appointment;
+- demand requests/matching;
+- external payment evidence;
+- leakage/dispute automation.
+
+CE-2 is **not accepted** from code existence alone. Required evidence includes Prisma migration/application validation, local typecheck/lint/build, Workspace A/B authorization isolation tests, owner/supplier mismatch rejection, staff/partner workspace membership rejection, publication-without-owner rejection, authorization lifecycle transitions, and revoked-history preservation.
+
+## Main Commercial Engine — CE-3 implementation update
+
+**Increment:** CE-3 — Partner Eligibility  
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented:
+- explicit eligibility decision record with ELIGIBLE, INELIGIBLE and REVIEW_REQUIRED outcomes;
+- auditable reason codes and criteria snapshots rather than an opaque boolean;
+- checks for partner status, account restrictions, verification suspension and onboarding completion;
+- authorization status and listing publication/availability checks;
+- optional partner-program checks for published program, allowed partner types, active commission contract and accepted terms;
+- authorization-level partner type, territory and channel restrictions;
+- program association on commercial listing authorizations;
+- workspace-scoped eligibility evaluation API and dashboard evaluation control;
+- ACTIVE/APPROVED partner authorization is held in SUSPENDED state when current eligibility is not proven, preserving the authorization history rather than silently granting distribution rights.
+
+Not implemented by CE-3:
+- automatic deal registration;
+- attribution protection;
+- inspection/appointment;
+- demand matching;
+- commission calculation;
+- leakage/dispute automation.
+
+Required acceptance evidence remains: Prisma migration/application validation, typecheck/lint/build, Workspace A/B eligibility isolation, eligible/ineligible partner fixtures, program/contract/terms cases, partner-type/territory/channel cases, expired/unpublished listing cases, and proof that ineligible partners cannot receive an ACTIVE commercial authorization.
+
+
+## Main Commercial Engine — CE-4 Deal Registration — 2026-10-02
+
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented on PR #99:
+- CommercialDealRegistration schema and Prisma migration;
+- workspace/listing/partner/lead/authorization/opportunity relationships;
+- eligibility re-check at registration and approval;
+- active registration conflict detection by lead and buyer contact identifiers;
+- explicit approval/rejection/protection/conversion/dispute/expiry lifecycle;
+- authorization-configured protection period with 90-day fallback;
+- explicit lead attribution lock integration on approval;
+- protection against silently overwriting another active attribution lock;
+- dashboard registration/review workbench.
+
+Not yet accepted:
+- Prisma migration application against a real database;
+- typecheck/lint/build;
+- workspace A/B behavioral isolation;
+- duplicate/conflict scenarios with real fixtures;
+- approval/rejection/protection/expiry/conversion/dispute behavioral evidence;
+- reconciliation against actual partner attribution and downstream commission/order workflows.
+
+CE-4 does not yet implement inspection, commission calculation, payment evidence, leakage automation, or dispute resolution beyond recording the commercial registration as DISPUTED.
+
+
+## Main Commercial Engine — CE-5 Inspection & Appointment — 2026-10-02
+
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented:
+- CommercialAppointment domain linked to CommercialDealRegistration;
+- protected/converted deal gate before appointment creation;
+- scheduled/confirmed/attended/completed/cancelled/no-show lifecycle;
+- separate commercial outcome recording;
+- hashed public check-in token and attendance endpoint;
+- appointment overlap guard for the same partner;
+- dashboard scheduling and operational controls.
+
+Not yet accepted:
+- Prisma migration application against a real database;
+- typecheck/lint/build;
+- public check-in behavioral test;
+- QR generation/print test;
+- workspace isolation test;
+- appointment conflict and state-transition test;
+- real end-to-end protected deal -> inspection -> outcome evidence.
+
+Known CE-5 follow-on work:
+- QR image/print surface;
+- notifications/reminders;
+- calendar synchronization;
+- rescheduling workflow;
+- richer inspection evidence attachments.
+
+
+## CE-6 — Complete Demand/Wanted Request Workflow
+
+**Status: IMPLEMENTED — VERIFICATION PENDING**
+
+The implementation now covers public demand capture, Lead creation, qualification, controlled publication/response intake, supplier/provider/partner response, response acceptance, Opportunity creation, Quote creation/acceptance, Order creation and fulfillment closure. Existing Lead, Opportunity, Quote and Order domains are reused. Runtime migration, typecheck, lint, build, E2E and workspace-isolation verification remain outstanding.
+
+
+## CE-7 — Supply/Demand Matching
+
+**Status: IMPLEMENTED — VERIFICATION PENDING**
+
+The matching engine evaluates published listings against open CE-6 demand, persists weighted score/reasons, records partner eligibility where applicable, prevents duplicate request/listing matches, and provides shortlist/reject/contact/create-response controls. Runtime migration, typecheck, lint, build, E2E and workspace-isolation verification remain outstanding.
+
+
+## CE-7 Demo Demand & Matching Dataset — 2026-10-03
+
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+A migration-seeded demonstration dataset has been added before CE-8 so the deployed environment can immediately demonstrate the CE-6/CE-7 commercial flow after migrations are applied.
+
+Seeded:
+- 5 synthetic wanted-demand requests;
+- 5 published commercial supply listings;
+- 5 demo supplier/owner parties;
+- 8 persisted match records with score breakdowns and human-readable reasons;
+- varied match states including SUGGESTED, SHORTLISTED and CONTACTED.
+
+The records are scoped to the first active workspace, use clearly synthetic demo names/contact values, and do not represent historical customer activity. The seed is intentionally migration-based and therefore does not depend on CI or a separate application seed command.
+
+Required acceptance evidence remains: migration application, dashboard visibility, workspace isolation, matching behavior, duplicate/idempotency tests and CE-7 response handoff.
+
+
+## CE-8 — Professional Profiles — 2026-10-03
+
+**Status: IMPLEMENTED — VERIFICATION PENDING**
+
+Implemented on PR #99:
+- ProfessionalProfile linked to CommercialParty and optionally Partner;
+- professional specialties, categories, qualifications, service areas, languages, portfolio, availability, pricing and response-time fields;
+- explicit profile lifecycle and verification levels;
+- ProfessionalCredential evidence/review records;
+- admin profile/credential APIs and commercial dashboard workbench;
+- public published profile endpoint/page;
+- CommercialListing linkage to professional profiles;
+- CE-7 matching integration using professional profile information for service/RFP demand.
+
+Not yet accepted:
+- Prisma migration application;
+- generated Prisma client/typecheck/lint/build;
+- workspace A/B isolation;
+- public profile privacy/authorization tests;
+- credential expiry/review behavior;
+- service listing/profile linkage E2E;
+- CE-7 scoring regression and end-to-end provider response evidence.
+
+Verification levels are evidence labels only. The system must not mark a profile verified unless an authorized operator records the applicable verification state.
+\n\n## CE-9 — Professional RFP / Proposal\n\n**IMPLEMENTED — VERIFICATION PENDING**\n\nImplemented on `docs/main-commercial-engine-prd`: versioned professional proposals, immutable proposal versions, factual comparison, proposal acceptance/supersession, revision guard, and handoff to the existing Quote/Negotiation domain. Runtime verification remains pending.\n
+
+## CE-10 — Commercial Agreements
+
+**IMPLEMENTED — VERIFICATION PENDING**
+
+Versioned commercial agreements, participant acknowledgment, protection/attribution terms, event history and deal-registration protection integration are implemented. Runtime verification and controlled acceptance evidence remain pending.
+
+
+## CE-11 — External Payment Evidence
+
+**Branch:** `docs/main-commercial-engine-prd`
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented:
+- first-class external payment evidence for bank transfer, cash, institutional procurement and external gateways;
+- evidence lifecycle with submission, review, verification, rejection and void states;
+- workspace-scoped finance mutation authorization;
+- optional links to Order, Payment, Revenue, CommercialAgreement and DealRegistration;
+- verified evidence reconciliation into the canonical Payment record, including creation of an `EXTERNAL_EVIDENCE` Payment when an order is linked and no canonical Payment exists;
+- no automatic Revenue fabrication and no automatic commission creation;
+- dashboard recording/review/verification controls.
+
+Required evidence before CE-11 is accepted:
+- Prisma migration/application validation;
+- `npm run typecheck`;
+- `npm run lint`;
+- `npm run build`;
+- Workspace A/B isolation for evidence records and mutation APIs;
+- controlled bank-transfer, cash, external-gateway and institutional-procurement evidence journeys;
+- duplicate/idempotent verification and rejected/resubmitted evidence tests;
+- partial-payment and full-payment reconciliation tests;
+- downstream Payment → Revenue → Commission reconciliation evidence.
+
+
+## CE-12 — Leakage / Dispute Controls
+
+**Status:** IMPLEMENTED — VERIFICATION PENDING
+
+Implemented:
+- leakage signal domain and review lifecycle;
+- commercial dispute domain covering attribution, deal registration, commission, payment evidence, order value, partner contribution, circumvention and provider performance;
+- evidence references and affected-entity links;
+- explicit resolution actions;
+- commission preservation by default;
+- workspace-scoped APIs and operator review workbench.
+
+Required before acceptance:
+- Prisma migration/application validation;
+- npm run typecheck;
+- npm run lint;
+- npm run build;
+- workspace A/B isolation;
+- controlled signal detection/review journeys;
+- dispute evidence/additional-evidence workflows;
+- resolution idempotency and authorization tests;
+- proof that legitimate commissions are preserved unless an explicit resolution changes them;
+- cross-link tests from leakage signal → dispute → agreement/deal/payment evidence.
+
+
+## CE-13 — Commercial Analytics — 2026-10-03
+
+**Status: IMPLEMENTED — VERIFICATION PENDING**
+
+Implemented on the commercial-engine workstream:
+- workspace-scoped read-only commercial analytics API;
+- date-bounded supply, demand, CRM funnel, conversion, recognized revenue, partner-attributed revenue, commission and payout metrics;
+- demand/order/partner breakdowns;
+- verified external payment and dispute operational signals;
+- visible metric definitions and CSV export;
+- Reports Center integration.
+
+CE-13 reuses canonical Listing, CommercialRequest, Lead, Opportunity, Quote, Order, Payment, Revenue, Commission, PartnerPayout, Match, Appointment, ExternalPaymentEvidence and CommercialDispute records. No new analytics ledger or commercial outcome mutation was introduced.
+
+Required acceptance evidence remains:
+- Prisma migration/application validation where required by the branch;
+- `npm run typecheck`;
+- `npm run lint`;
+- `npm run build`;
+- workspace A/B isolation;
+- representative supply-led and demand-led commercial journeys;
+- reconciliation of displayed revenue/commission totals against canonical source records;
+- CSV export verification and date-range boundary checks.
