@@ -3,9 +3,10 @@ name: Deploy to Emerald
 on:
   workflow_dispatch:
     inputs:
-      sha:
-        description: "Main commit SHA to build and deploy (40 hex characters)"
-        required: true
+      ref:
+        description: "Deployment ref: leave as main for the current production source, or enter an exact 40-character commit SHA for rollback"
+        required: false
+        default: main
         type: string
 
 permissions:
@@ -26,34 +27,40 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Validate deployment SHA
+      - name: Resolve deployment ref
         env:
-          SHA: ${{ inputs.sha }}
+          REQUESTED_REF: ${{ inputs.ref }}
         run: |
           set -euo pipefail
-          SHA="$(printf '%s' "$SHA" | tr -d '[:space:]')"
-          if ! printf '%s' "$SHA" | grep -Eq '^[0-9a-fA-F]{40}$'; then
-            echo "::error::Invalid deployment SHA. Enter the exact 40-character commit SHA, for example: 8cbf958300fea43d954df4249668d3388acbe38e"
+          REF="$(printf '%s' "${REQUESTED_REF:-main}" | tr -d '[:space:]')"
+          if [ -z "$REF" ]; then
+            REF="main"
+          fi
+          if [ "$REF" = "main" ]; then
+            echo "DEPLOY_REF=main" >> "$GITHUB_ENV"
+            echo "Deployment target: current main branch"
+          elif printf '%s' "$REF" | grep -Eq '^[0-9a-fA-F]{40}$'; then
+            echo "DEPLOY_REF=$REF" >> "$GITHUB_ENV"
+            echo "Deployment target: exact commit $REF"
+          else
+            echo "::error::Invalid deployment ref. Leave the field as main, or enter an exact 40-character commit SHA."
             exit 1
           fi
-          echo "SHA=$SHA" >> "$GITHUB_ENV"
 
-      - name: Checkout repository
+      - name: Checkout deployment source
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ env.DEPLOY_REF }}
           fetch-depth: 1
 
-      - name: Fetch and checkout requested SHA
-        env:
-          SHA: ${{ env.SHA }}
+      - name: Resolve exact deployment SHA
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "$SHA"
-          git checkout --detach "$SHA"
-          ACTUAL="$(git rev-parse HEAD)"
-          test "$ACTUAL" = "$SHA"
-          echo "Deployment source SHA: $ACTUAL"
+          SHA="$(git rev-parse HEAD)"
+          test -n "$SHA"
+          test "$(printf '%s' "$SHA" | wc -c)" -eq 40
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+          echo "Deployment source SHA: $SHA"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
