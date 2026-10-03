@@ -87,9 +87,13 @@ export default async function Home() {
       <section className="landing-section bg-white" aria-labelledby="journey-title">
         <div className="container-aslal py-2">
           <div className="rounded-[2rem] border border-[#0F3E8A]/10 bg-[#F8FAFC] p-7 shadow-sm sm:p-9">
-            <div className="max-w-3xl"><span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">START HERE</span><h2 id="journey-title" className="mt-3 text-3xl font-black tracking-tight md:text-4xl">You bring the goal. Aslal connects the next step.</h2><p className="mt-4 text-base leading-7 text-slate-600">Choose what you are trying to accomplish. We will take you to the simplest path instead of making you learn our service catalog first.</p></div>
-            <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {[["Get more customers","/contact?goal=Get%20more%20customers"],["Sell online","/products"],["Automate conversations","/growth-builder?goal=Automate%20conversations"],["Build a digital system","/growth-builder?goal=Build%20a%20digital%20system"]].map(([label,href])=><Link key={label} href={href} className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#E2B02A] hover:shadow-md"><div className="flex items-center justify-between gap-3"><span className="font-black text-[#1E293B]">{label}</span><ArrowRight size={17} className="text-[#0F3E8A] transition group-hover:translate-x-1"/></div><p className="mt-2 text-xs leading-5 text-slate-500">Start without choosing a technical service.</p></Link>)}
+            <div className="max-w-3xl"><span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">HOW THE JOURNEY WORKS</span><h2 id="journey-title" className="mt-3 text-3xl font-black tracking-tight md:text-4xl">Choose the outcome. We handle the complexity.</h2><p className="mt-4 text-base leading-7 text-slate-600">You do not need to understand Aslal’s internal systems. Start with what you want to accomplish and the platform carries the context into the right next step.</p></div>
+            <div className="mt-7 grid gap-3 md:grid-cols-3">
+              {[
+                ["01","Choose an outcome","Tell us whether you want customers, online sales, automation or a connected digital system."],
+                ["02","Take the simplest path","We send you to a guided builder, solution catalog, conversation or direct request—not a maze of services."],
+                ["03","Keep your context","Your selected goal, product, referral and attribution stay attached as the request moves into Aslal’s operating system."]
+              ].map(([number,title,text])=><div key={number} className="rounded-2xl border border-slate-200 bg-white p-5"><span className="font-mono text-xs font-black text-[#0F3E8A]">{number}</span><h3 className="mt-3 font-black text-[#1E293B]">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-500">{text}</p></div>)}
             </div>
           </div>
         </div>
