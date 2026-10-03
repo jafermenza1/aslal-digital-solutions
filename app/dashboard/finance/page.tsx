@@ -9,7 +9,7 @@ export default async function FinancePage() {
     <main className="min-h-screen bg-[var(--ui-canvas)] py-10">
       <div className="container-aslal space-y-8">
         <header>
-          <div className="text-xs font-black uppercase tracking-[.2em] text-[#D97706]">Growth OS / Finance</div>
+          <div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Growth OS / Finance</div>
           <h1 className="mt-2 text-4xl font-black tracking-tight">Payment, commission and payout controls</h1>
           <p className="mt-2 max-w-3xl text-slate-500">Confirm and reconcile payments, advance commissions only after recognized revenue, and prepare workspace-scoped partner payout batches.</p>
         </header>
