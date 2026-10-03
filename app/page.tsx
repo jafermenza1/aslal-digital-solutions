@@ -159,6 +159,27 @@ export default async function Home() {
         </div>
       </section>
 
+
+      <section className="landing-section bg-[#1E293B] text-white" aria-labelledby="platform-title">
+        <div className="container-aslal">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div className="section-heading max-w-3xl">
+              <span className="text-[10px] font-black tracking-[.2em] text-[#E2B02A]">06 — THE ASLAL PLATFORM</span>
+              <h2 id="platform-title" className="mt-3 text-4xl font-black tracking-tight md:text-5xl">More than marketing: a connected growth and commerce system.</h2>
+              <p className="mt-5 text-lg leading-8 text-white/70">The current platform connects businesses, partners, customers and operational teams around demand, selling, payment evidence and measurable commercial outcomes.</p>
+            </div>
+            <Link href="/platform" className="inline-flex shrink-0 items-center gap-2 font-black text-[#E2B02A]">Explore platform <ArrowRight size={17}/></Link>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[["Multi-business","Workspace-isolated business operations and shared platform capabilities."],["Partner commerce","Affiliate, referral and reseller relationships with controlled attribution."],["Sales assets","Printable tickets, coupons and related assets with serial, QR and redemption controls."],["Commercial intelligence","Matching, proposals, agreements, payment evidence, disputes and analytics."]].map(([title,text])=>
+              <Link key={title} href="/platform" className="rounded-2xl border border-white/10 bg-white/[.06] p-6 transition hover:border-[#E2B02A]/60 hover:bg-white/[.09]">
+                <h3 className="text-lg font-black text-[#E2B02A]">{title}</h3><p className="mt-3 text-sm leading-6 text-white/65">{text}</p>
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
+
       <section className="landing-section bg-white" aria-labelledby="resources-title">
         <div className="container-aslal">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
