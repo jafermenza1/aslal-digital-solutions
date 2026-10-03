@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { RichContent } from "@/components/RichContent";
 import { ContactForm } from "@/components/ContactForm";
 import { prisma } from "@/lib/prisma";
@@ -25,3 +26,5 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         initialProductId={initialProductId} initialReferralCode={referralCode} initialReferralName={referralName} initialTeam={params.team || ""} products={products} /></div></div></section>
   </main>;
 }
+
+export const metadata: Metadata = { title: "Contact Aslal Digital Solutions", description: "Tell Aslal what you want to improve across digital marketing, websites, CRM, commerce, automation or SEO.", alternates: { canonical: "https://aslaldigital.com/contact" } };
