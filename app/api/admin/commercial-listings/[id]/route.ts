@@ -6,8 +6,8 @@ const TYPES=["PRODUCT","SERVICE","ASSET","PROPERTY"] as const;
 const STATUSES=["DRAFT","PENDING_REVIEW","APPROVED","PUBLISHED","PAUSED","SOLD_OUT","EXPIRED","ARCHIVED","REJECTED"] as const;
 const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):"";
 function parse(body:any,current:any){
- const listingType=String(body.listingType??current.listingType);
- const status=String(body.status??current.status);
+ const listingType=String(body.listingType??current.listingType) as (typeof TYPES)[number];
+ const status=String(body.status??current.status) as (typeof STATUSES)[number];
  const askingRaw=body.askingPrice===undefined?current.askingPrice:body.askingPrice;
  const askingPrice=askingRaw===""||askingRaw==null?null:Number(askingRaw);
  return {
