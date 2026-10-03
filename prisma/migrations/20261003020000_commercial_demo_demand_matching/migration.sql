@@ -81,7 +81,8 @@ SELECT
   true, true, true,
   JSON_OBJECT('demo', true, 'tags', JSON_ARRAY('laptop','office','SME','NGO')),
   NOW(), DATE_ADD(NOW(), INTERVAL 180 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_listings WHERE id = 'd2000000-0000-4000-8000-000000000001');
 
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
@@ -97,7 +98,8 @@ SELECT
   true, true, false,
   JSON_OBJECT('demo', true, 'tags', JSON_ARRAY('desk','chair','office','SME')),
   NOW(), DATE_ADD(NOW(), INTERVAL 180 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_listings WHERE id = 'd2000000-0000-4000-8000-000000000001');
 
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
@@ -113,7 +115,8 @@ SELECT
   true, true, true, true,
   JSON_OBJECT('demo', true, 'tags', JSON_ARRAY('office','property','Hawassa','commercial')),
   NOW(), DATE_ADD(NOW(), INTERVAL 180 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_listings WHERE id = 'd2000000-0000-4000-8000-000000000001');
 
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
@@ -129,7 +132,8 @@ SELECT
   true, true, true,
   JSON_OBJECT('demo', true, 'tags', JSON_ARRAY('digital marketing','social media','content','analytics')),
   NOW(), DATE_ADD(NOW(), INTERVAL 180 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_listings WHERE id = 'd2000000-0000-4000-8000-000000000001');
 
 INSERT INTO commercial_listings
   (id, workspace_id, owner_party_id, supplier_party_id, title, slug, listing_type, status,
@@ -145,7 +149,8 @@ SELECT
   true, true, false,
   JSON_OBJECT('demo', true, 'tags', JSON_ARRAY('delivery','logistics','SME','Addis Ababa')),
   NOW(), DATE_ADD(NOW(), INTERVAL 180 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_listings WHERE id = 'd2000000-0000-4000-8000-000000000005');
 
 -- Wanted requests / demand
 INSERT INTO commercial_requests
@@ -165,7 +170,8 @@ SELECT
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('Core i5 or equivalent','8GB+ RAM','256GB+ SSD','warranty')),
   NOW(), NOW(), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_requests WHERE id = 'd3000000-0000-4000-8000-000000000001');
 
 INSERT INTO commercial_requests
   (id, workspace_id, request_type, status, title, category, requested_item, description,
@@ -184,7 +190,8 @@ SELECT
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('30 workstations','durable','delivery','installation')),
   NOW(), NOW(), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_requests WHERE id = 'd3000000-0000-4000-8000-000000000002');
 
 INSERT INTO commercial_requests
   (id, workspace_id, request_type, status, title, category, requested_item, description,
@@ -203,7 +210,8 @@ SELECT
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('central location','office use','training room preferred')),
   NOW(), NOW(), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_requests WHERE id = 'd3000000-0000-4000-8000-000000000003');
 
 INSERT INTO commercial_requests
   (id, workspace_id, request_type, status, title, category, requested_item, description,
@@ -222,7 +230,8 @@ SELECT
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('social media management','content creation','analytics','monthly reporting')),
   NOW(), NOW(), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_requests WHERE id = 'd3000000-0000-4000-8000-000000000004');
 
 INSERT INTO commercial_requests
   (id, workspace_id, request_type, status, title, category, requested_item, description,
@@ -241,7 +250,8 @@ SELECT
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('same-day delivery','order tracking','proof of delivery','business rates')),
   NOW(), NOW(), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_requests WHERE id = 'd3000000-0000-4000-8000-000000000005');
 
 -- Persisted CE-7 match examples. These are intentionally deterministic demo records,
 -- allowing the dashboard to show matching immediately after migration without running the evaluator.
