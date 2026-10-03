@@ -110,7 +110,7 @@ SELECT
   'PROPERTY', 'PUBLISHED',
   'Demo commercial office space suitable for an SME branch, training center or service business.',
   'Commercial Property', 'AVAILABLE', 'Hawassa', 65000, 'ETB', 'Monthly rent ETB 65,000',
-  true, true, true,
+  true, true, true, true,
   JSON_OBJECT('demo', true, 'tags', JSON_ARRAY('office','property','Hawassa','commercial')),
   NOW(), DATE_ADD(NOW(), INTERVAL 180 DAY), NOW(), NOW()
 WHERE @demo_workspace_id IS NOT NULL;
