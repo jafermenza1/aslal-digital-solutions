@@ -83,7 +83,7 @@ export function SocialProfileManager({ initial }: { initial: Item[] }) {
           const Icon = icons[item.platform as keyof typeof icons] || GlobeFallback;
           return (
             <div key={item.id} className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#071F47] text-[#E2B02A]">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0F3E8A] text-[#E2B02A]">
                 <Icon size={21} />
               </span>
               <div className="min-w-0 flex-1">
