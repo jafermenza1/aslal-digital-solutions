@@ -83,3 +83,4 @@ jobs:
         run: npm run hardening:test
 
 # Validation gate only. Production deployment remains manual-only.
+# Parallel lint/typecheck gates intentionally run before production build.
