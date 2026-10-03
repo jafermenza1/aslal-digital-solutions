@@ -83,8 +83,7 @@ jobs:
           ssh-keygen -y -f ~/.ssh/emerald_deploy > /tmp/emerald_public_key
 
           if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
-            printf '%s
-' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            printf '%s\n' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
           else
             ssh-keyscan -p "${EMERALD_PORT:-22}" "$EMERALD_HOST" >> ~/.ssh/known_hosts
           fi
