@@ -62,6 +62,32 @@ function OutcomeDashboard(){
 }
 
 export function AslalInteractiveHero({content}:{content:HeroContent}){
+  const [intentOpen,setIntentOpen]=useState(false);
+  const intents=[
+    {label:"Get more customers",href:"/contact?goal=Get%20more%20customers",hint:"Marketing, SEO, campaigns & lead generation"},
+    {label:"Sell online",href:"/products",hint:"Products, orders, payments & customer follow-up"},
+    {label:"Automate conversations",href:"/growth-builder?goal=Automate%20conversations",hint:"Telegram, WhatsApp & human handoff"},
+    {label:"Build a digital system",href:"/growth-builder?goal=Build%20a%20digital%20system",hint:"Website, CRM, automation & connected workflows"},
+  ];
+  return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
+    <APlexusCanvas/><div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_45%,rgba(15,62,138,.14),transparent_42%),linear-gradient(90deg,rgba(30,41,59,.96)_0%,rgba(30,41,59,.88)_48%,rgba(30,41,59,.58)_100%)]"/>
+    <div className="relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
+      <div className="space-y-7 lg:col-span-7">
+        <div className="inline-flex items-center gap-2 rounded-full border border-[#E2B02A]/40 bg-[#1E293B]/80 px-3 py-1.5 text-[10px] font-mono font-bold text-[#E2B02A] sm:text-xs"><span className="h-2 w-2 animate-pulse rounded-full bg-[#E2B02A]"/>LOCAL IMPLEMENTATION · CONNECTED COMMERCE · HUMAN SUPPORT</div>
+        <AnimatedHeroText content={content}/>
+        <div className="rounded-[1.5rem] border border-white/10 bg-[#1E293B]/70 p-5 shadow-xl backdrop-blur-md sm:p-6">
+          <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#E2B02A]">Start with your goal</p><p className="mt-1 text-sm text-white/65">You do not need to know which service you need.</p></div><span className="hidden text-xs text-white/40 sm:block">1 minute</span></div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {intents.map(intent=><Link key={intent.label} href={intent.href} className="group rounded-2xl border border-white/10 bg-white/[.04] p-4 transition hover:border-[#E2B02A]/70 hover:bg-white/[.08]"><div className="flex items-center justify-between gap-3"><span className="font-bold text-white">{intent.label}</span><span className="text-[#E2B02A] transition group-hover:translate-x-1">→</span></div><p className="mt-1 text-xs leading-5 text-white/50">{intent.hint}</p></Link>)}
+          </div>
+          <Link href="/contact" className="mt-4 inline-flex text-xs font-bold text-white/60 hover:text-[#E2B02A]">I’m not sure — tell Aslal what I need →</Link>
+        </div>
+        <div className="flex flex-wrap gap-3"><Link href="/products" className="rounded-xl border border-slate-700 bg-[#1E293B]/60 px-6 py-3.5 text-sm font-semibold text-[#F8FAFC] backdrop-blur-sm transition hover:border-[#E2B02A] hover:text-[#E2B02A]">Explore Solutions</Link><Link href="/telegram" className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-6 py-3.5 text-sm font-semibold text-sky-100 backdrop-blur-sm transition hover:border-sky-300">Chat on Telegram</Link></div>
+      </div>
+      <div className="flex justify-center lg:col-span-5 lg:justify-end"><OutcomeDashboard/></div>
+    </div>
+  </section>;
+}
   return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
     <APlexusCanvas/><div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_45%,rgba(15,62,138,.14),transparent_42%),linear-gradient(90deg,rgba(30,41,59,.96)_0%,rgba(30,41,59,.88)_48%,rgba(30,41,59,.58)_100%)]"/>
     <div className="relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
