@@ -30,7 +30,7 @@ function statusLabel(status: string) {
 }
 
 function statusClasses(status: string) {
-  if (status === "PAUSED") return "bg-amber-50 text-amber-800 ring-1 ring-amber-200";
+  if (status === "PAUSED") return "bg-aslal-gold text-aslal-gold-800 ring-1 ring-amber-200";
   if (status === "PENDING") return "bg-slate-100 text-slate-700 ring-1 ring-slate-200";
   return "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200";
 }
@@ -209,7 +209,7 @@ export default function PartnerCatalog({ partners, adminOnlyActions = false }: {
                 </td>
                 <td className="px-4 py-4 font-bold">{p.type}</td>
                 <td className="px-4 py-4">
-                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${statusClasses(p.status)}`}>{statusLabel(p.status)}</span>{p.status === "PAUSED" && <div className="mt-1 text-[11px] font-semibold text-amber-700">Promotion suspended</div>}{p.status === "PENDING" && <div className="mt-1 text-[11px] font-semibold text-slate-500">Needs review</div>}
+                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${statusClasses(p.status)}`}>{statusLabel(p.status)}</span>{p.status === "PAUSED" && <div className="mt-1 text-[11px] font-semibold text-aslal-gold">Promotion suspended</div>}{p.status === "PENDING" && <div className="mt-1 text-[11px] font-semibold text-slate-500">Needs review</div>}
                 </td>
                 <td className="px-4 py-4">
                   {p.code ? (
