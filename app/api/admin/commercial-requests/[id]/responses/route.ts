@@ -26,7 +26,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const a=await authorizeWorkspacePermission("products.manage",workspaceId); if(!a)return NextResponse.json({error:"Workspace access denied."},{status:403});
  const current=await prisma.commercialRequestResponse.findFirst({where:{id:responseId,workspaceId:a.workspace.id},include:{request:true}});
  if(!current)return NextResponse.json({error:"Response not found."},{status:404});
- const status=s(body.status,30);
+ const status=s(body.status,30) as "INVITED"|"RESPONDED"|"SHORTLISTED"|"REJECTED"|"WITHDRAWN"|"ACCEPTED";
  if(status==="ACCEPTED"){
   const result=await prisma.$transaction(async tx=>{
    await tx.commercialRequestResponse.updateMany({where:{requestId:current.requestId,id:{not:responseId},status:{in:["ACCEPTED","SHORTLISTED"]}},data:{status:"REJECTED",rejectedAt:new Date()}});
