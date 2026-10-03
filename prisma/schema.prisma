@@ -2874,8 +2874,6 @@ model Workspace {
   telegramTemplates TelegramTemplate[]
   commissionContracts CommissionContract[]
   membershipHistory WorkspaceMembershipHistory[]
-  commercialLeakageSignals CommercialLeakageSignal[]
-  commercialDisputes CommercialDispute[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
   @@map("workspaces")
