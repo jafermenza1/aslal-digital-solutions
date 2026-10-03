@@ -81,5 +81,40 @@ jobs:
       - name: Hardening control tests
         run: npm run hardening:test
 
+      - name: Prepare Emerald deployment bundle
+        run: |
+          set -euo pipefail
+
+          rm -rf .prisma-cli emerald-artifact
+          mkdir -p .prisma-cli emerald-artifact
+
+          npm install --prefix .prisma-cli --no-save --no-package-lock prisma@6.19.0
+
+          test -f .next/standalone/server.js
+          test -f .next/standalone/package.json
+          test -d .next/standalone/.next/static
+          test -d .next/standalone/public
+          test -x .prisma-cli/node_modules/.bin/prisma
+          test -d prisma/migrations
+
+          rm -rf .next/standalone/prisma .next/standalone/.prisma-cli
+          cp -a prisma .next/standalone/prisma
+          cp -a .prisma-cli .next/standalone/.prisma-cli
+
+          SHA="${GITHUB_SHA}"
+          tar -czf "emerald-artifact/aslal-emerald-$SHA.tar.gz" -C .next/standalone .
+
+          test -f "emerald-artifact/aslal-emerald-$SHA.tar.gz"
+          tar -tzf "emerald-artifact/aslal-emerald-$SHA.tar.gz" >/dev/null
+          sha256sum "emerald-artifact/aslal-emerald-$SHA.tar.gz"
+
+      - name: Upload Emerald deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aslal-emerald-${{ github.sha }}
+          path: emerald-artifact/aslal-emerald-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
 # Validation gate remains enabled; production deployment remains manual-only.
 # Typecheck fixes validated through GitHub Actions.
