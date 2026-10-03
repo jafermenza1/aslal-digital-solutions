@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { publicCommerceIntents } from "@/lib/public-commerce-contract";
+import { HomeDemandConstellation, HomeSignalStrip } from "@/components/HomeDemandConstellation";
 
 const slides = [
   { title: "We implement, customize and connect digital systems for your Business.", subtitle: "Aslal your Growth Partner" },
@@ -53,13 +54,7 @@ function AnimatedHeroText({content}:{content:HeroContent}){
 }
 
 function OutcomeDashboard(){
-  const [active,setActive]=useState(0),[hovered,setHovered]=useState(false);
-  useEffect(()=>{if(hovered)return;const t=window.setInterval(()=>setActive(i=>(i+1)%steps.length),1800);return()=>window.clearInterval(t);},[hovered]);
-  const activate=(i:number)=>{setHovered(true);setActive(i);playHapticAudio();};
-  return <div className="w-full max-w-md rounded-2xl border border-slate-700/60 bg-[#0F3E8A]/60 p-5 shadow-2xl backdrop-blur-md sm:p-6">
-    <div className="mb-6 grid grid-cols-2 gap-3">{steps.map((step,i)=>{const on=i===active;return <motion.div key={step.id} onMouseEnter={()=>activate(i)} onMouseLeave={()=>setHovered(false)} animate={{scale:on?1.04:1,borderColor:on?"#E2B02A":"rgba(30,41,59,.5)",boxShadow:on?"0 0 20px rgba(226,176,42,.25)":"none"}} transition={{duration:.2}} className={`relative cursor-pointer overflow-hidden rounded-xl border p-4 ${on?"bg-[#1E293B]/90":"bg-[#1E293B]/40"}`}>{on&&<span className="absolute right-2 top-2 h-2 w-2 animate-ping rounded-full bg-[#E2B02A]"/>}<span className={`mb-1 block font-mono text-xs ${on?"text-[#E2B02A]":"text-slate-400"}`}>{step.id}</span><span className={`text-base font-bold ${on?"text-white":"text-slate-300"}`}>{step.title}</span></motion.div>;})}</div>
-    <div className="rounded-xl border border-slate-700/80 bg-[#1E293B] p-4"><div className="mb-2 flex items-center justify-between"><span className="font-mono text-[10px] tracking-widest text-slate-400">OUTCOME ARCHITECTURE</span><span className="rounded border border-[#E2B02A]/30 bg-[#E2B02A]/10 px-2 py-0.5 text-xs font-bold text-[#E2B02A]">ROI</span></div><p className="text-sm font-semibold tracking-wide text-white">Attention <span className="text-[#E2B02A]">→</span> Action <span className="text-[#E2B02A]">→</span> Growth</p><div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-800"><motion.div className="h-full bg-gradient-to-r from-[#0F3E8A] via-[#E2B02A] to-[#F8FAFC]" animate={{width:`${((active+1)/steps.length)*100}%`}} transition={{duration:.3}}/></div></div>
-  </div>;
+  return <HomeDemandConstellation />;
 }
 
 export function AslalInteractiveHero({content}:{content:HeroContent}){
@@ -78,9 +73,9 @@ export function AslalInteractiveHero({content}:{content:HeroContent}){
         ? "/products"
         : `${intent.href}?goal=${intent.key === "automate" ? "Automate%20conversations" : "Build%20a%20digital%20system"}`,
     ...intentDetails[intent.key],
-  }));  return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
+  }));  return <section className="aslal-hero relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
     <APlexusCanvas/><div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_45%,rgba(15,62,138,.14),transparent_42%),linear-gradient(90deg,rgba(30,41,59,.96)_0%,rgba(30,41,59,.88)_48%,rgba(30,41,59,.58)_100%)]"/>
-    <div className="relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
+    <div className="relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-6">
       <div className="space-y-7 lg:col-span-7">
         <div className="inline-flex items-center gap-2 rounded-full border border-[#E2B02A]/40 bg-[#1E293B]/80 px-3 py-1.5 text-[10px] font-mono font-bold text-[#E2B02A] sm:text-xs"><span className="h-2 w-2 animate-pulse rounded-full bg-[#E2B02A]"/>LOCAL IMPLEMENTATION · CONNECTED COMMERCE · HUMAN SUPPORT</div>
         <AnimatedHeroText content={content}/>
@@ -93,9 +88,9 @@ export function AslalInteractiveHero({content}:{content:HeroContent}){
         </div>
         <div className="flex flex-wrap gap-3"><Link href="/products" className="rounded-xl border border-slate-700 bg-[#1E293B]/60 px-6 py-3.5 text-sm font-semibold text-[#F8FAFC] backdrop-blur-sm transition hover:border-[#E2B02A] hover:text-[#E2B02A]">Explore Solutions</Link><Link href="/telegram" className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-6 py-3.5 text-sm font-semibold text-sky-100 backdrop-blur-sm transition hover:border-sky-300">Chat on Telegram</Link></div>
       </div>
-      <div className="flex justify-center lg:col-span-5 lg:justify-end"><OutcomeDashboard/></div>
+      <div className="relative flex justify-center lg:col-span-5 lg:justify-end"><div className="aslal-hero-orbit absolute inset-0 -z-10" /><OutcomeDashboard/></div>
     </div>
-  </section>;
+  <HomeSignalStrip /></section>;
 }
   return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
     <APlexusCanvas/><div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_45%,rgba(15,62,138,.14),transparent_42%),linear-gradient(90deg,rgba(30,41,59,.96)_0%,rgba(30,41,59,.88)_48%,rgba(30,41,59,.58)_100%)]"/>
