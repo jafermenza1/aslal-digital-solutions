@@ -121,6 +121,226 @@ The commercial gap-closure requirements are tracked as R50-R65 in TRACEABILITY.m
 
 No CE increment is considered accepted merely because its schema or UI exists.
 
+## 2B. Public Commerce & Conversation Experience — Increment Plan
+
+**Increment:** PCCE-1 through PCCE-10  
+**Status:** Planned implementation sequence  
+**Purpose:** turn the existing public website, Growth Builder, catalog, attribution, Telegram, WhatsApp and Email foundations into one simple customer-facing commerce and conversation experience without creating a second CRM, order ledger, attribution ledger or communication system.
+
+### 2B.1 Product principle
+
+The customer should experience one simple journey while the platform performs the complex work underneath:
+
+**Discover → Understand → Ask/Order → Talk → Qualify → Match → Offer → Agree → Pay → Deliver → Follow Up → Refer**
+
+Public language must not expose internal implementation terms such as CommercialRequest, CommercialMatch, CommercialEligibility or CommercialDealRegistration. Use simple language: Tell us what you need; Find a solution; Request a product or service; Talk to a specialist; Order; Share.
+
+The existing canonical records remain authoritative. The experience layer must reuse them.
+
+### 2B.2 Channel responsibilities
+
+| Surface | Primary responsibility | Boundary |
+|---|---|---|
+| Public website | discovery, education, trust, catalog and demand capture | not a second CRM |
+| Growth Builder | guided qualification and structured demand intake | not a separate lead database |
+| Telegram | conversational commerce, ordering, status and handoff | not a duplicate CRM |
+| Email | formal/persistent lifecycle communication and documents | not a second conversation ledger |
+| WhatsApp | familiar direct conversation and human handoff where enabled | not a separate customer record |
+| Partner links/assets | attributable acquisition and sharing | not an isolated campaign system |
+| Dashboard | internal execution and reporting | not a public workflow |
+| Partner Portal | partner self-service, sharing, attribution and earnings | not an admin console |
+
+All channels must resolve to the same person/customer, lead, commercial demand, conversation and commercial records where applicable.
+
+### 2B.3 PCCE-1 — Experience Contract & Terminology
+
+**Goal:** establish one user-facing vocabulary before changing screens.
+
+**Implementation:**
+- define primary public intents: Get more customers; Sell online; Automate conversations; Build a digital system;
+- map each intent to existing products, services, Growth Builder questions and commercial demand creation;
+- define public labels for product, service, custom requirement, quote, order, payment and support;
+- define channel handoff rules and attribution requirements;
+- keep internal entity names in code/admin diagnostics rather than public UI;
+- add terminology/route tests for critical public journeys.
+
+**Acceptance:** a new visitor can understand what to do without knowing Aslal's internal commercial-domain terminology.
+
+### 2B.4 PCCE-2 — Public Homepage & Intent Gateway
+
+**Goal:** make the website the first decision point rather than a feature directory.
+
+**Implementation:**
+- simplify the homepage around 3–4 primary intents;
+- prominent Tell us what you need CTA;
+- Browse products and Explore services paths;
+- Talk to us on Telegram where enabled;
+- preserve multilingual/locale behavior;
+- instrument intent selection and CTA attribution with existing event/lead infrastructure;
+- ensure every CTA enters an existing tracked journey rather than a parallel intake.
+
+**Acceptance:** every primary CTA produces a measurable continuation to catalog, demand capture or conversation.
+
+### 2B.5 PCCE-3 — Public Catalog & Offer Experience
+
+**Goal:** make products and services commercially understandable and actionable.
+
+**Implementation:**
+- improve product discovery with category/search/filter appropriate to catalog size;
+- product pages show clear value, price/starting price when available, availability/context and legitimate trust information;
+- Product → Order; Service → Request service; Custom → Tell us what you need;
+- offer Telegram continuation where supported;
+- preserve partner/referral attribution on supported CTAs;
+- never imply inventory, price or provider availability unsupported by canonical data.
+
+**Acceptance:** a visitor can move from discovery to a tracked request/order/conversation without losing attribution.
+
+### 2B.6 PCCE-4 — Growth Builder as Guided Demand Gateway
+
+**Goal:** turn uncertainty into structured demand without exposing commercial complexity.
+
+**Implementation:**
+- ask only useful questions: need/outcome, business type, budget range when appropriate, preferred channel and urgency;
+- progressively ask additional questions only when routing requires them;
+- create/update canonical Person, Lead and CommercialRequest records;
+- preserve source/campaign/partner attribution;
+- route demand to the correct internal workflow;
+- offer Telegram continuation when the visitor prefers conversation.
+
+**Acceptance:** an uncertain visitor can reach structured demand with contact, source and attribution context intact.
+
+### 2B.7 PCCE-5 — Telegram Conversational Commerce
+
+**Goal:** make Telegram the fastest low-friction path from discovery to human-assisted commerce.
+
+**Telegram home:** Browse products; Explore services; Tell us what you need; My orders; Talk to a person; Partner with Aslal.
+
+**Implementation:**
+- reuse existing Telegram identity, catalog, ordering, service-request, attribution, follow-up and handoff foundations;
+- connect Telegram to canonical Person/customer and Conversation records;
+- support product/service discovery and order/request continuation;
+- preserve partner/referral source through handoff;
+- show recent order/request context;
+- stop automated follow-up when the customer replies or human handoff occurs;
+- make repeated Telegram events/callbacks idempotent;
+- provide controlled operator handoff.
+
+**Acceptance:** a Telegram user can discover/request/order, reply to automation and reach a human without duplicate customer/conversation records.
+
+### 2B.8 PCCE-6 — Email as Formal Lifecycle Communication
+
+**Goal:** use Email for durable business communication rather than competing with Telegram/WhatsApp for chat.
+
+**Implementation:**
+- reuse EmailOutbox, inbound email, conversation/message records, retries and identity matching;
+- define lifecycle templates for acknowledgement, qualification follow-up where appropriate, proposal/quote, agreement, order, payment, fulfillment, partner commission and payout;
+- preserve threading/reference information;
+- honor communication preferences and opt-out;
+- distinguish transactional/service messages from promotional messages;
+- expose delivery/failure state to operators.
+
+**Acceptance:** important commercial milestones are reconstructable from persistent messages and email failure does not destroy the underlying transaction.
+
+### 2B.9 PCCE-7 — Cross-Channel Identity, Handoff & Attribution
+
+**Goal:** make Website → Telegram → Email → human support feel like one relationship.
+
+**Implementation:**
+- define deterministic identity matching and safe merge rules;
+- prevent duplicate Person/Customer/Conversation records during channel transitions;
+- carry source, campaign and partner attribution through handoff;
+- preserve original demand and commercial context;
+- expose authorized channel history to internal users;
+- audit identity merges/handoff decisions when they affect attribution;
+- test anonymous-to-known and known-to-known transitions.
+
+**Acceptance:** the same customer can start on the website, continue on Telegram and receive formal Email communication without losing identity, demand context or valid attribution.
+
+### 2B.10 PCCE-8 — Partner Sharing & Attributed Commerce Assets
+
+**Goal:** make partner participation a simple share-and-earn workflow while protecting attribution integrity.
+
+**Partner actions:** Share a product; Share a service; Find an opportunity; My referrals; My earnings; My agreements; My profile.
+
+**Implementation:**
+- generate attributed web links and Telegram continuation links where supported;
+- generate QR codes for supported offers;
+- support printable tickets, coupons or related sales assets only where the underlying product/program permits;
+- reuse PartnerSalesAssetAllocation and IssuedSalesAsset rather than creating another asset ledger;
+- preserve partner identity from asset → visit → demand → order → payment → revenue → commission;
+- prevent a partner from claiming credit for work they did not contribute;
+- explain earning/attribution status clearly to partners.
+
+**Acceptance:** a partner can share an approved offer and reconstruct legitimate attributable activity through the canonical commercial and financial chain.
+
+### 2B.11 PCCE-9 — Internal Commerce Workspace Simplification
+
+**Goal:** hide domain complexity from staff while preserving operational control.
+
+**Primary navigation:** My Work; Sales; Commerce; Partners; Finance; Communications; Reports.
+
+**Implementation:**
+- present CommercialRequest as Demand;
+- present CommercialMatch as Matches with human-readable reasons;
+- show eligibility separately from relevance/matching;
+- provide one customer timeline containing demand, conversation, offer, agreement, order, payment and attribution context;
+- provide role-specific actions and reports;
+- expose edit/amend controls only where the user's role permits;
+- audit financially or operationally meaningful changes.
+
+**Acceptance:** sales, partner operations and finance users can complete assigned work without navigating internal entity names or unrelated modules.
+
+### 2B.12 PCCE-10 — Public Commerce & Conversation Certification
+
+**Goal:** certify the complete channel experience before calling it production-ready.
+
+**Required E2E scenarios:**
+1. Website visitor → product → request/order → Telegram continuation → human handoff.
+2. Website visitor → Growth Builder → structured demand → internal routing → response.
+3. Partner link → website → demand → opportunity → order → payment → attributable revenue/commission path.
+4. Telegram product discovery → order → payment state → Email confirmation.
+5. Service request → qualification → proposal/quote → agreement → order/payment path.
+6. Customer reply during automated follow-up → automation stops → human takes over.
+7. Email delivery failure → transaction remains intact → retry/visible failure state.
+8. Duplicate channel event/webhook → no duplicate person, conversation, order or payment.
+9. Printable/QR sales asset → attributed visit/request/order where supported.
+10. Customer opt-out → promotional automation stops while permitted transactional communication remains correctly classified.
+
+**Certification evidence:** browser/mobile acceptance; Telegram evidence; Email delivery/threading evidence; attribution reconstruction; duplicate-event/idempotency evidence; authorization/isolation evidence; audit evidence; production smoke test.
+
+**Gate:** PCCE is accepted only when the user journey and canonical records can be reconstructed from discovery through commercial outcome without duplicate ledgers or broken attribution.
+
+### 2B.13 Implementation dependency order
+
+**PCCE-1 Experience Contract → PCCE-2 Homepage/Intent → PCCE-3 Catalog/Offers → PCCE-4 Growth Builder → PCCE-5 Telegram → PCCE-6 Email → PCCE-7 Identity/Handoff/Attribution → PCCE-8 Partner Sharing/Assets → PCCE-9 Internal Workspace → PCCE-10 Certification**
+
+PCCE-5 and PCCE-6 may be developed in parallel after PCCE-1. PCCE-7 is the integration gate before channels are declared one experience.
+
+### 2B.14 Relationship to the canonical commercial roadmap
+
+PCCE is a cross-cutting experience increment, not a replacement roadmap. It consumes the canonical chain:
+
+**Demand → Qualification → Conversation → Match → Eligibility → Proposal/Quote → Agreement → Order → Payment → Revenue → Attribution → Commission → Payout → Retention/Referral**
+
+It must not create parallel customer, demand, order, payment, communication or attribution ledgers. If an underlying capability is not production-accepted, the public experience must show the correct request/handoff state instead of pretending the capability is available.
+
+### 2B.15 PCCE release gates
+
+| Gate | Required evidence |
+|---|---|
+| G1 Experience | public terminology and intent paths validated |
+| G2 Discovery | catalog/product/service journeys tracked |
+| G3 Demand | Growth Builder creates canonical demand with attribution |
+| G4 Conversation | Telegram and Email operate against canonical identity/conversation records |
+| G5 Commerce | request → offer → order/payment transitions reconstructable |
+| G6 Attribution | partner/source attribution survives channel and commerce transitions |
+| G7 Operations | staff operate journeys from role-appropriate workspaces |
+| G8 Integrity | duplicate, failure, opt-out, handoff and authorization tests pass |
+| G9 Production | deployment smoke tests and real-channel evidence pass |
+
+PCCE is complete only after G9. Code presence alone does not advance the roadmap gate.
+
+
 ## 3. Immediate Gate — Production Integrity Closure
 
 This is the first task before meaningful automation or scale.
