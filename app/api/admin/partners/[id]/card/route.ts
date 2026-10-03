@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { RowDataPacket } from "mysql2/promise";
 import { authorizePermission } from "@/lib/authorization";
 import { db } from "@/lib/db";
 import { generatePartnerCardPdf, partnerCardFileName } from "@/lib/partner-card";
@@ -8,7 +9,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   try {
     const { id } = await params;
-    const [rows] = await db.query<Array<{ id:string; status:string; account_status:string; verification_status:string }>>(
+    const [rows] = await db.query<Array<RowDataPacket & { id:string; status:string; account_status:string; verification_status:string }>>(
       "SELECT id, status, account_status, verification_status FROM partners WHERE id = ? OR partner_number = ? LIMIT 1",
       [id, id],
     );
