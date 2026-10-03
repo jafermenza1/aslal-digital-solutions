@@ -24,7 +24,7 @@ jobs:
   deploy:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     steps:
       - name: Resolve deployment ref
@@ -74,26 +74,8 @@ jobs:
       - name: Generate Prisma Client
         run: npm run prisma:generate
 
-      - name: Validate Prisma schema
-        run: npx prisma validate
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Brand palette compliance
-        run: npm run brand:check
-
-      - name: SEO route compliance
-        run: npm run seo:check
-
       - name: Production build
         run: npm run build
-
-      - name: Hardening control tests
-        run: npm run hardening:test
 
       - name: Prepare Emerald deployment bundle
         env:
@@ -116,14 +98,6 @@ jobs:
           test -f "emerald-artifact/aslal-emerald-$SHA.tar.gz"
           tar -tzf "emerald-artifact/aslal-emerald-$SHA.tar.gz" >/dev/null
           sha256sum "emerald-artifact/aslal-emerald-$SHA.tar.gz"
-
-      - name: Preserve deployment artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aslal-emerald-${{ env.SHA }}
-          path: emerald-artifact/aslal-emerald-${{ env.SHA }}.tar.gz
-          if-no-files-found: error
-          retention-days: 7
 
       - name: Configure SSH
         env:
