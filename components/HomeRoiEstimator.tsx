@@ -32,7 +32,7 @@ export function HomeRoiEstimator({t}:{t:RoiCopy}) {
     <div className="flex flex-col justify-center rounded-[1.5rem] bg-[#0F3E8A] p-7 text-white">
       <div className="flex items-center justify-between border-b border-white/10 pb-4"><span className="text-sm text-white/65">{t.current}</span><span className="text-lg font-bold">{Math.round(current).toLocaleString()} ETB</span></div>
       <div className="py-7"><span className="text-xs font-black uppercase tracking-widest text-[#E2B02A]">{t.lift}</span><span className="mt-2 block text-4xl font-black">+{Math.round(annualLift).toLocaleString()} ETB</span></div>
-      <Link href="/growth-builder" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#E2B02A] px-5 py-4 font-black text-[#1E293B] transition hover:bg-[#efd05b]">{t.claim}<ArrowRight size={17}/></Link>
+      <Link href="/growth-builder" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#E2B02A] px-5 py-4 font-black text-[#1E293B] transition hover:bg-[#E2B02A]">{t.claim}<ArrowRight size={17}/></Link>
     </div>
   </div>;
 }
