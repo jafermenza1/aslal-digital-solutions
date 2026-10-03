@@ -19,6 +19,7 @@ permissions:
 jobs:
   validate:
     name: Lint, typecheck, Prisma, build
+    # Validation-only gate: no deployment or production side effects.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
