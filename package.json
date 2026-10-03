@@ -17,7 +17,8 @@
     "q1:test-boundary": "node script/q1-workspace-boundary-negative-tests.mjs",
     "hardening:test": "node scripts/production-hardening-tests.mjs",
     "hardening:security": "npm audit --omit=dev --audit-level=high",
-    "brand:check": "node scripts/brand-color-check.mjs"
+    "brand:check": "node scripts/brand-color-check.mjs",
+    "seo:check": "node scripts/seo-georoute-check.mjs"
   },
   "dependencies": {
     "dotenv": "17.2.2",
