@@ -1957,6 +1957,7 @@ model PartnerCampaign {
   description         String?              @db.Text
   status              CampaignStatus       @default(DRAFT)
   targetDescription   String?              @map("target_description") @db.Text
+  deliveryMode        CampaignDeliveryMode @default(ONLINE) @map("delivery_mode")
   location            String?              @db.VarChar(190)
   budget              Decimal              @default(0) @db.Decimal(15,2)
   partnerBudget       Decimal              @default(0) @map("partner_budget") @db.Decimal(15,2)
