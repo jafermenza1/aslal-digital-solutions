@@ -35,7 +35,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  doc.moveDown(0.5).fontSize(7).text("Present this QR/serial for verification. Keep this document secure.",{align:"center"});
  doc.end();
  const pdf=await done;
- return new NextResponse(pdf,{status:200,headers:{
+ return new NextResponse(new Uint8Array(pdf),{status:200,headers:{
   "Content-Type":"application/pdf",
   "Content-Disposition":`attachment; filename="aslal-${item.serial_number}.pdf"`,
   "Cache-Control":"private, no-store"
