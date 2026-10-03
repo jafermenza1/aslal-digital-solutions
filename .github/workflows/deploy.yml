@@ -139,8 +139,12 @@ jobs:
           test -n "$EMERALD_SSH_KEY"
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s' "$EMERALD_SSH_KEY" > ~/.ssh/emerald_deploy
+          printf '%s' "$EMERALD_SSH_KEY" | sed 's/\\r$//' | sed 's/\\\\n/\\n/g' > ~/.ssh/emerald_deploy
           chmod 600 ~/.ssh/emerald_deploy
+          if ! ssh-keygen -y -f ~/.ssh/emerald_deploy >/dev/null 2>&1; then
+            echo "::error::EMERALD_SSH_KEY is not a valid private SSH key after newline normalization. Store the complete private key, including BEGIN/END lines, as the GitHub secret."
+            exit 1
+          fi
           if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
             printf '%s\n' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
           else
