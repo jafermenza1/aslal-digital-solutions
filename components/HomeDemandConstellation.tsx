@@ -60,7 +60,7 @@ export function HomeDemandConstellation() {
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
-        {links.map(([from, to]) => {
+        {links.map(([from, to], index) => {
           const a = byId[from], b = byId[to];
           return (
             <g key={from + to}>
@@ -133,7 +133,7 @@ export function HomeDemandConstellation() {
 }
 
 export function HomeSignalStrip() {
-  const items = [
+  const items: Array<[typeof Globe2, string]> = [
     [Globe2, "WEB"],
     [MessageCircle, "WHATSAPP"],
     [Send, "TELEGRAM"],
