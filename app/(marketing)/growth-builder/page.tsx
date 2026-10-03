@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { RichContent } from "@/components/RichContent";
 import { GrowthBuilder } from "@/components/GrowthBuilder";
 import { getPageContent, contentValue, contentStyle } from "@/lib/public-content";
@@ -8,3 +9,5 @@ export default async function GrowthBuilderPage() { const content=await getPageC
     <section className="bg-[#F8FAFC] py-20"><div className="container-aslal"><GrowthBuilder /></div></section>
   </main>;
 }
+
+export const metadata: Metadata = { title: "Growth System Builder | Aslal Digital Solutions", description: "Define your business growth priority, channels and starting point with Aslal's Growth System Builder.", alternates: { canonical: "https://aslaldigital.com/growth-builder" } };
