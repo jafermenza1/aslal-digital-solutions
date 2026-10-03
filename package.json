@@ -18,7 +18,8 @@
     "hardening:test": "node scripts/production-hardening-tests.mjs",
     "hardening:security": "npm audit --omit=dev --audit-level=high",
     "brand:check": "node scripts/brand-color-check.mjs",
-    "seo:check": "node scripts/seo-georoute-check.mjs"
+    "seo:check": "node scripts/seo-georoute-check.mjs",
+    "pcce-1:check": "node scripts/pcce-1-contract-check.mjs"
   },
   "dependencies": {
     "dotenv": "17.2.2",
