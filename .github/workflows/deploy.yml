@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: "Main commit SHA to deploy"
+        description: "Main commit SHA to build and deploy"
         required: true
         type: string
 
@@ -16,51 +16,100 @@ concurrency:
   group: emerald-production
   cancel-in-progress: false
 
+env:
+  DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/aslal_ci
+
 jobs:
   deploy:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
-      - name: Resolve deployment SHA and CI run
-        id: release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          EVENT_SHA: ${{ github.event.workflow_run.head_sha }}
-          DISPATCH_SHA: ${{ inputs.sha }}
-        run: |
-          set -euo pipefail
-          SHA="${EVENT_SHA:-$DISPATCH_SHA}"
-          test -n "$SHA"
-
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            RUN_ID="${{ github.event.workflow_run.id }}"
-          else
-            RUN_ID="$(gh run list --workflow CI --commit "$SHA" --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
-          fi
-
-          test -n "$RUN_ID"
-          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
-
-      - name: Download successful CI artifact
-        uses: actions/download-artifact@v4
+      - name: Checkout requested main SHA
+        uses: actions/checkout@v4
         with:
-          name: aslal-emerald-${{ steps.release.outputs.sha }}
-          path: emerald-artifact
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ steps.release.outputs.run_id }}
+          ref: ${{ inputs.sha }}
+          fetch-depth: 1
 
-      - name: Verify deployment artifact
+      - name: Verify requested SHA
         env:
-          SHA: ${{ steps.release.outputs.sha }}
+          SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
-          ARCHIVE="emerald-artifact/aslal-emerald-$SHA.tar.gz"
-          test -f "$ARCHIVE"
-          tar -tzf "$ARCHIVE" >/dev/null
-          echo "Artifact verified: $ARCHIVE"
-          sha256sum "$ARCHIVE"
+          test -n "$SHA"
+          ACTUAL="$(git rev-parse HEAD)"
+          test "$ACTUAL" = "$SHA"
+          echo "Deployment source SHA: $ACTUAL"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Brand palette compliance
+        run: npm run brand:check
+
+      - name: SEO route compliance
+        run: npm run seo:check
+
+      - name: Production build
+        run: npm run build
+
+      - name: Hardening control tests
+        run: npm run hardening:test
+
+      - name: Prepare Emerald deployment bundle
+        env:
+          SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+
+          rm -rf .prisma-cli emerald-artifact
+          mkdir -p .prisma-cli emerald-artifact
+
+          npm install --prefix .prisma-cli --no-save --no-package-lock prisma@6.19.0
+
+          test -f .next/standalone/server.js
+          test -f .next/standalone/package.json
+          test -d .next/standalone/.next/static
+          test -d .next/standalone/public
+          test -x .prisma-cli/node_modules/.bin/prisma
+          test -d prisma/migrations
+
+          rm -rf .next/standalone/prisma .next/standalone/.prisma-cli
+          cp -a prisma .next/standalone/prisma
+          cp -a .prisma-cli .next/standalone/.prisma-cli
+
+          tar -czf "emerald-artifact/aslal-emerald-$SHA.tar.gz" -C .next/standalone .
+
+          test -f "emerald-artifact/aslal-emerald-$SHA.tar.gz"
+          tar -tzf "emerald-artifact/aslal-emerald-$SHA.tar.gz" >/dev/null
+          sha256sum "emerald-artifact/aslal-emerald-$SHA.tar.gz"
+
+      - name: Preserve deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aslal-emerald-${{ inputs.sha }}
+          path: emerald-artifact/aslal-emerald-${{ inputs.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Configure SSH
         env:
@@ -79,7 +128,6 @@ jobs:
           chmod 700 ~/.ssh
           printf '%s' "$EMERALD_SSH_KEY" > ~/.ssh/emerald_deploy
           chmod 600 ~/.ssh/emerald_deploy
-          ssh-keygen -y -f ~/.ssh/emerald_deploy > /tmp/emerald_public_key
 
           if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
             printf '%s\n' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
@@ -93,10 +141,13 @@ jobs:
           EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
           EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
           EMERALD_USER: ${{ secrets.EMERALD_USER }}
-          SHA: ${{ steps.release.outputs.sha }}
+          SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
-          scp -i ~/.ssh/emerald_deploy -P "${EMERALD_PORT:-22}"             -o BatchMode=yes -o StrictHostKeyChecking=yes             "emerald-artifact/aslal-emerald-$SHA.tar.gz"             "${EMERALD_USER}@${EMERALD_HOST}:~/aslal-emerald-$SHA.tar.gz"
+          scp -i ~/.ssh/emerald_deploy -P "${EMERALD_PORT:-22}" \
+            -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "emerald-artifact/aslal-emerald-$SHA.tar.gz" \
+            "${EMERALD_USER}@${EMERALD_HOST}:~/aslal-emerald-$SHA.tar.gz"
 
       - name: Install release on Emerald
         env:
@@ -104,10 +155,13 @@ jobs:
           EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
           EMERALD_USER: ${{ secrets.EMERALD_USER }}
           EMERALD_APP_PATH: ${{ secrets.EMERALD_APP_PATH }}
-          SHA: ${{ steps.release.outputs.sha }}
+          SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
-          ssh -i ~/.ssh/emerald_deploy -p "${EMERALD_PORT:-22}"             -o BatchMode=yes -o StrictHostKeyChecking=yes             "${EMERALD_USER}@${EMERALD_HOST}"             "SHA='$SHA' APP_PATH='${EMERALD_APP_PATH:-/home/aslaldzn/aslal-digital-solutions}' bash -s" <<'REMOTE'
+          ssh -i ~/.ssh/emerald_deploy -p "${EMERALD_PORT:-22}" \
+            -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "${EMERALD_USER}@${EMERALD_HOST}" \
+            "SHA='$SHA' APP_PATH='${EMERALD_APP_PATH:-/home/aslaldzn/aslal-digital-solutions}' bash -s" <<'REMOTE'
           set -euo pipefail
           ARCHIVE="$HOME/aslal-emerald-$SHA.tar.gz"
           RELEASE_PATH="$APP_PATH/.releases/$SHA"
