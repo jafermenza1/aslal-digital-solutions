@@ -1,0 +1,21 @@
+CREATE TABLE offline_sales_asset_redemptions (
+  id CHAR(36) NOT NULL,
+  workspace_id CHAR(36) NOT NULL,
+  issued_asset_id CHAR(36) NOT NULL,
+  serial_number VARCHAR(50) NOT NULL,
+  device_id VARCHAR(120) NOT NULL,
+  client_event_id VARCHAR(100) NOT NULL,
+  occurred_at DATETIME(0) NOT NULL,
+  synced_at DATETIME(0) NULL,
+  sync_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+  sync_message TEXT NULL,
+  redeemed_by VARCHAR(190) NOT NULL,
+  verification_payload VARCHAR(500) NULL,
+  created_at DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_offline_redemption_workspace_event (workspace_id, client_event_id),
+  KEY idx_offline_redemption_sync (workspace_id, sync_status, occurred_at),
+  KEY idx_offline_redemption_serial (workspace_id, serial_number),
+  CONSTRAINT fk_offline_redemption_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_offline_redemption_asset FOREIGN KEY (issued_asset_id) REFERENCES issued_sales_assets(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
