@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolvePublicWorkspaceId } from "@/lib/workspaces";
 
 export const dynamic="force-dynamic";
+
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}): Promise<Metadata> {
+ const {slug}=await params;
+ const listing=await prisma.commercialListing.findFirst({where:{workspaceId:resolvePublicWorkspaceId(),slug,status:"PUBLISHED",publicVisible:true,OR:[{expiresAt:null},{expiresAt:{gt:new Date()}}]},select:{title:true,description:true}});
+ if(!listing) return { title: "Listing not found | Aslal Digital Solutions", robots: { index: false, follow: false } };
+ const description=(listing.description||"Published commercial offer on Aslal.").slice(0,160);
+ return { title: listing.title+" | Aslal Marketplace", description, alternates:{canonical:"https://aslaldigital.com/marketplace/listings/"+encodeURIComponent(slug)}, openGraph:{title:listing.title+" | Aslal Marketplace",description,url:"https://aslaldigital.com/marketplace/listings/"+encodeURIComponent(slug),type:"website"} };
+}
 
 export default async function CommercialListingDetail({params}:{params:Promise<{slug:string}>}){
  const {slug}=await params;
