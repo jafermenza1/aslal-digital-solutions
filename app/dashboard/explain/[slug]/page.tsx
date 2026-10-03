@@ -95,10 +95,10 @@ export default async function DashboardGuidePage({ params }: { params: Promise<{
     return (
       <main className="mx-auto max-w-4xl px-5 py-12 sm:px-8">
         <div className="portal-card p-8">
-          <span className="text-[10px] font-black uppercase tracking-[.2em] text-[#F59E0B]">DASHBOARD GUIDE</span>
+          <span className="text-[10px] font-black uppercase tracking-[.2em] text-[#E2B02A]">DASHBOARD GUIDE</span>
           <h1 className="mt-3 text-3xl font-black">Explanation not found</h1>
           <p className="mt-3 text-sm leading-6 text-white/55">The requested dashboard metric does not have a registered explanation slug.</p>
-          <Link href="/dashboard" className="mt-6 inline-flex rounded-xl bg-[#F59E0B] px-4 py-3 text-sm font-black text-[var(--ui-primary-text)]">Return to dashboard</Link>
+          <Link href="/dashboard" className="mt-6 inline-flex rounded-xl bg-[#E2B02A] px-4 py-3 text-sm font-black text-[var(--ui-primary-text)]">Return to dashboard</Link>
         </div>
       </main>
     );
@@ -108,7 +108,7 @@ export default async function DashboardGuidePage({ params }: { params: Promise<{
     <main className="mx-auto max-w-4xl px-5 py-10 sm:px-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="text-[10px] font-black uppercase tracking-[.2em] text-[#F59E0B]">{guide.eyebrow}</span>
+          <span className="text-[10px] font-black uppercase tracking-[.2em] text-[#E2B02A]">{guide.eyebrow}</span>
           <h1 className="mt-2 text-3xl font-black sm:text-4xl">{guide.title}</h1>
         </div>
         <Link href={guide.href} className="rounded-xl border border-white/15 px-4 py-2.5 text-sm font-bold text-white">Open {guide.workspace} →</Link>
@@ -129,10 +129,10 @@ export default async function DashboardGuidePage({ params }: { params: Promise<{
           </div>
         </div>
 
-        <div className="mt-7 rounded-2xl border border-[#F59E0B]/20 bg-[#F59E0B]/[.06] p-5">
-          <h3 className="text-sm font-black text-[#F59E0B]">Use the source workspace</h3>
+        <div className="mt-7 rounded-2xl border border-[#E2B02A]/20 bg-[#E2B02A]/[.06] p-5">
+          <h3 className="text-sm font-black text-[#E2B02A]">Use the source workspace</h3>
           <p className="mt-2 text-sm leading-6 text-white/60">Open the linked workspace to inspect the underlying records instead of relying on the headline number alone.</p>
-          <Link href={guide.href} className="mt-4 inline-flex rounded-xl bg-[#F59E0B] px-4 py-3 text-sm font-black text-[var(--ui-primary-text)]">Inspect {guide.workspace} →</Link>
+          <Link href={guide.href} className="mt-4 inline-flex rounded-xl bg-[#E2B02A] px-4 py-3 text-sm font-black text-[var(--ui-primary-text)]">Inspect {guide.workspace} →</Link>
         </div>
       </section>
     </main>
