@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { browserAttribution } from "@/lib/browser-attribution";
 
 type ContactFormProps = {
@@ -24,7 +24,7 @@ export function ContactForm({
   const [status, setStatus] = useState<"idle"|"success"|"error">("idle");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);\n  const [selectedIntent, setSelectedIntent] = useState(initialGoal || "");\n  const context = useMemo(() => {\n    if (initialTeam) return { title: "Book a consultation", subtitle: `You are requesting a conversation with ${initialTeam}.`, message: "Tell us what you would like to discuss and any preferred timing." };\n    if (initialProduct) { const p = products.find(x => x.slug === initialProduct); return { title: p ? `Request ${p.name}` : "Request this solution", subtitle: "We already know which solution interested you.", message: "Tell us what you need and any questions about this solution." }; }\n    if (initialGoal) return { title: "Let’s plan your next step", subtitle: "Your Growth Builder choices are already attached to this request.", message: "Tell us about your current situation, desired outcome and anything urgent." };\n    if (initialReferralName) return { title: "Continue with your referral", subtitle: `Your request is connected to ${initialReferralName}.`, message: "Tell us what you need so we can route the request correctly." };\n    return { title: "Tell us what you need", subtitle: "Choose a starting point. We’ll ask only what helps us understand the request.", message: "Describe the problem, desired outcome or product/service you are looking for." };\n  }, [initialGoal, initialProduct, initialReferralName, initialTeam, products]);
 
   function validate(form: HTMLFormElement) {
     const data = new FormData(form);
@@ -46,7 +46,7 @@ export function ContactForm({
     if (phone && !/^\+251[79]\d{8}$/.test(phone)) {
       next.phone = "Enter a valid Ethiopian mobile number, e.g. +251 911 276682.";
     }
-    if (!String(data.get("businessType") || "")) next.businessType = "Please select your business type.";
+
     if (!String(data.get("message") || "").trim()) next.message = "Tell us briefly what you want to build or grow.";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -99,10 +99,10 @@ export function ContactForm({
     </div>;
   }
 
-  return <form onSubmit={submit} noValidate className="grid gap-4">
+  const intentOptions = [\n    ["Get more customers", "growth"],\n    ["Sell online", "sell"],\n    ["Automate conversations", "automate"],\n    ["Build a digital system", "system"],\n  ] as const;\n  const goal = selectedIntent || initialGoal;\n  const messagePlaceholder = context.message;\n\n  return <form onSubmit={submit} noValidate className="grid gap-5">
     <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden"><label htmlFor="website">Website</label><input id="website" name="website" tabIndex={-1} autoComplete="off" /></div>
-    <input type="hidden" name="growthGoal" value={initialGoal} /><input type="hidden" name="teamMember" value={initialTeam} /><input type="hidden" name="growthChannels" value={initialChannels} /><input type="hidden" name="referralCode" value={initialReferralCode} /><input type="hidden" name="productId" value={initialProductId} />
-    {initialTeam && <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700"><span className="font-black text-[#0F3E8A]">Consultation with:</span> {initialTeam}</div>}{initialGoal && <div className="rounded-2xl border border-[#E2B02A]/30 bg-[#E2B02A]/10 p-5 text-sm text-[#1E293B]"><div className="text-xs font-black uppercase tracking-[.16em] text-[#0F3E8A]">Growth Builder demand</div><div className="mt-3 font-black">{initialGoal}</div>{initialChannels && <div className="mt-1 text-slate-600">Channels: {initialChannels}</div>}</div>}
+    <input type="hidden" name="growthGoal" value={goal} /><input type="hidden" name="teamMember" value={initialTeam} /><input type="hidden" name="growthChannels" value={initialChannels} /><input type="hidden" name="referralCode" value={initialReferralCode} /><input type="hidden" name="productId" value={initialProductId} />
+    <div><h2 className="text-2xl font-black text-[#0F3E8A]">{context.title}</h2><p className="mt-1 text-sm leading-6 text-slate-500">{context.subtitle}</p></div>\n    {!initialTeam && !initialProduct && !initialGoal && <div><div className="mb-2 text-sm font-bold text-slate-700">What are you trying to do?</div><div className="grid gap-2 sm:grid-cols-2">{intentOptions.map(([label,key])=><button type="button" key={key} onClick={()=>setSelectedIntent(label)} className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition ${selectedIntent===label ? "border-[#0F3E8A] bg-blue-50 text-[#0F3E8A]" : "border-slate-200 bg-white text-slate-700 hover:border-blue-200"}`}>{label}</button>)}</div></div>}\n    {initialTeam && <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700"><span className="font-black text-[#0F3E8A]">Consultation with:</span> {initialTeam}</div>}{(initialGoal || initialChannels) && <div className="rounded-2xl border border-[#E2B02A]/30 bg-[#E2B02A]/10 p-5 text-sm text-[#1E293B]"><div className="text-xs font-black uppercase tracking-[.16em] text-[#0F3E8A]">Already selected</div><div className="mt-3 font-black">{goal || initialGoal}</div>{initialChannels && <div className="mt-1 text-slate-600">Channels: {initialChannels}</div>}</div>}
     {initialReferralName && <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700"><span className="font-black text-[#0F3E8A]">Referral:</span> {initialReferralName}{initialReferralCode ? <> · {initialReferralCode}</> : ""}</div>}
     <div className="grid gap-4 sm:grid-cols-2">
       <Field id="name" label="Your name" name="name" required error={errors.name} />
@@ -113,13 +113,13 @@ export function ContactForm({
       <Field id="phone" label="Phone / WhatsApp" name="phone" error={errors.phone} hint="Ethiopian mobile: +251 9XX XXX XXX." />
     </div>
     <div className="grid gap-4 sm:grid-cols-2">
-      <div><label htmlFor="businessType" className="text-sm font-bold text-slate-700">Business type</label><select id="businessType" required name="businessType" defaultValue="" aria-invalid={!!errors.businessType} aria-describedby={errors.businessType ? "businessType-error" : undefined} className={fieldClass(!!errors.businessType)}><option value="" disabled>Select business type</option><option>Retail</option><option>Professional Services</option><option>Manufacturing</option><option>Hospitality</option><option>Education</option><option>Healthcare</option><option>Real Estate</option><option>Other</option></select>{errors.businessType && <FieldError id="businessType-error">{errors.businessType}</FieldError>}</div>
-      <div><label htmlFor="productSlug" className="text-sm font-bold text-slate-700">Solution / service interest <span className="font-normal text-slate-400">(optional)</span></label><select id="productSlug" name="productSlug" defaultValue={initialProduct} className={fieldClass(false)}><option value="">Select a solution</option>{products.map(product=><option key={product.id || product.slug} value={product.slug}>{product.name}</option>)}</select></div>
+      <div><label htmlFor="businessType" className="text-sm font-bold text-slate-700">Business type</label><select id="businessType" name="businessType" defaultValue="" aria-invalid={!!errors.businessType} aria-describedby={errors.businessType ? "businessType-error" : undefined} className={fieldClass(!!errors.businessType)}><option value="" disabled>Select business type</option><option>Retail</option><option>Professional Services</option><option>Manufacturing</option><option>Hospitality</option><option>Education</option><option>Healthcare</option><option>Real Estate</option><option>Other</option></select>{errors.businessType && <FieldError id="businessType-error">{errors.businessType}</FieldError>}</div>
+      <div><label htmlFor="productSlug" className="text-sm font-bold text-slate-700">Solution / service interest <span className="font-normal text-slate-400">(optional)</span></label><select id="productSlug" name="productSlug" defaultValue={initialProduct} className={fieldClass(false)}><option value="">{initialProduct ? "Change solution (optional)" : "Select a solution (optional)"}</option>{products.map(product=><option key={product.id || product.slug} value={product.slug}>{product.name}</option>)}</select></div>
     </div>
-    <div><label htmlFor="message" className="text-sm font-bold text-slate-700">What do you need?</label><textarea id="message" required name="message" maxLength={5000} rows={6} defaultValue={initialGoal ? "Growth goal: "+initialGoal+(initialChannels ? "\nPreferred channels: "+initialChannels : "")+"\n\n" : ""} placeholder={initialGoal ? "Tell us what is blocking progress…" : "Tell us what you want to build or grow…"} aria-invalid={!!errors.message} aria-describedby={errors.message ? "message-error" : undefined} className={fieldClass(!!errors.message)+" resize-y"} />{errors.message ? <FieldError id="message-error">{errors.message}</FieldError> : <div className="mt-1 text-xs text-slate-400">Include the main problem, desired outcome and anything urgent.</div>}</div>
+    <div><label htmlFor="message" className="text-sm font-bold text-slate-700">Tell us more</label><textarea id="message" required name="message" maxLength={5000} rows={5} defaultValue={initialGoal ? "Growth goal: "+initialGoal+(initialChannels ? "\nPreferred channels: "+initialChannels : "")+"\n\n" : ""} placeholder={messagePlaceholder} aria-invalid={!!errors.message} aria-describedby={errors.message ? "message-error" : undefined} className={fieldClass(!!errors.message)+" resize-y"} />{errors.message ? <FieldError id="message-error">{errors.message}</FieldError> : <div className="mt-1 text-xs text-slate-400">You can write naturally. Our team will structure the request after submission.</div>}</div>
     <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"><input name="emailConsent" type="checkbox" defaultChecked className="mt-1 h-4 w-4 accent-[#0F3E8A]" /><span><strong className="text-slate-800">Email me a confirmation</strong><br/><span className="text-xs leading-5">We’ll use your email to acknowledge this request. This does not subscribe you to promotional email.</span></span></label>
     {status === "error" && <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800" role="alert">{message}</div>}
-    <button disabled={submitting} className="rounded-2xl bg-[#0F3E8A] px-6 py-4 font-extrabold text-white transition hover:bg-[#0F3E8A] disabled:cursor-not-allowed disabled:opacity-60">{submitting ? "Sending…" : "Request a growth consultation"}</button>
+    <button disabled={submitting} className="rounded-2xl bg-[#0F3E8A] px-6 py-4 font-extrabold text-white transition hover:bg-[#0F3E8A] disabled:cursor-not-allowed disabled:opacity-60">{submitting ? "Sending…" : initialProduct ? "Send product request" : initialTeam ? "Request consultation" : "Send my request"}</button>
   </form>;
 }
 
