@@ -8,7 +8,7 @@ CREATE TABLE partner_identities (
   PRIMARY KEY (id),
   KEY idx_partner_identity_email (email),
   KEY idx_partner_identity_phone (phone)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE partners ADD COLUMN identity_id CHAR(36) NULL AFTER id, ADD KEY idx_partners_identity (identity_id);
 INSERT INTO partner_identities (id,name,email,phone,created_at,updated_at)
