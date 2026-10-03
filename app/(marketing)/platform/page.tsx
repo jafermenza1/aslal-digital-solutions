@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BarChart3, BadgeCheck, BriefcaseBusiness, FileCheck2, Handshake, LineChart, MessageSquareText, PackageCheck, ReceiptText, Search, ShieldCheck, Store, Users, Workflow } from "lucide-react";
 
@@ -83,3 +84,5 @@ export default function PlatformPage() {
     </main>
   );
 }
+
+export const metadata: Metadata = { title: "Aslal Growth & Commerce Platform", description: "Explore Aslal's connected growth and commerce platform for businesses, partners, customers and operational teams in Ethiopia.", alternates: { canonical: "https://aslaldigital.com/platform" }, openGraph: { title: "Aslal Growth & Commerce Platform", description: "Connected demand, partner commerce, payment evidence and commercial measurement for Ethiopian businesses.", url: "https://aslaldigital.com/platform", type: "website" } };
