@@ -22,8 +22,8 @@ export const DEFAULT_FOOTER = { tagline:"Your Growth Partner — connected techn
 export const DEFAULT_LOCATION = {officeEnabled:true,name:"Aslal Digital Solutions — Addis Ababa",address:"Addis Ababa, Ethiopia",latitude:9.0192,longitude:38.7525,mapEnabled:true,branches:[]};
 export const DEFAULT_CONTACT = {phone:{value:"+251 911-276682",visible:true},whatsapp:{value:"+251 911-276682",visible:true},telegram:{value:"@AslalDigital",visible:true},email:{value:"info@aslaldigital.com",visible:true}};
 export const DEFAULT_THEME = {fontFamily:"Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",headingFontFamily:"inherit",
- primaryColor:"#D97706",secondaryColor:"#F59E0B",textColor:"#1E293B",backgroundColor:"#F8FAFC",
- darkTextColor:"#F8FAFC",darkBackgroundColor:"#070C18",linkColor:"#D97706",borderRadius:"16px"};
+ primaryColor:"#E2B02A",secondaryColor:"#E2B02A",textColor:"#1E293B",backgroundColor:"#F8FAFC",
+ darkTextColor:"#F8FAFC",darkBackgroundColor:"#0F3E8A",linkColor:"#E2B02A",borderRadius:"16px"};
 
 function parseJson(value:string|null,fallback:any){try{return value?JSON.parse(value):fallback}catch{return fallback}}
 
