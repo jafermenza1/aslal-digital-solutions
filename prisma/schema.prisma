@@ -799,6 +799,9 @@ model Lead {
   conversations     Conversation[]
   partnerDisputes    PartnerDispute[]
   commercialDealRegistrations CommercialDealRegistration[]
+  commercialAppointments CommercialAppointment[]
+  commercialLeakageSignals CommercialLeakageSignal[]
+  commercialDisputes CommercialDispute[]
 
   @@index([status], map: "idx_leads_status")
   @@index([score], map: "idx_leads_score")
@@ -965,20 +968,21 @@ model Partner {
   campaignPartners   CampaignPartner[]
   commissionContracts CommissionContract[]
   disputes           PartnerDispute[]
+  competingCommercialDisputes CommercialDispute[] @relation("CommercialDisputeCompetingPartner")
+  commercialDisputes CommercialDispute[] @relation("CommercialDisputePartner")
   competingDisputes  PartnerDispute[] @relation("PartnerDisputeCompetingPartner")
   awardedDisputes    PartnerDispute[] @relation("PartnerDisputeAwardedPartner")
   payouts            PartnerPayout[]
   verificationChallenges PartnerVerificationChallenge[]
   payoutProfile PartnerPayoutProfile?
   termsAcceptances PartnerTermsAcceptance[]
+  agreementParticipants CommercialAgreementParticipant[]
   commercialListingAuthorizations CommercialListingAuthorization[]
   commercialEligibilityDecisions CommercialEligibilityDecisionRecord[]
   commercialDealRegistrations CommercialDealRegistration[]
-  externalPaymentEvidence ExternalPaymentEvidence[]
   commercialLeakageSignals CommercialLeakageSignal[]
   commercialDisputes CommercialDispute[]
   commercialAppointments CommercialAppointment[]
-  commercialAgreements CommercialAgreement[]
   commercialRequests CommercialRequest[]
 
   commercialRequestResponses CommercialRequestResponse[]
@@ -1303,6 +1307,8 @@ model CommercialListing {
 
   commercialRequestResponses CommercialRequestResponse[]
   commercialMatches CommercialMatch[]
+  commercialLeakageSignals CommercialLeakageSignal[]
+  commercialDisputes CommercialDispute[]
   commercialAgreements CommercialAgreement[]
   professionalProfile ProfessionalProfile? @relation(fields:[professionalProfileId], references:[id], onDelete:SetNull)
   professionalProfileId String? @map("professional_profile_id") @db.Char(36)
@@ -1393,7 +1399,6 @@ model CommercialParty {
   ownedListings CommercialListing[]   @relation("CommercialListingOwner")
   suppliedListings CommercialListing[] @relation("CommercialListingSupplier")
   professionalProfile ProfessionalProfile?
-  commercialAgreements CommercialAgreement[]
   authorizations CommercialListingAuthorization[]
 
   commercialRequestResponses CommercialRequestResponse[]
@@ -1441,7 +1446,11 @@ model CommercialDealRegistration {
   authorization    CommercialListingAuthorization? @relation(fields:[authorizationId], references:[id], onDelete:SetNull)
   lead             Lead                           @relation(fields:[leadId], references:[id], onDelete:Restrict)
   commercialAgreements CommercialAgreement[]
+  commercialLeakageSignals CommercialLeakageSignal[]
+  commercialDisputes CommercialDispute[]
+  externalPaymentEvidence ExternalPaymentEvidence[]
   opportunity      Opportunity?                   @relation(fields:[opportunityId], references:[id], onDelete:SetNull)
+  appointments CommercialAppointment[]
 
   @@index([workspaceId,status,requestedAt], map:"idx_commercial_deal_workspace_status")
   @@index([listingId,status,protectedUntil], map:"idx_commercial_deal_listing_status")
@@ -1481,6 +1490,7 @@ model CommercialAppointment {
   listing         CommercialListing           @relation(fields:[listingId], references:[id], onDelete:Restrict)
   partner         Partner                    @relation(fields:[partnerId], references:[id], onDelete:Restrict)
   lead            Lead                       @relation(fields:[leadId], references:[id], onDelete:Restrict)
+  leakageSignals CommercialLeakageSignal[]
 
   @@index([workspaceId,status,scheduledStart], map:"idx_commercial_appt_workspace_status")
   @@index([registrationId,createdAt], map:"idx_commercial_appt_registration_created")
@@ -1642,7 +1652,6 @@ model CommercialRequestResponse {
 
   commercialMatches CommercialMatch[]
   professionalProposals ProfessionalProposal[]
-  commercialAgreements CommercialAgreement[]
   order             Order?                        @relation(fields:[orderId], references:[id], onDelete:SetNull)
 
   @@index([workspaceId,requestId,status], map:"idx_commercial_response_request_status")
@@ -1676,7 +1685,6 @@ model ProfessionalProposal {
   responderParty    CommercialParty?        @relation(fields:[responderPartyId], references:[id], onDelete:SetNull)
   partner           Partner?                @relation(fields:[partnerId], references:[id], onDelete:SetNull)
   commercialAgreements CommercialAgreement[]
-  externalPaymentEvidence ExternalPaymentEvidence[]
   versions          ProfessionalProposalVersion[]
 
   @@unique([responseId], map:"uq_professional_proposal_response")
@@ -1757,6 +1765,7 @@ model CommercialAgreement {
   externalPaymentEvidence ExternalPaymentEvidence[]
   proposal              ProfessionalProposal?     @relation(fields:[proposalId], references:[id], onDelete:SetNull)
   participants          CommercialAgreementParticipant[]
+  disputes CommercialDispute[]
   versions              CommercialAgreementVersion[]
   acceptances           CommercialAgreementAcceptance[]
   events                CommercialAgreementEvent[]
@@ -1782,6 +1791,7 @@ model CommercialAgreementParticipant {
   acceptedBy     String?                          @map("accepted_by") @db.Char(36)
   createdAt      DateTime                         @default(now()) @map("created_at") @db.DateTime(0)
   agreement      CommercialAgreement              @relation(fields:[agreementId], references:[id], onDelete:Cascade)
+  acceptances CommercialAgreementAcceptance[]
   party          CommercialParty?                 @relation(fields:[partyId], references:[id], onDelete:SetNull)
   partner        Partner?                         @relation(fields:[partnerId], references:[id], onDelete:SetNull)
   @@index([agreementId,role], map:"idx_agreement_participant_role")
@@ -1912,6 +1922,7 @@ model ExternalPaymentEvidence {
   revenue               Revenue?                       @relation(fields:[revenueId], references:[id], onDelete:SetNull)
   commercialAgreement   CommercialAgreement?           @relation(fields:[commercialAgreementId], references:[id], onDelete:SetNull)
   dealRegistration     CommercialDealRegistration?     @relation(fields:[dealRegistrationId], references:[id], onDelete:SetNull)
+  disputes CommercialDispute[]
 
   @@index([workspaceId,status,createdAt], map:"idx_external_payment_evidence_workspace_status")
   @@index([workspaceId,orderId,createdAt], map:"idx_external_payment_evidence_order")
@@ -2057,6 +2068,7 @@ model Commission {
   revenue        Revenue?         @relation(fields: [revenueId], references: [id], onDelete: SetNull)
   payoutItems    PartnerPayoutItem[]
   disputes       PartnerDispute[]
+  commercialDisputes CommercialDispute[]
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
 
   @@index([partnerId], map: "idx_commission_partner")
@@ -2254,6 +2266,7 @@ model Opportunity {
   orders          Order[]
   commercialDealRegistrations CommercialDealRegistration[]
   commercialRequests CommercialRequest[]
+  commercialRequestResponses CommercialRequestResponse[]
 
   @@index([leadId, stage], map: "idx_opportunities_lead_stage")
   @@index([ownerEmail, stage], map: "idx_opportunities_owner_stage")
@@ -2417,6 +2430,8 @@ model Order {
   commissions        Commission[]
   commercialRequestResponses CommercialRequestResponse[]
   externalPaymentEvidence ExternalPaymentEvidence[]
+  commercialLeakageSignals CommercialLeakageSignal[]
+  commercialDisputes CommercialDispute[]
 
   @@index([customerId, createdAt], map: "idx_orders_customer_created")
   @@index([opportunityId, createdAt], map: "idx_orders_opportunity_created")
@@ -2873,6 +2888,8 @@ model Workspace {
   telegramOutbox TelegramOutbox[]
   telegramTemplates TelegramTemplate[]
   commissionContracts CommissionContract[]
+  commercialAgreements CommercialAgreement[]
+  externalPaymentEvidence ExternalPaymentEvidence[]
   membershipHistory WorkspaceMembershipHistory[]
 
   @@index([active, name], map: "idx_workspaces_active_name")
@@ -2937,7 +2954,6 @@ model User {
   partner         Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   workspaceUsers   WorkspaceUser[]
   commercialListingAuthorizations CommercialListingAuthorization[]
-  commercialDealRegistrations CommercialDealRegistration[]
   membershipHistory WorkspaceMembershipHistory[]
   audits          UserAudit[]
 
