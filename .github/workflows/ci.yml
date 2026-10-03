@@ -20,8 +20,9 @@ env:
   DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/aslal_ci
 
 jobs:
-  lint:
-    name: Lint
+  validate:
+    name: Lint, typecheck, Prisma, build
+    # Validation-only gate: no deployment or production side effects.
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -82,5 +83,5 @@ jobs:
       - name: Hardening control tests
         run: npm run hardening:test
 
-# Validation gate only. Production deployment remains manual-only.
-# Parallel lint/typecheck gates intentionally run before production build.
+# Validation gate remains enabled; production deployment remains manual-only.
+# Typecheck fixes validated through GitHub Actions.

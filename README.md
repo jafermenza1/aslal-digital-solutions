@@ -36,7 +36,17 @@ It explains:
 
 This document describes **what the system is intended to become**, not what the current code necessarily implements.
 
-### 2. Current implementation reconciliation
+### 2. Main Commercial Engine
+
+**[Main Commercial Engine PRD](docs/MAIN-COMMERCIAL-ENGINE.md)**
+
+This is the detailed commercial-domain specification that reconciles and fills gaps between the broad Growth OS PRD and the existing catalog, CRM, partner, quote, order, payment and commission domains.
+
+It defines the shared engine for commercial listings, supplier/owner authorization, partner eligibility, deal registration, attribution protection, physical inspections, wanted requests, professional services/RFPs, proposals, external payment evidence, anti-bypass controls, marketplace discovery, and QR/ticket/coupon commercial assets.
+
+It is a **domain specification, not a second development roadmap**. Implementation remains governed by reconciliation and the canonical development plan.
+
+### 3. Current implementation reconciliation
 
 **[Reconciliation Guideline](docs/reconciliation/README.md)**
 
@@ -57,7 +67,7 @@ It answers:
 
 Use this document before making major architectural or business-domain changes.
 
-### 3. Current execution state
+### 4. Current execution state
 
 **[Execution State](docs/reconciliation/EXECUTION-STATE.md)**
 
@@ -73,7 +83,7 @@ It records:
 
 Do not infer completion from an open branch or an unmerged pull request. Merged `main` is the repository source of truth.
 
-### 4. Canonical development roadmap
+### 5. Canonical development roadmap
 
 **[Next Development Plan](docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md)**
 
@@ -85,7 +95,7 @@ It defines the controlled implementation order:
 
 The roadmap is gate-based. Code existing in a branch does not move the product to the next phase; acceptance evidence does.
 
-### 5. Traceability and domain rules
+### 6. Traceability and domain rules
 
 **[Traceability](docs/reconciliation/TRACEABILITY.md)** maps target requirements to implementation status.
 
@@ -93,7 +103,7 @@ The roadmap is gate-based. Code existing in a branch does not move the product t
 
 **[Phase Control](docs/reconciliation/PHASE-CONTROL.md)** contains anti-drift rules for development, acceptance and handoff.
 
-### 6. Historical phase implementation records
+### 7. Historical phase implementation records
 
 The `docs/reconciliation/PHASE-*.md` files retain implementation notes and acceptance evidence for earlier phases.
 
@@ -108,6 +118,7 @@ The repository intentionally separates **what we are building** from **where we 
 | Document | Purpose | Authority |
 |---|---|---|
 | `docs/Aslal Growth OS master plan.md` | Complete target-state product definition | Target product |
+| `docs/MAIN-COMMERCIAL-ENGINE.md` | Detailed commercial engine, reconciliation and gap-filling domain specification | Commercial domain |
 | `docs/reconciliation/README.md` | Reconciliation rules and verified implementation/production interpretation | Engineering control |
 | `docs/reconciliation/EXECUTION-STATE.md` | Current implementation and acceptance state | Current execution truth |
 | `docs/reconciliation/NEXT-DEVELOPMENT-PLAN.md` | Controlled next development and scaling sequence | Canonical roadmap |
@@ -296,6 +307,7 @@ The public and app surfaces share the `aslal_locale` cookie. The public language
 
 The canonical system documents remain connected through:
 
+- [Main Commercial Engine PRD](docs/MAIN-COMMERCIAL-ENGINE.md)
 - [Target-state master plan](docs/Aslal%20Growth%20OS%20master%20plan.md)
 - [Reconciliation](docs/reconciliation/README.md)
 - [Execution State](docs/reconciliation/EXECUTION-STATE.md)
@@ -303,6 +315,7 @@ The canonical system documents remain connected through:
 
 ## Repository links
 
+- [Main Commercial Engine PRD](docs/MAIN-COMMERCIAL-ENGINE.md)
 - [Target-state Growth OS master plan](docs/Aslal%20Growth%20OS%20master%20plan.md)
 - [Reconciliation Guideline](docs/reconciliation/README.md)
 - [Q1 Operation Plan Reconciliation](docs/reconciliation/Q1-OPERATION-PLAN-RECONCILIATION.md)

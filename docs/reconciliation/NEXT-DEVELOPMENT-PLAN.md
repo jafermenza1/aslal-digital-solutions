@@ -111,6 +111,16 @@ Current status on 2026-09-26:
 - Financial/attribution/permission audit completeness: still requires coverage closure and evidence.
 - 100-partner fixture: remaining acceptance gap.
 
+## Commercial Engine reconciliation note
+
+The detailed commercial domain is now specified in docs/MAIN-COMMERCIAL-ENGINE.md.
+
+The commercial engine is **not a replacement roadmap**. Its CE-1 through CE-13 increments are domain slices that must be assigned to the existing roadmap phases according to dependencies and acceptance gates.
+
+The commercial gap-closure requirements are tracked as R50-R65 in TRACEABILITY.md. In particular, commercial listing, demand requests, deal registration, inspection, professional services, matching, external payment evidence and leakage/dispute controls must be implemented as extensions of the existing Lead → Opportunity → Quote/Proposal → Order → Payment → Revenue → Commission chain.
+
+No CE increment is considered accepted merely because its schema or UI exists.
+
 ## 3. Immediate Gate — Production Integrity Closure
 
 This is the first task before meaningful automation or scale.

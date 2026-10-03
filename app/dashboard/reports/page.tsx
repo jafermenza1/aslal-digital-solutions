@@ -10,6 +10,7 @@ const reports=[
  {key:"earnings",roles:["PARTNER"],title:"Earnings",description:"Your partner activity, referral performance and earnings.",href:"/dashboard/partner"},
  {key:"financial",roles:["BUSINESS_OWNER","FINANCE","ADMIN","SUPER_ADMIN"],title:"Financial",description:"Payments, revenue recognition, commissions and payouts.",href:"/dashboard/finance"},
  {key:"audit",roles:["BUSINESS_OWNER","AUDITOR","ADMIN","SUPER_ADMIN"],title:"Audit",description:"Workspace-scoped operational evidence and controlled reporting.",href:"/api/admin/reports/weekly-pipeline?format=csv"},
+ {key:"commercial",roles:["BUSINESS_OWNER","SALES_MANAGER","PARTNER_MANAGER","FINANCE","AUDITOR","ADMIN","SUPER_ADMIN"],title:"Commercial Analytics",description:"Supply, demand, conversion, attribution, revenue and commission reporting.",href:"/dashboard/commercial-analytics"},
  {key:"business",roles:["CLIENT"],title:"Business",description:"Your business dashboard and seven-day operational audit export.",href:"/dashboard/client"},
 ];
 export default async function ReportsPage(){
