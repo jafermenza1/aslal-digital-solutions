@@ -54,7 +54,7 @@ export default async function ResourcesPage({ searchParams }: { searchParams: Pr
         </div>
       </section>
 
-      <section className="relative overflow-hidden border-t border-[#0F3E8A]/20 bg-gradient-to-b from-[#F8FAFC] to-[#E8EEF8]">
+      <section className="relative overflow-hidden border-t border-[#0F3E8A]/20 bg-gradient-to-b from-[#F8FAFC] to-[#F8FAFC]">
         <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-[#0F3E8A]/5 blur-[80px]" />
         <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 rounded-full bg-[#E2B02A]/10 blur-[80px]" />
         <div className="container-aslal relative z-10 py-20 text-center">
