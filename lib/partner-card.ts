@@ -129,7 +129,7 @@ function createPdf(partner: PartnerCardRow, referralCode: string, referralUrl: s
   doc.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
 
   doc.roundedRect(0, 0, WIDTH, HEIGHT, 12).fill("#082F49");
-  doc.fillOpacity(0.22).circle(220, 12, 58).fill("#38BDF8");
+  doc.fillOpacity(0.22).circle(220, 12, 58).fill("#0F3E8A");
   doc.fillOpacity(0.16).circle(246, 72, 72).fill("#E2B02A");
   doc.fillOpacity(1).fillColor("#E2B02A").roundedRect(12, 12, 4, HEIGHT - 24, 2).fill();
   doc.fillColor("#FFFFFF").fontSize(9).font("Helvetica-Bold").text("ASLAL DIGITAL SOLUTIONS", 26, 17);
