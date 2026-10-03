@@ -90,11 +90,11 @@ export default async function Home() {
             <div className="max-w-3xl"><span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">HOW THE JOURNEY WORKS</span><h2 id="journey-title" className="mt-3 text-3xl font-black tracking-tight md:text-4xl">Choose the outcome. We handle the complexity.</h2><p className="mt-4 text-base leading-7 text-slate-600">You do not need to understand Aslal’s internal systems. Start with what you want to accomplish and the platform carries the context into the right next step.</p></div>
             <div className="relative mt-9 grid gap-4 md:grid-cols-3">
               <div className="pointer-events-none absolute left-[16%] right-[16%] top-10 hidden h-px bg-gradient-to-r from-transparent via-[#E2B02A]/45 to-transparent md:block" />
-              {[
+              {([
                 ["01","Choose an outcome","Tell us whether you want customers, online sales, automation or a connected digital system.",Target],
                 ["02","Take the simplest path","We send you to a guided builder, solution catalog, conversation or direct request—not a maze of services.",Route],
                 ["03","Keep your context","Your selected goal, product, referral and attribution stay attached as the request moves into Aslal’s operating system.",ShieldCheck]
-              ].map(([number,title,text,Icon])=>{
+              ] as Array<[string,string,string,typeof Target]>).map(([number,title,text,Icon])=>{
                 const StepIcon=Icon as typeof Target;
                 return <div key={number} className="group relative z-10">
                   <div className="mx-auto grid h-20 w-20 place-items-center rounded-full border border-[#E2B02A]/35 bg-white shadow-[0_12px_40px_rgba(15,62,138,.10)] transition duration-300 group-hover:-translate-y-1 group-hover:border-[#E2B02A] group-hover:shadow-[0_18px_55px_rgba(226,176,42,.20)]">
