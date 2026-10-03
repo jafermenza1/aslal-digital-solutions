@@ -136,6 +136,17 @@ enum CampaignRewardType {
   MARGIN
 }
 
+enum CampaignDeliveryMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+enum CampaignServiceAreaType {
+  CITY
+  EVENT
+}
+
 enum CampaignAssetType {
   CREATIVE
   COPY
@@ -2882,6 +2893,7 @@ model Workspace {
   leadAttributions LeadAttribution[]
   resourceAttributions ResourceAttribution[]
   resources Resource[]
+  campaignServiceAreaOptions CampaignServiceAreaOption[]
   emailOutbox EmailOutbox[]
   partnerPayoutProfiles PartnerPayoutProfile[]
   partnerTermsAcceptances PartnerTermsAcceptance[]
@@ -3038,6 +3050,7 @@ model PartnerCampaign {
   disputes            PartnerDispute[]
   attributions        LeadAttribution[]
   resourceAttributions ResourceAttribution[]
+  serviceAreas        PartnerCampaignServiceArea[]
 
   @@index([status, startsAt, endsAt], map: "idx_partner_campaign_status_dates")
   @@index([location], map: "idx_partner_campaign_location")
@@ -3046,6 +3059,33 @@ model PartnerCampaign {
   @@index([resourceId], map: "idx_partner_campaign_resource")
   @@map("partner_campaigns")
   workspace             Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+}
+
+model CampaignServiceAreaOption {
+  id        String                  @id @db.Char(36)
+  workspaceId String                @map("workspace_id") @db.Char(36)
+  areaType  CampaignServiceAreaType @map("area_type")
+  name      String                  @db.VarChar(190)
+  active    Boolean                 @default(true)
+  createdBy String?                 @map("created_by") @db.VarChar(190)
+  createdAt DateTime                @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime                @updatedAt @map("updated_at") @db.DateTime(0)
+  workspace Workspace               @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  campaigns PartnerCampaignServiceArea[]
+  @@unique([workspaceId, areaType, name], map:"uq_campaign_service_area_option")
+  @@index([workspaceId, active, areaType], map:"idx_campaign_service_area_option_workspace_active")
+  @@map("campaign_service_area_options")
+}
+
+model PartnerCampaignServiceArea {
+  campaignId    String @map("campaign_id") @db.Char(36)
+  serviceAreaId String @map("service_area_id") @db.Char(36)
+  createdAt     DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  campaign      PartnerCampaign @relation(fields:[campaignId], references:[id], onDelete:Cascade)
+  serviceArea   CampaignServiceAreaOption @relation(fields:[serviceAreaId], references:[id], onDelete:Restrict)
+  @@id([campaignId, serviceAreaId])
+  @@index([serviceAreaId], map:"idx_partner_campaign_service_area_option")
+  @@map("partner_campaign_service_areas")
 }
 
 model CampaignAsset {
