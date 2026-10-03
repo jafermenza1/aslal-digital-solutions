@@ -21,17 +21,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const allocation = await tx.partnerSalesAssetAllocation.findFirst({
-        where: { id, partnerId, status: "ACTIVE" },
-        include: { asset: true, partner: true },
-      });
+      const allocation = await tx.partnerSalesAssetAllocation.findFirst({ where: { id, partnerId, status: "ACTIVE" } });
       if (!allocation) throw new Error("Active sales asset allocation not found.");
-      if (allocation.asset.status !== "ACTIVE") throw new Error("Sales asset is not active.");
+      const asset = await tx.commercialDistributionItem.findUnique({ where: { id: allocation.assetId } });
+      if (!asset) throw new Error("Sales asset not found.");
+      if (asset.status !== "ACTIVE") throw new Error("Sales asset is not active.");
       if (allocation.endsAt && allocation.endsAt < new Date()) throw new Error("Allocation has expired.");
       if (allocation.quantityIssued >= allocation.quantityAllocated) throw new Error("No allocated inventory remains.");
-      if (allocation.asset.inventoryLimit !== null) {
+      if (asset.inventoryLimit !== null) {
         const issued = await tx.issuedSalesAsset.count({ where: { assetId: allocation.assetId, status: { notIn: ["VOID", "EXPIRED"] } } });
-        if (issued >= allocation.asset.inventoryLimit) throw new Error("Asset inventory limit has been reached.");
+        if (issued >= asset.inventoryLimit) throw new Error("Asset inventory limit has been reached.");
       }
 
       let customer = holderPhone
@@ -51,22 +50,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         data: {
           id: randomUUID(), workspaceId: allocation.workspaceId, assetId: allocation.assetId, allocationId: allocation.id,
           partnerId, serialNumber: serial, qrPayload: `ASLAL:ASSET:${serial}`, holderName, holderPhone: holderPhone || null,
-          issuedPrice: allocation.asset.price, issuedValue: allocation.asset.value, status: "VALID",
-          validFrom: allocation.asset.startsAt || new Date(), validUntil: allocation.asset.endsAt, issuedBy: user.email,
+          issuedPrice: asset.price, issuedValue: asset.value, status: "VALID",
+          validFrom: asset.startsAt || new Date(), validUntil: asset.endsAt, issuedBy: user.email,
         },
       });
 
-      const total = Number(allocation.asset.price ?? allocation.asset.value ?? 0);
+      const total = Number(asset.price ?? asset.value ?? 0);
       const order = await tx.order.create({
         data: {
           id: randomUUID(),
           workspaceId: allocation.workspaceId,
           orderNumber: `SO-ASSET-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomUUID().slice(0, 8).toUpperCase()}`,
-          status: "CONFIRMED", currency: allocation.asset.currency, subtotal: total, discount: 0, total,
+          status: "CONFIRMED", currency: asset.currency, subtotal: total, discount: 0, total,
           paymentState: "PENDING", fulfillmentState: "ISSUED", source: "partner_sales_asset",
           campaign: allocation.campaignId || undefined, partnerId, distributionAssetId: allocation.assetId,
           customerId: customer.id, salesOwnerEmail: user.email, confirmedAt: new Date(),
-          items: { create: { id: randomUUID(), description: allocation.asset.name, quantity: 1, unitPrice: total, lineTotal: total } },
+          items: { create: { id: randomUUID(), description: asset.name, quantity: 1, unitPrice: total, lineTotal: total } },
         },
       });
 
