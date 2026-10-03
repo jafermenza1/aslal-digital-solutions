@@ -802,6 +802,7 @@ model Lead {
   stageHistory      LeadStageHistory[]
   productInterests  LeadProductInterest[]
   attributions      LeadAttribution[]
+  attributionAudits LeadAttributionAudit[]
   commissions       Commission[]
   person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
   opportunities     Opportunity[]
@@ -845,6 +846,14 @@ model LeadAttribution {
   campaignId String? @map("campaign_id") @db.Char(36)
   productId String? @map("product_id") @db.Char(36)
   resourceId String? @map("resource_id") @db.Char(36)
+  attributionMethod String? @map("attribution_method") @db.VarChar(40)
+  createdBy String? @map("created_by") @db.VarChar(190)
+  reasonNotes String? @map("reason_notes") @db.Text
+  isAmended Boolean @default(false) @map("is_amended")
+  amendedAt DateTime? @map("amended_at") @db.DateTime(0)
+  amendedBy String? @map("amended_by") @db.VarChar(190)
+  amendmentCount Int @default(0) @map("amendment_count")
+  audits LeadAttributionAudit[]
   isFirstTouch Boolean @default(true) @map("is_first_touch")
   isLastTouch Boolean @default(true) @map("is_last_touch")
   createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
@@ -861,6 +870,26 @@ model LeadAttribution {
   @@index([campaignId], map:"idx_lead_attr_campaign")
   @@index([source,medium,campaign], map:"idx_lead_attr_source")
   @@map("lead_attributions")
+}
+
+model LeadAttributionAudit {
+  id String @id @db.Char(36)
+  workspaceId String @map("workspace_id") @db.Char(36)
+  attributionId String @map("attribution_id") @db.Char(36)
+  leadId String @map("lead_id") @db.Char(36)
+  action String @db.VarChar(30)
+  actor String? @db.VarChar(190)
+  reason String? @db.Text
+  beforeState Json? @map("before_state")
+  afterState Json? @map("after_state")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Restrict)
+  attribution LeadAttribution @relation(fields:[attributionId], references:[id], onDelete:Cascade)
+  lead Lead @relation(fields:[leadId], references:[id], onDelete:Cascade)
+  @@index([attributionId,createdAt], map:"idx_lead_attr_audit_attr_created")
+  @@index([leadId,createdAt], map:"idx_lead_attr_audit_lead_created")
+  @@index([workspaceId,createdAt], map:"idx_lead_attr_audit_workspace_created")
+  @@map("lead_attribution_audits")
 }
 
 model SocialProfile {
@@ -940,6 +969,7 @@ model Partner {
   id             String          @id @db.Char(36)
   partnerNumber  String          @unique @map("partner_number") @db.VarChar(30)
   name           String          @db.VarChar(160)
+  logoUrl        String?         @map("logo_url") @db.VarChar(1000)
   email          String?         @db.VarChar(190)
   username       String?         @unique @db.VarChar(190)
   passwordHash   String?         @map("password_hash") @db.VarChar(255)
@@ -2891,6 +2921,7 @@ model Workspace {
   professionalProposals ProfessionalProposal[]
   socialProfiles SocialProfile[]
   leadAttributions LeadAttribution[]
+  leadAttributionAudits LeadAttributionAudit[]
   resourceAttributions ResourceAttribution[]
   resources Resource[]
   campaignServiceAreaOptions CampaignServiceAreaOption[]
@@ -3026,6 +3057,7 @@ model PartnerCampaign {
   description         String?              @db.Text
   status              CampaignStatus       @default(DRAFT)
   targetDescription   String?              @map("target_description") @db.Text
+  deliveryMode        CampaignDeliveryMode @default(ONLINE) @map("delivery_mode")
   location            String?              @db.VarChar(190)
   budget              Decimal              @default(0) @db.Decimal(15,2)
   partnerBudget       Decimal              @default(0) @map("partner_budget") @db.Decimal(15,2)

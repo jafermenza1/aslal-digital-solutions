@@ -39,7 +39,7 @@ async function fetchCardData(partnerIdentifier: string) {
       // Always resolve the partner first. The dashboard may pass either the
       // internal UUID or the human-facing ASL-... partner number.
       const [partnerRows] = await db.query<PartnerCardRow[]>(
-        "SELECT id, partner_number AS partnerNumber, name, type, email FROM partners WHERE id = ? OR partner_number = ? LIMIT 1",
+        "SELECT id, partner_number AS partnerNumber, name, type, email, status, verification_status AS verificationStatus FROM partners WHERE id = ? OR partner_number = ? LIMIT 1",
         [partnerIdentifier, partnerIdentifier],
       );
       const partner = partnerRows[0];
@@ -53,7 +53,7 @@ async function fetchCardData(partnerIdentifier: string) {
         const generatedNumber = `ASL-${Number(sequenceRows[0]?.nextNumber || 101)}-${year}`;
         await db.query("UPDATE partners SET partner_number = ? WHERE id = ? AND (partner_number IS NULL OR partner_number = '')", [generatedNumber, partner.id]);
         const [refreshedPartnerRows] = await db.query<PartnerCardRow[]>(
-          "SELECT id, partner_number AS partnerNumber, name, type, email FROM partners WHERE id = ? LIMIT 1",
+          "SELECT id, partner_number AS partnerNumber, name, type, email, status, verification_status AS verificationStatus FROM partners WHERE id = ? LIMIT 1",
           [partner.id],
         );
         if (!refreshedPartnerRows[0]?.partnerNumber) throw new Error(`Partner ${partner.id} has no usable business ID`);
@@ -136,11 +136,11 @@ function createPdf(partner: PartnerCardRow, referralCode: string, referralUrl: s
   doc.fillColor("#D8E5FF").fontSize(5.5).font("Helvetica").text("Growth Partner Network", 26, 30);
   doc.fillColor("#FFFFFF").fontSize(13).font("Helvetica-Bold").text(safeText(partner.name), 26, 48, { width: 140, ellipsis: true });
   doc.fillColor("#D8E5FF").fontSize(6.2).font("Helvetica").text(safeText(partner.type), 26, 64);
-  doc.fillColor("#FFFFFF").fontSize(5.2).font("Helvetica-Bold").text("PARTNER ID", 26, 76);
+  doc.fillColor("#FFFFFF").fontSize(5.2).font("Helvetica-Bold").text("OFFICIAL PARTNER ID", 26, 76);
   doc.fillColor("#FFFFFF").fontSize(10.5).font("Helvetica-Bold").text(safeText(partner.partnerNumber), 26, 83, { width: 135, ellipsis: true });
   doc.fillColor("#FFFFFF").fontSize(5.5).font("Helvetica-Bold").text("REFERRAL CODE", 26, 94);
   doc.fillColor("#E2B02A").fontSize(7.5).font("Helvetica-Bold").text(safeText(referralCode), 26, 103, { width: 130, ellipsis: true });
-  doc.fillColor("#D8E5FF").fontSize(5).font("Helvetica").text("Scan or use the referral link", 26, 115);
+  doc.fillColor("#D8E5FF").fontSize(5).font("Helvetica").text("ACTIVE · VERIFIED · Scan or use the referral link", 26, 115);
   doc.fillColor("#FFFFFF").fontSize(4.8).text(referralUrl, 26, 124, { width: 135, ellipsis: true, link: referralUrl });
 
   if (qr) {

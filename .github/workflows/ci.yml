@@ -16,43 +16,70 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/aslal_ci
+
 jobs:
   validate:
     name: Lint, typecheck, Prisma, build
     # Validation-only gate: no deployment or production side effects.
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/aslal_ci
-
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install dependencies
         run: npm ci
-
-      - name: Generate Prisma Client
-        run: npm run prisma:generate
-
-      - name: Validate Prisma schema
-        run: npx prisma validate
-
       - name: Lint
         run: npm run lint
 
+  typecheck:
+    name: Typecheck + Prisma
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+      - name: Validate Prisma schema
+        run: npx prisma validate
       - name: Typecheck
         run: npm run typecheck
 
+  build:
+    name: Production build
+    needs: [lint, typecheck]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+      - name: Validate Prisma schema
+        run: npx prisma validate
       - name: Production build
         run: npm run build
-
       - name: Hardening control tests
         run: npm run hardening:test
 

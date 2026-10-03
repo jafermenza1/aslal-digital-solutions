@@ -108,3 +108,9 @@ S02 fails if:
 - partner/campaign/referral attribution is lost;
 - campaign creation fails silently;
 - one workspace can use another workspace's service-area options.
+
+## Offline Attribution Evidence and Amendment Controls
+
+Every offline lead attribution records the actor who created it, creation timestamp, attribution method, partner when applicable, campaign when applicable, source channel, and reason/evidence. Attribution creation writes a corresponding audit event. Attribution corrections are controlled through the workspace-protected attribution amendment endpoint and require a reason; the current attribution records whether it was amended, amendment timestamp, amending actor, and amendment count. Previous attribution state is retained in the immutable audit history so an amendment does not erase the prior state.
+
+The supported offline attribution methods are DIRECT_OFFLINE, MANUAL_PARTNER, PARTNER_BROUGHT_CUSTOMER, OFFLINE_CODE, CAMPAIGN_EVENT, and STAFF_CAPTURE. Customers are not required to use the internet or submit a referral form. Sales staff can record the attribution from a verbal referral, partner-provided code, physical/event interaction, or direct offline interaction.

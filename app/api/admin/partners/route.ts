@@ -59,14 +59,15 @@ export async function POST(request: Request) {
       await db.query("INSERT INTO partner_identities (id,name,email,phone,created_at,updated_at) VALUES (?,?,?,?,NOW(),NOW())",[identityId,name,email,phone]);
       createdIdentity = true;
     }
-    // Human-facing partner IDs are sequential business identifiers; the UUID remains the internal DB key.
+    // Human-facing partner IDs are stable business identifiers; the UUID remains the internal DB key.
+    // New records use the canonical format ASL-P-YYYY-NNNN. Existing legacy IDs are never rewritten.
     const year = new Date().getFullYear();
     const [seqRows] = await db.query<{ next: number }[] & import("mysql2").RowDataPacket[]>(
-      "SELECT COALESCE(MAX(CAST(SUBSTRING(partner_number, 5, 10) AS UNSIGNED)), 100) + 1 AS next FROM partners WHERE partner_number LIKE CONCAT('ASL-', '%', '-', ?) ",
+      "SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(partner_number, '-', -1) AS UNSIGNED)), 0) + 1 AS next FROM partners WHERE partner_number LIKE CONCAT('ASL-P-', ?, '-%')",
       [year],
     );
-    const nextNumber = Number(seqRows[0]?.next || 101);
-    const partnerNumber = `ASL-${nextNumber}-${year}`;
+    const nextNumber = Number(seqRows[0]?.next || 1);
+    const partnerNumber = `ASL-P-${year}-${String(nextNumber).padStart(4, "0")}`;
     await db.query("INSERT INTO partners (id, identity_id, workspace_id, partner_number, name, email, phone, country, type, status, account_status, onboarding_status, onboarding_step, bio, specialties, service_areas, audience_size, portal_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'REGISTERED', 'IN_PROGRESS', 'PROFILE', ?, ?, ?, ?, 0)", [
       partnerId, identityId, workspace.id, partnerNumber, name, email, phone, country, type, status, bio, specialties, serviceAreas, audienceSize,
     ]);
