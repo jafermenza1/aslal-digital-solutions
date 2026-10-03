@@ -35,7 +35,7 @@ CREATE TABLE professional_profiles (
   CONSTRAINT fk_professional_profile_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT,
   CONSTRAINT fk_professional_profile_party FOREIGN KEY (party_id) REFERENCES commercial_parties(id) ON DELETE RESTRICT,
   CONSTRAINT fk_professional_profile_partner FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE professional_credentials (
   id CHAR(36) NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE professional_credentials (
   KEY idx_professional_credential_profile_status (profile_id,status),
   CONSTRAINT fk_professional_credential_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT,
   CONSTRAINT fk_professional_credential_profile FOREIGN KEY (profile_id) REFERENCES professional_profiles(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE commercial_listings
   ADD COLUMN professional_profile_id CHAR(36) NULL,
