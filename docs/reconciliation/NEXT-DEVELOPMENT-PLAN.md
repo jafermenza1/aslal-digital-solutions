@@ -124,7 +124,7 @@ No CE increment is considered accepted merely because its schema or UI exists.
 ## 2B. Public Commerce & Conversation Experience — Increment Plan
 
 **Increment:** PCCE-1 through PCCE-10  
-**Status:** Planned implementation sequence  
+**Status:** PCCE-1 IMPLEMENTED — ACCEPTANCE PENDING; PCCE-2 through PCCE-10 planned  
 **Purpose:** turn the existing public website, Growth Builder, catalog, attribution, Telegram, WhatsApp and Email foundations into one simple customer-facing commerce and conversation experience without creating a second CRM, order ledger, attribution ledger or communication system.
 
 ### 2B.1 Product principle
@@ -154,6 +154,8 @@ All channels must resolve to the same person/customer, lead, commercial demand, 
 
 ### 2B.3 PCCE-1 — Experience Contract & Terminology
 
+**Status:** IMPLEMENTED — ACCEPTANCE PENDING
+
 **Goal:** establish one user-facing vocabulary before changing screens.
 
 **Implementation:**
@@ -165,6 +167,10 @@ All channels must resolve to the same person/customer, lead, commercial demand, 
 - add terminology/route tests for critical public journeys.
 
 **Acceptance:** a new visitor can understand what to do without knowing Aslal's internal commercial-domain terminology.
+
+**Implemented on main:** `lib/public-commerce-contract.ts` centralizes public intents, CTA vocabulary, public route semantics and internal-to-public terminology mapping. `components/GrowthBuilder.tsx` now consumes the public intent contract instead of exposing legacy workflow-stage labels. `scripts/pcce-1-contract-check.mjs` validates the four supported locale vocabularies, contract exports and removal of the legacy Growth Builder terms.
+
+**Remaining acceptance evidence:** run `npm run pcce-1:check`, `npm run lint`, `npm run typecheck` and the relevant public-route/browser checks on the current mainline.
 
 ### 2B.4 PCCE-2 — Public Homepage & Intent Gateway
 
