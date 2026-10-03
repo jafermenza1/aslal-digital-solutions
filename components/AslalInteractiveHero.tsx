@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { publicCommerceIntents } from "@/lib/public-commerce-contract";
 
 const slides = [
   { title: "We implement, customize and connect digital systems for your Business.", subtitle: "Aslal your Growth Partner" },
@@ -63,13 +64,21 @@ function OutcomeDashboard(){
 
 export function AslalInteractiveHero({content}:{content:HeroContent}){
   const [intentOpen,setIntentOpen]=useState(false);
-  const intents=[
-    {label:"Get more customers",href:"/contact?goal=Get%20more%20customers",hint:"Marketing, SEO, campaigns & lead generation"},
-    {label:"Sell online",href:"/products",hint:"Products, orders, payments & customer follow-up"},
-    {label:"Automate conversations",href:"/growth-builder?goal=Automate%20conversations",hint:"Telegram, WhatsApp & human handoff"},
-    {label:"Build a digital system",href:"/growth-builder?goal=Build%20a%20digital%20system",hint:"Website, CRM, automation & connected workflows"},
-  ];
-  return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
+  const intentDetails: Record<string, { hint: string; next: string }> = {
+    growth: { hint: "Marketing, SEO, campaigns & lead generation", next: "Open Growth Builder" },
+    sell: { hint: "Products, orders, payments & customer follow-up", next: "Browse solutions" },
+    automate: { hint: "Telegram, WhatsApp & human handoff", next: "Design the workflow" },
+    system: { hint: "Website, CRM, automation & connected workflows", next: "Design the system" },
+  };
+  const intents = publicCommerceIntents.map((intent) => ({
+    ...intent,
+    href: intent.key === "growth"
+      ? "/growth-builder?goal=Get%20more%20customers"
+      : intent.key === "sell"
+        ? "/products"
+        : `${intent.href}?goal=${intent.key === "automate" ? "Automate%20conversations" : "Build%20a%20digital%20system"}`,
+    ...intentDetails[intent.key],
+  }));  return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
     <APlexusCanvas/><div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_45%,rgba(15,62,138,.14),transparent_42%),linear-gradient(90deg,rgba(30,41,59,.96)_0%,rgba(30,41,59,.88)_48%,rgba(30,41,59,.58)_100%)]"/>
     <div className="relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
       <div className="space-y-7 lg:col-span-7">
@@ -80,7 +89,7 @@ export function AslalInteractiveHero({content}:{content:HeroContent}){
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {intents.map(intent=><Link key={intent.label} href={intent.href} className="group rounded-2xl border border-white/10 bg-white/[.04] p-4 transition hover:border-[#E2B02A]/70 hover:bg-white/[.08]"><div className="flex items-center justify-between gap-3"><span className="font-bold text-white">{intent.label}</span><span className="text-[#E2B02A] transition group-hover:translate-x-1">→</span></div><p className="mt-1 text-xs leading-5 text-white/50">{intent.hint}</p></Link>)}
           </div>
-          <Link href="/contact" className="mt-4 inline-flex text-xs font-bold text-white/60 hover:text-[#E2B02A]">I’m not sure — tell Aslal what I need →</Link>
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2"><Link href="/contact" className="text-xs font-bold text-white/60 hover:text-[#E2B02A]">I’m not sure — tell Aslal what I need →</Link><Link href="/telegram" className="text-xs font-bold text-sky-200/80 hover:text-white">I want to talk to a person →</Link></div>
         </div>
         <div className="flex flex-wrap gap-3"><Link href="/products" className="rounded-xl border border-slate-700 bg-[#1E293B]/60 px-6 py-3.5 text-sm font-semibold text-[#F8FAFC] backdrop-blur-sm transition hover:border-[#E2B02A] hover:text-[#E2B02A]">Explore Solutions</Link><Link href="/telegram" className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-6 py-3.5 text-sm font-semibold text-sky-100 backdrop-blur-sm transition hover:border-sky-300">Chat on Telegram</Link></div>
       </div>
