@@ -1,19 +1,2 @@
-export const siteConfig = {
-  name: "Aslal Digital Solutions",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://aslaldigital.com",
-  email: "info@aslaldigital.com",
-  phone: "+251 911-276682",
-  location: "Addis Ababa, Ethiopia",
-  defaultLeadOwnerEmail: process.env.ASLAL_DEFAULT_LEAD_OWNER_EMAIL || "info@aslaldigital.com",
-  colors: { blue: "#E2B02A", gold: "#E2B02A", slate: "#1E293B", ice: "#F8FAFC" },
-};
-
-export const navItems = [
-  { href: "/services", label: "Solutions" },
-  { href: "/products", label: "Products" },
-  { href: "/work", label: "Work" },
-  { href: "/demo", label: "Automation Lab" },
-  { href: "/about", label: "About" },
-  { href: "/resources", label: "Resources" },
-  { href: "/contact", label: "Contact" },
-];
+export const siteConfig={name:"Aslal Digital Solutions",url:process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com",email:"info@aslaldigital.com",phone:"+251 911-276682",location:"Addis Ababa, Ethiopia",defaultLeadOwnerEmail:process.env.ASLAL_DEFAULT_LEAD_OWNER_EMAIL||"info@aslaldigital.com",colors:{blue:"#0F3E8A",gold:"#E2B02A",slate:"#1E293B",ice:"#F8FAFC"}};
+export const navItems=[{href:"/platform",label:"Platform"},{href:"/marketplace",label:"Marketplace"},{href:"/wanted",label:"Wanted"},{href:"/partner/register",label:"Partners"},{href:"/services",label:"Solutions"},{href:"/products",label:"Products"},{href:"/resources",label:"Resources"},{href:"/growth-builder",label:"Growth Builder"},{href:"/about",label:"About"},{href:"/contact",label:"Contact"}];
