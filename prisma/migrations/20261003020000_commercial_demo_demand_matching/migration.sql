@@ -265,7 +265,8 @@ SELECT
   JSON_OBJECT('type',20,'category',18,'item',25,'location',12,'serviceArea',8,'condition',5,'budget',8,'deadline',0),
   JSON_ARRAY('Product type matches the buying request.','Category and requested item strongly overlap.','Listing is available in Addis Ababa.','Asking price is within the requested budget range.'),
   NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_matches WHERE id = 'd4000000-0000-4000-8000-000000000001');
 
 INSERT INTO commercial_matches
   (id, workspace_id, request_id, listing_id, supplier_party_id, status, score,
@@ -277,7 +278,8 @@ SELECT
   JSON_OBJECT('type',20,'category',12,'item',5,'location',2,'serviceArea',0,'condition',3,'budget',0,'deadline',0),
   JSON_ARRAY('Both are business procurement needs.','Office category is related but not the requested product.','Location differs from the request.'),
   NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_matches WHERE id = 'd4000000-0000-4000-8000-000000000002');
 
 INSERT INTO commercial_matches
   (id, workspace_id, request_id, listing_id, supplier_party_id, status, score,
@@ -289,7 +291,8 @@ SELECT
   JSON_OBJECT('type',20,'category',18,'item',25,'location',12,'serviceArea',8,'condition',5,'budget',6,'deadline',0),
   JSON_ARRAY('Product type and office-furniture category match.','Requested desks and chairs match the listing.','Supplier is located in Shashemene.','Package price overlaps the requested budget.'),
   NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_matches WHERE id = 'd4000000-0000-4000-8000-000000000003');
 
 INSERT INTO commercial_matches
   (id, workspace_id, request_id, listing_id, supplier_party_id, status, score,
@@ -301,7 +304,8 @@ SELECT
   JSON_OBJECT('type',20,'category',18,'item',25,'location',12,'serviceArea',8,'condition',5,'budget',10,'deadline',0),
   JSON_ARRAY('Property type and commercial-property category match.','Office-space requirement matches the listing.','Both are in Hawassa.','Monthly asking price is within budget.'),
   NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_matches WHERE id = 'd4000000-0000-4000-8000-000000000004');
 
 INSERT INTO commercial_matches
   (id, workspace_id, request_id, listing_id, supplier_party_id, status, score,
@@ -313,7 +317,8 @@ SELECT
   JSON_OBJECT('type',20,'category',18,'item',25,'location',12,'serviceArea',8,'condition',5,'budget',9,'deadline',0),
   JSON_ARRAY('Service type and digital-marketing category match.','Requested social media and content services match the package.','Provider serves Addis Ababa.','Monthly price fits the requested budget.'),
   NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_matches WHERE id = 'd4000000-0000-4000-8000-000000000005');
 
 INSERT INTO commercial_matches
   (id, workspace_id, request_id, listing_id, supplier_party_id, status, score,
@@ -325,7 +330,8 @@ SELECT
   JSON_OBJECT('type',20,'category',5,'item',3,'location',4,'serviceArea',2,'condition',0,'budget',0,'deadline',0),
   JSON_ARRAY('Both are service listings.','Location matches but the service category differs.','Candidate is logistics rather than digital marketing.'),
   NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_matches WHERE id = 'd4000000-0000-4000-8000-000000000006');
 
 INSERT INTO commercial_matches
   (id, workspace_id, request_id, listing_id, supplier_party_id, status, score,
@@ -337,7 +343,8 @@ SELECT
   JSON_OBJECT('type',20,'category',18,'item',25,'location',12,'serviceArea',8,'condition',5,'budget',7,'deadline',0),
   JSON_ARRAY('Service listing matches the RFP.','Logistics and delivery category matches.','Same-day delivery requirement is reflected in the listing.','Provider serves Addis Ababa and price is compatible with the budget.'),
   NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_matches WHERE id = 'd4000000-0000-4000-8000-000000000007');
 
 INSERT INTO commercial_matches
   (id, workspace_id, request_id, listing_id, supplier_party_id, status, score,
@@ -349,4 +356,5 @@ SELECT
   JSON_OBJECT('type',20,'category',4,'item',3,'location',4,'serviceArea',0,'condition',0,'budget',0,'deadline',0),
   JSON_ARRAY('Both are service offerings.','Location matches but the candidate is digital marketing rather than delivery.'),
   NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), NOW(), NOW()
-WHERE @demo_workspace_id IS NOT NULL;
+WHERE @demo_workspace_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM commercial_matches WHERE id = 'd4000000-0000-4000-8000-000000000008');
