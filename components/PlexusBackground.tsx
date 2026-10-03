@@ -123,7 +123,7 @@ export function PlexusBackground() {
         const glow = 5 + Math.sin(time * 0.001 + i) * 2;
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r + glow, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(120,210,255,.035)";
+        ctx.fillStyle = "rgba(248,250,252,.035)";
         ctx.fill();
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
