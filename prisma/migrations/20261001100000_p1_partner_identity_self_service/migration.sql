@@ -29,7 +29,7 @@ CREATE TABLE partner_verification_challenges (
   KEY idx_partner_verification_challenge (partner_id, channel, consumed_at),
   KEY idx_partner_verification_token (token_hash),
   CONSTRAINT fk_partner_verification_partner FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE partner_payout_profiles (
   id CHAR(36) NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE partner_payout_profiles (
   KEY idx_partner_payout_profile_workspace (workspace_id, verified),
   CONSTRAINT fk_partner_payout_profile_partner FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE,
   CONSTRAINT fk_partner_payout_profile_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE partner_terms_acceptances (
   id CHAR(36) NOT NULL,
@@ -71,4 +71,4 @@ CREATE TABLE partner_terms_acceptances (
   CONSTRAINT fk_partner_terms_program FOREIGN KEY (program_id) REFERENCES partner_programs(id) ON DELETE RESTRICT,
   CONSTRAINT fk_partner_terms_terms FOREIGN KEY (terms_id) REFERENCES program_terms(id) ON DELETE RESTRICT,
   CONSTRAINT fk_partner_terms_contract FOREIGN KEY (contract_id) REFERENCES commission_contracts(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
