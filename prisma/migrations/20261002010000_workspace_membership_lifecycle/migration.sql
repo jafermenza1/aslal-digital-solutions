@@ -16,7 +16,7 @@ CREATE TABLE workspace_membership_history (
   CONSTRAINT fk_wmh_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT,
   CONSTRAINT fk_wmh_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
   CONSTRAINT fk_wmh_membership FOREIGN KEY (membership_id) REFERENCES workspace_users(id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE workspace_users
   ADD COLUMN status ENUM('ACTIVE','SUSPENDED','REMOVED') NOT NULL DEFAULT 'ACTIVE' AFTER role,
