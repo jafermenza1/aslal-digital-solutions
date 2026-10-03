@@ -51,7 +51,11 @@ export async function POST(request:Request){
   if(required.some(k=>typeof body?.[k]!=="string"||!(body[k] as string).trim()))return NextResponse.json({error:"All resource fields are required."},{status:400});
   const downloadUrl=typeof body.downloadUrl==="string"?body.downloadUrl.trim():"";
   if(downloadUrl&&!downloadUrl.startsWith("/resources/downloads/"))return NextResponse.json({error:"Download URL must point inside /resources/downloads/."},{status:400});
+  const relationshipType=typeof body.relationshipType==="string"?body.relationshipType:"OWNED";
+  if(!["OWNED","AFFILIATE","RESELLER","IMPLEMENTATION_PARTNER","CUSTOM"].includes(relationshipType))return NextResponse.json({error:"Invalid resource relationship type."},{status:400});
+  const existing=await db.query<any[]>("SELECT id FROM resources WHERE slug=? LIMIT 1",[slug]);
+  if(existing[0]?.length)return NextResponse.json({error:"A resource with this slug already exists."},{status:409});
   await db.query(`INSERT INTO resources (id,slug,category,title,description,preview,cta,intent,download_url,active,published_at,relationship_type,provider_name,workspace_id,campaign_id,media_urls,specifications) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [randomUUID(),slug,body.category,body.title,body.description,body.preview,body.cta,body.intent,downloadUrl||null,1,new Date(),typeof body.relationshipType==="string"?body.relationshipType:"OWNED",typeof body.providerName==="string"?body.providerName.trim().slice(0,190)||null:null,typeof body.workspaceId==="string"&&body.workspaceId.trim()?body.workspaceId.trim():null,typeof body.campaignId==="string"&&body.campaignId.trim()?body.campaignId.trim():null,mediaUrls,specifications]);
+    [randomUUID(),slug,body.category,body.title,body.description,body.preview,body.cta,body.intent,downloadUrl||null,1,new Date(),relationshipType,typeof body.providerName==="string"?body.providerName.trim().slice(0,190)||null:null,typeof body.workspaceId==="string"&&body.workspaceId.trim()?body.workspaceId.trim():null,typeof body.campaignId==="string"&&body.campaignId.trim()?body.campaignId.trim():null,mediaUrls,specifications]);
   return NextResponse.json({ok:true});
 }
