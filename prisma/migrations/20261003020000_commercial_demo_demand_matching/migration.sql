@@ -164,7 +164,7 @@ SELECT
   'Demo Procurement Officer', 'demo.procurement@example.test', '+251900000001', 'PHONE',
   'PUBLIC', 'DEMO',
   JSON_OBJECT('demo', true, 'requirements', JSON_ARRAY('Core i5 or equivalent','8GB+ RAM','256GB+ SSD','warranty')),
-  NOW(), NOW(), NOW(), NOW(), NOW()
+  NOW(), NOW(), NOW(), NOW()
 WHERE @demo_workspace_id IS NOT NULL;
 
 INSERT INTO commercial_requests
