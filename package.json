@@ -16,7 +16,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "q1:test-boundary": "node script/q1-workspace-boundary-negative-tests.mjs",
     "hardening:test": "node scripts/production-hardening-tests.mjs",
-    "hardening:security": "npm audit --omit=dev --audit-level=high"
+    "hardening:security": "npm audit --omit=dev --audit-level=high",
+    "brand:check": "node scripts/brand-color-check.mjs"
   },
   "dependencies": {
     "dotenv": "17.2.2",
