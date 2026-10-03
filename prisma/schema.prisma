@@ -1684,6 +1684,7 @@ model ProfessionalProposal {
   responderParty    CommercialParty?        @relation(fields:[responderPartyId], references:[id], onDelete:SetNull)
   partner           Partner?                @relation(fields:[partnerId], references:[id], onDelete:SetNull)
   commercialAgreements CommercialAgreement[]
+  commercialDisputes CommercialDispute[]
   versions          ProfessionalProposalVersion[]
 
   @@unique([responseId], map:"uq_professional_proposal_response")
