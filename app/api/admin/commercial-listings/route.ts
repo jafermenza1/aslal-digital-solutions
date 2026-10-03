@@ -10,8 +10,8 @@ const slugify=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-
 
 function parse(body:any){
  const title=clean(body.title,190);
- const listingType=String(body.listingType||"PRODUCT");
- const status=String(body.status||"DRAFT");
+ const listingType=String(body.listingType||"PRODUCT") as (typeof TYPES)[number];
+ const status=String(body.status||"DRAFT") as (typeof STATUSES)[number];
  const workspaceId=clean(body.workspaceId,36);
  const productId=clean(body.productId,36)||null;
  const ownerPartyId=clean(body.ownerPartyId,36)||null;
