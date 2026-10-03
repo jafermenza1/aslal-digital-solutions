@@ -9,7 +9,7 @@ export function CommercialAnalyticsDashboard(){
  const [end,setEnd]=useState(()=>new Date().toISOString().slice(0,10));
  const [data,setData]=useState<A|null>(null); const [loading,setLoading]=useState(true); const [error,setError]=useState("");
  const load=()=>{setLoading(true);setError("");fetch("/api/admin/commercial-analytics?start="+encodeURIComponent(start)+"&end="+encodeURIComponent(end)).then(async r=>{const x=await r.json();if(!r.ok)throw new Error(x.error||"Unable to load analytics.");return x}).then(setData).catch(e=>setError(e.message)).finally(()=>setLoading(false))};
- useEffect(()=>{load()},[]);
+ useEffect(()=>{void fetch("/api/admin/commercial-analytics?start="+encodeURIComponent(start)+"&end="+encodeURIComponent(end)).then(async r=>{const x=await r.json();if(!r.ok)throw new Error(x.error||"Unable to load analytics.");return x}).then(setData).catch(e=>setError(e.message)).finally(()=>setLoading(false));},[start,end]);
  const m=data?.metrics; const defs=data?.definitions;
  const csv=useMemo(()=>"/api/admin/commercial-analytics?start="+encodeURIComponent(start)+"&end="+encodeURIComponent(end)+"&format=csv",[start,end]);
  return <section className="mt-8 space-y-6">
