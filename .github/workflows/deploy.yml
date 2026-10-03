@@ -131,18 +131,23 @@ jobs:
           EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
           EMERALD_USER: ${{ secrets.EMERALD_USER }}
           EMERALD_SSH_KEY: ${{ secrets.EMERALD_SSH_KEY }}
+          EMERALD_SSH_KEY_B64: ${{ secrets.EMERALD_SSH_KEY_B64 }}
           EMERALD_KNOWN_HOSTS: ${{ secrets.EMERALD_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           test -n "$EMERALD_HOST"
           test -n "$EMERALD_USER"
-          test -n "$EMERALD_SSH_KEY"
+          test -n "${EMERALD_SSH_KEY_B64:-$EMERALD_SSH_KEY}"
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s' "$EMERALD_SSH_KEY" | sed 's/\\r$//' | sed 's/\\\\n/\\n/g' > ~/.ssh/emerald_deploy
+          if [ -n "${EMERALD_SSH_KEY_B64:-}" ]; then
+            printf '%s' "$EMERALD_SSH_KEY_B64" | base64 --decode > ~/.ssh/emerald_deploy
+          else
+            printf '%s' "$EMERALD_SSH_KEY" | sed 's/\\r$//' | sed 's/\\\\n/\\n/g' > ~/.ssh/emerald_deploy
+          fi
           chmod 600 ~/.ssh/emerald_deploy
           if ! ssh-keygen -y -f ~/.ssh/emerald_deploy >/dev/null 2>&1; then
-            echo "::error::EMERALD_SSH_KEY is not a valid private SSH key after newline normalization. Store the complete private key, including BEGIN/END lines, as the GitHub secret."
+            echo "::error::Emerald SSH private key could not be parsed. Check EMERALD_SSH_KEY_B64 (preferred) or EMERALD_SSH_KEY and ensure the complete private key was stored."
             exit 1
           fi
           if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
