@@ -22,7 +22,7 @@ CREATE TABLE commercial_distribution_items (
   KEY idx_dist_item_workspace_campaign (workspace_id,campaign_id),
   KEY idx_dist_item_workspace_product (workspace_id,product_id),
   CONSTRAINT fk_dist_item_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE partner_sales_asset_allocations (
   id CHAR(36) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE partner_sales_asset_allocations (
   CONSTRAINT fk_sales_asset_alloc_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE RESTRICT,
   CONSTRAINT fk_sales_asset_alloc_asset FOREIGN KEY (asset_id) REFERENCES commercial_distribution_items(id) ON DELETE CASCADE,
   CONSTRAINT fk_sales_asset_alloc_partner FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE issued_sales_assets (
   id CHAR(36) NOT NULL,
@@ -76,4 +76,4 @@ CREATE TABLE issued_sales_assets (
   CONSTRAINT fk_issued_sales_asset_asset FOREIGN KEY (asset_id) REFERENCES commercial_distribution_items(id) ON DELETE CASCADE,
   CONSTRAINT fk_issued_sales_asset_allocation FOREIGN KEY (allocation_id) REFERENCES partner_sales_asset_allocations(id) ON DELETE CASCADE,
   CONSTRAINT fk_issued_sales_asset_partner FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
