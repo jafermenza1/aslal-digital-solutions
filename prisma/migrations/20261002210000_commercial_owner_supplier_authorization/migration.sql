@@ -18,7 +18,7 @@ CREATE TABLE `commercial_parties` (
   PRIMARY KEY (`id`),
   INDEX `idx_commercial_party_workspace_status_name` (`workspace_id`, `status`, `name`),
   CONSTRAINT `fk_commercial_party_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspaces` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE=InnoDB;
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `commercial_listing_authorizations` (
   `id` CHAR(36) NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE `commercial_listing_authorizations` (
   CONSTRAINT `fk_commercial_auth_party` FOREIGN KEY (`party_id`) REFERENCES `commercial_parties` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_commercial_auth_partner` FOREIGN KEY (`partner_id`) REFERENCES `partners` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_commercial_auth_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE=InnoDB;
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE `commercial_listings`
   ADD INDEX `idx_commercial_listing_owner_party` (`owner_party_id`),
