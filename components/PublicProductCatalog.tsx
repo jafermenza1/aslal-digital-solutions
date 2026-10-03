@@ -67,7 +67,7 @@ export function PublicProductCatalog({ products }: { products: CatalogItem[] }) 
         {visible.map((p) => (
           <article key={p.id} className="catalog-card group min-w-0 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.06] transition duration-300 hover:-translate-y-1 hover:border-[#E2B02A] hover:bg-white/[.1] hover:shadow-[0_0_28px_rgba(226,176,42,.14)]">
             <Link href={`/products/${p.slug}`} className="block">
-              <div className="relative h-52 overflow-hidden bg-gradient-to-br from-[#163f87] to-[#0F3E8A]">
+              <div className="relative h-52 overflow-hidden bg-gradient-to-br from-[#0F3E8A] to-[#0F3E8A]">
                 {p.imageUrl ? (
                   <Image src={p.imageUrl} alt="" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-105" unoptimized />
                 ) : (
@@ -86,7 +86,7 @@ export function PublicProductCatalog({ products }: { products: CatalogItem[] }) 
                 <span className="catalog-explore mt-7 inline-flex font-black text-[#E2B02A] transition-colors">Explore More →</span>
               </div>
             </Link>
-            <div className="border-t border-white/10 px-7 pb-7 pt-4"><Link href={contactHref(p.id, p.slug, p.kind === "PRODUCT" ? "Request a sample" : "Request a quote")} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#E2B02A] px-5 py-3 text-xs font-black text-[#1E293B] transition hover:bg-[#ebd05d] hover:shadow-lg hover:shadow-[#E2B02A]/20">{p.kind === "PRODUCT" ? "Request Sample →" : "Request Quote →"}</Link></div>
+            <div className="border-t border-white/10 px-7 pb-7 pt-4"><Link href={contactHref(p.id, p.slug, p.kind === "PRODUCT" ? "Request a sample" : "Request a quote")} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#E2B02A] px-5 py-3 text-xs font-black text-[#1E293B] transition hover:bg-[#E2B02A] hover:shadow-lg hover:shadow-[#E2B02A]/20">{p.kind === "PRODUCT" ? "Request Sample →" : "Request Quote →"}</Link></div>
           </article>
         ))}
       </div>
