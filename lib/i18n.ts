@@ -2,6 +2,7 @@ export const localeCookie = "aslal_locale";
 
 export const copy = {
   en: {
+    commerce: { intents: { growth: "Get more customers", sell: "Sell online", automate: "Automate conversations", system: "Build a digital system" }, tellUs: "Tell us what you need", findSolution: "Find a solution", requestProduct: "Request a product", requestService: "Request a service", customNeed: "Tell us what you need", talkSpecialist: "Talk to a specialist", order: "Order", browseProducts: "Browse products", exploreServices: "Explore services", talkTelegram: "Talk to us on Telegram" },
     language: "አማ",
     languageName: "Amharic",
     nav: { solutions: "Solutions", products: "Products", work: "Work", lab: "Automation Lab", contact: "Contact", about: "About", resources: "Resources" },
@@ -12,6 +13,7 @@ export const copy = {
     sections: { solutions: "Everything your growth engine needs.", automation: "Don't take our word for it. Experience the technology.", ready: "Let's design the digital system your business actually needs." },
   },
   am: {
+    commerce: { intents: { growth: "ተጨማሪ ደንበኞች ያግኙ", sell: "በመስመር ላይ ይሽጡ", automate: "ውይይቶችን በራስ ሰር ያድርጉ", system: "ዲጂታል ስርዓት ይገንቡ" }, tellUs: "የሚፈልጉትን ይንገሩን", findSolution: "መፍትሄ ያግኙ", requestProduct: "ምርት ይጠይቁ", requestService: "አገልግሎት ይጠይቁ", customNeed: "የሚፈልጉትን ይንገሩን", talkSpecialist: "ከባለሙያ ጋር ይነጋገሩ", order: "ይዘዙ", browseProducts: "ምርቶችን ይመልከቱ", exploreServices: "አገልግሎቶችን ይመልከቱ", talkTelegram: "በTelegram ያነጋግሩን" },
     language: "EN",
     languageName: "English",
     nav: { solutions: "መፍትሄዎች", products: "ምርቶች", work: "ስራዎች", lab: "Automation Lab", contact: "ያግኙን", about: "ስለ እኛ", resources: "መረጃዎች" },
@@ -22,6 +24,7 @@ export const copy = {
     sections: { solutions: "የእድገት ሞተርዎ የሚፈልገው ሁሉ።", automation: "ቃላችንን ብቻ አትመኑ። ቴክኖሎጂውን ይሞክሩ።", ready: "ለንግድዎ ትክክለኛውን ዲጂታል ስርዓት እንገንባ።" },
   },
   ar: {
+    commerce: { intents: { growth: "احصل على المزيد من العملاء", sell: "بع عبر الإنترنت", automate: "أتمت المحادثات", system: "ابنِ نظامًا رقميًا" }, tellUs: "أخبرنا بما تحتاجه", findSolution: "اعثر على حل", requestProduct: "اطلب منتجًا", requestService: "اطلب خدمة", customNeed: "أخبرنا بما تحتاجه", talkSpecialist: "تحدث مع متخصص", order: "اطلب الآن", browseProducts: "تصفح المنتجات", exploreServices: "استكشف الخدمات", talkTelegram: "تحدث معنا عبر Telegram" },
     language: "EN",
     languageName: "العربية",
     nav: { solutions: "الحلول", products: "المنتجات", work: "أعمالنا", lab: "مختبر الأتمتة", contact: "اتصل بنا", about: "من نحن", resources: "الموارد" },
@@ -32,6 +35,7 @@ export const copy = {
     sections: { solutions: "كل ما يحتاجه محرك نموك.", automation: "لا تكتفِ بكلامنا. جرّب التقنية بنفسك.", ready: "لنصمم النظام الرقمي الذي يحتاجه عملك فعليًا." },
   },
   om: {
+    commerce: { intents: { growth: "Maamiltoota dabalataa argadhu", sell: "Toora interneetii irratti gurguri", automate: "Haasaawwan ofumaan hojjedhu", system: "Sirna dijitaalaa ijaari" }, tellUs: "Waan barbaaddu nutti himi", findSolution: "Furmaata argadhu", requestProduct: "Oomisha gaafadhu", requestService: "Tajaajila gaafadhu", customNeed: "Waan barbaaddu nutti himi", talkSpecialist: "Ogeessa waliin haasa’i", order: "Ajaji", browseProducts: "Oomishaalee ilaali", exploreServices: "Tajaajiloota ilaali", talkTelegram: "Telegram irratti nu qunnami" },
     language: "AM",
     languageName: "Afaan Oromoo",
     nav: { solutions: "Furmaata", products: "Oomishaalee", work: "Hojii", lab: "Automation Lab", contact: "Nu qunnamaa", about: "Waa'ee keenya", resources: "Qabeenya" },
