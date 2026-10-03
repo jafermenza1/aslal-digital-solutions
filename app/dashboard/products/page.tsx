@@ -15,7 +15,7 @@ export default async function ProductsAdminPage() {
     <div className="container-aslal">
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
-          <div className="text-xs font-black uppercase tracking-[.2em] text-[#D97706]">Growth OS / Catalog</div>
+          <div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Growth OS / Catalog</div>
           <h1 className="mt-2 text-4xl font-black tracking-tight">Products & services</h1>
           <p className="mt-2 max-w-3xl text-slate-500">One global catalog for everything Aslal sells, markets, implements or provides. Catalog items are independent of individual users; public pages and contact attribution read from the same records. Contact auto-reply remains a separate conversation/email capability.</p>
         </div>
@@ -23,7 +23,7 @@ export default async function ProductsAdminPage() {
           <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-500">{user.email}</span>
           
           
-          <Link href="/dashboard" className="rounded-full bg-[#D97706] px-5 py-3 text-sm font-black text-white">← Dashboard</Link>
+          <Link href="/dashboard" className="rounded-full bg-[#E2B02A] px-5 py-3 text-sm font-black text-white">← Dashboard</Link>
         </div>
       </div>
       <div className="mt-8"><ProductCatalogManager workspaces={workspaces} initial={products.map(p=>({
