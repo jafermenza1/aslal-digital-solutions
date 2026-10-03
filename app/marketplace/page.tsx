@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { resolvePublicWorkspaceId } from "@/lib/workspaces";
@@ -13,3 +14,4 @@ export default async function MarketplacePage(){
   {!listings.length&&<div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">No published commercial listings are available yet.</div>}
  </div></main>;
 }
+export const metadata: Metadata = { title: "Marketplace | Aslal Digital Solutions", description: "Discover published products, services and commercial offers from Aslal's business network in Ethiopia.", alternates: { canonical: "https://aslaldigital.com/marketplace" }, openGraph: { title: "Marketplace | Aslal Digital Solutions", description: "Discover published products, services and commercial offers from Aslal's business network in Ethiopia.", url: "https://aslaldigital.com/marketplace", type: "website" } };
