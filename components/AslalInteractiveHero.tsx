@@ -65,16 +65,46 @@ function ProvenOutcomeDashboard(){
   </div>;
 }
 
-export function ProvenMarketingHero({content}:{content:HeroContent}){
-  return <section className="relative isolate flex min-h-[760px] w-full items-center justify-center overflow-hidden px-5 py-20 sm:px-6 lg:min-h-screen">
-    <APlexusCanvas/><div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_45%,rgba(15,62,138,.14),transparent_42%),linear-gradient(90deg,rgba(15,62,138,.96)_0%,rgba(15,62,138,.88)_48%,rgba(15,62,138,.58)_100%)]"/>
-    <div className="relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
-      <div className="space-y-7 lg:col-span-7"><div className="inline-flex items-center gap-2 rounded-full border border-[#E2B02A]/40 bg-[#1E293B]/80 px-3 py-1.5 text-[10px] font-mono font-bold text-[#E2B02A] sm:text-xs"><span className="h-2 w-2 animate-pulse rounded-full bg-[#E2B02A]"/>PROVEN PRODUCTS · LOCAL IMPLEMENTATION · CUSTOM FIT</div><AnimatedHeroText content={content}/><div className="flex flex-wrap gap-3 pt-1"><Link href="/growth-builder" className="rounded-xl bg-[#E2B02A] px-6 py-3.5 text-sm font-bold text-[#1E293B] shadow-lg transition hover:bg-[#E2B02A] hover:shadow-[#E2B02A]/30 sm:px-7">Build My Growth System →</Link><Link href="/products" className="rounded-xl border border-slate-700 bg-[#1E293B]/60 px-6 py-3.5 text-sm font-semibold text-[#F8FAFC] backdrop-blur-sm transition hover:border-[#E2B02A] hover:text-[#E2B02A] sm:px-7">Explore Solutions</Link></div></div>
-      <div className="flex justify-center lg:col-span-5 lg:justify-end"><ProvenOutcomeDashboard/></div>
+export function ProvenMarketingHero({content,telegramUrl,whatsappUrl}:{content:HeroContent;telegramUrl:string;whatsappUrl:string}){
+  const title=content["home.hero.publicTitle"]?.value||"Grow your business.";
+  const body=content["home.hero.publicBody"]?.value||"We help Ethiopian businesses attract customers, manage conversations, sell and measure results.";
+  return <section className="public-home-hero relative isolate flex min-h-[680px] w-full items-center overflow-hidden px-5 py-20 sm:px-8 lg:min-h-[760px]">
+    <APlexusCanvas/>
+    <div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_70%_50%,rgba(226,176,42,.10),transparent_28%),linear-gradient(90deg,rgba(7,12,24,.98)_0%,rgba(15,62,138,.88)_58%,rgba(15,62,138,.60)_100%)]"/>
+    <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_.95fr] lg:gap-10">
+      <div className="max-w-3xl">
+        <div className="inline-flex items-center gap-2 rounded-full border border-[#E2B02A]/35 bg-[#1E293B]/70 px-3 py-1.5 text-[10px] font-mono font-black tracking-[.12em] text-[#E2B02A] backdrop-blur-md sm:text-xs">
+          <span className="h-2 w-2 rounded-full bg-[#E2B02A] shadow-[0_0_14px_#E2B02A]"/> ASLAL DIGITAL SOLUTIONS · ETHIOPIA
+        </div>
+        <h1 className="mt-7 max-w-3xl text-5xl font-black leading-[.98] tracking-[-.055em] text-[#F8FAFC] sm:text-6xl lg:text-7xl">{title}</h1>
+        <p className="mt-5 max-w-2xl text-xl font-semibold leading-8 text-[#E2B02A] sm:text-2xl">Connect marketing, sales and digital commerce.</p>
+        <p className="mt-5 max-w-2xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">{body}</p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link href="/contact?goal=Tell%20us%20what%20you%20need" className="inline-flex items-center justify-center rounded-2xl bg-[#E2B02A] px-7 py-4 font-black text-[#1E293B] shadow-[0_12px_45px_rgba(226,176,42,.18)] transition hover:-translate-y-0.5">Tell us what you need <ArrowRight className="ml-2" size={17}/></Link>
+          <Link href="/marketplace" className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/[.07] px-7 py-4 font-black text-white backdrop-blur-md transition hover:-translate-y-0.5 hover:border-[#E2B02A]/60">Browse solutions <ArrowRight className="ml-2" size={17}/></Link>
+        </div>
+        <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold text-white/55">
+          <span>Prefer chat?</span>
+          <a href={telegramUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-white transition hover:text-[#E2B02A]"><Send size={15}/> Telegram</a>
+          <span className="text-white/20">·</span>
+          <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-white transition hover:text-[#E2B02A]"><MessageCircle size={15}/> WhatsApp</a>
+        </div>
+      </div>
+      <div className="relative mx-auto flex min-h-[330px] w-full max-w-[520px] items-center justify-center">
+        <div className="public-home-orbit absolute h-[300px] w-[300px] rounded-full border border-white/10 sm:h-[390px] sm:w-[390px]"/>
+        <div className="public-home-orbit public-home-orbit-delay absolute h-[210px] w-[210px] rounded-full border border-[#E2B02A]/20 sm:h-[280px] sm:w-[280px]"/>
+        <div className="relative grid h-36 w-36 place-items-center rounded-full border border-[#E2B02A]/45 bg-[#0F172A]/90 shadow-[0_0_90px_rgba(226,176,42,.16)] backdrop-blur-xl sm:h-44 sm:w-44">
+          <div className="text-center"><div className="mx-auto h-3 w-3 rounded-full bg-[#E2B02A] shadow-[0_0_24px_#E2B02A]"/><div className="mt-4 text-sm font-black tracking-[.18em] text-white">ASLAL</div><div className="mt-1 text-[9px] font-mono font-bold tracking-[.2em] text-[#E2B02A]">CONNECT · GROW</div></div>
+        </div>
+        {[
+          ["Customers","top-[8%] left-[8%]"],
+          ["Conversations","right-[2%] top-[43%]"],
+          ["Commerce","bottom-[7%] left-[12%]"]
+        ].map(([label,pos])=><div key={label} className={`absolute ${pos} rounded-full border border-white/10 bg-[#1E293B]/85 px-4 py-2 text-[10px] font-black text-white/80 shadow-xl backdrop-blur-md sm:text-xs`}><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[#E2B02A]"/>{label}</div>)}
+      </div>
     </div>
   </section>;
 }
-
 function OutcomeDashboard(){
   return <HomeDemandConstellation />;
 }
