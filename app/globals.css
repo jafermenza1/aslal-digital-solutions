@@ -1636,3 +1636,32 @@ html[data-theme="dark"] .site-shell :is(.bg-white,.bg-\[\#F8FAFC\],.bg-slate-50,
 .marketplace-card{position:relative;transition:transform .28s,border-color .28s,box-shadow .28s}
 .marketplace-card:hover{transform:translateY(-6px);border-color:rgba(226,176,42,.5);box-shadow:0 25px 80px rgba(7,12,24,.35)}
 @media(prefers-reduced-motion:reduce){.marketplace-card{transition:none}.marketplace-card:hover{transform:none}}
+
+
+/* Telegram catalog visual system — same brand language as Marketplace, optimized for mobile commerce. */
+.telegram-catalog-page{min-height:100vh;background:#F8FAFC;color:#1E293B}
+.telegram-catalog-hero{position:relative;overflow:hidden;border-radius:0 0 30px 30px;padding:28px 20px 24px;background:radial-gradient(circle at 82% 15%,rgba(226,176,42,.16),transparent 26%),radial-gradient(circle at 10% 70%,rgba(15,62,138,.38),transparent 40%),linear-gradient(145deg,#070C18,#0F172A 70%,#0F3E8A);box-shadow:0 22px 65px rgba(7,12,24,.2)}
+.telegram-hero-grid{position:absolute;inset:0;opacity:.18;background-image:linear-gradient(rgba(248,250,252,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(248,250,252,.06) 1px,transparent 1px);background-size:40px 40px}
+.telegram-filter-row{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:12px 3px 2px;scrollbar-width:none}
+.telegram-filter-row::-webkit-scrollbar{display:none}
+.telegram-filter-row button{flex:none;border:1px solid rgba(30,41,59,.1);border-radius:999px;background:#FFFFFF;color:#1E293B;padding:9px 14px;font-size:11px;font-weight:900;white-space:nowrap}
+.telegram-filter-row button.active{border-color:#E2B02A;background:#E2B02A;color:#1E293B}
+.telegram-sort{margin-left:auto;display:flex;align-items:center;gap:5px;flex:none;border:1px solid rgba(30,41,59,.1);border-radius:999px;background:#FFFFFF;padding:8px 12px;font-size:11px;font-weight:900}
+.telegram-sort select{border:0;background:transparent;outline:none;color:#1E293B;font-weight:900}
+.telegram-catalog-content{padding:26px 3px 38px}
+.telegram-product-card{overflow:hidden;border:1px solid rgba(30,41,59,.09);border-radius:22px;background:#FFFFFF;box-shadow:0 12px 35px rgba(30,41,59,.06);transition:transform .25s,border-color .25s,box-shadow .25s}
+.telegram-product-card:hover{transform:translateY(-4px);border-color:rgba(226,176,42,.55);box-shadow:0 20px 50px rgba(30,41,59,.1)}
+.telegram-resource-strip{margin:0 -3px;padding:28px 20px;background:linear-gradient(145deg,#070C18,#0F172A);color:#F8FAFC}
+.telegram-detail{background:#FFFFFF;color:#1E293B;box-shadow:0 30px 100px rgba(7,12,24,.4)}
+.telegram-catalog-skeleton{padding:20px}
+.telegram-catalog-skeleton>div:first-child{height:190px;border-radius:28px;background:linear-gradient(100deg,#E2E8F0 30%,#F8FAFC 50%,#E2E8F0 70%);background-size:200% 100%;animation:telegramSkeleton 1.8s linear infinite}
+.telegram-catalog-skeleton>div:nth-child(2){height:46px;margin-top:14px;border-radius:999px;background:#E2E8F0}
+.telegram-catalog-skeleton i{height:250px;border-radius:22px;background:#E2E8F0;display:block}
+@keyframes telegramSkeleton{to{background-position:-200% 0}}
+html[data-telegram-theme="dark"] .telegram-catalog-page{background:#070C18;color:#F8FAFC}
+html[data-telegram-theme="dark"] .telegram-filter-row button,html[data-telegram-theme="dark"] .telegram-sort{background:#0F172A;color:#F8FAFC;border-color:rgba(248,250,252,.12)}
+html[data-telegram-theme="dark"] .telegram-sort select{color:#F8FAFC}
+html[data-telegram-theme="dark"] .telegram-product-card{background:#0F172A;border-color:rgba(248,250,252,.1)}
+html[data-telegram-theme="dark"] .telegram-detail{background:#0F172A;color:#F8FAFC}
+@media(prefers-reduced-motion:reduce){.telegram-product-card{transition:none}.telegram-product-card:hover{transform:none}.telegram-catalog-skeleton>div:first-child{animation:none}}
+@media(min-width:700px){.telegram-catalog-hero{padding:42px 34px 32px}.telegram-catalog-content{padding-inline:3px}}
