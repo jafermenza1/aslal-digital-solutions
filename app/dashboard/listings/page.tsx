@@ -14,23 +14,25 @@ import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export const dynamic="force-dynamic";
 
+async function safeQuery<T>(label:string,query:Promise<T>,fallback:T):Promise<T>{try{return await query}catch(error){console.error(`[CommercialListingsPage] ${label} failed`,error);return fallback;}}
+
 export default async function CommercialListingsPage(){
  const access=await authorizeWorkspacePermission("products.manage");
  if(!access) redirect("/login?error=unauthorized");
  const {user,workspace}=access;
  const workspaceId=workspace.id;
  const [listings,products,parties,workspaceUsers,partners,programs,leads,dealRegistrations,commercialRequests,commercialMatches,professionalProfiles]=await Promise.all([
-  prisma.commercialListing.findMany({where:{workspaceId},orderBy:{updatedAt:"desc"},include:{product:{select:{id:true,name:true,slug:true,kind:true}},ownerParty:{select:{id:true,name:true,type:true,status:true}},supplierParty:{select:{id:true,name:true,type:true,status:true}},workspace:{select:{id:true,name:true,slug:true}}}}),
-  prisma.product.findMany({where:{workspaceId,active:true},select:{id:true,name:true,slug:true,kind:true},orderBy:{name:"asc"}}),
-  prisma.commercialParty.findMany({where:{workspaceId},orderBy:{name:"asc"},select:{id:true,name:true,type:true,status:true}}),
-  prisma.workspaceUser.findMany({where:{workspaceId,status:"ACTIVE"},include:{user:{select:{id:true,name:true,email:true,active:true}}},orderBy:{createdAt:"asc"}}),
-  prisma.partner.findMany({where:{workspaceId,status:"ACTIVE"},select:{id:true,name:true,partnerNumber:true,type:true,status:true,verificationStatus:true},orderBy:{name:"asc"}}),
-  prisma.partnerProgram.findMany({where:{workspaceId},select:{id:true,name:true,status:true,admissionMode:true},orderBy:{name:"asc"}}),
-  prisma.lead.findMany({where:{workspaceId},select:{id:true,name:true,email:true,phone:true,status:true},orderBy:{createdAt:"desc"},take:200}),
-  prisma.commercialDealRegistration.findMany({where:{workspaceId,status:{in:["PROTECTED","CONVERTED"]}},orderBy:{createdAt:"desc"},take:200,select:{id:true,status:true,buyerName:true,partner:{select:{id:true,name:true,partnerNumber:true}},lead:{select:{id:true,name:true}}}}),
-  prisma.commercialRequest.findMany({where:{workspaceId},orderBy:{createdAt:"desc"},take:200,include:{lead:{select:{id:true,name:true,status:true,score:true}},opportunity:{select:{id:true,name:true,stage:true,expectedValue:true}},responses:{orderBy:{createdAt:"desc"},include:{responderParty:{select:{id:true,name:true,type:true}},partner:{select:{id:true,name:true,partnerNumber:true}},listing:{select:{id:true,title:true,status:true}},quote:{select:{id:true,quoteNumber:true,status:true,total:true}},order:{select:{id:true,orderNumber:true,status:true,total:true}}}}}}),
-  prisma.commercialMatch.findMany({where:{workspaceId},orderBy:[{score:"desc"},{createdAt:"desc"}],take:250,include:{listing:{select:{id:true,title:true,listingType:true,category:true,location:true,askingPrice:true,currency:true}},request:{select:{id:true}},response:{select:{id:true,status:true,quotedAmount:true,currency:true}}}}),
-  prisma.professionalProfile.findMany({where:{workspaceId},orderBy:{updatedAt:"desc"},include:{party:{select:{id:true,name:true}},partner:{select:{id:true,name:true,partnerNumber:true}},credentials:{orderBy:{createdAt:"desc"}}}})
+  safeQuery("listings",prisma.commercialListing.findMany({where:{workspaceId},orderBy:{updatedAt:"desc"},include:{product:{select:{id:true,name:true,slug:true,kind:true}},ownerParty:{select:{id:true,name:true,type:true,status:true}},supplierParty:{select:{id:true,name:true,type:true,status:true}},workspace:{select:{id:true,name:true,slug:true}}}}),[]),
+  safeQuery("products",prisma.product.findMany({where:{workspaceId,active:true},select:{id:true,name:true,slug:true,kind:true},orderBy:{name:"asc"}}),[]),
+  safeQuery("parties",prisma.commercialParty.findMany({where:{workspaceId},orderBy:{name:"asc"},select:{id:true,name:true,type:true,status:true}}),[]),
+  safeQuery("workspace users",prisma.workspaceUser.findMany({where:{workspaceId,status:"ACTIVE"},include:{user:{select:{id:true,name:true,email:true,active:true}}},orderBy:{createdAt:"asc"}}),[]),
+  safeQuery("partners",prisma.partner.findMany({where:{workspaceId,status:"ACTIVE"},select:{id:true,name:true,partnerNumber:true,type:true,status:true,verificationStatus:true},orderBy:{name:"asc"}}),[]),
+  safeQuery("programs",prisma.partnerProgram.findMany({where:{workspaceId},select:{id:true,name:true,status:true,admissionMode:true},orderBy:{name:"asc"}}),[]),
+  safeQuery("leads",prisma.lead.findMany({where:{workspaceId},select:{id:true,name:true,email:true,phone:true,status:true},orderBy:{createdAt:"desc"},take:200}),[]),
+  safeQuery("deal registrations",prisma.commercialDealRegistration.findMany({where:{workspaceId,status:{in:["PROTECTED","CONVERTED"]}},orderBy:{createdAt:"desc"},take:200,select:{id:true,status:true,buyerName:true,partner:{select:{id:true,name:true,partnerNumber:true}},lead:{select:{id:true,name:true}}}}),[]),
+  safeQuery("commercial requests",prisma.commercialRequest.findMany({where:{workspaceId},orderBy:{createdAt:"desc"},take:200,include:{lead:{select:{id:true,name:true,status:true,score:true}},opportunity:{select:{id:true,name:true,stage:true,expectedValue:true}},responses:{orderBy:{createdAt:"desc"},include:{responderParty:{select:{id:true,name:true,type:true}},partner:{select:{id:true,name:true,partnerNumber:true}},listing:{select:{id:true,title:true,status:true}},quote:{select:{id:true,quoteNumber:true,status:true,total:true}},order:{select:{id:true,orderNumber:true,status:true,total:true}}}}}}),[]),
+  safeQuery("commercial matches",prisma.commercialMatch.findMany({where:{workspaceId},orderBy:[{score:"desc"},{createdAt:"desc"}],take:250,include:{listing:{select:{id:true,title:true,listingType:true,category:true,location:true,askingPrice:true,currency:true}},request:{select:{id:true}},response:{select:{id:true,status:true,quotedAmount:true,currency:true}}}}),[]),
+  safeQuery("professional profiles",prisma.professionalProfile.findMany({where:{workspaceId},orderBy:{updatedAt:"desc"},include:{party:{select:{id:true,name:true}},partner:{select:{id:true,name:true,partnerNumber:true}},credentials:{orderBy:{createdAt:"desc"}}}}),[])
  ]);
  return <main className="dashboard-page min-h-screen py-10"><div className="container-aslal">
   <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
