@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getTelegramChannelConfig, resolveTelegramDefaultWorkspaceId } from "@/lib/telegram-channel-config";
 import { syncTelegramIdentity, type TelegramUser } from "@/lib/telegram-identity";
 import { prisma } from "@/lib/prisma";
+import { evaluateCommercialMatches } from "@/lib/commercial-matching";
 import type { RowDataPacket } from "mysql2/promise";
 
 export const runtime = "nodejs";
@@ -149,7 +150,7 @@ async function createTelegramDemand(chatId:string,workspaceId:string,user:any,me
  await savePublicState(workspaceId,String(user?.id||chatId),"DEMAND_CAPTURED",{...prior,message:text,commercialRequestId:request.id});
  const cfg=await getTelegramChannelConfig(workspaceId);
  const parsed=parsePublicMenu(cfg?.publicMenu);
- const confirmation=String(parsed.responses.demandConfirmation||"Thanks — I have captured what you need. An Aslal team member can continue with you here.");
+ const confirmation=String(parsed.responses.demandConfirmation||"Thanks — I have captured what you need. An Aslal team member can continue with you here.")+"\\n\\n"+(matchCount?"I found "+matchCount+" possible match"+(matchCount===1?"":"es")+" in the Aslal exchange.":"We will review the request and find the right next step.");
  return tg("sendMessage",{chat_id:chatId,text:confirmation,reply_markup:{inline_keyboard:[[{text:"💬 Talk to a person",callback_data:"public:agent:"+workspaceId},{text:"🛍 Browse products",callback_data:"public:catalog:"+workspaceId}]]}});
 }
 async function partnerResponse(chatId:string,workspaceId:string,user:any){
@@ -464,7 +465,8 @@ async function handle(update:TelegramUpdate){
       if(await keywordResponse(chatId,publicWorkspaceId,input))return;
       if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,publicUser,m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,publicUser);}
       if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,publicUser,String(stateData.currentStep||""));
-      if(session.state==="DEMAND_CAPTURED"||session.state==="NEED_CAPTURE")return createTelegramDemand(chatId,publicWorkspaceId,publicUser,input);
+      if(session.state==="DEMAND_CAPTURED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,publicUser,m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,publicUser);}
+      if(session.state==="NEED_CAPTURE")return createTelegramDemand(chatId,publicWorkspaceId,publicUser,input);
       return createTelegramDemand(chatId,publicWorkspaceId,publicUser,input);
     }
   }
