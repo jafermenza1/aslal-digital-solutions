@@ -436,16 +436,24 @@ async function handle(update:TelegramUpdate){
         return tg("sendMessage",{chat_id:chatId,text:"Thanks. Your answers have been saved.",reply_markup:{inline_keyboard:[[{text:"🛍 Catalog",callback_data:"public:catalog:"+publicWorkspaceId},{text:"👤 Talk to Agent",callback_data:"public:agent:"+publicWorkspaceId}]]}});
       }
       if(input==="/help"||input==="❌ Close menu")return input==="❌ Close menu"?tg("sendMessage",{chat_id:chatId,text:"Aslal menu closed. Send /start or /help any time to reopen it.",reply_markup:{remove_keyboard:true}}):publicMenu(chatId,publicWorkspaceId,m.from||{id:chatId});
-      if(input==="/pricing"||input==="💰 Pricing")return pricingResponse(chatId,publicWorkspaceId);
-      if(input==="/catalog"||input==="🛍 Catalog")return catalog(chatId,publicWorkspaceId);
-      if(input==="/support"||input==="👤 Talk to Agent")return handoffPublic(chatId,publicWorkspaceId,m.from||{id:chatId});
-      if(input==="🎯 Qualify me")return qualification(chatId,publicWorkspaceId,m.from||{id:chatId});
-      if(input==="↩️ Continue conversation")return continuePublic(chatId,publicWorkspaceId,m.from||{id:chatId});
-      if(input==="📱 Share phone number"&&m.contact?.phone_number)return;
+      const publicUser=m.from||{id:chatId};
+      const parsedMenu=parsePublicMenu(cfg.publicMenu);
+      const selected=parsedMenu.items.find(item=>item.label===input);
+      const action=selected?.action||legacyAction(input);
+      if(action==="PRICING"||input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
+      if(action==="CATALOG"||input==="/catalog")return catalog(chatId,publicWorkspaceId);
+      if(action==="SERVICES")return servicesResponse(chatId,publicWorkspaceId);
+      if(action==="NEED"||input==="/need")return qualification(chatId,publicWorkspaceId,publicUser);
+      if(action==="ORDERS"||input==="/orders")return ordersResponse(chatId,publicWorkspaceId,publicUser);
+      if(action==="HUMAN"||input==="/support")return handoffPublic(chatId,publicWorkspaceId,publicUser);
+      if(action==="PARTNER")return partnerResponse(chatId,publicWorkspaceId,publicUser);
+      if(action==="CONTINUE")return continuePublic(chatId,publicWorkspaceId,publicUser);
+      if(action==="PHONE"&&m.contact?.phone_number)return;
       if(await keywordResponse(chatId,publicWorkspaceId,input))return;
-      if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,m.from||{id:chatId},m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,m.from||{id:chatId});}
-      if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,m.from||{id:chatId},String(stateData.currentStep||""));
-      return publicMenu(chatId,publicWorkspaceId,m.from||{id:chatId});
+      if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,publicUser,m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,publicUser);}
+      if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,publicUser,String(stateData.currentStep||""));
+      if(session.state==="DEMAND_CAPTURED")return createTelegramDemand(chatId,publicWorkspaceId,publicUser,input);
+      return createTelegramDemand(chatId,publicWorkspaceId,publicUser,input);
     }
   }
 
