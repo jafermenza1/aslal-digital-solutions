@@ -1701,3 +1701,76 @@ html[data-theme="light"] .landing-page .landing-section.bg-white :is(.text-slate
 
 @keyframes orbitSpin{to{transform:rotate(360deg)}}@keyframes orbitSpinReverse{to{transform:rotate(-360deg)}}
 @media(prefers-reduced-motion:reduce){.animate-\[orbitSpin_22s_linear_infinite\],.animate-\[orbitSpinReverse_15s_linear_infinite\]{animation:none!important}}
+
+
+/* -------------------------------------------------------------------------
+   ASLAL CONTRAST CONTRACT
+   Every visual control must pair:
+   - light surface -> dark text/icons
+   - dark surface -> light text/icons
+   Gold/blue action surfaces retain their intentionally dark/light labels.
+   These guards cover legacy utility combinations while components are migrated.
+   ------------------------------------------------------------------------- */
+.site-shell [class*="bg-white"][class*="text-white"],
+.site-shell [class*="bg-\[\#F8FAFC\]"][class*="text-white"],
+.site-shell [class*="bg-slate-50"][class*="text-white"],
+.site-shell [class*="bg-slate-100"][class*="text-white"]{
+  color:#1E293B!important;
+}
+.site-shell [class*="bg-white"][class*="text-white"] svg,
+.site-shell [class*="bg-\[\#F8FAFC\]"][class*="text-white"] svg,
+.site-shell [class*="bg-slate-50"][class*="text-white"] svg,
+.site-shell [class*="bg-slate-100"][class*="text-white"] svg{
+  color:#0F3E8A!important;stroke:currentColor;
+}
+.site-shell :is([class*="bg-white"],[class*="bg-\[\#F8FAFC\]"],[class*="bg-slate-50"],[class*="bg-slate-100"]) > svg[class*="text-white"]{
+  color:#0F3E8A!important;stroke:currentColor;
+}
+
+/* Dark surfaces must never inherit dark labels/icons from a legacy light theme. */
+.site-shell [class*="bg-\[\#070C18\]"][class*="text-\[\#1E293B\]"],
+.site-shell [class*="bg-\[\#070C18\]"][class*="text-slate-900"],
+.site-shell [class*="bg-\[\#070C18\]"][class*="text-slate-950"],
+.site-shell [class*="bg-\[\#0F172A\]"][class*="text-\[\#1E293B\]"],
+.site-shell [class*="bg-\[\#0F172A\]"][class*="text-slate-900"],
+.site-shell [class*="bg-\[\#0F172A\]"][class*="text-slate-950"],
+.site-shell [class*="bg-\[\#1E293B\]"][class*="text-\[\#1E293B\]"],
+.site-shell [class*="bg-\[\#1E293B\]"][class*="text-slate-900"],
+.site-shell [class*="bg-\[\#1E293B\]"][class*="text-slate-950"]{
+  color:#F8FAFC!important;
+}
+.site-shell :is([class*="bg-\[\#070C18\]"],[class*="bg-\[\#0F172A\]"],[class*="bg-\[\#1E293B\]"]) > svg:is(.text-slate-900,.text-slate-950,.text-\[\#1E293B\]){
+  color:#F8FAFC!important;stroke:currentColor;
+}
+
+/* Form controls inherit the surface contract instead of browser/theme defaults. */
+.site-shell :is(input,textarea,select).bg-white,
+.site-shell :is(input,textarea,select).bg-slate-50,
+.site-shell :is(input,textarea,select).bg-slate-100,
+.site-shell :is(input,textarea,select).bg-\[\#F8FAFC\]{
+  color:#1E293B!important;
+}
+.site-shell :is(input,textarea,select).bg-white::placeholder,
+.site-shell :is(input,textarea,select).bg-slate-50::placeholder,
+.site-shell :is(input,textarea,select).bg-slate-100::placeholder,
+.site-shell :is(input,textarea,select).bg-\[\#F8FAFC\]::placeholder{
+  color:rgba(30,41,59,.58)!important;
+}
+.site-shell :is(input,textarea,select).bg-\[\#070C18\],
+.site-shell :is(input,textarea,select).bg-\[\#0F172A\],
+.site-shell :is(input,textarea,select).bg-\[\#1E293B\]{
+  color:#F8FAFC!important;
+}
+.site-shell :is(input,textarea,select).bg-\[\#070C18\]::placeholder,
+.site-shell :is(input,textarea,select).bg-\[\#0F172A\]::placeholder,
+.site-shell :is(input,textarea,select).bg-\[\#1E293B\]::placeholder{
+  color:rgba(248,250,252,.58)!important;
+}
+
+/* Dashboard uses the same pairing rules outside its existing scoped fixes. */
+.dashboard-content :is([class*="bg-white"],[class*="bg-\[\#F8FAFC\]"],[class*="bg-slate-50"],[class*="bg-slate-100"]) > svg[class*="text-white"]{
+  color:#0F3E8A!important;stroke:currentColor;
+}
+.dashboard-content :is([class*="bg-\[\#070C18\]"],[class*="bg-\[\#0F172A\]"],[class*="bg-\[\#1E293B\]"]) > svg:is(.text-slate-900,.text-slate-950,.text-\[\#1E293B\]){
+  color:#F8FAFC!important;stroke:currentColor;
+}
