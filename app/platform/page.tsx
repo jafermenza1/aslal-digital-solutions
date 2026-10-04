@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { VisualAssetPlaceholder } from "@/components/VisualAssetPlaceholder";
+import { InteractiveOrbit } from "@/components/InteractiveOrbit";
 
 const pillars = [
   { icon: Target, label: "DEMAND", title: "Capture real demand", text: "Turn website intent, social traffic, Telegram conversations and wanted requests into structured commercial demand." },
@@ -52,7 +53,7 @@ function PlatformHero() {
           </div>
         </div>
 
-        <div className="platform-hero-visual">
+        <div className="platform-hero-visual"><div className="mb-5 flex justify-center"><InteractiveOrbit compact /></div>
           <div className="platform-hero-visual-head">
             <div>
               <span className="font-mono text-[9px] font-black tracking-[.2em] text-[#E2B02A]">LIVE SYSTEM MAP</span>
