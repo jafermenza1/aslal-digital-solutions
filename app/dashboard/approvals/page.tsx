@@ -17,7 +17,7 @@ export default async function ApprovalsPage(){
   canListings?prisma.professionalProfile.findMany({where:{workspaceId:wid,status:"PENDING_REVIEW"},select:{id:true,displayName:true,profession:true,createdAt:true},orderBy:{createdAt:"asc"},take:100}):Promise.resolve([])
  ]);
  const items:Approval[]=[
-  ...listings.map(x=>({id:x.id,kind:"Marketplace",title:x.title,detail:`${x.listingType} · ${x.category}`,status:"Pending review",href:`/dashboard/listings?listing=${encodeURIComponent(x.id)}`,submittedAt:x.createdAt})),
+  ...listings.map(x=>({id:x.id,kind:"Marketplace",title:x.title,detail:`${x.listingType} · ${x.category}`,status:"Pending review",href:`/dashboard/listings/${encodeURIComponent(x.id)}`,submittedAt:x.createdAt})),
   ...profiles.map(x=>({id:x.id,kind:"Professional",title:x.displayName,detail:x.profession,status:"Pending review",href:`/dashboard/partners?tab=professionals&profile=${encodeURIComponent(x.id)}`,submittedAt:x.createdAt}))
  ].sort((a,b)=>(a.submittedAt?.getTime()||0)-(b.submittedAt?.getTime()||0));
  return <main className="mx-auto max-w-[1500px] space-y-6 p-4 sm:p-6 lg:p-8">
