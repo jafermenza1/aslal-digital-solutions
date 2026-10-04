@@ -3,7 +3,7 @@ import {prisma} from "@/lib/prisma";
 import {getResources} from "@/lib/resources-server";
 export const dynamic="force-dynamic";
 const siteUrl=()=> (process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
-const staticPaths=["/","/platform","/marketplace","/wanted","/partner","/partner-network","/partner/register","/growth-builder","/services","/products","/automation-lab","/resources","/portfolio","/about","/contact","/privacy","/terms"];
+const staticPaths=["/","/platform","/marketplace","/wanted","/partner","/partner-network","/partner/register","/business/apply","/growth-builder","/services","/products","/automation-lab","/resources","/portfolio","/about","/contact","/privacy","/terms"];
 function alternates(base:string,path:string){const local=(code:string)=>code==="en"?base+path:base+"/"+code+(path==="/"?"":path);return {languages:{en:local("en"),am:local("am"),om:local("om"),ar:local("ar"),"x-default":local("en")}};}
 export default async function sitemap():Promise<MetadataRoute.Sitemap>{
  const base=siteUrl(),now=new Date();
