@@ -92,12 +92,8 @@ export function ProvenMarketingHero({content,telegramUrl,whatsappUrl}:{content:H
         </div>
       </div>
       <div className="relative mx-auto flex min-h-[330px] w-full max-w-[520px] items-center justify-center">
-        <div className="public-home-orbit absolute h-[300px] w-[300px] rounded-full border border-white/10 sm:h-[390px] sm:w-[390px]"/>
-        <div className="public-home-orbit public-home-orbit-delay absolute h-[210px] w-[210px] rounded-full border border-[#E2B02A]/20 sm:h-[280px] sm:w-[280px]"/>
-        <div className="relative grid h-36 w-36 place-items-center rounded-full border border-[#E2B02A]/45 bg-[#0F172A]/90 shadow-[0_0_90px_rgba(226,176,42,.16)] backdrop-blur-xl sm:h-44 sm:w-44">
-          <div className="text-center"><div className="mx-auto h-3 w-3 rounded-full bg-[#E2B02A] shadow-[0_0_24px_#E2B02A]"/><div className="mt-4 text-sm font-black tracking-[.18em] text-white">ASLAL</div><div className="mt-1 text-[9px] font-mono font-bold tracking-[.2em] text-[#E2B02A]">CONNECT · GROW</div></div>
-        </div>
-        {[
+        <InteractiveOrbit />
+      </div>        {[
           ["Customers","top-[8%] left-[8%]"],
           ["Conversations","right-[2%] top-[43%]"],
           ["Commerce","bottom-[7%] left-[12%]"]
