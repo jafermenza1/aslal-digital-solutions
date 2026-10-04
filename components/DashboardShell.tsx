@@ -9,6 +9,7 @@ import { DashboardNav } from "@/components/DashboardNav";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
+import { GlobalCommandSearch } from "@/components/GlobalCommandSearch";
 import { getAppUi } from "@/lib/app-i18n";
 import type { Locale } from "@/lib/i18n";
 
@@ -32,7 +33,7 @@ return <div className="dashboard-app overflow-x-hidden">
  <div className="dashboard-main">
   <header className="dashboard-topbar">
    <button type="button" className="dashboard-mobile-menu-button" aria-label={mobileNavOpen?"Close navigation":"Open navigation"} aria-expanded={mobileNavOpen} onClick={()=>setMobileNavOpen(value=>!value)}><span/><span/><span/></button><div className="dashboard-topbar-heading"><span>{t.dashboard.eyebrow}</span><div className="mt-1 text-xs font-bold text-white/55">Business · {user.workspaceName||"No active workspace"}</div><div className="dashboard-topbar-title-row"><h1>{title}</h1><Link href={`/dashboard/help/${pathname==="/dashboard"?"overview":pathname.split("/").filter(Boolean).slice(1).join("-")}`} target="_blank" rel="noopener noreferrer" className="dashboard-topbar-help" aria-label={`Help for ${title}`}>?</Link></div></div>
-   <div className="dashboard-topbar-actions"><WorkspaceSwitcher activeWorkspaceId={user.workspaceId} activeWorkspaceName={user.workspaceName}/><div className="dashboard-user-chip"><span className="dashboard-user-avatar">{(user.name||user.email).charAt(0).toUpperCase()}</span><span className="dashboard-user-name">{user.name}</span></div><ThemeToggle compact/><LanguageToggle locale={locale}/><Link href="/" className="dashboard-top-link">{t.shell.website}</Link><form action="/api/auth/logout" method="post"><button className="dashboard-signout">{t.shell.signOut}</button></form></div>
+   <div className="dashboard-topbar-actions"><GlobalCommandSearch/><WorkspaceSwitcher activeWorkspaceId={user.workspaceId} activeWorkspaceName={user.workspaceName}/><div className="dashboard-user-chip"><span className="dashboard-user-avatar">{(user.name||user.email).charAt(0).toUpperCase()}</span><span className="dashboard-user-name">{user.name}</span></div><ThemeToggle compact/><LanguageToggle locale={locale}/><Link href="/" className="dashboard-top-link">{t.shell.website}</Link><form action="/api/auth/logout" method="post"><button className="dashboard-signout">{t.shell.signOut}</button></form></div>
   </header>
   <DashboardNav locale={locale} permissions={user.permissions} mobile open={mobileNavOpen} onClose={()=>setMobileNavOpen(false)}/>
   <main className="dashboard-content min-w-0">{children}</main>
