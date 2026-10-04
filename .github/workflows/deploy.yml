@@ -55,7 +55,7 @@ jobs:
           SHA: ${{ steps.resolve.outputs.sha }}
         run: |
           set -euo pipefail
-          RUNS="$(gh run list --workflow=pre-deploy-ci.yml --commit "$SHA" --limit 20 --json databaseId,headSha,status,conclusion)"
+          RUNS="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow=pre-deploy-ci.yml --commit "$SHA" --limit 20 --json databaseId,headSha,status,conclusion)"
           echo "$RUNS"
           if ! printf '%s' "$RUNS" | jq -e --arg sha "$SHA" 'any(.[]; .headSha == $sha and .status == "completed" and .conclusion == "success")' >/dev/null; then
             echo "::error::No successful Pre-Deployment CI run exists for $SHA. Run Pre-Deployment CI and wait for its gate to pass before deploying."
@@ -106,7 +106,7 @@ jobs:
           set -euo pipefail
           rm -rf .prisma-cli emerald-artifact
           mkdir -p .prisma-cli emerald-artifact
-          npm install --prefix .prisma-cli --no-save --no-package-lock prisma@6.19.0
+          npm install --prefix .prisma-cli --no-save --no-package-lock prisma@6.19.3
           test -f .next/standalone/server.js
           test -f .next/standalone/package.json
           test -d .next/standalone/.next/static
