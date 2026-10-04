@@ -58,3 +58,29 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const listing=await prisma.commercialListing.update({where:{id},data:{...data,publishedAt:published?(current.publishedAt||new Date()):null},include:{product:{select:{id:true,name:true,slug:true,kind:true}},ownerParty:{select:{id:true,name:true,type:true,status:true}},supplierParty:{select:{id:true,name:true,type:true,status:true}},workspace:{select:{id:true,name:true,slug:true}}}});
  return NextResponse.json({ok:true,listing});
 }
+
+
+export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}){
+ const {id}=await params;
+ const current=await prisma.commercialListing.findUnique({where:{id},select:{id:true,workspaceId:true,title:true,status:true}});
+ if(!current)return NextResponse.json({error:"Commercial listing not found."},{status:404});
+ const access=await authorizeWorkspacePermission("products.manage",current.workspaceId);
+ if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
+ const [authorizations,matches,responses,registrations,appointments,disputes,agreements,leakage] = await Promise.all([
+  prisma.commercialListingAuthorization.count({where:{listingId:id,workspaceId:current.workspaceId}}),
+  prisma.commercialMatch.count({where:{listingId:id,workspaceId:current.workspaceId}}),
+  prisma.commercialRequestResponse.count({where:{listingId:id,workspaceId:current.workspaceId}}),
+  prisma.commercialDealRegistration.count({where:{listingId:id,workspaceId:current.workspaceId}}),
+  prisma.commercialAppointment.count({where:{listingId:id,workspaceId:current.workspaceId}}),
+  prisma.commercialDispute.count({where:{listingId:id,workspaceId:current.workspaceId}}),
+  prisma.commercialAgreement.count({where:{listingId:id,workspaceId:current.workspaceId}}),
+  prisma.commercialLeakageSignal.count({where:{listingId:id,workspaceId:current.workspaceId}}),
+ ]);
+ const dependentCount=authorizations+matches+responses+registrations+appointments+disputes+agreements+leakage;
+ if(dependentCount>0){
+  const archived=await prisma.commercialListing.update({where:{id},data:{status:"ARCHIVED",publicVisible:false,featured:false}});
+  return NextResponse.json({ok:true,action:"ARCHIVED",listing:archived,message:"This listing has commercial history, so it was archived instead of physically deleted. History and attribution were preserved."});
+ }
+ await prisma.commercialListing.delete({where:{id}});
+ return NextResponse.json({ok:true,action:"DELETED",id});
+}
