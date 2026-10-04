@@ -6,6 +6,7 @@ import {MobileNav} from "@/components/MobileNav";
 import {LanguageToggle} from "@/components/LanguageToggle";
 import {ThemeToggle} from "@/components/ThemeToggle";
 import {getCopy,normalizeLocale,type Locale} from "@/lib/i18n";
+import {SolutionsMenu} from "@/components/SolutionsMenu";
 
 function readLocale():Locale{if(typeof document==="undefined")return "en";const v=document.cookie.split("; ").find(x=>x.startsWith("aslal_locale="))?.split("=")[1];return normalizeLocale(v)}
 function subscribeLocale(cb:()=>void){window.addEventListener("aslal-locale-change",cb);return()=>window.removeEventListener("aslal-locale-change",cb)}
@@ -14,8 +15,7 @@ export function Header(){
  const [settings,setSettings]=useState<any>(null);
  useEffect(()=>{fetch("/api/public/site-settings").then(r=>r.json()).then(setSettings).catch(()=>undefined)},[]);
  if(settings&&!settings.headerEnabled)return null;
- const configured=Array.isArray(settings?.header?.nav)?settings.header.nav.filter((x:any)=>x&&x.visible!==false&&x.href):null;
- const nav=(configured?.length?configured:[["/platform","Platform"],["/marketplace","Marketplace"],["/wanted","Wanted"],["/partner/register","Partners"],["/services",t.nav.solutions],["/products",t.nav.products],["/resources",t.nav.resources]].map((x:any)=>({href:x[0],label:x[1]})));
+ const nav=[["/platform","Growth-OS"],["/marketplace","Marketplace"],["/resources",t.nav.resources]];
  const labels={...t.nav,portal:"Portal",build:settings?.header?.growthCtaLabel||t.actions.build};
- return <header className="site-header"><div className="container-aslal site-header-inner"><BrandLogo/><nav className="desktop-nav">{nav.map((x:any)=><Link key={x.href} href={x.href}>{x.label}</Link>)}</nav><div className="desktop-actions"><ThemeToggle compact/><LanguageToggle locale={locale}/>{settings?.header?.showPortal!==false&&<Link className="header-portal" href="/login">Portal</Link>}{settings?.header?.showGrowthCta!==false&&<Link className="site-cta" href={settings?.header?.growthCtaHref||"/growth-builder"}>{labels.build} <span>↗</span></Link>}</div><MobileNav locale={locale} labels={labels}/></div></header>;
+ return <header className="site-header"><div className="container-aslal site-header-inner"><BrandLogo/><nav className="desktop-nav"><Link href="/platform">Growth-OS</Link><SolutionsMenu/><Link href="/marketplace">Marketplace</Link><Link href="/resources">{t.nav.resources}</Link></nav><div className="desktop-actions"><ThemeToggle compact/><LanguageToggle locale={locale}/>{settings?.header?.showPortal!==false&&<Link className="header-portal" href="/login">Portal</Link>}{settings?.header?.showGrowthCta!==false&&<Link className="site-cta" href={settings?.header?.growthCtaHref||"/growth-builder"}>{labels.build} <span>↗</span></Link>}</div><MobileNav locale={locale} labels={labels}/></div></header>;
 }
