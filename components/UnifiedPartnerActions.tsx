@@ -1,0 +1,12 @@
+"use client";
+import {useState} from "react";
+export function UnifiedPartnerActions({id,workspaceId,status,verificationStatus,tier}:{id:string;workspaceId:string;status:string;verificationStatus:string;tier:string}){
+ const [busy,setBusy]=useState(false),[notice,setNotice]=useState("");
+ async function update(body:Record<string,string>){setBusy(true);setNotice("");try{const r=await fetch("/api/admin/partner-engine/partners/"+encodeURIComponent(id),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,workspaceId})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Partner update failed.");setNotice(d.nextStep||"Partner updated.");window.location.reload()}catch(e){setNotice(e instanceof Error?e.message:"Partner update failed.")}finally{setBusy(false)}}
+ return <section className="rounded-[1.75rem] border border-[#E2B02A]/30 bg-[#E2B02A]/10 p-5"><div className="text-[10px] font-black uppercase tracking-[.15em] text-[#8A6A00]">Partner actions</div><div className="mt-2 text-sm font-black dark:text-white">Operate the partner from this record</div><div className="mt-1 text-xs text-slate-500">Actions use the existing partner-engine API and its verification/activation safeguards.</div><div className="mt-4 flex flex-wrap gap-2">
+ {verificationStatus!=="VERIFIED"&&<button disabled={busy} onClick={()=>void update({verificationStatus:"VERIFIED"})} className="rounded-xl bg-[#0F3E8A] px-4 py-2.5 text-xs font-black text-white">{busy?"Working…":"Verify partner"}</button>}
+ {status==="ACTIVE"&&<button disabled={busy} onClick={()=>void update({status:"PAUSED"})} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-black text-slate-700">Pause</button>}
+ {status!=="ACTIVE"&&verificationStatus==="VERIFIED"&&<button disabled={busy} onClick={()=>void update({status:"ACTIVE"})} className="rounded-xl bg-[#0F3E8A] px-4 py-2.5 text-xs font-black text-white">{busy?"Working…":"Activate"}</button>}
+ {verificationStatus!=="SUSPENDED"&&<button disabled={busy} onClick={()=>void update({verificationStatus:"SUSPENDED"})} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-black text-red-700">Suspend verification</button>}
+ </div>{notice&&<p className="mt-3 text-xs font-bold text-slate-600">{notice}</p>}</section>
+}
