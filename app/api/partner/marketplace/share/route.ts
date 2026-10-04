@@ -7,7 +7,7 @@ import { partnerCapabilities } from "@/lib/partner-access";
 export async function POST(request:Request){
  const user=await authorizePermission("partner.portal.view");
  if(!user)return NextResponse.json({error:"Unauthorized."},{status:401});
- const partner=await prisma.partner.findFirst({where:{user:{is:{id:user.id}}});
+ const partner=await prisma.partner.findFirst({where:{user:{is:{id:user.id}}}});
  if(!partner||!partnerCapabilities(partner).includes("partner.promote"))return NextResponse.json({error:"Partner promotion access is not available."},{status:403});
  const body=await request.json().catch(()=>({}));
  const listingId=String(body.listingId||"").trim();
