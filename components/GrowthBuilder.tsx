@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { publicCommerceIntents, type PublicCommerceIntentKey } from "@/lib/public-commerce-contract";
 import { getCopy } from "@/lib/i18n";
 
+const englishIntentLabels = getCopy("en").commerce.intents as Record<string, string>;
 const stages: { key: PublicCommerceIntentKey; label: string }[] = publicCommerceIntents.map((intent) => ({
   key: intent.key,
-  label: getCopy("en").commerce.intents[intent.key],
+  label: englishIntentLabels[intent.key] || intent.key,
 }));
 const channels = ["TikTok", "Telegram", "Facebook", "Website", "Instagram", "WhatsApp", "Other"];
 
