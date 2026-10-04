@@ -47,7 +47,7 @@ export async function POST(request:Request){
  if(!listing)return NextResponse.json({error:"Marketplace listing is not available."},{status:404});
  const programId=String(body.programId||"").trim();
  if(!programId)return NextResponse.json({error:"Select an active partner program before applying for promotion."},{status:422});
- const contract=await prisma.commissionContract.findFirst({where:{workspaceId:partner.workspaceId,partnerId:partner.id,programId,status:"ACTIVE"},include:{program:{select:{id:true,name:true,status:true,allowedPartnerTypes:true}}});
+ const contract=await prisma.commissionContract.findFirst({where:{workspaceId:partner.workspaceId,partnerId:partner.id,programId,status:"ACTIVE"},include:{program:{select:{id:true,name:true,status:true,allowedPartnerTypes:true}}}});
  if(!contract||contract.program.status!=="PUBLISHED")return NextResponse.json({error:"You need an active contract for a published partner program before promoting this offer."},{status:422});
  if(contract.program.allowedPartnerTypes && !String(contract.program.allowedPartnerTypes).split(/[,|\n]/).map(x=>x.trim().toUpperCase()).filter(Boolean).includes(partner.type))return NextResponse.json({error:"Your partner type is not allowed by this program."},{status:422});
  const existing=await prisma.commercialListingAuthorization.findFirst({where:{workspaceId:partner.workspaceId,listingId,partnerId:partner.id,programId},orderBy:{createdAt:"desc"}});
