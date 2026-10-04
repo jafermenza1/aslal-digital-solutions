@@ -453,12 +453,12 @@ export async function pollEmailInbox() {
     const lock = await client.getMailboxLock(envValue("IMAP_MAILBOX") || "INBOX");
     try {
       const searchResult = await client.search({ seen: false });
-      const unseen = searchResult === false ? [] : searchResult;
+      const unseen = Array.isArray(searchResult) ? searchResult : [];
 
       for (const uid of unseen) {
         try {
           const message = await client.fetchOne(uid, { source: true });
-          if (message === false || !message.source) {
+          if (!message || !message.source) {
             results.push({ uid, skipped: true, reason: "empty message" });
             continue;
           }
