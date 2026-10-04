@@ -237,8 +237,8 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
   ].filter(Boolean);
   const aslalContact=contactParts.length?contactParts.join("\n"):"Website: "+(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com");
   const leadOwner=await prisma.lead.findFirst({where:{id:leadId,workspaceId},select:{ownerEmail:true}});
-  const ownerUser=leadOwner?.ownerEmail?await prisma.user.findUnique({where:{email:leadOwner.ownerEmail},select:{telegramUsername:true,telegramChatId:true}}).catch(()=>null):null;
-  const assignedTelegram=ownerUser?.telegramUsername?"@"+String(ownerUser.telegramUsername).replace(/^@/,""):"";
+  const [ownerRows]=leadOwner?.ownerEmail?await db.query<(RowDataPacket&{telegram_username:string|null;telegram_chat_id:string|null})[]>("SELECT telegram_username,telegram_chat_id FROM users WHERE email=? AND active=1 LIMIT 1",[leadOwner.ownerEmail]):[[] as (RowDataPacket&{telegram_username:string|null;telegram_chat_id:string|null})[]];
+  const assignedTelegram=ownerRows[0]?.telegram_username?"@"+String(ownerRows[0].telegram_username).replace(/^@/,""):"";
   const directHandle="@aslaldigitals?direct";
   const customerContact=[
     "Your Telegram: "+username,
