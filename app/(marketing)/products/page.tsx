@@ -42,7 +42,7 @@ export default async function ProductsPage(){
    </div>
   </section>
 
-  <section id="products" className="scroll-mt-24 bg-[#0F172A] py-14 sm:py-18">
+  <section id="products" className="scroll-mt-24 bg-[#0F172A] py-14 sm:py-20">
    <div className="container-aslal">
     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
      <div>
