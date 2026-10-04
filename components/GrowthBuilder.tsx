@@ -10,10 +10,18 @@ const stages: { key: PublicCommerceIntentKey; label: string }[] = publicCommerce
   label: getCopy("en").commerce.intents[intent.key],
 }));
 const channels = ["Website", "WhatsApp", "Telegram", "SEO", "CRM", "E-commerce"];
+function initialStage(): PublicCommerceIntentKey {
+  if (typeof window === "undefined") return stages[0].key;
+  const goal = new URLSearchParams(window.location.search).get("goal")?.toLowerCase() || "";
+  if (goal.includes("customer") || goal === "growth") return "growth";
+  if (goal.includes("automate") || goal === "automate") return "automate";
+  if (goal.includes("digital system") || goal === "system") return "system";
+  return stages[0].key;
+}
 
 export function GrowthBuilder() {
   const router = useRouter();
-  const [stage, setStage] = useState<PublicCommerceIntentKey>(stages[0].key);
+  const [stage, setStage] = useState<PublicCommerceIntentKey>(initialStage);
   const [selected, setSelected] = useState<string[]>(["Website"]);
   const [business, setBusiness] = useState("");
   const stageLabel = stages.find((item) => item.key === stage)?.label || stages[0].label;
