@@ -12,7 +12,7 @@ export default async function ListingRecordPage({params}:{params:Promise<{id:str
   const {id}=await params;
   const listing=await prisma.commercialListing.findFirst({
     where:{id,workspaceId:access.workspace.id},
-    select:{id:true,title:true,slug:true,listingType:true,status:true,description:true,category:true,condition:true,location:true,serviceArea:true,askingPrice:true,currency:true,priceLabel:true,inspectionRequired:true,requestQuote:true,publicVisible:true,featured:true,expiresAt:true,createdAt:true,updatedAt:true,publishedAt:true,productId:true,ownerPartyId:true,supplierPartyId:true,professionalProfileId:true}
+    select:{id:true,title:true,slug:true,listingType:true,status:true,description:true,category:true,condition:true,location:true,askingPrice:true,currency:true,priceLabel:true,inspectionRequired:true,requestQuote:true,publicVisible:true,featured:true,expiresAt:true,createdAt:true,updatedAt:true,publishedAt:true,productId:true,ownerPartyId:true,supplierPartyId:true,professionalProfileId:true}
   });
   if(!listing)notFound();
   const canReview=access.user.role==="ADMIN"||access.user.role==="SUPER_ADMIN";
