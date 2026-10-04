@@ -41,7 +41,7 @@ export default async function ListingRecordPage({params}:{params:Promise<{id:str
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <Info label="Category" value={listing.category||"—"}/>
           <Info label="Location" value={listing.location||"—"}/>
-          <Info label="Service area" value={listing.serviceArea||"—"}/>
+          
           <Info label="Price" value={listing.priceLabel||((listing.askingPrice!=null?listing.currency+" "+String(listing.askingPrice):"Quote"))}/>
           <Info label="Condition" value={listing.condition||"—"}/>
           <Info label="Expires" value={listing.expiresAt?new Date(listing.expiresAt).toLocaleDateString("en-ET"):"No expiry"}/>
