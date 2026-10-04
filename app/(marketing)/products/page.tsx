@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bot, Boxes, CheckCircle2, Globe2, MessageCircle, Package, Search, Sparkles, Target, Wrench, Zap } from "lucide-react";
+import { ArrowRight, Bot, Boxes, CheckCircle2, MessageCircle, Package, Search, Sparkles, Target, Wrench, Zap } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getPageContent, contentValue, contentStyle } from "@/lib/public-content";
 import { getWebsiteSettings } from "@/lib/website-settings";
