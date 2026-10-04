@@ -147,6 +147,9 @@ async function createTelegramDemand(chatId:string,workspaceId:string,user:any,me
    contactPhone:prior.phone||null,contactPreference:"TELEGRAM",privacyVisibility:"CONTROLLED",
    source:"telegram",leadId,createdBy:null
  }});
+ let matchCount=0;
+ await prisma.commercialRequest.update({where:{id:request.id},data:{status:"PUBLISHED"}});
+ try{matchCount=(await evaluateCommercialMatches({workspaceId,requestId:request.id,limit:100})).matches.length;}catch(error){console.error("TELEGRAM_DEMAND_MATCH_ERROR",error);}
  await savePublicState(workspaceId,String(user?.id||chatId),"DEMAND_CAPTURED",{...prior,message:text,commercialRequestId:request.id});
  const cfg=await getTelegramChannelConfig(workspaceId);
  const parsed=parsePublicMenu(cfg?.publicMenu);
