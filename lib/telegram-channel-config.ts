@@ -97,15 +97,21 @@ export async function getTelegramChannelConfig(workspaceId: string) {
 }
 
 export async function getOrCreateTelegramChannelConfig(workspaceId: string) {
-  return prisma.telegramChannelConfig.upsert({
+  const config=await prisma.telegramChannelConfig.upsert({
     where: { workspaceId },
     create: {
       id: crypto.randomUUID(),
       workspaceId,
       allowedPaymentMethods: DEFAULT_TELEGRAM_CHANNEL_CONFIG.allowedPaymentMethods,
+      publicMenu: DEFAULT_TELEGRAM_CHANNEL_CONFIG.publicMenu,
     },
     update: {},
   });
+  const legacy=Array.isArray(config.publicMenu) && JSON.stringify(config.publicMenu)===JSON.stringify(["Catalog","Qualify me","Pricing","Talk to Agent"]);
+  if(legacy){
+    return prisma.telegramChannelConfig.update({where:{workspaceId},data:{publicMenu:DEFAULT_TELEGRAM_CHANNEL_CONFIG.publicMenu}});
+  }
+  return config;
 }
 
 
