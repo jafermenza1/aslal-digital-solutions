@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { authorizePermission } from "@/lib/auth";
 
 const TYPES=["PRODUCT","SERVICE","ASSET","PROPERTY"] as const;
 const STATUSES=["DRAFT","PENDING_REVIEW","APPROVED","PUBLISHED","PAUSED","SOLD_OUT","EXPIRED","ARCHIVED","REJECTED"] as const;
 const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):"";
+const validVideo=(value:unknown)=>{if(!value)return null;try{const u=new URL(String(value));if(!["http:","https:"].includes(u.protocol))return null;return u.toString().slice(0,1000);}catch{return null;}};
+const adminRoles=new Set(["ADMIN","SUPER_ADMIN"]);
 const slugify=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,160);
 
 function parse(body:any){
@@ -32,7 +35,7 @@ function parse(body:any){
   requestQuote:body.requestQuote!==false,
   publicVisible:Boolean(body.publicVisible),
   featured:Boolean(body.featured),
-  metadata:body.metadata&&typeof body.metadata==="object"?body.metadata:null,
+  metadata:{...(body.metadata&&typeof body.metadata==="object"?body.metadata:{}),...(validVideo(body.videoUrl)?{videoUrl:validVideo(body.videoUrl)}:{})},
   expiresAt:body.expiresAt?new Date(body.expiresAt):null
  };
 }
@@ -53,7 +56,7 @@ export async function GET(request:Request){
  return NextResponse.json({listings,products,workspace:access.workspace});
 }
 export async function POST(request:Request){
- const actor=await authorizeWorkspacePermission("products.manage",(await request.clone().json().catch(()=>({}))).workspaceId);
+ const actor=await authorizeWorkspacePermission("listings.manage",(await request.clone().json().catch(()=>({}))).workspaceId);
  if(!actor)return NextResponse.json({error:"Workspace access denied."},{status:403});
  const body=await request.json().catch(()=>({})); const p=parse(body);
  if(p.workspaceId!==actor.workspace.id)return NextResponse.json({error:"Workspace access denied."},{status:403});
@@ -62,6 +65,8 @@ export async function POST(request:Request){
  if(p.professionalProfileId && !(await prisma.professionalProfile.findFirst({where:{id:p.professionalProfileId,workspaceId:p.workspaceId,status:{in:["PUBLISHED","PENDING_REVIEW"]}},select:{id:true}})))return NextResponse.json({error:"The selected professional profile is not available in this workspace."},{status:400});
  if(p.supplierPartyId && !(await prisma.commercialParty.findFirst({where:{id:p.supplierPartyId,workspaceId:p.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected supplier does not belong to this workspace or is archived."},{status:400});
  if(p.status==="PUBLISHED"&&!p.ownerPartyId)return NextResponse.json({error:"A listing cannot be published without an identified commercial owner."},{status:400});
+ const canPublish=adminRoles.has(actor.user.role);
+ if(!canPublish){p.status="PENDING_REVIEW";p.publicVisible=false;p.featured=false;}
  if(p.productId){
   const product=await prisma.product.findFirst({where:{id:p.productId,workspaceId:p.workspaceId},select:{id:true}});
   if(!product)return NextResponse.json({error:"The selected catalog item does not belong to this workspace."},{status:400});
