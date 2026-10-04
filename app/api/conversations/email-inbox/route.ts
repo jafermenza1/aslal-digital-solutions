@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { isAdminEmail, verifySession } from "@/lib/security";
 import { pollEmailInbox } from "@/lib/email";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export const dynamic = "force-dynamic";
 
