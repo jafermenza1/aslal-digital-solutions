@@ -38,7 +38,7 @@ export async function GET(){
 export async function POST(request:Request){
  const ctx=await partnerContext();
  if(!ctx)return NextResponse.json({error:"Unauthorized or partner account not linked."},{status:401});
- const {partner,user}=ctx;
+ const {partner}=ctx;
  if(!partnerCapabilities(partner).includes("partner.promote"))return NextResponse.json({error:"Your partner account is not currently enabled for promotion."},{status:403});
  const body=await request.json().catch(()=>({}));
  const listingId=String(body.listingId||"").trim();
