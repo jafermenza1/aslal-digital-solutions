@@ -1,22 +1,25 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authorization";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export const dynamic="force-dynamic";
 
 type QueueItem={kind:string;title:string;detail:string;count:number;href:string;action:string};
 
 export default async function AdminCenterPage(){
- const user=await requirePermission("dashboard.view");
+ const access=await authorizeWorkspacePermission("dashboard.view");
+ if(!access)return <div className="p-8">No active workspace is available.</div>;
+ const user=access.user;
  const can=(p:string)=>user.permissions.includes(p);
+ const wid=access.workspace.id;
  const [listingPending,professionalPending,partnerPending,payoutPending,failedPayments,users,workspaces]=await Promise.all([
-  can("listings.manage")?prisma.commercialListing.count({where:{status:"PENDING_REVIEW"}}):Promise.resolve(0),
-  can("listings.manage")?prisma.professionalProfile.count({where:{status:"PENDING_REVIEW"}}):Promise.resolve(0),
-  can("partners.manage")?prisma.partner.count({where:{verificationStatus:"REGISTERED"}}):Promise.resolve(0),
-  can("commissions.manage")?prisma.partnerPayout.count({where:{status:"PENDING"}}):Promise.resolve(0),
-  can("commerce.view")?prisma.payment.count({where:{status:"FAILED"}}):Promise.resolve(0),
-  can("users.manage")?prisma.user.count({where:{active:true}}):Promise.resolve(0),
-  can("users.manage")?prisma.workspace.count({where:{active:true}}):Promise.resolve(0),
+  can("listings.manage")?prisma.commercialListing.count({where:{workspaceId:wid,status:"PENDING_REVIEW"}}):Promise.resolve(0),
+  can("listings.manage")?prisma.professionalProfile.count({where:{workspaceId:wid,status:"PENDING_REVIEW"}}):Promise.resolve(0),
+  can("partners.manage")?prisma.partner.count({where:{workspaceId:wid,verificationStatus:"REGISTERED"}}):Promise.resolve(0),
+  can("commissions.manage")?prisma.partnerPayout.count({where:{workspaceId:wid,status:"PENDING"}}):Promise.resolve(0),
+  can("commerce.view")?prisma.payment.count({where:{workspaceId:wid,status:"FAILED"}}):Promise.resolve(0),
+  can("users.manage")?prisma.user.count({where:{active:true,workspaceUsers:{some:{workspaceId:wid}}}}):Promise.resolve(0),
+  can("users.manage")?prisma.workspace.count({where:{id:wid,active:true}}):Promise.resolve(0),
  ]);
  const queues:QueueItem[]=[
   {kind:"Marketplace",title:"Product & service listings",detail:"Submitted by permitted business owners and professionals.",count:listingPending,href:"/dashboard/listings",action:"Review listings"},
