@@ -364,6 +364,10 @@ async function handle(update:TelegramUpdate){
     const parts=data.split(":"); const workspaceId=parts[2]||String(process.env.TELEGRAM_DEFAULT_WORKSPACE_ID||""); const user: TelegramUser=q.from ?? {id: chatId};
     if(workspaceId&&user?.id){ await syncTelegramIdentity({workspaceId,user,chatId,event:"BUTTON_CLICK",metadata:{callbackData:data}}).catch(()=>null); }
     if(parts[0]==="public"&&parts[1]==="catalog")return catalog(chatId,workspaceId);
+    if(parts[0]==="public"&&parts[1]==="services")return servicesResponse(chatId,workspaceId);
+    if(parts[0]==="public"&&parts[1]==="need")return needResponse(chatId,workspaceId,user);
+    if(parts[0]==="public"&&parts[1]==="orders")return ordersResponse(chatId,workspaceId,user);
+    if(parts[0]==="public"&&parts[1]==="partner")return partnerResponse(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="pricing")return pricingResponse(chatId,workspaceId);
     if(parts[0]==="public"&&parts[1]==="agent")return handoffPublic(chatId,workspaceId,user);
     if(parts[0]==="public"&&parts[1]==="continue")return continuePublic(chatId,workspaceId,user);
