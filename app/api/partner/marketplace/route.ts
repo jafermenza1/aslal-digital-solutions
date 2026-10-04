@@ -55,7 +55,7 @@ export async function POST(request:Request){
  const authorization=await prisma.commercialListingAuthorization.create({data:{
   id:crypto.randomUUID(),workspaceId:partner.workspaceId,listingId,partnerId,programId,authorizationType:"AFFILIATE_PROMOTION",status:"REQUESTED",
   effectiveAt:new Date(),channel:"SOCIAL",partnerTypes:partner.type,commissionRule:null,approvedBy:null,approvedAt:null,
-  exclusions:null,protectionDays:null,createdBy:user.id
+  exclusions:null,protectionDays:null
  }});
  return NextResponse.json({ok:true,authorization},{status:201});
 }
