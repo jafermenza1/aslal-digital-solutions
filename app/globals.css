@@ -1606,3 +1606,23 @@ html[data-theme="dark"] body{color-scheme:dark}
 .site-shell :is(.bg-\[\#E2B02A\]) :is(.text-white,.text-slate-300,.text-slate-400,.text-slate-500){
   color:#1E293B!important;
 }
+
+
+/* Dark-theme public surfaces: the same semantic utilities become dark surfaces, not white islands. */
+html[data-theme="dark"] .site-shell .bg-white,
+html[data-theme="dark"] .site-shell .bg-\[\#F8FAFC\],
+html[data-theme="dark"] .site-shell .bg-slate-50{
+  background:var(--aslal-surface-1)!important;
+  color:var(--aslal-primary-text)!important;
+}
+html[data-theme="dark"] .site-shell .bg-slate-100{
+  background:var(--aslal-surface-2)!important;
+  color:var(--aslal-primary-text)!important;
+}
+html[data-theme="dark"] .site-shell :is(.bg-white,.bg-\[\#F8FAFC\],.bg-slate-50,.bg-slate-100) :is(h1,h2,h3,h4,h5,h6,p,span,label,dt,dd,time,small),
+html[data-theme="dark"] .site-shell :is(.bg-white,.bg-\[\#F8FAFC\],.bg-slate-50,.bg-slate-100) :is(.text-slate-300,.text-slate-400,.text-slate-500,.text-slate-600,.text-slate-700){
+  color:rgba(248,250,252,.78)!important;
+}
+html[data-theme="dark"] .site-shell :is(.bg-white,.bg-\[\#F8FAFC\],.bg-slate-50,.bg-slate-100) svg{
+  color:#F8FAFC!important;stroke:currentColor;
+}
