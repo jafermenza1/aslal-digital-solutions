@@ -221,6 +221,7 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled)return reply(chatId,"Human support is currently unavailable.");
   const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
   const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
+  const conversation=await ensurePublicConversation(workspaceId,leadId,chatId);
   const name=[user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user";
   const username=user?.username?("@"+user.username):"not provided";
   const userId=String(user?.id||chatId);
@@ -240,7 +241,7 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
   if(cfg.handoffChatId){
     const sent=await tg("sendMessage",{chat_id:String(cfg.handoffChatId),text:"🔔 New public Telegram support request\nLead: "+leadId+"\nCustomer: "+name+"\n"+customerContact+"\n\nAslal sales contact:\n"+aslalContact+"\n\nAnswers: "+JSON.stringify(data)});
     const sentId=sent?.result?.message_id;
-    await savePublicState(workspaceId,userId,"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:sentId,publicChatId:chatId,leadId});
+    await savePublicState(workspaceId,userId,"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:sentId,publicChatId:chatId,leadId,conversationId:conversation.id});
   }
   return tg("sendMessage",{chat_id:chatId,text:"A support request has been created. A member of Aslal sales will continue with you here.\n\nAslal sales contact:\n"+aslalContact+"\n\nYour reachable contact:\n"+customerContact,reply_markup:{keyboard:[[{text:"❌ Close menu"}]],resize_keyboard:true,is_persistent:true}});
 }
