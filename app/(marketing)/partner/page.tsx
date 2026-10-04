@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Building2, CircleDollarSign, Handshake, LineChart, Network, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, BadgeCheck, Building2, CircleDollarSign, Handshake, LineChart, Network, ShieldCheck, Store, Zap } from "lucide-react";
 export default function PartnerBusinessPage(){
  const benefits=[["01",Building2,"Put your business in a partner-ready system","Publish offers, define programs and let qualified partners represent your business with controlled commercial rules."],["02",Network,"Find the right growth relationships","Use affiliates, referral agents, resellers and service partners according to the capability your business actually needs."],["03",LineChart,"Measure contribution, not noise","Demand, attribution, deals, orders, revenue and eligible commissions remain connected for operational reporting."]];
  return <main className="min-h-screen overflow-hidden bg-[#070C18] text-white">
