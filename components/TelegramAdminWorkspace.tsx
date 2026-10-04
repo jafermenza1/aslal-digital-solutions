@@ -36,6 +36,9 @@ export function TelegramAdminWorkspace({workspaceId,workspaceName}:{workspaceId:
  }
  const toggle=(key:string)=>setConfig(c=>c?{...c,[key]:!c[key]}:c);
  const json=(key:string,fallback:any)=>JSON.stringify(config?.[key]??fallback,null,2);
+ const publicDefinition=(()=>{const raw=config?.publicMenu; if(Array.isArray(raw))return {items:raw,responses:{}}; if(raw&&typeof raw==="object")return {items:Array.isArray(raw.items)?raw.items:[],responses:raw.responses&&typeof raw.responses==="object"?raw.responses:{}}; return {items:[],responses:{}};})();
+ const publicResponse=(key:string)=>String(publicDefinition.responses?.[key]??"");
+ const updatePublicResponse=(key:string,value:string)=>setConfig(x=>x?{...x,publicMenu:{items:publicDefinition.items,responses:{...publicDefinition.responses,[key]:value}}}:x);
 
  if(!config)return <div className="dashboard-panel p-5">{notice||"Loading Telegram workspace…"}</div>;
  return <div className="space-y-5">
@@ -48,8 +51,20 @@ export function TelegramAdminWorkspace({workspaceId,workspaceName}:{workspaceId:
   {tab==="public"&&<section className="dashboard-panel p-5 space-y-5">
     <div><span className="dashboard-kicker">PUBLIC / NO LOGIN</span><h2>Public Telegram experience</h2><p className="text-sm opacity-70">Visitors can start the bot, browse the catalog, qualify demand and request an agent without creating an Aslal account.</p></div>
     <div className="grid gap-3 md:grid-cols-2">{[["publicEnabled","Public bot experience"],["allowAnonymousUsers","Allow anonymous users"],["inlineModeEnabled","Enable Telegram Inline Mode"],["inlineCatalogEnabled","Expose catalog in Inline Mode"]].map(([k,l])=><label key={k} className="flex items-center gap-3 rounded-xl border p-4 font-bold"><input type="checkbox" checked={!!config[k]} onChange={()=>toggle(k)}/>{l}</label>)}</div>
-    <label className="block text-sm font-bold">Public menu JSON<textarea rows={6} className="mt-2 w-full rounded-xl border p-3 text-slate-900 font-mono text-xs" value={json("publicMenu",["Catalog","Qualify me","Pricing","Talk to Agent"])} onChange={e=>{try{setConfig(c=>({...c,publicMenu:JSON.parse(e.target.value)}))}catch{}}}/></label>
-    <button disabled={busy} onClick={()=>void save({publicEnabled:config.publicEnabled,allowAnonymousUsers:config.allowAnonymousUsers,inlineModeEnabled:config.inlineModeEnabled,inlineCatalogEnabled:config.inlineCatalogEnabled,publicMenu:config.publicMenu})} className="dashboard-primary-link">{busy?"Saving…":"Save public settings"}</button>
+    <div className="grid gap-4 md:grid-cols-2">
+      {[
+        ["welcome","Welcome message","👋 Welcome to Aslal"],
+        ["prompt","Menu prompt","What would you like to do?"],
+        ["demandConfirmation","Demand confirmation","Thanks — I have captured what you need. An Aslal team member can continue with you here."],
+        ["humanHandoff","Human handoff response","A member of the Aslal team has taken over this conversation. Please continue here."],
+        ["partner","Partner response","Join our partner network for campaigns, referrals, sales assets and partner opportunities."],
+      ].map(([key,label,placeholder])=><label key={key} className="block text-sm font-bold">{label}<textarea rows={3} className="mt-2 w-full rounded-xl border p-3 text-slate-900" placeholder={placeholder} value={publicResponse(key)} onChange={e=>updatePublicResponse(key,e.target.value)}/></label>)}
+    </div>
+    <label className="block text-sm font-bold">Menu configuration JSON
+      <textarea rows={12} className="mt-2 w-full rounded-xl border p-3 text-slate-900 font-mono text-xs" value={json("publicMenu",{items:[],responses:{}})} onChange={e=>{try{setConfig(c=>({...c,publicMenu:JSON.parse(e.target.value)}))}catch{}}}/>
+    </label>
+    <p className="text-xs opacity-60">Each menu item uses <code>{'{ "action": "CATALOG", "label": "🛍 Browse products" }'}</code>. The action stays stable when you change the visible label.</p>
+    <button disabled={busy} onClick={()=>void save({publicEnabled:config.publicEnabled,allowAnonymousUsers:config.allowAnonymousUsers,inlineModeEnabled:config.inlineModeEnabled,inlineCatalogEnabled:config.inlineCatalogEnabled,publicMenu:config.publicMenu})} className="dashboard-primary-link">{busy?"Saving…":"Save public bot experience"}</button>
   </section>}
 
   {tab==="qualification"&&<section className="dashboard-panel p-5 space-y-5">
