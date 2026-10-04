@@ -8,7 +8,7 @@ const clean=(v:unknown,max:number)=>typeof v==="string"?v.trim().slice(0,max):""
 const json=(v:unknown)=>Array.isArray(v)||typeof v==="object"&&v!==null?v:undefined;
 export async function GET(request:Request){const workspaceId=new URL(request.url).searchParams.get("workspaceId")?.trim()||"";const access=await authorizeWorkspacePermission("products.manage",workspaceId);if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});const profiles=await prisma.professionalProfile.findMany({where:{workspaceId:access.workspace.id},orderBy:{updatedAt:"desc"},include:{party:{select:{id:true,name:true,type:true,status:true,email:true,phone:true}},partner:{select:{id:true,name:true,partnerNumber:true,status:true}},credentials:{orderBy:{createdAt:"desc"}}}});return NextResponse.json({profiles});}
 export async function POST(request:Request){const body=await request.json().catch(()=>({}));const access=await authorizeWorkspacePermission("products.manage",clean(body.workspaceId,36));if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});const workspaceId=access.workspace.id;
- let partyId=clean(body.partyId,36);
+ let partyId=clean(body.partyId,36)||"";
  const partnerId=clean(body.partnerId,36)||null;
  const profession=clean(body.profession,160);
  const displayName=clean(body.displayName,190)||access.user.name;
