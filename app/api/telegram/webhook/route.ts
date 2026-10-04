@@ -199,7 +199,6 @@ async function ensurePublicConversation(workspaceId:string,leadId:string,chatId:
 async function routePublicMessageToHandoff(chatId:string,workspaceId:string,user:any,m:TelegramMessage){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled||!cfg.handoffChatId)return false;
   const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
-  const wasExisting=Boolean(session.lead_id||session.person_id);
   const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
   const conversation=await ensurePublicConversation(workspaceId,leadId,chatId);
   await db.query("INSERT INTO conversation_messages (id,conversation_id,direction,status,sender_address,body,metadata) VALUES (?,?,?,?,?,?,?)",[crypto.randomUUID(),conversation.id,"INBOUND","RECEIVED",String(user?.id||chatId),clean(m.text).slice(0,10000),JSON.stringify({telegramChatId:chatId,messageId:m.message_id||null,publicHandoff:true})]);
@@ -223,7 +222,8 @@ async function routeAdminReplyToPublic(m:TelegramMessage){
 
 async function handoffPublic(chatId:string,workspaceId:string,user:any){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled)return reply(chatId,"Human support is currently unavailable.");
-  const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+  const session=await publicSession(workspaceId,user,chatId);
+  const wasExisting=Boolean(session.lead_id||session.person_id); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
   const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
   const conversation=await ensurePublicConversation(workspaceId,leadId,chatId);
   const name=[user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram user";
