@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, CircleDollarSign, Link2, Megaphone, QrCode, ShieldCheck, Sparkles, Target, Users, WalletCards } from "lucide-react";
+import { ArrowRight, CircleDollarSign, Link2, Megaphone, QrCode, ShieldCheck, Sparkles, Target, Users, WalletCards } from "lucide-react";
 export default function PartnerNetworkPage(){
  const roles=[["Influencer",Megaphone,"Turn audience trust into attributable opportunities without guessing what earned you."],["Referral Agent",Target,"Bring qualified demand you actually sourced and preserve your contribution through the commercial journey."],["Reseller",WalletCards,"Sell eligible offers with defined commercial terms, customer ownership and settlement rules."],["Service Partner",Users,"Contribute delivery or specialist capability where a business needs trusted support."]];
  return <main className="min-h-screen overflow-hidden bg-[#070C18] text-white">
