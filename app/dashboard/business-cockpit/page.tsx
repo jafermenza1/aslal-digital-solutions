@@ -32,7 +32,6 @@ export default async function BusinessCockpitPage(){
   p.has("commerce.view")?["Orders & sales","Move from commercial activity to the existing order workspace.","/dashboard/orders"]:null,
   p.has("partners.manage")?["Partner growth","Manage partner relationships, programs and attributed opportunities.","/dashboard/partners"]:null,
   p.has("commissions.manage")?["Finance","Review revenue, commission and payout operations.","/dashboard/finance"]:null,
-  p.has("reports.view")?["Reports","Measure pipeline, sales and business performance.","/dashboard/reports"]:null,
  ].filter(Boolean) as string[][];
  return <main className="min-h-full bg-[var(--ui-canvas)] py-8"><div className="container-aslal">
   <header><div className="text-xs font-black uppercase tracking-[.2em] text-[var(--ui-accent)]">Business cockpit</div><h1 className="mt-2 text-3xl font-black tracking-tight">Run {access.workspace.name}</h1><p className="mt-2 max-w-3xl text-sm text-slate-500">One place to see what needs attention, then move directly into the existing workflow that owns the action.</p></header>
