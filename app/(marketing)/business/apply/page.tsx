@@ -30,9 +30,9 @@ export default function BusinessApplyPage(){
  }
  const field="w-full rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-sm outline-none placeholder:text-slate-400 focus:border-[#E2B02A] focus:ring-2 focus:ring-[#E2B02A]/30";
  return <main className="min-h-screen bg-[#070C18] py-16 text-white"><div className="container-aslal max-w-4xl">
-  <Link href="/partner" className="text-sm font-bold text-[#F4C84A] underline-offset-4 hover:underline">← Business partner page</Link>
+  <Link href="/partner" className="text-sm font-bold text-[#E2B02A] underline-offset-4 hover:underline">← Business partner page</Link>
   <section className="mt-6 rounded-[2rem] border border-slate-700 bg-slate-950 p-7 shadow-2xl sm:p-10">
-   <div className="font-mono text-[10px] font-black tracking-[.22em] text-[#F4C84A]">BUSINESS / PROFESSIONAL MARKETPLACE ACCESS</div>
+   <div className="font-mono text-[10px] font-black tracking-[.22em] text-[#E2B02A]">BUSINESS / PROFESSIONAL MARKETPLACE ACCESS</div>
    <h1 className="mt-4 text-4xl font-black tracking-tight text-white sm:text-6xl">List what your business or professional practice offers.</h1>
    <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300">Apply for a workspace where permitted owners and staff can manage products, services, commercial listings and professional provider profiles. Your application enters the existing Lead → Commercial Request workflow.</p>
    <form onSubmit={submit} className="mt-8 grid gap-4 md:grid-cols-2">
@@ -41,7 +41,7 @@ export default function BusinessApplyPage(){
     <select name="applicantType" defaultValue="BUSINESS" className={field} aria-label="Applicant type"><option value="BUSINESS" className="bg-slate-900 text-white">Business owner / company</option><option value="PROFESSIONAL" className="bg-slate-900 text-white">Professional / service provider</option></select>
     <input name="businessType" placeholder="Business / profession type" className={field}/>
     <textarea required name="description" rows={6} placeholder="What products/services do you want to publish? Include location, categories and anything we should verify." className={field+" md:col-span-2"}/>
-    <button type="submit" disabled={busy} className="rounded-xl bg-[#E2B02A] px-6 py-3 font-black text-[#070C18] shadow-sm transition hover:bg-[#F4C84A] disabled:cursor-not-allowed disabled:opacity-60 md:w-fit">{busy?"Submitting…":"Apply for marketplace access"}</button>
+    <button type="submit" disabled={busy} className="rounded-xl bg-[#E2B02A] px-6 py-3 font-black text-[#070C18] shadow-sm transition hover:bg-[#E2B02A] disabled:cursor-not-allowed disabled:opacity-60 md:w-fit">{busy?"Submitting…":"Apply for marketplace access"}</button>
    </form>
    {notice&&<div role={notice.kind==="error"?"alert":"status"} className={"mt-5 rounded-xl border p-4 text-sm font-bold "+(notice.kind==="success"?"border-emerald-400/40 bg-emerald-950 text-emerald-100":"border-red-400/40 bg-red-950 text-red-100")}>{notice.text}</div>}
   </section>
