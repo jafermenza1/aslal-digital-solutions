@@ -22,7 +22,7 @@
     "pcce-1:check": "node scripts/pcce-1-contract-check.mjs"
   },
   "dependencies": {
-    "dotenv": "17.2.2",
+    "dotenv": "18.0.5",
     "@prisma/client": "6.19.3",
     "imapflow": "2.2.1",
     "mailparser": "3.9.33",
