@@ -1,8 +1,29 @@
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "node:crypto";
 import { siteConfig } from "@/lib/config";
-import { ensureContactTemplate, renderTemplate } from "@/lib/email-templates";
+import { ensureContactTemplate, renderTemplate, CONTACT_CONFIRMATION_KEY } from "@/lib/email-templates";
+import { contactConfirmationUrl } from "@/lib/contact-confirmation";
 import { dispatchEmail, queueEmail } from "@/lib/email-queue";
+
+export async function sendContactConfirmationEmail(leadId:string){
+ const lead=await prisma.lead.findUnique({where:{id:leadId},select:{id:true,name:true,email:true,company:true,businessType:true,message:true,workspaceId:true,personId:true}});
+ if(!lead?.email||!lead.workspaceId)return {sent:false,skipped:"no-email"};
+ const templates=await prisma.emailTemplate.findUnique({where:{templateKey:CONTACT_CONFIRMATION_KEY}});
+ if(!templates?.active)return {sent:false,skipped:"template-disabled"};
+ const values={name:lead.name,email:lead.email,companyOrType:lead.company||lead.businessType||"Business request",serviceOrProduct:"your growth request",message:lead.message||"We received your request.",leadId:lead.id,contactUrl:`${siteConfig.url}/contact`,confirmationUrl:contactConfirmationUrl(lead.id,lead.email),logoUrl:`${siteConfig.url}/brand-logo.svg`,location:siteConfig.location,phone:siteConfig.phone,unsubscribeUrl:`${siteConfig.url}/contact`};
+ const subject=renderTemplate(templates.subjectTemplate,values).replace(/[\r\n]+/g," ").trim().slice(0,250);
+ const html=renderTemplate(templates.htmlTemplate,values,true),text=renderTemplate(templates.textTemplate,values);
+ const conversation=await prisma.conversation.findFirst({where:{channel:"EMAIL",leadId:lead.id,status:{not:"CLOSED"}},orderBy:{updatedAt:"desc"}})||await prisma.conversation.create({data:{id:randomUUID(),workspaceId:lead.workspaceId,channel:"EMAIL",status:"OPEN",personId:lead.personId,leadId:lead.id,externalThreadId:`contact-confirm:${lead.id}`}});
+ const message=await prisma.message.create({data:{id:randomUUID(),conversationId:conversation.id,direction:"OUTBOUND",status:"QUEUED",recipientAddress:lead.email,body:text,metadata:{source:"contact-confirmation",templateKey:CONTACT_CONFIRMATION_KEY,html}}});
+ const outbox=await queueEmail({workspaceId:lead.workspaceId,leadId:lead.id,personId:lead.personId,messageId:message.id,recipientAddress:lead.email,subject,htmlBody:html,textBody:text,templateKey:CONTACT_CONFIRMATION_KEY,createdBy:"system:contact-confirmation"});
+ const result=await dispatchEmail(outbox.id);
+ if(result.status==="SENT"){
+  await prisma.$transaction([prisma.message.update({where:{id:message.id},data:{status:"SENT",sentAt:new Date(),externalMessageId:result.providerMessageId,metadata:{source:"contact-confirmation",templateKey:CONTACT_CONFIRMATION_KEY,emailOutboxId:outbox.id,providerMessageId:result.providerMessageId,html}}}),prisma.conversation.update({where:{id:conversation.id},data:{lastMessageAt:new Date()}})]);
+  return {sent:true,emailOutboxId:outbox.id};
+ }
+ await prisma.message.update({where:{id:message.id},data:{status:"FAILED",metadata:{source:"contact-confirmation",templateKey:CONTACT_CONFIRMATION_KEY,emailOutboxId:outbox.id,failureReason:result.status==="FAILED"?"Provider error":"Email dispatch skipped"}}});
+ return {sent:false,skipped:"provider-error",emailOutboxId:outbox.id};
+}
 
 export async function sendContactAutoReply(leadId: string) {
   const lead = await prisma.lead.findUnique({
