@@ -17,7 +17,9 @@ export async function POST(request:Request){
   const workspace=await prisma.workspace.findFirst({where:{id:workspaceId,active:true},select:{id:true}});
   if(!workspace)return NextResponse.json({error:"Workspace not found."},{status:404});
   const contactName=s((body as Record<string,unknown>).contactName,160),title=s((body as Record<string,unknown>).title,190);
+  const contactEmail=s((body as Record<string,unknown>).contactEmail,190),contactPhone=s((body as Record<string,unknown>).contactPhone,40);
   if(!contactName||!title)return NextResponse.json({error:"title and contactName are required."},{status:400});
+  if(source==="public-wanted"&&!contactEmail&&!contactPhone)return NextResponse.json({error:"Please provide a phone number or email so we can contact you about your request."},{status:400});
   const partnerId=s((body as Record<string,unknown>).partnerId,36)||null;
   if(partnerId){
    const partner=await prisma.partner.findFirst({where:{id:partnerId,workspaceId,status:"ACTIVE",accountStatus:"ACTIVE"}});
