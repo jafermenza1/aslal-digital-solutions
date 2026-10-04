@@ -16,7 +16,7 @@ export async function POST(request:Request){const body=await request.json().catc
  if(!displayName||!profession||!STATUSES.includes(status as any))return NextResponse.json({error:"Display name, profession and valid status are required."},{status:400});
  if(!partyId&&body.selfService===true){
   const existing=await prisma.commercialParty.findFirst({where:{workspaceId,name:displayName,status:{not:"ARCHIVED"}},select:{id:true}});
-  partyId=existing?.id||null;
+  partyId=existing?.id||"";
   if(!partyId){
    const party=await prisma.commercialParty.create({data:{id:randomUUID(),workspaceId,name:displayName,type:"SERVICE_PROVIDER",status:"ACTIVE",email:access.user.email,contactName:access.user.name,description:"Self-service professional provider profile."},select:{id:true}});
    partyId=party.id;
