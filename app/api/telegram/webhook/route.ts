@@ -110,6 +110,14 @@ async function continuePublic(chatId:string,workspaceId:string,user:any){
 async function savePublicState(workspaceId:string,userId:string,state:string,stateData:any){
   await db.query("UPDATE telegram_public_sessions SET state=?,state_data=?,last_inbound_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[state,JSON.stringify(stateData||{}),workspaceId,userId]);
 }
+async function needResponse(chatId:string,workspaceId:string,user:any){
+ const cfg=await getTelegramChannelConfig(workspaceId);
+ const parsed=parsePublicMenu(cfg?.publicMenu);
+ const prompt=String(parsed.responses.prompt||"🔎 Tell us what you need.\n\nYou can describe the product, service, problem, quantity or outcome in your own words.");
+ await savePublicState(workspaceId,String(user?.id||chatId),"NEED_CAPTURE",{});
+ return reply(chatId,prompt);
+}
+
 async function servicesResponse(chatId:string,workspaceId:string){
  const cfg=await getTelegramChannelConfig(workspaceId);
  if(!cfg?.enabled||!cfg.miniAppEnabled)return reply(chatId,"Our services are available through Aslal. Tell us what you need and a specialist can help you choose.");
@@ -443,7 +451,7 @@ async function handle(update:TelegramUpdate){
       if(action==="PRICING"||input==="/pricing")return pricingResponse(chatId,publicWorkspaceId);
       if(action==="CATALOG"||input==="/catalog")return catalog(chatId,publicWorkspaceId);
       if(action==="SERVICES")return servicesResponse(chatId,publicWorkspaceId);
-      if(action==="NEED"||input==="/need")return qualification(chatId,publicWorkspaceId,publicUser);
+      if(action==="NEED"||input==="/need")return needResponse(chatId,publicWorkspaceId,publicUser);
       if(action==="ORDERS"||input==="/orders")return ordersResponse(chatId,publicWorkspaceId,publicUser);
       if(action==="HUMAN"||input==="/support")return handoffPublic(chatId,publicWorkspaceId,publicUser);
       if(action==="PARTNER")return partnerResponse(chatId,publicWorkspaceId,publicUser);
@@ -452,7 +460,7 @@ async function handle(update:TelegramUpdate){
       if(await keywordResponse(chatId,publicWorkspaceId,input))return;
       if(session.state==="SUPPORT_REQUESTED"){if(await routePublicMessageToHandoff(chatId,publicWorkspaceId,publicUser,m))return reply(chatId,"Your message has been sent to the support team.");return handoffPublic(chatId,publicWorkspaceId,publicUser);}
       if(session.state==="QUALIFYING")return qualification(chatId,publicWorkspaceId,publicUser,String(stateData.currentStep||""));
-      if(session.state==="DEMAND_CAPTURED")return createTelegramDemand(chatId,publicWorkspaceId,publicUser,input);
+      if(session.state==="DEMAND_CAPTURED"||session.state==="NEED_CAPTURE")return createTelegramDemand(chatId,publicWorkspaceId,publicUser,input);
       return createTelegramDemand(chatId,publicWorkspaceId,publicUser,input);
     }
   }
