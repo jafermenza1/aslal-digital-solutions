@@ -1774,3 +1774,15 @@ html[data-theme="light"] .landing-page .landing-section.bg-white :is(.text-slate
 .dashboard-content :is([class*="bg-\[\#070C18\]"],[class*="bg-\[\#0F172A\]"],[class*="bg-\[\#1E293B\]"]) > svg:is(.text-slate-900,.text-slate-950,.text-\[\#1E293B\]){
   color:#F8FAFC!important;stroke:currentColor;
 }
+
+/* The same contract applies to chrome-free marketplace and mini-app surfaces. */
+.marketplace-page [class*="bg-white"][class*="text-white"],
+.telegram-catalog-page [class*="bg-white"][class*="text-white"],
+.marketplace-page [class*="bg-slate-50"][class*="text-white"],
+.telegram-catalog-page [class*="bg-slate-50"][class*="text-white"]{color:#1E293B!important}
+.marketplace-page [class*="bg-white"] > svg[class*="text-white"],
+.telegram-catalog-page [class*="bg-white"] > svg[class*="text-white"],
+.marketplace-page [class*="bg-slate-50"] > svg[class*="text-white"],
+.telegram-catalog-page [class*="bg-slate-50"] > svg[class*="text-white"]{color:#0F3E8A!important;stroke:currentColor}
+.marketplace-page :is([class*="bg-\[\#070C18\]"],[class*="bg-\[\#0F172A\]"],[class*="bg-\[\#1E293B\]"]) > svg:is(.text-slate-900,.text-slate-950,.text-\[\#1E293B\]),
+.telegram-catalog-page :is([class*="bg-\[\#070C18\]"],[class*="bg-\[\#0F172A\]"],[class*="bg-\[\#1E293B\]"]) > svg:is(.text-slate-900,.text-slate-950,.text-\[\#1E293B\]){color:#F8FAFC!important;stroke:currentColor}
