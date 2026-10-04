@@ -15,7 +15,6 @@ export function Header(){
  const [settings,setSettings]=useState<any>(null);
  useEffect(()=>{fetch("/api/public/site-settings").then(r=>r.json()).then(setSettings).catch(()=>undefined)},[]);
  if(settings&&!settings.headerEnabled)return null;
- const nav=[["/platform","Growth-OS"],["/marketplace","Marketplace"],["/resources",t.nav.resources]];
  const labels={...t.nav,portal:"Portal",build:settings?.header?.growthCtaLabel||t.actions.build};
  return <header className="site-header"><div className="container-aslal site-header-inner"><BrandLogo/><nav className="desktop-nav"><Link href="/platform">Growth-OS</Link><SolutionsMenu/><Link href="/marketplace">Marketplace</Link><Link href="/resources">{t.nav.resources}</Link></nav><div className="desktop-actions"><ThemeToggle compact/><LanguageToggle locale={locale}/>{settings?.header?.showPortal!==false&&<Link className="header-portal" href="/login">Portal</Link>}{settings?.header?.showGrowthCta!==false&&<Link className="site-cta" href={settings?.header?.growthCtaHref||"/growth-builder"}>{labels.build} <span>↗</span></Link>}</div><MobileNav locale={locale} labels={labels}/></div></header>;
 }
