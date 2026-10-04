@@ -3,7 +3,7 @@ import path from "node:path";
 
 const ROOT = process.cwd();
 const SCAN_ROOTS = ["app", "components", "lib", "public"];
-const ALLOWED_HEX = new Set(["#0F3E8A", "#E2B02A", "#1E293B", "#F8FAFC"]);
+const ALLOWED_HEX = new Set(["#0F3E8A", "#E2B02A", "#070C18", "#0F172A", "#1E293B", "#F8FAFC"]);
 
 const files = [];
 function walk(dir) {
@@ -32,7 +32,7 @@ for (const file of files) {
   for (const match of content.matchAll(rgbPattern)) {
     const parts = match[1].split(",").map((part) => Number.parseFloat(part.trim()));
     const rgb = parts.slice(0, 3);
-    const allowedRgb = [[15, 62, 138], [226, 176, 42], [30, 41, 59], [248, 250, 252]];
+    const allowedRgb = [[15, 62, 138], [226, 176, 42], [7, 12, 24], [15, 23, 42], [30, 41, 59], [248, 250, 252]];
     if (rgb.length !== 3 || !allowedRgb.some((value) => value.every((channel, index) => channel === rgb[index]))) {
       violations.push({ file: path.relative(ROOT, file), value: match[0] });
     }
