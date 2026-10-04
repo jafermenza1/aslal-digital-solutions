@@ -53,7 +53,7 @@ export async function POST(request:Request){
  const existing=await prisma.commercialListingAuthorization.findFirst({where:{workspaceId:partner.workspaceId,listingId,partnerId:partner.id,programId},orderBy:{createdAt:"desc"}});
  if(existing&&["REQUESTED","APPROVED","ACTIVE"].includes(existing.status))return NextResponse.json({ok:true,alreadyApplied:true,authorization:existing});
  const authorization=await prisma.commercialListingAuthorization.create({data:{
-  id:crypto.randomUUID(),workspaceId:partner.workspaceId,listingId,partnerId,programId,authorizationType:"AFFILIATE_PROMOTION",status:"REQUESTED",
+  id:crypto.randomUUID(),workspaceId:partner.workspaceId,listingId,partnerId:partner.id,programId,authorizationType:"AFFILIATE_PROMOTION",status:"REQUESTED",
   effectiveAt:new Date(),channel:"SOCIAL",partnerTypes:partner.type,commissionRule:null,approvedBy:null,approvedAt:null,
   exclusions:null,protectionDays:null
  }});
