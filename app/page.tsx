@@ -82,7 +82,7 @@ export default async function Home() {
   const t = landingCopy[locale];
   const content = await getPageContent("/");
   return (
-    <main className="landing-page bg-[#F8FAFC] text-[#1E293B]">
+    <main className="landing-page bg-[#070C18] text-[#F8FAFC]"><div className="landing-center-node" aria-hidden="true"><span/></div>
       <ProvenMarketingHero content={content}/>
 
       <ScrollReveal><section className="landing-section bg-white" aria-labelledby="journey-title">
