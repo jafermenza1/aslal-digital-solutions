@@ -1626,3 +1626,13 @@ html[data-theme="dark"] .site-shell :is(.bg-white,.bg-\[\#F8FAFC\],.bg-slate-50,
 html[data-theme="dark"] .site-shell :is(.bg-white,.bg-\[\#F8FAFC\],.bg-slate-50,.bg-slate-100) svg{
   color:#F8FAFC!important;stroke:currentColor;
 }
+
+
+/* Marketplace visual system: shared with the Telegram catalog, optimized for the full exchange. */
+.marketplace-page{--market-bg:#070C18;--market-surface:#0F172A;--market-blue:#0F3E8A;--market-gold:#E2B02A}
+.marketplace-hero{background:radial-gradient(circle at 78% 24%,rgba(226,176,42,.13),transparent 24%),radial-gradient(circle at 18% 72%,rgba(15,62,138,.42),transparent 35%),linear-gradient(135deg,#070C18 0%,#0F172A 58%,#070C18 100%)}
+.marketplace-hero-grid{position:absolute;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(248,250,252,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(248,250,252,.06) 1px,transparent 1px);background-size:54px 54px;mask-image:radial-gradient(circle at 70% 50%,black,transparent 75%)}
+.marketplace-hero-panel{padding:25px;border:1px solid rgba(248,250,252,.12);border-radius:30px;background:linear-gradient(145deg,rgba(15,23,42,.86),rgba(30,41,59,.62));box-shadow:0 35px 100px rgba(7,12,24,.4);backdrop-filter:blur(20px)}
+.marketplace-card{position:relative;transition:transform .28s,border-color .28s,box-shadow .28s}
+.marketplace-card:hover{transform:translateY(-6px);border-color:rgba(226,176,42,.5);box-shadow:0 25px 80px rgba(7,12,24,.35)}
+@media(prefers-reduced-motion:reduce){.marketplace-card{transition:none}.marketplace-card:hover{transform:none}}
