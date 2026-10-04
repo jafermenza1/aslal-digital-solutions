@@ -45,9 +45,9 @@ const landingCopy: Record<Locale, {
     ],
     ctaTitle:"Let’s fix your funnel.", ctaBody:"Start with the bottleneck. We can map the practical digital system around it and connect the right people, channels and workflows.", audit:"Build a 30-minute system audit", telegram:"Chat on Telegram", whatsapp:"Chat on WhatsApp", email:"Email Aslal",
     offersEyebrow:"02 — WHAT YOU CAN BUY", offersTitle:"Start with a service, package or product. Grow into a system.", offersBody:"Choose a focused capability when you know what you need, or use the Growth System Builder when you want Aslal to map the right starting scope.", offers:[
-      ["Marketing Packages","Starter, Growth and Market Leader packages for consistent demand generation and managed growth.","/products/marketing-growth","Explore package"],
+      ["Marketing Packages","Starter, Growth and Market Leader packages for consistent demand generation and managed growth.","/products#packages","Explore package"],
       ["Products & Solutions","Software, web, CRM, commerce and implementation offers with dedicated explanation pages.","/products","Explore products"],
-      ["Aslal Services","Custom digital, automation, branding, SEO and customer-system capabilities.","/services","Explore services"],
+      ["Aslal Services","Custom digital, automation, branding, SEO and customer-system capabilities.","/products#services","Explore services"],
       ["Automation Lab","Interactive WhatsApp and Telegram sales experiences with human handoff.","/automation-lab","Try automation"]
     ]
   },
