@@ -1654,9 +1654,9 @@ html[data-theme="dark"] .site-shell :is(.bg-white,.bg-\[\#F8FAFC\],.bg-slate-50,
 .telegram-resource-strip{margin:0 -3px;padding:28px 20px;background:linear-gradient(145deg,#070C18,#0F172A);color:#F8FAFC}
 .telegram-detail{background:#FFFFFF;color:#1E293B;box-shadow:0 30px 100px rgba(7,12,24,.4)}
 .telegram-catalog-skeleton{padding:20px}
-.telegram-catalog-skeleton>div:first-child{height:190px;border-radius:28px;background:linear-gradient(100deg,#E2E8F0 30%,#F8FAFC 50%,#E2E8F0 70%);background-size:200% 100%;animation:telegramSkeleton 1.8s linear infinite}
-.telegram-catalog-skeleton>div:nth-child(2){height:46px;margin-top:14px;border-radius:999px;background:#E2E8F0}
-.telegram-catalog-skeleton i{height:250px;border-radius:22px;background:#E2E8F0;display:block}
+.telegram-catalog-skeleton>div:first-child{height:190px;border-radius:28px;background:linear-gradient(100deg,#F1F5F9 30%,#F8FAFC 50%,#F1F5F9 70%);background-size:200% 100%;animation:telegramSkeleton 1.8s linear infinite}
+.telegram-catalog-skeleton>div:nth-child(2){height:46px;margin-top:14px;border-radius:999px;background:#F1F5F9}
+.telegram-catalog-skeleton i{height:250px;border-radius:22px;background:#F1F5F9;display:block}
 @keyframes telegramSkeleton{to{background-position:-200% 0}}
 html[data-telegram-theme="dark"] .telegram-catalog-page{background:#070C18;color:#F8FAFC}
 html[data-telegram-theme="dark"] .telegram-filter-row button,html[data-telegram-theme="dark"] .telegram-sort{background:#0F172A;color:#F8FAFC;border-color:rgba(248,250,252,.12)}
