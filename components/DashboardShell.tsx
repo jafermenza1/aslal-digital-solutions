@@ -17,7 +17,7 @@ type User={name:string;email:string;role:string;permissions:string[];workspaceId
 const roleLabels:Record<string,string>={SUPER_ADMIN:"Super Administrator",ADMIN:"Administrator",BUSINESS_OWNER:"Business Owner",SALES_MANAGER:"Sales Manager",SALES_OPERATOR:"Sales Operator",MARKETING_OPERATOR:"Marketing Operator",PARTNER_MANAGER:"Partner Manager",PARTNER:"Partner",FINANCE:"Finance Manager",AUDITOR:"Auditor",CLIENT:"Client"};
 
 function titleFor(pathname:string,t:ReturnType<typeof getAppUi>){const entries:[string,string][]=[
-["/dashboard/quotes",t.nav.quotes],["/dashboard/orders","Orders"],
+["/dashboard/business-cockpit","Business Cockpit"],["/dashboard/quotes",t.nav.quotes],["/dashboard/orders","Orders"],
 ["/dashboard/leads",t.nav.leads],["/dashboard/customers",t.nav.customers],["/dashboard/conversations",t.nav.conversations],["/dashboard/email-templates",t.nav.emailTemplates],["/dashboard/email","Email Operations"],
 ["/dashboard/insights",t.nav.insights],["/dashboard/journey",t.nav.journey],["/dashboard/operations",t.nav.operations],["/dashboard/partners",t.nav.partners],["/dashboard/finance","Finance & Payouts"],["/dashboard/workspaces","Workspaces"],["/dashboard/partner",t.nav.partnerPortal],["/dashboard/products",t.nav.products],["/dashboard/users",t.nav.users],["/dashboard/telegram",t.nav.telegramSales],["/dashboard",t.nav.overview]
 ];return entries.find(([href])=>pathname===href||pathname.startsWith(href+"/"))?.[1]||t.nav.overview;}
