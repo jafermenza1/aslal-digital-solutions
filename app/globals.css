@@ -1689,3 +1689,12 @@ html[data-theme="light"] .landing-page .landing-section.bg-white{background:#FFF
 html[data-theme="light"] .landing-page .landing-section.bg-\[\#F8FAFC\]{background:#F8FAFC!important;color:#1E293B!important}
 html[data-theme="light"] .landing-page .landing-section.bg-white :is(h1,h2,h3,h4,h5,h6){color:#1E293B!important}
 html[data-theme="light"] .landing-page .landing-section.bg-white :is(.text-slate-500,.text-slate-600,.text-slate-700){color:rgba(30,41,59,.68)!important}
+
+.public-home-orbit{box-shadow:0 0 80px rgba(15,62,138,.08);transform:rotate(0deg)}
+.public-home-orbit-delay{box-shadow:0 0 55px rgba(226,176,42,.08)}
+@media(prefers-reduced-motion:no-preference){
+ .public-home-orbit{animation:publicHomeOrbit 18s linear infinite}
+ .public-home-orbit-delay{animation:publicHomeOrbit 12s linear infinite reverse}
+}
+@keyframes publicHomeOrbit{from{transform:rotate(0deg) scale(1)}to{transform:rotate(360deg) scale(1.02)}}
+@media(prefers-reduced-motion:reduce){.public-home-orbit,.public-home-orbit-delay{animation:none}}
