@@ -212,11 +212,8 @@ async function routeAdminReplyToPublic(m:TelegramMessage){
   if(!row)return false;
   const d=typeof row.state_data==="string"?JSON.parse(row.state_data||"{}"):(row.state_data||{}); if(!d.publicChatId)return false;
   await reply(String(d.publicChatId),clean(m.text));
-  if(d.workspace_id&&d.state_data){
-    const state=typeof d.state_data==="string"?JSON.parse(d.state_data||"{}"):(d.state_data||{});
-    const conversationId=state.conversationId||null;
-    if(conversationId)await db.query("INSERT INTO conversation_messages (id,conversation_id,direction,status,sender_address,body,metadata) VALUES (?,?,?,?,?,?,?)",[crypto.randomUUID(),conversationId,"OUTBOUND","SENT","telegram:staff",clean(m.text).slice(0,10000),JSON.stringify({telegramChatId:d.publicChatId,adminReply:true})]);
-  }
+  const conversationId=d.conversationId||null;
+  if(conversationId)await db.query("INSERT INTO conversation_messages (id,conversation_id,direction,status,sender_address,body,metadata) VALUES (?,?,?,?,?,?,?)",[crypto.randomUUID(),conversationId,"OUTBOUND","SENT","telegram:staff",clean(m.text).slice(0,10000),JSON.stringify({telegramChatId:d.publicChatId,adminReply:true})]);
   return true;
 }
 
