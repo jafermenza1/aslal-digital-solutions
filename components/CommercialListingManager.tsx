@@ -1,7 +1,7 @@
 "use client";
 import {useState} from "react";
 
-type Row={id:string;workspaceId:string;workspaceName:string;productId:string|null;productName:string|null;professionalProfileId?:string|null;ownerPartyId?:string|null;supplierPartyId?:string|null;ownerPartyName?:string|null;supplierPartyName?:string|null;title:string;slug:string;listingType:string;status:string;description:string|null;category:string;condition:string|null;location:string|null;askingPrice:string|null;currency:string;priceLabel:string|null;inspectionRequired:boolean;requestQuote:boolean;publicVisible:boolean;featured:boolean;expiresAt:string|null;videoUrl?:string|null};
+type Row={id:string;workspaceId:string;workspaceName:string;productId:string|null;productName:string|null;professionalProfileId?:string|null;ownerPartyId?:string|null;supplierPartyId?:string|null;ownerPartyName?:string|null;supplierPartyName?:string|null;title:string;slug:string;listingType:string;status:string;description:string|null;category:string;condition:string|null;location:string|null;askingPrice:string|null;currency:string;priceLabel:string|null;inspectionRequired:boolean;requestQuote:boolean;publicVisible:boolean;featured:boolean;expiresAt:string|null;videoUrl?:string|null;metadata?:Record<string,unknown>|null};
 type Product={id:string;name:string;slug:string;kind:string};
 type Party={id:string;name:string;type:string;status:string};
 type Professional={id:string;displayName:string;profession:string;status:string;verificationLevel:string};
