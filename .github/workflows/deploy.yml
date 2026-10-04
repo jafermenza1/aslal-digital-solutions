@@ -21,8 +21,215 @@ env:
   DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/aslal_ci
 
 jobs:
-  deploy:
+  verify-ci:
+    name: Verify pre-deployment CI
     if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+    steps:
+      - name: Resolve deployment ref
+        id: resolve
+        env:
+          REQUESTED_REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          REF="$(printf '%s' "${REQUESTED_REF:-main}" | tr -d '[:space:]')"
+          if [ -z "$REF" ]; then REF="main"; fi
+          if [ "$REF" = "main" ]; then
+            SHA="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha')"
+          elif printf '%s' "$REF" | grep -Eq '^[0-9a-fA-F]{40}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout CI-validated deployment source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify-ci.outputs.sha }}
+          fetch-depth: 1
+
+      - name: Pin exact deployment SHA
+        run: |
+          set -euo pipefail
+          SHA="$(git rev-parse HEAD)"
+          test "$SHA" = "${{ needs.verify-ci.outputs.sha }}"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+          echo "Deploying CI-validated source SHA: $SHA"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
+      - name: Production build
+        run: npm run build
+
+      - name: Prepare Emerald deployment bundle
+        env:
+          SHA: ${{ env.SHA }}
+        run: |
+          set -euo pipefail
+          rm -rf .prisma-cli emerald-artifact
+          mkdir -p .prisma-cli emerald-artifact
+          npm install --prefix .prisma-cli --no-save --no-package-lock prisma@6.19.0
+          test -f .next/standalone/server.js
+          test -f .next/standalone/package.json
+          test -d .next/standalone/.next/static
+          test -d .next/standalone/public
+          test -x .prisma-cli/node_modules/.bin/prisma
+          test -d prisma/migrations
+          rm -rf .next/standalone/prisma .next/standalone/.prisma-cli
+          cp -a prisma .next/standalone/prisma
+          cp -a .prisma-cli .next/standalone/.prisma-cli
+          tar -czf "emerald-artifact/aslal-emerald-$SHA.tar.gz" -C .next/standalone .
+          test -f "emerald-artifact/aslal-emerald-$SHA.tar.gz"
+          tar -tzf "emerald-artifact/aslal-emerald-$SHA.tar.gz" >/dev/null
+          sha256sum "emerald-artifact/aslal-emerald-$SHA.tar.gz"
+
+      - name: Configure SSH
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          EMERALD_SSH_KEY: ${{ secrets.EMERALD_SSH_KEY }}
+          EMERALD_SSH_KEY_B64: ${{ secrets.EMERALD_SSH_KEY_B64 }}
+          EMERALD_KNOWN_HOSTS: ${{ secrets.EMERALD_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$EMERALD_HOST"
+          test -n "$EMERALD_USER"
+          test -n "${EMERALD_SSH_KEY_B64:-$EMERALD_SSH_KEY}"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          if [ -n "${EMERALD_SSH_KEY_B64:-}" ]; then
+            printf '%s' "$EMERALD_SSH_KEY_B64" | base64 --decode > ~/.ssh/emerald_deploy
+          else
+            printf '%s' "$EMERALD_SSH_KEY" | sed 's/\\r$//' | sed 's/\\\\n/\\n/g' > ~/.ssh/emerald_deploy
+          fi
+          chmod 600 ~/.ssh/emerald_deploy
+          if ! ssh-keygen -y -f ~/.ssh/emerald_deploy >/dev/null 2>&1; then
+            echo "::error::Emerald SSH private key could not be parsed. Check EMERALD_SSH_KEY_B64 (preferred) or EMERALD_SSH_KEY and ensure the complete private key was stored."
+            exit 1
+          fi
+          if [ -n "${EMERALD_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$EMERALD_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${EMERALD_PORT:-22}" "$EMERALD_HOST" >> ~/.ssh/known_hosts
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Upload artifact to Emerald
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          SHA: ${{ env.SHA }}
+        run: |
+          set -euo pipefail
+          scp -i ~/.ssh/emerald_deploy -P "${EMERALD_PORT:-22}" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "emerald-artifact/aslal-emerald-$SHA.tar.gz" "${EMERALD_USER}@${EMERALD_HOST}:~/aslal-emerald-$SHA.tar.gz"
+
+      - name: Install release on Emerald
+        env:
+          EMERALD_HOST: ${{ secrets.EMERALD_HOST }}
+          EMERALD_PORT: ${{ secrets.EMERALD_PORT }}
+          EMERALD_USER: ${{ secrets.EMERALD_USER }}
+          EMERALD_APP_PATH: ${{ secrets.EMERALD_APP_PATH }}
+          SHA: ${{ env.SHA }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/emerald_deploy -p "${EMERALD_PORT:-22}" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "${EMERALD_USER}@${EMERALD_HOST}" \
+            "SHA='$SHA' APP_PATH='${EMERALD_APP_PATH:-/home/aslaldzn/aslal-digital-solutions}' bash -s" <<'REMOTE'
+          set -euo pipefail
+          ARCHIVE="$HOME/aslal-emerald-$SHA.tar.gz"
+          RELEASE_PATH="$APP_PATH/.releases/$SHA"
+          BACKUP_PATH="$APP_PATH/.releases/backup-$SHA"
+          test -f "$ARCHIVE"
+          mkdir -p "$APP_PATH/.releases"
+          rm -rf "$RELEASE_PATH"
+          mkdir -p "$RELEASE_PATH"
+          tar -xzf "$ARCHIVE" -C "$RELEASE_PATH"
+          test -f "$RELEASE_PATH/server.js"
+          test -f "$RELEASE_PATH/package.json"
+          test -d "$RELEASE_PATH/.next/static"
+          test -d "$RELEASE_PATH/public"
+          test -x "$RELEASE_PATH/.prisma-cli/node_modules/.bin/prisma"
+          if [ -f "$APP_PATH/.env" ]; then cp "$APP_PATH/.env" "$RELEASE_PATH/.env"; fi
+          cd "$RELEASE_PATH"
+          ./.prisma-cli/node_modules/.bin/prisma migrate deploy
+          rm -rf "$BACKUP_PATH"
+          mkdir -p "$BACKUP_PATH"
+          for item in server.js package.json node_modules .next public; do
+            if [ -e "$APP_PATH/$item" ]; then cp -a "$APP_PATH/$item" "$BACKUP_PATH/$item"; fi
+          done
+          rm -rf "$APP_PATH/.next" "$APP_PATH/node_modules" "$APP_PATH/public" "$APP_PATH/server.js" "$APP_PATH/package.json"
+          cp -a "$RELEASE_PATH/server.js" "$APP_PATH/server.js"
+          cp -a "$RELEASE_PATH/package.json" "$APP_PATH/package.json"
+          cp -a "$RELEASE_PATH/node_modules" "$APP_PATH/node_modules"
+          cp -a "$RELEASE_PATH/.next" "$APP_PATH/.next"
+          cp -a "$RELEASE_PATH/public" "$APP_PATH/public"
+          mkdir -p "$APP_PATH/tmp"
+          touch "$APP_PATH/tmp/restart.txt"
+          test -f "$APP_PATH/server.js"
+          test -d "$APP_PATH/.next/static"
+          rm -f "$ARCHIVE"
+          echo "Emerald deployment installed: $SHA"
+          REMOTE
+
+      - name: Verify production health endpoint
+        env:
+          EMERALD_HEALTH_URL: ${{ secrets.EMERALD_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          URL="${EMERALD_HEALTH_URL:-https://aslaldigital.com/api/health}"
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --max-time 20 "$URL"; then
+              echo "Production health check passed."
+              exit 0
+            fi
+            echo "Health check attempt $attempt failed; waiting 10 seconds..."
+            sleep 10
+          done
+          echo "Production health check failed."
+          exit 1
+; then
+            SHA="$REF"
+          else
+            echo "::error::Invalid deployment ref. Leave the field as main, or enter an exact 40-character commit SHA."
+            exit 1
+          fi
+          test "${#SHA}" -eq 40
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Deployment source SHA: $SHA"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Verify exact SHA has a successful pre-deployment CI run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.resolve.outputs.sha }}
+        run: |
+          set -euo pipefail
+          RUNS="$(gh run list --workflow=pre-deploy-ci.yml --commit "$SHA" --limit 20 --json databaseId,headSha,status,conclusion)"
+          echo "$RUNS"
+          if ! printf '%s' "$RUNS" | jq -e --arg sha "$SHA" 'any(.[]; .headSha == $sha and .status == "completed" and .conclusion == "success")' >/dev/null; then
+            echo "::error::No successful Pre-Deployment CI run exists for $SHA. Run Pre-Deployment CI and wait for the gate to pass before deploying."
+            exit 1
+          fi
+          echo "Pre-Deployment CI passed for $SHA."
+
+  deploy:
+    needs: verify-ci
+    if: github.event_name == 'workflow_dispatch' && needs.verify-ci.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
