@@ -1882,3 +1882,14 @@ Added docs/ops/Q1-OPERATOR-SOP-EVIDENCE.md covering disputed attribution, cancel
 5. Verify receipt exceptions remain non-reconciled until resolved.
 
 Q1 remains **NOT ACCEPTED**.
+
+## PCCE-2 UI correction — marketing vs commerce surface separation
+
+**Implemented on main:**
+- Restored the proven marketing hero visual on the public homepage (`/`) using the earlier interactive outcome dashboard and existing CMS-driven hero copy.
+- Kept the newer demand constellation hero as the dedicated platform experience at `/platform`.
+- Redesigned `/marketplace` as a dark high-tech commerce discovery surface with live published listings, offer metadata, trust signals, and a direct path to `/wanted`.
+- Redesigned `/wanted` as a demand marketplace: structured requirement intake, budget/location/deadline fields, contact capture, and controlled commercial workflow language.
+- Preserved existing canonical listing and commercial-request APIs; this is an experience-layer redesign, not a duplicate commerce ledger.
+
+**Validation gate:** run the normal CI/build/typecheck workflow before production deployment, then verify `/`, `/platform`, `/marketplace`, and `/wanted` on Emerald in an incognito browser.
