@@ -61,7 +61,7 @@ export default async function ProductsPage(){
     <div className="max-w-3xl">
      <span className="font-mono text-[10px] font-black tracking-[.24em] text-[#E2B02A]">02 · PACKAGES</span>
      <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">Need more than one product? Choose a package.</h2>
-     <p className="mt-4 text-lg leading-8 text-white/55">Packages combine related work into a structured starting point. Select one to configure scope and continue through Aslal's request, quotation, and order workflow.</p>
+     <p className="mt-4 text-lg leading-8 text-white/55">Packages combine related work into a structured starting point. Select one to configure scope and continue through Aslal&apos;s request, quotation, and order workflow.</p>
     </div>
     <div className="mt-8"><ServicePackageBuilder packages={settings.servicePackages} workspaceId={workspaceId}/></div>
    </div>
