@@ -185,13 +185,24 @@ async function ensurePublicLead(workspaceId:string,user:any,chatId:string,stateD
   await db.query("UPDATE leads SET next_action=?,next_action_due_at=DATE_ADD(NOW(),INTERVAL 30 MINUTE) WHERE id=? AND workspace_id=? AND phone IS NULL",[stateData.phone?"Verify Telegram identity and reachable contact address before human handoff.":"Obtain a reachable phone/contact address and verify Telegram identity before human handoff.",leadId,workspaceId]);
   return leadId;
 }
+async function ensurePublicConversation(workspaceId:string,leadId:string,chatId:string){
+ const [rows]=await db.query<(RowDataPacket&{id:string;assigned_to:string|null})[]>("SELECT id,assigned_to FROM conversations WHERE workspace_id=? AND channel='TELEGRAM' AND external_thread_id=? AND status<>'CLOSED' ORDER BY updated_at DESC LIMIT 1",[workspaceId,chatId]);
+ if(rows[0])return rows[0];
+ const [leadRows]=await db.query<(RowDataPacket&{owner_email:string|null})[]>("SELECT owner_email FROM leads WHERE id=? AND workspace_id=? LIMIT 1",[leadId,workspaceId]);
+ const id=crypto.randomUUID();
+ await db.query("INSERT INTO conversations (id,workspace_id,lead_id,channel,external_thread_id,status,assigned_to,last_message_at) VALUES (?,?,?,?,?,'HUMAN_HANDOFF',?,NOW())",[id,workspaceId,leadId,"TELEGRAM",chatId,leadRows[0]?.owner_email||null]);
+ return {id,assigned_to:leadRows[0]?.owner_email||null};
+}
 async function routePublicMessageToHandoff(chatId:string,workspaceId:string,user:any,m:TelegramMessage){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled||!cfg.handoffChatId)return false;
   const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
   const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
+  const conversation=await ensurePublicConversation(workspaceId,leadId,chatId);
+  await db.query("INSERT INTO conversation_messages (id,conversation_id,direction,status,sender_address,body,metadata) VALUES (?,?,?,?,?,?,?)",[crypto.randomUUID(),conversation.id,"INBOUND","RECEIVED",String(user?.id||chatId),clean(m.text).slice(0,10000),JSON.stringify({telegramChatId:chatId,messageId:m.message_id||null,publicHandoff:true})]);
+  await db.query("UPDATE conversations SET status='HUMAN_HANDOFF',human_handoff_at=NOW(),last_message_at=NOW() WHERE id=? AND workspace_id=?",[conversation.id,workspaceId]);
   const forwarded=await tg("copyMessage",{chat_id:String(cfg.handoffChatId),from_chat_id:chatId,message_id:m.message_id});
   const adminMessageId=forwarded?.result?.message_id;
-  await savePublicState(workspaceId,String(user?.id||chatId),"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:adminMessageId,publicChatId:chatId,leadId});
+  await savePublicState(workspaceId,String(user?.id||chatId),"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:adminMessageId,publicChatId:chatId,leadId,conversationId:conversation.id});
   return true;
 }
 async function routeAdminReplyToPublic(m:TelegramMessage){
@@ -200,7 +211,13 @@ async function routeAdminReplyToPublic(m:TelegramMessage){
   const row=rows.find(r=>{const d=typeof r.state_data==="string"?JSON.parse(r.state_data||"{}"):(r.state_data||{});return String(d.handoffAdminMessageId||"")===replyId;});
   if(!row)return false;
   const d=typeof row.state_data==="string"?JSON.parse(row.state_data||"{}"):(row.state_data||{}); if(!d.publicChatId)return false;
-  await reply(String(d.publicChatId),clean(m.text)); return true;
+  await reply(String(d.publicChatId),clean(m.text));
+  if(d.workspace_id&&d.state_data){
+    const state=typeof d.state_data==="string"?JSON.parse(d.state_data||"{}"):(d.state_data||{});
+    const conversationId=state.conversationId||null;
+    if(conversationId)await db.query("INSERT INTO conversation_messages (id,conversation_id,direction,status,sender_address,body,metadata) VALUES (?,?,?,?,?,?,?)",[crypto.randomUUID(),conversationId,"OUTBOUND","SENT","telegram:staff",clean(m.text).slice(0,10000),JSON.stringify({telegramChatId:d.publicChatId,adminReply:true})]);
+  }
+  return true;
 }
 
 async function handoffPublic(chatId:string,workspaceId:string,user:any){
