@@ -1,8 +1,11 @@
 export const publicCommerceIntents = [
   { key: "growth", labelKey: "commerce.intents.growth", href: "/growth-builder" },
-  { key: "sell", labelKey: "commerce.intents.sell", href: "/products" },
+  { key: "sell", labelKey: "commerce.intents.sell", href: "/growth-builder" },
+  { key: "social", labelKey: "commerce.intents.social", href: "/growth-builder" },
+  { key: "website", labelKey: "commerce.intents.website", href: "/growth-builder" },
   { key: "automate", labelKey: "commerce.intents.automate", href: "/growth-builder" },
-  { key: "system", labelKey: "commerce.intents.system", href: "/growth-builder" },
+  { key: "customerManagement", labelKey: "commerce.intents.customerManagement", href: "/growth-builder" },
+  { key: "other", labelKey: "commerce.intents.other", href: "/growth-builder" },
 ] as const;
 
 export const publicCommerceCopyKeys = {
