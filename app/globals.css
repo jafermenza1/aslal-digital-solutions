@@ -1698,3 +1698,6 @@ html[data-theme="light"] .landing-page .landing-section.bg-white :is(.text-slate
 }
 @keyframes publicHomeOrbit{from{transform:rotate(0deg) scale(1)}to{transform:rotate(360deg) scale(1.02)}}
 @media(prefers-reduced-motion:reduce){.public-home-orbit,.public-home-orbit-delay{animation:none}}
+
+@keyframes orbitSpin{to{transform:rotate(360deg)}}@keyframes orbitSpinReverse{to{transform:rotate(-360deg)}}
+@media(prefers-reduced-motion:reduce){.animate-\[orbitSpin_22s_linear_infinite\],.animate-\[orbitSpinReverse_15s_linear_infinite\]{animation:none!important}}
