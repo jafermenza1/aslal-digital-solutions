@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, MessageCircle, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { publicCommerceIntents } from "@/lib/public-commerce-contract";
 import { HomeDemandConstellation, HomeSignalStrip } from "@/components/HomeDemandConstellation";
