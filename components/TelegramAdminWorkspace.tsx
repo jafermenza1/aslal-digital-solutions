@@ -22,8 +22,17 @@ export function TelegramAdminWorkspace({workspaceId,workspaceName}:{workspaceId:
  const [config,setConfig]=useState<Config|null>(null);
  const [notice,setNotice]=useState("");
  const [busy,setBusy]=useState(false);
+ const [health,setHealth]=useState<any>(null);
+ const [healthBusy,setHealthBusy]=useState(false);
 
  useEffect(()=>{fetch("/api/admin/telegram/config?workspaceId="+encodeURIComponent(workspaceId),{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error||"Unable to load Telegram configuration.");setConfig(d.config)}).catch(e=>setNotice(e instanceof Error?e.message:"Unable to load Telegram configuration."))},[workspaceId]);
+ useEffect(()=>{fetch("/api/admin/telegram/health?workspaceId="+encodeURIComponent(workspaceId),{cache:"no-store"}).then(async r=>{const d=await r.json();setHealth(d)}).catch(()=>setHealth({ok:false,error:"Unable to check Telegram webhook."}))},[workspaceId]);
+ async function syncWebhook(){
+  setHealthBusy(true);setNotice("");
+  try{const r=await fetch("/api/admin/telegram/health",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({workspaceId})});const d=await r.json();if(!r.ok)throw Error(d.error||"Unable to synchronize Telegram webhook.");setHealth(d);setNotice("Telegram webhook synchronized.");}
+  catch(e){setNotice(e instanceof Error?e.message:"Unable to synchronize Telegram webhook.");}
+  finally{setHealthBusy(false)}
+ }
 
  async function save(patch:Config){
    if(!config)return;
@@ -42,6 +51,12 @@ export function TelegramAdminWorkspace({workspaceId,workspaceName}:{workspaceId:
 
  if(!config)return <div className="dashboard-panel p-5">{notice||"Loading Telegram workspace…"}</div>;
  return <div className="space-y-5">
+  <div className="dashboard-panel p-4">
+   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div><div className="dashboard-kicker">TELEGRAM CONNECTION</div><div className="mt-1 text-sm font-bold">{health?.webhook?.url?"Webhook connected":"Webhook status unavailable or not configured"}</div>{health?.webhook?.last_error_message&&<div className="mt-1 text-xs text-red-600">{health.webhook.last_error_message}</div>}</div>
+    <button type="button" disabled={healthBusy} onClick={()=>void syncWebhook()} className="dashboard-primary-link">{healthBusy?"Synchronizing…":"Sync Telegram webhook"}</button>
+   </div>
+  </div>
   <div className="dashboard-panel p-2 overflow-x-auto"><div className="flex min-w-max gap-2">{tabs.map(([id,label])=><button key={id} type="button" onClick={()=>setTab(id)} className={tab===id?"dashboard-primary-link":"dashboard-secondary-link"}>{label}</button>)}</div></div>
   {notice&&<div className="dashboard-panel p-3 text-sm">{notice}</div>}
 
