@@ -15,6 +15,7 @@ export default async function PartnerPortalPage() {
   const partner = userRecord?.partnerId ? await prisma.partner.findUnique({
     where: { id: userRecord.partnerId, workspaceId: workspace.id },
     include: {
+      payoutProfile: true,
       referralLinks: {
         orderBy: { createdAt: "desc" },
         take: 20,
@@ -57,6 +58,14 @@ export default async function PartnerPortalPage() {
           </div>
           <a href="/api/partner/id-card" className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#E2B02A] px-5 py-3 text-sm font-black text-slate-950">Download partner ID</a>
         </div>
+      </section>
+      <section className="mt-5 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="text-xs font-black uppercase tracking-[.18em] text-[#0F3E8A]">Your commercial journey</div>
+        <h2 className="mt-1 text-xl font-black text-slate-900">Know what is ready before you share</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {[["1","Identity",partner.emailVerifiedAt?"Verified":"Needs verification"],["2","Profile",partner.onboardingStatus==="COMPLETED"?"Complete":"In progress"],["3","Payout",partner.payoutProfile?"Configured":"Configure before joining paid programs"],["4","Opportunities",partner.accountStatus==="ACTIVE"?"Eligible opportunities":"Activation required"],["5","Attribution",partner.referralLinks.length+" referral link(s)"]].map(([n,t,v])=><div key={n} className="rounded-xl border border-slate-200 p-4"><div className="text-xs font-black text-[#0F3E8A]">{n}</div><div className="mt-1 font-black">{t}</div><div className="mt-1 text-xs leading-5 text-slate-500">{v}</div></div>)}
+        </div>
+        <p className="mt-4 text-xs leading-5 text-slate-500">Earnings are tied to the applicable program terms and attribution evidence. Open the earnings tab below to see why an earning exists, its payment state and payout history.</p>
       </section>
       <section className="mt-5 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-black text-slate-900">Referral links</h2>
