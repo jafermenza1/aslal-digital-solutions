@@ -22,11 +22,10 @@ export const CORE_TELEGRAM_TEMPLATES=[
 
 export async function ensureCoreTelegramTemplates(workspaceId:string){
  for(const template of CORE_TELEGRAM_TEMPLATES){
-  await prisma.telegramTemplate.upsert({
-   where:{workspaceId_templateKey:{workspaceId,templateKey:template.templateKey}},
-   update:{name:template.name,messageType:template.messageType,contentTemplate:template.contentTemplate,replyMarkup:template.replyMarkup,active:true},
-   create:{id:randomUUID(),workspaceId,templateKey:template.templateKey,name:template.name,messageType:template.messageType,contentTemplate:template.contentTemplate,replyMarkup:template.replyMarkup,active:true,updatedBy:"system"}
-  });
+  const existing=await prisma.telegramTemplate.findUnique({where:{workspaceId_templateKey:{workspaceId,templateKey:template.templateKey}},select:{id:true}});
+  if(!existing){
+   await prisma.telegramTemplate.create({data:{id:randomUUID(),workspaceId,templateKey:template.templateKey,name:template.name,messageType:template.messageType,contentTemplate:template.contentTemplate,replyMarkup:template.replyMarkup,active:true,updatedBy:"system"}});
+  }
  }
  return prisma.telegramTemplate.findMany({where:{workspaceId}});
 }
