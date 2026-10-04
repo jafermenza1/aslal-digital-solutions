@@ -1,6 +1,6 @@
 "use client";
 import {useMemo,useState} from "react";
-import {ArrowRight,Check,CircleDollarSign,Mail,Phone,Send,ShieldCheck,Sparkles} from "lucide-react";
+import {ArrowRight,Check,CircleDollarSign ,Send,ShieldCheck,Sparkles} from "lucide-react";
 type Feature={id:string;name:string;description:string;included:boolean;price:number};
 type Package={id:string;name:string;tagline:string;description:string;price:number;currency:string;billing:string;features:Feature[];cta:string};
 export function ServicePackageBuilder({packages,workspaceId}:{packages:Package[];workspaceId:string}){
