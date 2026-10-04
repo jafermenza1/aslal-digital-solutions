@@ -96,15 +96,15 @@ export default function CustomerJourney({ workspaceId, listingId, listingTitle, 
             <>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm font-bold">Your name<input value={name} onChange={e=>setName(e.target.value)} required className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
-                <label className="text-sm font-bold">Phone<input value={phone} onChange={e=>setPhone(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
-                <label className="text-sm font-bold sm:col-span-2">Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
+                <label className="text-sm font-bold">Phone <span className="text-xs font-semibold text-slate-400">(phone or email required)</span><input value={phone} onChange={e=>setPhone(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
+                <label className="text-sm font-bold sm:col-span-2">Email <span className="text-xs font-semibold text-slate-400">(phone or email required)</span><input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
                 <label className="text-sm font-bold sm:col-span-2">What do you need?<input value={need} onChange={e=>setNeed(e.target.value)} required className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
                 <label className="text-sm font-bold">Quantity<input type="number" min="1" value={quantity} onChange={e=>setQuantity(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
                 <label className="text-sm font-bold">Budget ceiling (ETB)<input inputMode="decimal" value={budget} onChange={e=>setBudget(e.target.value)} placeholder="Optional" className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
                 <label className="text-sm font-bold sm:col-span-2">Details<textarea value={details} onChange={e=>setDetails(e.target.value)} rows={4} placeholder="Size, timing, delivery location, preferred option or other useful detail" className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5" /></label>
               </div>
               {error && <div className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</div>}
-              <button type="button" disabled={busy || !name.trim() || !need.trim()} onClick={()=>void submit()} className="mt-4 w-full rounded-xl bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white disabled:opacity-50">{busy ? "Submitting…" : "Send request"}</button>
+              <button type="button" disabled={busy || !name.trim() || !need.trim() || (!phone.trim() && !email.trim())} onClick={()=>void submit()} className="mt-4 w-full rounded-xl bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white disabled:opacity-50">{busy ? "Submitting…" : "Send request"}</button>
               <p className="mt-3 text-center text-[11px] text-slate-400">Your contact details are used to process this commercial request and coordinate follow-up.</p>
             </>
           )}
