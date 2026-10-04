@@ -6,7 +6,7 @@ import { partnerCapabilities } from "@/lib/partner-access";
 async function partnerContext(){
  const user=await authorizePermission("partner.portal.view");
  if(!user)return null;
- const partner=await prisma.partner.findFirst({where:{user:{is:{id:user.id}}});
+ const partner=await prisma.partner.findFirst({where:{user:{is:{id:user.id}}}});
  if(!partner)return null;
  return {user,partner};
 }
