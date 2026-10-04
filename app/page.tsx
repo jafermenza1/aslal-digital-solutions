@@ -8,6 +8,7 @@ import { ProvenMarketingHero } from "@/components/AslalInteractiveHero";
 import { HomeRoiEstimator } from "@/components/HomeRoiEstimator";
 import { localeCookie, normalizeLocale, type Locale } from "@/lib/i18n";
 import { getPageContent } from "@/lib/public-content";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 const landingCopy: Record<Locale, {
   painEyebrow:string; painTitle:string; painBody:string;
@@ -84,7 +85,7 @@ export default async function Home() {
     <main className="landing-page bg-[#F8FAFC] text-[#1E293B]">
       <ProvenMarketingHero content={content}/>
 
-      <section className="landing-section bg-white" aria-labelledby="journey-title">
+      <ScrollReveal><section className="landing-section bg-white" aria-labelledby="journey-title">
         <div className="container-aslal py-2">
           <div className="rounded-[2rem] border border-[#0F3E8A]/10 bg-[#F8FAFC] p-7 shadow-sm sm:p-9">
             <div className="max-w-3xl"><span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">HOW THE JOURNEY WORKS</span><h2 id="journey-title" className="mt-3 text-3xl font-black tracking-tight md:text-4xl">Choose the outcome. We handle the complexity.</h2><p className="mt-4 text-base leading-7 text-slate-600">You do not need to understand Aslal’s internal systems. Start with what you want to accomplish and the platform carries the context into the right next step.</p></div>
@@ -110,9 +111,9 @@ export default async function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section></ScrollReveal>
 
-      <section className="landing-section bg-white" aria-labelledby="pain-title">
+      <ScrollReveal><section className="landing-section bg-white" aria-labelledby="pain-title">
         <div className="container-aslal">
           <div className="section-heading max-w-3xl">
             <span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">{t.painEyebrow}</span>
@@ -132,9 +133,9 @@ export default async function Home() {
             })}
           </div>
         </div>
-      </section>
+      </section></ScrollReveal>
 
-      <section className="landing-section bg-[#F8FAFC]" aria-labelledby="offers-title">
+      <ScrollReveal><section className="landing-section bg-[#F8FAFC]" aria-labelledby="offers-title">
         <div className="container-aslal">
           <div className="section-heading max-w-3xl">
             <span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">{t.offersEyebrow}</span>
@@ -153,9 +154,9 @@ export default async function Home() {
             })}
           </div>
         </div>
-      </section>
+      </section></ScrollReveal>
 
-      <section className="landing-section bg-white" aria-labelledby="math-title">
+      <ScrollReveal><section className="landing-section bg-white" aria-labelledby="math-title">
         <div className="container-aslal">
           <div className="section-heading max-w-3xl">
             <span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">{t.estimate}</span>
@@ -164,9 +165,9 @@ export default async function Home() {
           </div>
           <HomeRoiEstimator t={t}/>
         </div>
-      </section>
+      </section></ScrollReveal>
 
-      <section className="landing-section bg-[#F8FAFC]" aria-labelledby="model-title">
+      <ScrollReveal><section className="landing-section bg-[#F8FAFC]" aria-labelledby="model-title">
         <div className="container-aslal grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
           <div className="section-heading">
             <span className="text-[10px] font-black tracking-[.2em] text-[#0F3E8A]">{t.modelEyebrow}</span>
@@ -185,10 +186,10 @@ export default async function Home() {
             <div className="mt-5 flex items-center justify-center gap-3 rounded-2xl bg-[#0F3E8A] p-4 text-xs font-black tracking-widest text-white"><Workflow size={16} className="text-[#E2B02A]"/> BUILD <ArrowRight size={13}/> AUTOMATE <ArrowRight size={13}/> GROW <ArrowRight size={13}/> MEASURE</div>
           </div>
         </div>
-      </section>
+      </section></ScrollReveal>
 
 
-      <section className="landing-section bg-[#1E293B] text-white" aria-labelledby="platform-title">
+      <ScrollReveal><section className="landing-section bg-[#1E293B] text-white" aria-labelledby="platform-title">
         <div className="container-aslal">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div className="section-heading max-w-3xl">
@@ -206,9 +207,9 @@ export default async function Home() {
             )}
           </div>
         </div>
-      </section>
+      </section></ScrollReveal>
 
-      <section className="landing-section bg-white" aria-labelledby="resources-title">
+      <ScrollReveal><section className="landing-section bg-white" aria-labelledby="resources-title">
         <div className="container-aslal">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div className="section-heading max-w-3xl">
@@ -232,9 +233,9 @@ export default async function Home() {
             <Link href="/automation-lab" className="inline-flex items-center gap-2 rounded-xl bg-[#0F3E8A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#E2B02A] hover:text-[#1E293B]">{t.automationLab}<ArrowRight size={15}/></Link>
           </div>
         </div>
-      </section>
+      </section></ScrollReveal>
 
-      <section className="landing-section bg-[#0F3E8A] text-white" aria-labelledby="cta-title">
+      <ScrollReveal><section className="landing-section bg-[#0F3E8A] text-white" aria-labelledby="cta-title">
         <div className="container-aslal">
           <div className="mx-auto max-w-4xl text-center">
             <span className="text-[10px] font-black tracking-[.2em] text-[#E2B02A]">05 — NEXT ACTION</span>
@@ -248,14 +249,14 @@ export default async function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section></ScrollReveal>
 
-      <section className="border-t border-slate-200 bg-[#F8FAFC] py-10">
+      <ScrollReveal><section className="border-t border-slate-200 bg-[#F8FAFC] py-10">
         <div className="container-aslal flex flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
           <div><span className="text-xs font-black tracking-[.2em] text-[#0F3E8A]">ASLAL DIGITAL SOLUTIONS</span><p className="mt-2 text-sm text-slate-500">BUILD · AUTOMATE · GROW · MEASURE</p></div>
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm font-bold text-slate-500"><BarChart3 size={18} className="text-[#0F3E8A]"/> <span>Growth systems</span><span>•</span><span>Commerce</span><span>•</span><span>Automation</span><span>•</span><span>Customer systems</span></div>
         </div>
-      </section>
+      </section></ScrollReveal>
     </main>
   );
 }
