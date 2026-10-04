@@ -44,7 +44,7 @@ export default async function ProductsPage(){
    </div>
   </section>
 
-  <section id="products" className="scroll-mt-24 bg-[#0B1220] py-16 sm:py-20">
+  <section id="products" className="scroll-mt-24 bg-[#0F172A] py-16 sm:py-20">
    <div className="container-aslal">
     <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><span className="font-mono text-[10px] font-black tracking-[.24em] text-[#E2B02A]">01 · READY SOLUTIONS</span><h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">Products that can move into action.</h2><p className="mt-4 max-w-2xl text-white/50">Explore published products and services. Open any offer for details and the correct next workflow.</p></div><div className="inline-flex items-center gap-2 text-xs font-bold text-white/40"><Search size={15}/> Catalog</div></div>
     <div className="mt-8"><PublicProductCatalog products={products.map(p=>({id:p.id,slug:p.slug,name:p.name,kind:p.kind,providerName:p.providerName,relationshipType:p.relationshipType,tagline:p.tagline,shortDescription:p.shortDescription,benefits:p.benefits,imageUrl:p.imageUrl,featured:p.featured}))}/></div>
