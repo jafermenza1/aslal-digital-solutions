@@ -3,12 +3,16 @@ import { ArrowRight, CircleHelp, Crosshair, Radar, ShieldCheck, Store, Target, Z
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { WantedRequestForm } from "@/components/WantedRequestForm";
+import { resolvePublicWorkspaceId } from "@/lib/workspaces";
 
 export const dynamic="force-dynamic";
 
 export default async function WantedPage({searchParams}:{searchParams:Promise<{workspace?:string}>}){
  const q=await searchParams, slug=q.workspace||"";
- const workspace=slug?await prisma.workspace.findFirst({where:{slug,active:true},select:{id:true,name:true}}):null;
+ const publicWorkspaceId=resolvePublicWorkspaceId();
+ const workspace=slug
+   ? await prisma.workspace.findFirst({where:{slug,active:true},select:{id:true,name:true}})
+   : await prisma.workspace.findFirst({where:{id:publicWorkspaceId,active:true},select:{id:true,name:true}});
  return <main className="min-h-screen overflow-hidden bg-[#070C18] text-white">
   <section className="relative border-b border-white/10 bg-[radial-gradient(circle_at_65%_10%,rgba(226,176,42,.12),transparent_30%),radial-gradient(circle_at_15%_50%,rgba(15,62,138,.45),transparent_36%)] py-16 sm:py-20">
    <div className="container-aslal">
