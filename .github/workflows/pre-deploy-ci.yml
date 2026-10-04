@@ -133,12 +133,22 @@ jobs:
     steps:
       - name: Require every parallel check to pass
         env:
-          RESULTS: ${{ join(needs.*.result, ',') }}
+          LINT: ${{ needs.lint.result }}
+          TYPECHECK: ${{ needs.typecheck.result }}
+          PRISMA: ${{ needs.prisma.result }}
+          BRAND: ${{ needs.brand.result }}
+          SEO: ${{ needs.seo.result }}
+          PCCE: ${{ needs.pcce.result }}
+          SECURITY: ${{ needs.security.result }}
+          BUILD: ${{ needs.build.result }}
         run: |
           set -euo pipefail
-          echo "Parallel check results: $RESULTS"
-          if [ "$RESULTS" != "success,success,success,success,success,success,success,success" ]; then
-            echo "::error::One or more pre-deployment checks failed. Deployment must not proceed."
-            exit 1
-          fi
+          printf 'lint=%s typecheck=%s prisma=%s brand=%s seo=%s pcce=%s security=%s build=%s\n' \
+            "$LINT" "$TYPECHECK" "$PRISMA" "$BRAND" "$SEO" "$PCCE" "$SECURITY" "$BUILD"
+          for result in "$LINT" "$TYPECHECK" "$PRISMA" "$BRAND" "$SEO" "$PCCE" "$SECURITY" "$BUILD"; do
+            if [ "$result" != "success" ]; then
+              echo "::error::One or more pre-deployment checks failed. Deployment must not proceed."
+              exit 1
+            fi
+          done
           echo "All pre-deployment checks passed."
