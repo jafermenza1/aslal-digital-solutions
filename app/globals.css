@@ -6,8 +6,8 @@
   --color-aslal-slate: #1E293B;
   --color-aslal-ice: #F8FAFC;
   --color-canvas: #F8FAFC;
-  --color-surface-1: #F8FAFC;
-  --color-surface-2: #F8FAFC;
+  --color-surface-1: #FFFFFF;
+  --color-surface-2: #F1F5F9;
   --color-primary-text: #1E293B;
   --color-secondary-text: #1E293B;
   --color-amber: #E2B02A;
@@ -401,8 +401,8 @@ html[data-telegram-theme="dark"] .site-shell input::placeholder,html[data-telegr
 
 :root{
   --ui-canvas:#F8FAFC;
-  --ui-surface-1:#F8FAFC;
-  --ui-surface-2:#F8FAFC;
+  --ui-surface-1:#FFFFFF;
+  --ui-surface-2:#F1F5F9;
   --ui-border:rgba(30,41,59,.08);
   --ui-active-border:rgba(226,176,42,.40);
   --ui-primary-text:#1E293B;
@@ -410,8 +410,8 @@ html[data-telegram-theme="dark"] .site-shell input::placeholder,html[data-telegr
   --ui-amber:#E2B02A;
   --ui-amber-fill:#F8FAFC;
   --ui-amber-glow:rgba(226,176,42,.12);
-  --ui-dark-canvas:#1E293B;
-  --ui-dark-surface-1:#1E293B;
+  --ui-dark-canvas:#070C18;
+  --ui-dark-surface-1:#0F172A;
   --ui-dark-surface-2:#1E293B;
   --ui-dark-border:rgba(248,250,252,.08);
   --ui-dark-active-border:rgba(226,176,42,.35);
@@ -1786,3 +1786,33 @@ html[data-theme="light"] .landing-page .landing-section.bg-white :is(.text-slate
 .telegram-catalog-page [class*="bg-slate-50"] > svg[class*="text-white"]{color:#0F3E8A!important;stroke:currentColor}
 .marketplace-page :is([class*="bg-\[\#070C18\]"],[class*="bg-\[\#0F172A\]"],[class*="bg-\[\#1E293B\]"]) > svg:is(.text-slate-900,.text-slate-950,.text-\[\#1E293B\]),
 .telegram-catalog-page :is([class*="bg-\[\#070C18\]"],[class*="bg-\[\#0F172A\]"],[class*="bg-\[\#1E293B\]"]) > svg:is(.text-slate-900,.text-slate-950,.text-\[\#1E293B\]){color:#F8FAFC!important;stroke:currentColor}
+
+
+/* G11 responsive + accessibility guardrails */
+:where(button,a,input,select,textarea){touch-action:manipulation}
+:where(button,a,[role="button"],select){min-height:44px}
+:where(input,select,textarea){max-width:100%}
+:where(button:disabled,a[aria-disabled="true"]){cursor:not-allowed}
+@media (max-width:1023px){
+  .dashboard-topbar{gap:10px}
+  .dashboard-topbar-actions{min-width:0;flex-wrap:wrap}
+  .dashboard-topbar-actions > *{max-width:100%}
+  .dashboard-topbar-actions .dashboard-user-name,.dashboard-topbar-actions .dashboard-top-link{display:none}
+}
+@media (max-width:767px){
+  .dashboard-app{grid-template-columns:1fr}
+  .dashboard-sidebar{display:none}
+  .dashboard-topbar{padding:10px 12px}
+  .dashboard-topbar-heading{min-width:0}
+  .dashboard-topbar-title-row h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dashboard-content{padding-inline:12px}
+  .dashboard-topbar-actions{gap:6px}
+  .dashboard-topbar-actions .min-w-\[250px\]{min-width:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+@media (forced-colors:active){
+  :where(button,a,input,select,textarea){forced-color-adjust:auto}
+  :where(a,button){text-decoration:underline}
+}
