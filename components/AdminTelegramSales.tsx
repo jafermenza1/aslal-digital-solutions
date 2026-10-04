@@ -6,16 +6,21 @@ type D={id:string;chat_id:string;type:string;label:string;active:number;opt_in:n
 type P={id:string;name:string};
 type C={id:string;name:string;status:string};
 type S={email:string;name:string;role:string;telegram_chat_id:string|null;telegram_username:string|null};
+type LeadInbox={id:string;name:string;username:string|null;telegramUserId:string|null;email:string|null;phone:string|null;status:string;ownerEmail:string|null;message:string|null;createdAt:string;handedOff:number};
 
 export function AdminTelegramSales({workspaceId,workspaceName}:{workspaceId:string;workspaceName:string}){
  const [ds,setDs]=useState<D[]>([]),[products,setProducts]=useState<P[]>([]),[campaigns,setCampaigns]=useState<C[]>([]),[salesStaff,setSalesStaff]=useState<S[]>([]);
  const [selected,setSelected]=useState<string[]>([]),[link,setLink]=useState(""),[notice,setNotice]=useState(""),[busy,setBusy]=useState("");
  const [ownerSaving,setOwnerSaving]=useState("");
+ const [inbox,setInbox]=useState<LeadInbox[]>([]);
+ const [inboxBusy,setInboxBusy]=useState(false);
  const [telegramAssignments,setTelegramAssignments]=useState<Record<string,string>>({});
  const [form,setForm]=useState({type:"PRIVATE",label:"",chatId:"",productId:"",campaignId:"",leadId:"",referralCode:"",followUpEnabled:true,followUpMessage:"Thanks for your interest. Do you have any questions or would you like to continue?",followUpIntervalMinutes:"1440",followUpMaxAttempts:"3"});
  const [broadcast,setBroadcast]=useState({productId:"",text:""});
  const load=useCallback(async()=>{setBusy("load");try{const r=await fetch("/api/admin/telegram/destinations?workspaceId="+encodeURIComponent(workspaceId),{cache:"no-store"}),d=await r.json();if(!r.ok)throw Error(d.error||"Unable to load Telegram sales.");setDs(d.destinations||[]);setProducts(d.products||[]);setCampaigns(d.campaigns||[]);setSalesStaff(d.staff||[]);}catch(e){setNotice(e instanceof Error?e.message:"Unable to load Telegram sales.");}finally{setBusy("");}},[workspaceId]);
  useEffect(()=>{const timer=window.setTimeout(()=>{void load()},0);return()=>window.clearTimeout(timer)},[load]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void loadInbox()},0);return()=>window.clearTimeout(timer)},[workspaceId]);
+ async function loadInbox(){setInboxBusy(true);try{const r=await fetch("/api/admin/telegram/inbox?workspaceId="+encodeURIComponent(workspaceId),{cache:"no-store"});const d=await r.json();if(r.ok)setInbox(d.leads||[])}catch{}finally{setInboxBusy(false)}}
  async function connectStaff(){setBusy("staff");try{const r=await fetch("/api/admin/telegram/connect?workspaceId="+encodeURIComponent(workspaceId)),d=await r.json();if(!r.ok)throw Error(d.error||"Unable to create staff link.");setLink(d.deepLink);setNotice("One-time staff link created. Open it in Telegram and press Start.");}catch(e){setNotice(e instanceof Error?e.message:"Unable to create staff link.");}finally{setBusy("");}}
  async function create(e:React.FormEvent){e.preventDefault();setBusy("create");try{const r=await fetch("/api/admin/telegram/destinations",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({...form,workspaceId,followUpIntervalMinutes:Number(form.followUpIntervalMinutes),followUpMaxAttempts:Number(form.followUpMaxAttempts)})}),d=await r.json();if(!r.ok)throw Error(d.error||"Unable to register destination.");setNotice(d.deepLink?"Private client link: "+d.deepLink:"Destination registered.");setForm(v=>({...v,label:"",chatId:"",leadId:"",referralCode:""}));await load();}catch(e){setNotice(e instanceof Error?e.message:"Unable to register destination.");}finally{setBusy("");}}
  async function assignTelegram(destinationId:string){
@@ -39,6 +44,10 @@ export function AdminTelegramSales({workspaceId,workspaceName}:{workspaceId:stri
   {notice&&<div className="dashboard-panel p-4 text-sm break-words">{notice}</div>}
   {link&&<section className="dashboard-feature-card"><span className="dashboard-kicker">STAFF CONNECTION</span><h3>One-time staff link</h3><p className="break-all">{link}</p><a href={link} target="_blank" rel="noreferrer" className="dashboard-primary-link">Open Telegram ↗</a></section>}
   <section className="dashboard-kpi-grid"><div className="dashboard-kpi-card"><span>Active destinations</span><strong>{ds.filter(d=>d.active).length}</strong></div><div className="dashboard-kpi-card"><span>Connected</span><strong>{connected.length}</strong></div><div className="dashboard-kpi-card"><span>Follow-ups</span><strong>{followups.length}</strong></div><div className="dashboard-kpi-card accent"><span>Human handoffs</span><strong>{handoffs.length}</strong></div></section>
+
+  <section className="dashboard-panel p-5"><div className="dashboard-panel-heading"><div><span className="dashboard-kicker">TELEGRAM INBOX</span><h3>New Telegram leads & human handoffs</h3><p className="mt-1 text-xs opacity-60">Only Telegram-origin leads are shown here. The Telegram user ID and username remain attached to the lead for continuity.</p></div><button type="button" onClick={()=>void loadInbox()} className="dashboard-secondary-link">{inboxBusy?"Refreshing…":"Refresh inbox"}</button></div>
+   <div className="mt-5 grid gap-3 lg:grid-cols-2">{inbox.map(l=><article key={l.id} className="rounded-2xl border border-white/10 bg-white/[.03] p-4"><div className="flex items-start justify-between gap-3"><div><b>{l.name}</b><div className="mt-1 text-xs opacity-60">{l.username?"@"+l.username:"No username"} · Telegram ID {l.telegramUserId||"—"}</div></div><span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-black">{l.handedOff?"HUMAN HANDOFF":l.status}</span></div><p className="mt-3 line-clamp-3 text-sm opacity-75">{l.message||"No message captured."}</p><div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold opacity-60"><span>{l.ownerEmail?"Assigned: "+l.ownerEmail:"Unassigned"}</span><span>{new Date(l.createdAt).toLocaleString()}</span></div></article>)}{!inbox.length&&<div className="rounded-2xl bg-white/[.03] p-6 text-sm opacity-60">No Telegram leads are currently stored.</div>}</div>
+  </section>
 
   <section className="dashboard-panel p-5"><div className="dashboard-panel-heading"><div><span className="dashboard-kicker">DESTINATION SETUP</span><h3>Register private clients, groups or channels</h3></div></div>
    <form onSubmit={create} className="mt-5 grid gap-4 md:grid-cols-2">
