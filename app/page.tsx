@@ -4,7 +4,7 @@ import {
   ArrowRight, BarChart3, Bot, CheckCircle2, CreditCard,
   Mail, MessageCircle, Send, ShoppingCart, Sparkles, TrendingUp, Workflow, Target, Route, ShieldCheck
 } from "lucide-react";
-import { AslalInteractiveHero } from "@/components/AslalInteractiveHero";
+import { ProvenMarketingHero } from "@/components/AslalInteractiveHero";
 import { HomeRoiEstimator } from "@/components/HomeRoiEstimator";
 import { localeCookie, normalizeLocale, type Locale } from "@/lib/i18n";
 import { getPageContent } from "@/lib/public-content";
@@ -82,7 +82,7 @@ export default async function Home() {
   const content = await getPageContent("/");
   return (
     <main className="landing-page bg-[#F8FAFC] text-[#1E293B]">
-      <AslalInteractiveHero content={content}/>
+      <ProvenMarketingHero content={content}/>
 
       <section className="landing-section bg-white" aria-labelledby="journey-title">
         <div className="container-aslal py-2">
