@@ -13,6 +13,8 @@ export async function GET(request:Request) {
   const url=new URL(request.url);
   const requestedWorkspaceId=url.searchParams.get("workspaceId")?.trim()||"";
   const campaignId=url.searchParams.get("campaignId");
+  const requestedKind=url.searchParams.get("kind")?.trim().toUpperCase();
+  const kind=requestedKind==="SERVICE"||requestedKind==="PRODUCT"?requestedKind:null;
   // Direct public catalog visits use the canonical public workspace mapping.
   // Telegram links with explicit workspaceId retain that workspace context.
   const { getTelegramChannelConfig } = await import("@/lib/telegram-channel-config");
@@ -25,7 +27,7 @@ export async function GET(request:Request) {
 
   const selectedConfigs=configs.filter(c=>selectedWorkspaceIds.includes(c.workspaceId));
   const products=await prisma.product.findMany({
-    where:{active:true,workspaceId:{in:selectedWorkspaceIds},...(campaignId?{campaigns:{some:{id:campaignId,status:{in:["OPEN","ACTIVE"]}}}}:{})},
+    where:{active:true,workspaceId:{in:selectedWorkspaceIds},...(kind?{kind}:{ } ),...(campaignId?{campaigns:{some:{id:campaignId,status:{in:["OPEN","ACTIVE"]}}}}:{})},
     orderBy:[{featured:"desc"},{sortOrder:"asc"},{name:"asc"}],
     select:{id:true,workspaceId:true,slug:true,name:true,category:true,stockQuantity:true,kind:true,tagline:true,shortDescription:true,description:true,features:true,benefits:true,deliverables:true,imageUrl:true,galleryUrls:true,mediaUrls:true,specifications:true,startingPrice:true,ctaLabel:true,ctaNote:true,relationshipType:true,providerName:true}
   });
