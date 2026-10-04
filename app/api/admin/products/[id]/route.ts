@@ -54,3 +54,29 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  revalidatePath("/products"); revalidatePath("/contact"); revalidatePath("/products/"+product.slug);
  return NextResponse.json({ok:true,product});
 }
+
+export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}){
+ const actor=await authorizePermission("products.manage");
+ if(!actor)return NextResponse.json({error:"Catalog administration is not permitted."},{status:403});
+ const {id}=await params;
+ const current=await prisma.product.findUnique({where:{id},select:{id:true,workspaceId:true,name:true,active:true}});
+ if(!current)return NextResponse.json({error:"Product/service not found."},{status:404});
+ if(!current.workspaceId)return NextResponse.json({error:"Catalog item has no workspace owner and cannot be removed from this interface."},{status:400});
+ const access=await authorizeWorkspacePermission("products.manage",current.workspaceId);
+ if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
+ const [interests,campaigns,attributions,listings]=await Promise.all([
+  prisma.leadProductInterest.count({where:{productId:id}}),
+  prisma.partnerCampaign.count({where:{productId:id}}),
+  prisma.leadAttribution.count({where:{productId:id}}),
+  prisma.commercialListing.count({where:{productId:id}}),
+ ]);
+ const dependentCount=interests+campaigns+attributions+listings;
+ if(dependentCount>0){
+  const product=await prisma.product.update({where:{id},data:{active:false,featured:false}});
+  revalidatePath("/products"); revalidatePath("/products/"+product.slug);
+  return NextResponse.json({ok:true,action:"HIDDEN",product,message:"This catalog item has history or commercial references, so it was hidden instead of physically deleted."});
+ }
+ await prisma.product.delete({where:{id}});
+ revalidatePath("/products"); revalidatePath("/products/"+current.id);
+ return NextResponse.json({ok:true,action:"DELETED",id});
+}
