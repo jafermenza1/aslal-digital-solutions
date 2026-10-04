@@ -53,9 +53,7 @@ function AnimatedHeroText({content}:{content:HeroContent}){
   return <div className="min-h-[235px] max-w-2xl"><AnimatePresence mode="wait"><motion.div key={index} initial={{opacity:0,y:20,filter:"blur(8px)"}} animate={{opacity:1,y:0,filter:"blur(0px)"}} exit={{opacity:0,y:-20,filter:"blur(8px)"}} transition={{duration:.7,ease:"easeOut"}} className="space-y-3"><h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#F8FAFC] sm:text-4xl md:text-5xl">{activeSlides[index].replace(/\s+/g," ").trim()}</h1><p className="flex items-center gap-2 text-lg font-semibold uppercase tracking-wide text-[#E2B02A]"><span className="inline-block h-[2px] w-3 bg-[#E2B02A]"/>{subtitle}</p></motion.div></AnimatePresence></div>;
 }
 
-function playHapticAudio(){
-  try{const C=window.AudioContext;if(!C)return;const ctx=new C(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="sine";osc.frequency.setValueAtTime(800,ctx.currentTime);osc.frequency.exponentialRampToValueAtTime(400,ctx.currentTime+.04);gain.gain.setValueAtTime(.08,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.04);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.04);osc.onended=()=>{void ctx.close();};}catch{}
-}
+
 
 function ProvenOutcomeDashboard(){
   const [active,setActive]=useState(0),[hovered,setHovered]=useState(false);
