@@ -47,50 +47,55 @@ async function publicSession(workspaceId:string,user:any,chatId:string){
   await db.query(`INSERT INTO telegram_public_sessions (id,workspace_id,telegram_user_id,chat_id,username,first_name,last_name,state,last_inbound_at) VALUES (?,?,?,?,?,?,?,'WELCOME',NOW())`,[id,workspaceId,uid,chatId,user?.username||null,user?.first_name||null,user?.last_name||null]);
   return {id,state:"WELCOME",state_data:null,lead_id:null,person_id:null};
 }
+type PublicMenuItem={action:string;label:string};
+type PublicResponseConfig={welcome?:string;prompt?:string;fallback?:string;ordersEmpty?:string;demandConfirmation?:string;humanHandoff?:string;partner?:string};
+const DEFAULT_PUBLIC_MENU:PublicMenuItem[]=[
+ {action:"CATALOG",label:"🛍 Browse products"},
+ {action:"SERVICES",label:"💼 Explore services"},
+ {action:"NEED",label:"🔎 Tell us what you need"},
+ {action:"ORDERS",label:"📦 My orders"},
+ {action:"HUMAN",label:"💬 Talk to a person"},
+ {action:"PARTNER",label:"🤝 Partner with Aslal"},
+];
+const normalizeAction=(v:string)=>v.toUpperCase().replace(/[^A-Z]+/g,"_").replace(/^_|_$/g,"");
+const legacyAction=(label:string)=>{
+ const k=label.toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
+ const map:Record<string,string>={
+  catalog:"CATALOG","browse products":"CATALOG","products":"CATALOG","catalog products":"CATALOG",
+  services:"SERVICES","explore services":"SERVICES",
+  "qualify me":"NEED","tell us what you need":"NEED","need something else":"NEED",
+  pricing:"PRICING","talk to agent":"HUMAN","talk to human":"HUMAN","talk to a person":"HUMAN",
+  "share phone number":"PHONE","my orders":"ORDERS","partner":"PARTNER","partner with aslal":"PARTNER",
+  "continue conversation":"CONTINUE","close menu":"CLOSE",
+ };
+ return map[k]||normalizeAction(k);
+};
+function parsePublicMenu(raw:any):{items:PublicMenuItem[];responses:PublicResponseConfig}{
+ if(Array.isArray(raw))return {items:raw.map((v:any)=>typeof v==="string"?{action:legacyAction(v),label:v}:{action:normalizeAction(String(v?.action||"")),label:String(v?.label||v?.text||"")}).filter(x=>x.action&&x.label),responses:{}};
+ if(raw&&typeof raw==="object")return {items:Array.isArray(raw.items)?raw.items.map((v:any)=>typeof v==="string"?{action:legacyAction(v),label:v}:{action:normalizeAction(String(v?.action||"")),label:String(v?.label||v?.text||"")}).filter((x:any)=>x.action&&x.label):DEFAULT_PUBLIC_MENU,responses:(raw.responses&&typeof raw.responses==="object"?raw.responses:{}) as PublicResponseConfig};
+ return {items:DEFAULT_PUBLIC_MENU,responses:{}};
+}
 async function publicMenu(chatId:string,workspaceId:string,user?:any){
   const cfg=await getTelegramChannelConfig(workspaceId);
   if(!cfg?.publicEnabled||!cfg.allowAnonymousUsers)return reply(chatId,"Public Telegram access is currently unavailable.");
-  const actionLabel=(item:string)=>item.toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
-  const configuredMenu=Array.isArray(cfg.publicMenu)?cfg.publicMenu.map((item:any)=>String(item||"").trim()).filter(Boolean):[];
-  const menuItems=[...(configuredMenu.length?configuredMenu:["Catalog","Qualify me","Pricing","Talk to Agent","Share phone number","Close menu"])];
-  if(!menuItems.some(item=>actionLabel(item)==="close menu"))menuItems.push("Close menu");
+  const parsed=parsePublicMenu(cfg.publicMenu);
+  const menuItems=parsed.items.length?parsed.items:DEFAULT_PUBLIC_MENU;
   const keyboard:any[][]=[];
-  const actionButtons:Record<string,{text:string;request_contact?:boolean}>={
-    catalog:{text:"🛍 Catalog"},
-    "qualify me":{text:"🎯 Qualify me"},
-    pricing:{text:"💰 Pricing"},
-    "talk to agent":{text:"👤 Talk to Agent"},
-    "share phone number":{text:"📱 Share phone number",request_contact:true},
-    "close menu":{text:"❌ Close menu"},
-    "continue conversation":{text:"↩️ Continue conversation"},
-  };
-  for(let i=0;i<menuItems.length;i+=2){
-    const row=menuItems.slice(i,i+2).map((label:string)=>{
-      const key=actionLabel(label);
-      const known=actionButtons[key];
-      return known?{...known,text:key==="catalog"?"🛍 "+label:key==="qualify me"?"🎯 "+label:key==="pricing"?"💰 "+label:key==="talk to agent"?"👤 "+label:key==="share phone number"?"📱 "+label:key==="close menu"?"❌ "+label:key==="continue conversation"?"↩️ "+label:label}:null;
-    }).filter(Boolean);
-    if(row.length)keyboard.push(row);
-  }
+  for(let i=0;i<menuItems.length;i+=2)keyboard.push(menuItems.slice(i,i+2).map(item=>{
+    if(item.action==="PHONE")return {text:item.label,request_contact:true};
+    return {text:item.label};
+  }));
   const telegramUserId=String(user?.id||chatId);
   const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId}}}).catch(()=>null);
   const hasContext=Boolean(identity?.leadId||identity?.customerId);
   const recentViews=identity?.visitorId ? await prisma.event.findMany({where:{visitorId:identity.visitorId,eventName:"TELEGRAM_PRODUCT_VIEW"},orderBy:{createdAt:"desc"},take:3,select:{productSlug:true}}).catch(()=>[]) : [];
-  const viewText=recentViews.length?"\\n\\nWe remember your recent catalog interest: "+recentViews.map(v=>v.productSlug).filter(Boolean).join(", ")+".":"";
-  const welcome=hasContext?"Welcome back to Aslal. I found your existing customer/lead context, so you can continue without starting over.":"Welcome to Aslal. No account or registration is required. Your Telegram identity and catalog activity can be remembered for this workspace.";
-  const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
-  const loginEnabled=String(process.env.TELEGRAM_LOGIN_ENABLED||"").toLowerCase()==="true";
-  const defaultKeyboard:any[][]=[
-    [{text:"🛍 Catalog"},{text:"🎯 Qualify me"}],
-    [{text:"💰 Pricing"},{text:"👤 Talk to Agent"}],
-    [{text:"📱 Share phone number",request_contact:true}],
-    [{text:"❌ Close menu"}],
-  ];
-  const replyKeyboard=configuredMenu.length?keyboard:defaultKeyboard;
-  if(hasContext) replyKeyboard.splice(0,0,[{text:"↩️ Continue conversation"}]);
-  if(loginEnabled) replyKeyboard.push([{text:"🔐 Log in with Telegram"}]);
-  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText+"\\n\\nChoose an option below:",reply_markup:{keyboard:replyKeyboard,resize_keyboard:true,is_persistent:true,input_field_placeholder:"Choose an Aslal option"}});
-  if(loginEnabled) await tg("sendMessage",{chat_id:chatId,text:"Website login:",reply_markup:{inline_keyboard:[[{text:"🔐 Log in with Telegram",login_url:{url:site+"/api/auth/telegram/callback?workspaceId="+encodeURIComponent(workspaceId),request_write_access:true}}]]}});
+  const viewText=recentViews.length?"\n\nWe remember your recent catalog interest: "+recentViews.map(v=>v.productSlug).filter(Boolean).join(", ")+".":"";
+  const fallbackWelcome=hasContext?"Welcome back to Aslal. We remember your existing context, so you can continue without starting over.":"👋 Welcome to Aslal.\n\nWhat would you like to do?";
+  const welcome=String(parsed.responses.welcome||fallbackWelcome);
+  const prompt=String(parsed.responses.prompt||"Choose an option below:");
+  const replyKeyboard:any[][]=[...keyboard];
+  if(hasContext)replyKeyboard.unshift([{text:"↩️ Continue conversation"}]);
+  await tg("sendMessage",{chat_id:chatId,text:welcome+viewText+"\n\n"+prompt,reply_markup:{keyboard:replyKeyboard,resize_keyboard:true,is_persistent:true,input_field_placeholder:"Choose an Aslal option"}});
   return;
 }
 async function continuePublic(chatId:string,workspaceId:string,user:any){
@@ -105,6 +110,50 @@ async function continuePublic(chatId:string,workspaceId:string,user:any){
 async function savePublicState(workspaceId:string,userId:string,state:string,stateData:any){
   await db.query("UPDATE telegram_public_sessions SET state=?,state_data=?,last_inbound_at=NOW() WHERE workspace_id=? AND telegram_user_id=?",[state,JSON.stringify(stateData||{}),workspaceId,userId]);
 }
+async function servicesResponse(chatId:string,workspaceId:string){
+ const cfg=await getTelegramChannelConfig(workspaceId);
+ if(!cfg?.enabled||!cfg.miniAppEnabled)return reply(chatId,"Our services are available through Aslal. Tell us what you need and a specialist can help you choose.");
+ const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
+ const base=(cfg.miniAppUrl||site+"/telegram/catalog").replace(/\/$/,"");
+ const url=base+(base.includes("?")?"&":"?")+"kind=SERVICE";
+ return tg("sendMessage",{chat_id:chatId,text:"💼 Explore Aslal services.\n\nChoose a service to see what is included, then request it when you are ready.",reply_markup:{inline_keyboard:[[{text:"Explore services",web_app:{url}}],[{text:"🔎 Tell us what you need",callback_data:"public:need:"+workspaceId}]]}});
+}
+async function ordersResponse(chatId:string,workspaceId:string,user:any){
+ const identity=await prisma.telegramIdentity.findUnique({where:{workspaceId_telegramUserId:{workspaceId,telegramUserId:String(user?.id||chatId)}}}).catch(()=>null);
+ if(!identity?.customerId)return reply(chatId,"📦 I do not see a customer order history for this Telegram identity yet. If you already ordered with Aslal, tap Talk to a person and we will continue from your existing conversation.");
+ const orders=await prisma.order.findMany({where:{workspaceId,customerId:identity.customerId},orderBy:{createdAt:"desc"},take:8,select:{orderNumber:true,status:true,total:true,currency:true,createdAt:true}});
+ if(!orders.length)return reply(chatId,"📦 You do not have any orders recorded yet. Browse products or tell us what you need.");
+ return reply(chatId,["📦 Your recent Aslal orders","",...orders.map(o=>o.orderNumber+" — "+o.status+" — "+money(o.total)+" "+o.currency)].join("\n"));
+}
+async function createTelegramDemand(chatId:string,workspaceId:string,user:any,message:string){
+ const text=clean(message).slice(0,10000);
+ if(!text)return publicMenu(chatId,workspaceId,user);
+ const session=await publicSession(workspaceId,user,chatId);
+ const prior=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+ const leadId=await ensurePublicLead(workspaceId,user,chatId,{...prior,message:text});
+ const request=await prisma.commercialRequest.create({data:{
+   id:crypto.randomUUID(),workspaceId,requestType:"RFP",status:"SUBMITTED",
+   title:"Telegram demand — "+text.slice(0,150),description:text,requestedItem:text.slice(0,250),
+   contactName:[user?.first_name,user?.last_name].filter(Boolean).join(" ")||user?.username||"Telegram visitor",
+   contactPhone:prior.phone||null,contactPreference:"TELEGRAM",privacyVisibility:"CONTROLLED",
+   source:"telegram",leadId,createdBy:null
+ }});
+ await savePublicState(workspaceId,String(user?.id||chatId),"DEMAND_CAPTURED",{...prior,message:text,commercialRequestId:request.id});
+ const cfg=await getTelegramChannelConfig(workspaceId);
+ const parsed=parsePublicMenu(cfg?.publicMenu);
+ const confirmation=String(parsed.responses.demandConfirmation||"Thanks — I have captured what you need. An Aslal team member can continue with you here.");
+ return tg("sendMessage",{chat_id:chatId,text:confirmation,reply_markup:{inline_keyboard:[[{text:"💬 Talk to a person",callback_data:"public:agent:"+workspaceId},{text:"🛍 Browse products",callback_data:"public:catalog:"+workspaceId}]]}});
+}
+async function partnerResponse(chatId:string,workspaceId:string,user:any){
+ const partner=await partnerForChat(chatId);
+ if(partner)return reply(chatId,["🤝 Partner with Aslal","", "You are already connected as "+partner.name+" ("+partner.partner_number+").","Use /campaigns, /links or /earnings for your partner workbench."].join("\n"));
+ const site=(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com").replace(/\/$/,"");
+ const cfg=await getTelegramChannelConfig(workspaceId);
+ const parsed=parsePublicMenu(cfg?.publicMenu);
+ const text=String(parsed.responses.partner||"🤝 Partner with Aslal\n\nJoin our partner network for campaigns, referrals, sales assets and partner opportunities.");
+ return tg("sendMessage",{chat_id:chatId,text,reply_markup:{inline_keyboard:[[{text:"Partner registration",url:site+"/partner/register"}],[{text:"💬 Talk to a person",callback_data:"public:agent:"+workspaceId}]]}});
+}
+
 async function qualification(chatId:string,workspaceId:string,user:any,stepId?:string){
   const cfg=await getTelegramChannelConfig(workspaceId); const flow=Array.isArray(cfg?.qualificationFlow)?cfg.qualificationFlow as unknown as QualificationStep[]:[];
   if(!cfg?.qualificationEnabled||!flow.length)return reply(chatId,"Qualification is not configured yet. Use Catalog or Talk to Agent.");
