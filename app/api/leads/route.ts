@@ -5,7 +5,7 @@ import { getOrCreateVisitor, getReferralCode } from "@/lib/tracking";
 import { normalizeEthiopianPhone } from "@/lib/ethiopian-phone";
 import { recalculateLeadScore } from "@/lib/lead-scoring";
 import { runLeadCreatedAutomation } from "@/lib/automation";
-import { sendContactAutoReply } from "@/lib/contact-autoreply";
+import { sendContactAutoReply, sendContactConfirmationEmail } from "@/lib/contact-autoreply";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 import { resolvePublicWorkspaceId } from "@/lib/workspaces";
@@ -246,8 +246,18 @@ export async function POST(request: NextRequest) {
         console.error("CONTACT_AUTO_REPLY_ERROR", error);
       }
     }
+    let confirmationEmail: "SENT" | "SKIPPED" | "FAILED" = "SKIPPED";
+    if (email) {
+      try {
+        const confirmation = await sendContactConfirmationEmail(leadId);
+        confirmationEmail = confirmation.sent ? "SENT" : confirmation.skipped === "provider-error" ? "FAILED" : "SKIPPED";
+      } catch (error) {
+        console.error("CONTACT_CONFIRMATION_EMAIL_ERROR", error);
+        confirmationEmail = "FAILED";
+      }
+    }
 
-    return NextResponse.json({ ok: true, leadId, autoReply });
+    return NextResponse.json({ ok: true, leadId, autoReply, confirmationEmail });
   } catch (error) {
     console.error("LEAD_CREATE_ERROR", error);
     const message = error instanceof Error ? error.message : "";
