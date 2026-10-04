@@ -1,13 +1,13 @@
 "use client";
 import {useState} from "react";
 
-type Row={id:string;workspaceId:string;workspaceName:string;productId:string|null;productName:string|null;ownerPartyId?:string|null;supplierPartyId?:string|null;ownerPartyName?:string|null;supplierPartyName?:string|null;title:string;slug:string;listingType:string;status:string;description:string|null;category:string;condition:string|null;location:string|null;askingPrice:string|null;currency:string;priceLabel:string|null;inspectionRequired:boolean;requestQuote:boolean;publicVisible:boolean;featured:boolean;expiresAt:string|null};
+type Row={id:string;workspaceId:string;workspaceName:string;productId:string|null;productName:string|null;professionalProfileId?:string|null;ownerPartyId?:string|null;supplierPartyId?:string|null;ownerPartyName?:string|null;supplierPartyName?:string|null;title:string;slug:string;listingType:string;status:string;description:string|null;category:string;condition:string|null;location:string|null;askingPrice:string|null;currency:string;priceLabel:string|null;inspectionRequired:boolean;requestQuote:boolean;publicVisible:boolean;featured:boolean;expiresAt:string|null};
 type Product={id:string;name:string;slug:string;kind:string};
 type Party={id:string;name:string;type:string;status:string};
 type Professional={id:string;displayName:string;profession:string;status:string;verificationLevel:string};
 const TYPES=["PRODUCT","SERVICE","ASSET","PROPERTY"];
 const STATUSES=["DRAFT","PENDING_REVIEW","APPROVED","PUBLISHED","PAUSED","SOLD_OUT","EXPIRED","ARCHIVED","REJECTED"];
-const empty=(product?:Product):Omit<Row,"id"|"workspaceName">=>({workspaceId:"",ownerPartyId:null,supplierPartyId:null,ownerPartyName:null,supplierPartyName:null,productId:product?.id||null,productName:product?.name||null,title:product?.name||"",slug:"",listingType:product?.kind==="SERVICE"?"SERVICE":"PRODUCT",status:"DRAFT",description:"",category:"General",condition:"",location:"",askingPrice:"",currency:"ETB",priceLabel:"",inspectionRequired:false,requestQuote:true,publicVisible:false,featured:false,expiresAt:null});
+const empty=(product?:Product):Omit<Row,"id"|"workspaceName">=>({workspaceId:"",ownerPartyId:null,supplierPartyId:null,professionalProfileId:null,ownerPartyName:null,supplierPartyName:null,productId:product?.id||null,productName:product?.name||null,title:product?.name||"",slug:"",listingType:product?.kind==="SERVICE"?"SERVICE":"PRODUCT",status:"DRAFT",description:"",category:"General",condition:"",location:"",askingPrice:"",currency:"ETB",priceLabel:"",inspectionRequired:false,requestQuote:true,publicVisible:false,featured:false,expiresAt:null});
 
 export function CommercialListingManager({initial,products,parties,professionalProfiles=[],workspaceId}:{initial:Row[];products:Product[];parties:Party[];professionalProfiles?:Professional[];workspaceId:string}){
  const [rows,setRows]=useState(initial),[draft,setDraft]=useState<any>(initial[0]?{...initial[0]}:{...empty(products[0]),workspaceId}),[editing,setEditing]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
