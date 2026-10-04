@@ -15,6 +15,7 @@ function parse(body:any,current:any){
   productId:clean(body.productId??current.productId??"",36)||null,
   ownerPartyId:clean(body.ownerPartyId??current.ownerPartyId??"",36)||null,
   supplierPartyId:clean(body.supplierPartyId??current.supplierPartyId??"",36)||null,
+  professionalProfileId:clean(body.professionalProfileId??current.professionalProfileId??"",36)||null,
   title:clean(body.title??current.title,190),
   slug:clean(body.slug??current.slug,160),
   listingType,status,
@@ -44,7 +45,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  if(data.workspaceId!==current.workspaceId)return NextResponse.json({error:"A listing cannot be moved between workspaces from this operation."},{status:400});
  if(!data.title||!data.slug||!TYPES.includes(data.listingType)||!STATUSES.includes(data.status)||data.askingPrice!==null&&!Number.isFinite(data.askingPrice))return NextResponse.json({error:"Invalid listing data."},{status:400});
  if(data.ownerPartyId && !(await prisma.commercialParty.findFirst({where:{id:data.ownerPartyId,workspaceId:current.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected owner does not belong to this workspace or is archived."},{status:400});
- if(data.supplierPartyId && !(await prisma.commercialParty.findFirst({where:{id:data.supplierPartyId,workspaceId:current.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected supplier does not belong to this workspace or is archived."},{status:400});
+ if(data.supplierPartyId && !(await prisma.commercialParty.findFirst({where:{id:data.supplierPartyId,workspaceId:current.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected supplier does not belong to this workspace or is archived."},{status:400});\n if(data.professionalProfileId && !(await prisma.professionalProfile.findFirst({where:{id:data.professionalProfileId,workspaceId:current.workspaceId,status:{in:["PUBLISHED","PENDING_REVIEW"]}},select:{id:true}})))return NextResponse.json({error:"The selected professional profile is not available in this workspace."},{status:400});
  if(data.status==="PUBLISHED"&&!data.ownerPartyId)return NextResponse.json({error:"A listing cannot be published without an identified commercial owner."},{status:400});
  if(data.productId){
   const product=await prisma.product.findFirst({where:{id:data.productId,workspaceId:current.workspaceId},select:{id:true}});
