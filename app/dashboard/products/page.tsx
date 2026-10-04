@@ -23,7 +23,7 @@ export default async function ProductsAdminPage() {
         <div>
           <div className="text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Growth OS / Catalog</div>
           <h1 className="mt-2 text-4xl font-black tracking-tight">Products & services</h1>
-          <p className="mt-2 max-w-3xl text-slate-500">Manage this business workspace's products and services. Catalog items are independent of individual users; public pages and contact attribution read from the same records. Contact auto-reply remains a separate conversation/email capability.</p>
+          <p className="mt-2 max-w-3xl text-slate-500">Manage this business workspace&apos;s products and services. Catalog items are independent of individual users; public pages and contact attribution read from the same records. Contact auto-reply remains a separate conversation/email capability.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-500">{workspace.name} · {user.email}</span>
