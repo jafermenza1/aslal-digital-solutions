@@ -9,47 +9,69 @@ const stages: { key: PublicCommerceIntentKey; label: string }[] = publicCommerce
   key: intent.key,
   label: getCopy("en").commerce.intents[intent.key],
 }));
-const channels = ["Website", "WhatsApp", "Telegram", "SEO", "CRM", "E-commerce"];
+const channels = ["TikTok", "Telegram", "Facebook", "Website", "Instagram", "WhatsApp", "Other"];
+
 function initialStage(): PublicCommerceIntentKey {
   if (typeof window === "undefined") return stages[0].key;
   const goal = new URLSearchParams(window.location.search).get("goal")?.toLowerCase() || "";
-  if (goal.includes("customer") || goal === "growth") return "growth";
-  if (goal.includes("automate") || goal === "automate") return "automate";
-  if (goal.includes("digital system") || goal === "system") return "system";
-  return stages[0].key;
+  const match = stages.find((item) => item.key.toLowerCase() === goal || item.label.toLowerCase() === goal);
+  return match?.key || stages[0].key;
 }
 
 export function GrowthBuilder() {
   const router = useRouter();
   const [stage, setStage] = useState<PublicCommerceIntentKey>(initialStage);
-  const [selected, setSelected] = useState<string[]>(["Website"]);
-  const [business, setBusiness] = useState("");
-  const stageLabel = stages.find((item) => item.key === stage)?.label || stages[0].label;
-  const summary = useMemo(() => `${stageLabel} through ${selected.join(", ") || "your digital channels"}.`, [stageLabel, selected]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const stageLabel = useMemo(() => stages.find((item) => item.key === stage)?.label || stages[0].label, [stage]);
 
-  function toggle(channel: string) { setSelected((current) => current.includes(channel) ? current.filter((x) => x !== channel) : [...current, channel]); }
-
-  function continueToContact() {
-    const params = new URLSearchParams({ business, goal: stage, channels: selected.join(", ") });
-    router.push(`/contact?${params.toString()}`);
+  function toggle(channel: string) {
+    setSelected((current) => current.includes(channel) ? current.filter((x) => x !== channel) : [...current, channel]);
   }
 
-  return <div className="grid gap-8 lg:grid-cols-[1fr_.8fr]">
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-xl shadow-blue-900/5 sm:p-9">
-      <label className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">01 • Business</label>
-      <input value={business} onChange={(e) => setBusiness(e.target.value)} placeholder="Business or organization" className="mt-3 w-full rounded-2xl border border-slate-200 bg-[#F8FAFC] px-5 py-4 outline-none transition focus:border-[#0F3E8A] focus:ring-4 focus:ring-blue-900/10" />
-      <label className="mt-8 block text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">02 • What do you want to achieve?</label>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">{stages.map((item) => <button key={item.key} type="button" onClick={() => setStage(item.key)} className={`rounded-2xl border px-4 py-4 text-left font-bold transition ${stage === item.key ? "border-[#0F3E8A] bg-[#0F3E8A] text-white shadow-lg" : "border-slate-200 bg-[#F8FAFC] hover:-translate-y-0.5"}`}>{item.label}</button>)}</div>
-      <label className="mt-8 block text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">03 • Where do you want to work with customers?</label>
-      <div className="mt-3 flex flex-wrap gap-2">{channels.map((channel) => <button key={channel} type="button" onClick={() => toggle(channel)} className={`rounded-full border px-4 py-2 text-sm font-bold transition ${selected.includes(channel) ? "border-[#E2B02A] bg-[#E2B02A]/15 text-[#1E293B]" : "border-slate-200 text-slate-600 hover:border-[#0F3E8A]/30"}`}>{channel}</button>)}</div>
+  function continueToContact() {
+    const params = new URLSearchParams({ goal: stage, channels: selected.join(",") });
+    router.push("/contact?" + params.toString());
+  }
+
+  return <div className="grid gap-6 lg:grid-cols-[1fr_.7fr]">
+    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-blue-900/5 sm:p-8">
+      <div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Start simple</div>
+      <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950">What are you trying to improve?</h2>
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {stages.map((item) => {
+          const active = stage === item.key;
+          return <button key={item.key} type="button" onClick={() => setStage(item.key)} aria-pressed={active} className={"flex min-h-16 items-center gap-3 rounded-2xl border px-4 py-4 text-left font-bold transition " + (active ? "border-[#0F3E8A] bg-[#0F3E8A] text-white shadow-lg" : "border-slate-200 bg-[#F8FAFC] text-[#1E293B] hover:-translate-y-0.5 hover:border-[#0F3E8A]/30")}>
+            <span className={"grid h-5 w-5 shrink-0 place-items-center rounded-md border " + (active ? "border-white bg-white text-[#0F3E8A]" : "border-slate-300 bg-white")}>{active ? "✓" : ""}</span>
+            {item.label}
+          </button>;
+        })}
+      </div>
+
+      <div className="mt-10 border-t border-slate-100 pt-8">
+        <div className="text-xs font-black uppercase tracking-[.2em] text-[#0F3E8A]">Next</div>
+        <h3 className="mt-2 text-2xl font-black text-slate-950">Which channels matter?</h3>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {channels.map((channel) => {
+            const active = selected.includes(channel);
+            return <button key={channel} type="button" onClick={() => toggle(channel)} aria-pressed={active} className={"flex min-h-14 items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-bold transition " + (active ? "border-[#E2B02A] bg-[#E2B02A]/15 text-[#1E293B]" : "border-slate-200 bg-white text-slate-600 hover:border-[#0F3E8A]/30")}>
+              <span className={"grid h-5 w-5 shrink-0 place-items-center rounded-md border " + (active ? "border-[#0F3E8A] bg-[#0F3E8A] text-white" : "border-slate-300 bg-white")}>{active ? "✓" : ""}</span>
+              {channel}
+            </button>;
+          })}
+        </div>
+      </div>
     </div>
-    <div className="relative overflow-hidden rounded-[2rem] bg-[#0F3E8A] p-7 text-white shadow-2xl shadow-blue-900/20 sm:p-9">
-      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border border-[#E2B02A]/20 pulse-ring" />
+
+    <aside className="relative overflow-hidden rounded-[2rem] bg-[#0F3E8A] p-7 text-white shadow-2xl shadow-blue-900/20 sm:p-9">
+      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border border-[#E2B02A]/20 pulse-ring" aria-hidden="true" />
       <div className="relative z-10 text-xs font-black uppercase tracking-[.2em] text-[#E2B02A]">Your starting point</div>
-      <h2 className="relative z-10 mt-5 text-3xl font-black tracking-tight">{stageLabel}</h2>
-      <p className="relative z-10 mt-4 leading-7 text-white/70">{summary}</p>
-      <div className="relative z-10 mt-8 space-y-3">{selected.map((channel, i) => <div key={channel} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.07] px-4 py-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#E2B02A] text-xs font-black text-[#1E293B]">{i + 1}</span><span className="font-semibold">{channel}</span></div>)}</div>
-      <button type="button" onClick={continueToContact} className="glow-button relative z-10 mt-8 w-full rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B]">Turn this into a plan →</button>
-    </div>
+      <h2 className="relative z-10 mt-4 text-3xl font-black">{stageLabel}</h2>
+      <p className="relative z-10 mt-4 leading-7 text-white/75">We will attach this starting point and your preferred channels to the conversation so you do not have to explain the same thing twice.</p>
+      <div className="relative z-10 mt-7 space-y-3">
+        <div className="rounded-xl border border-white/10 bg-white/[.07] px-4 py-3 font-semibold">Goal: {stageLabel}</div>
+        <div className="rounded-xl border border-white/10 bg-white/[.07] px-4 py-3 font-semibold">Channels: {selected.length ? selected.join(", ") : "We can discuss this with you"}</div>
+      </div>
+      <button type="button" onClick={continueToContact} className="relative z-10 mt-8 w-full rounded-full bg-[#E2B02A] px-6 py-4 font-black text-[#1E293B] shadow-[0_12px_45px_rgba(226,176,42,.18)] transition hover:-translate-y-0.5">Show me where to start →</button>
+    </aside>
   </div>;
 }
