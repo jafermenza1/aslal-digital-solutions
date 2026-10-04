@@ -26,6 +26,9 @@ export function ProductCatalogManager({initial,workspaces}:{initial:ProductRow[]
    setRows(draft.id?rows.map(x=>x.id===draft.id?data.product:x):[data.product,...rows]); setDraft({id:"",...blank});setEditing(false);setNotice("Catalog item saved. The public page is now using the database record.");
   }catch(e){setNotice(e instanceof Error?e.message:"Could not save catalog item.");}finally{setBusy(false);}
  };
+ const remove=async(row:ProductRow)=>{if(!window.confirm(`Remove “${row.name}”? If it has leads, campaigns, attribution or marketplace history, Aslal will hide it instead to preserve records.`))return;setBusy(true);setNotice("");
+  try{const res=await fetch("/api/admin/products/"+row.id,{method:"DELETE"});const data=await res.json().catch(()=>({}));if(!res.ok)throw Error(data.error||"Could not remove catalog item.");setRows(old=>data.action==="DELETED"?old.filter(x=>x.id!==row.id):old.map(x=>x.id===row.id?{...x,...data.product}:x));setNotice(data.message||"Catalog item removed.");}catch(e){setNotice(e instanceof Error?e.message:"Could not remove catalog item.");}finally{setBusy(false)}
+ };
  const toggle=async(row:ProductRow)=>{setBusy(true);setNotice("");
   const res=await fetch("/api/admin/products/"+row.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:!row.active,name:row.name,kind:row.kind,relationshipType:row.relationshipType,shortDescription:row.shortDescription,description:row.description,tagline:row.tagline,features:row.features,benefits:row.benefits,idealFor:row.idealFor,deliverables:row.deliverables,imageUrl:row.imageUrl,galleryUrls:row.galleryUrls,startingPrice:row.startingPrice,ctaLabel:row.ctaLabel,ctaNote:row.ctaNote,sortOrder:row.sortOrder,featured:row.featured})});
   const data=await res.json().catch(()=>({}));if(res.ok)setRows(rows.map(x=>x.id===row.id?data.product:x));else setNotice(data.error||"Could not update visibility.");setBusy(false);
@@ -76,7 +79,7 @@ export function ProductCatalogManager({initial,workspaces}:{initial:ProductRow[]
       <td className="px-4 py-4 font-semibold">{row.startingPrice||"Quote"}</td><td className="px-4 py-4">{row.stockQuantity===null?"—":row.stockQuantity}</td>
       <td className="px-4 py-4">{row.sortOrder}</td>
       <td className="px-4 py-4"><Link href={"/products/"+row.slug} target="_blank" className="font-bold text-[#0F3E8A] underline">Open ↗</Link></td>
-      <td className="px-4 py-4"><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>startEdit(row)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black">Edit</button><button type="button" disabled={busy} onClick={()=>toggle(row)} className="rounded-lg bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white">{row.active?"Hide":"Publish"}</button></div></td>
+      <td className="px-4 py-4"><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>startEdit(row)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black">Edit</button><button type="button" disabled={busy} onClick={()=>toggle(row)} className="rounded-lg bg-[#0F3E8A] px-3 py-2 text-xs font-black text-white">{row.active?"Hide":"Publish"}</button><button type="button" disabled={busy} onClick={()=>void remove(row)} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700">Delete / hide</button></div></td>
     </tr>)}</tbody></table>
    </div>
    {!rows.length&&<div className="p-12 text-center text-slate-500">No catalog items yet.</div>}
