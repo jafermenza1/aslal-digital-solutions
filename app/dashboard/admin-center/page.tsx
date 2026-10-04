@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import type { Permission } from "@/lib/permissions";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ type WorkCard = {
   title: string;
   description: string;
   href: string;
-  permission: string;
+  permission: Permission;
   metric?: string;
 };
 
@@ -26,7 +27,7 @@ export default async function AdminCenterPage() {
   if (!access) return <div className="p-8">No active workspace is available.</div>;
 
   const user = access.user;
-  const can = (permission: string) => user.permissions.includes(permission);
+  const can = (permission: Permission) => user.permissions.includes(permission);
   const wid = access.workspace.id;
 
   const [
@@ -39,7 +40,6 @@ export default async function AdminCenterPage() {
     activeWorkspaces,
     activeOrders,
     openTasks,
-    auditLeads,
   ] = await Promise.all([
     can("listings.manage")
       ? prisma.commercialListing.count({ where: { workspaceId: wid, status: "PENDING_REVIEW" } })
@@ -68,10 +68,13 @@ export default async function AdminCenterPage() {
     can("operations.view")
       ? prisma.leadTask.count({ where: { lead: { workspaceId: wid }, status: { in: ["OPEN", "IN_PROGRESS"] } } })
       : Promise.resolve(0),
-    can("operations.view")
-      ? prisma.leadAdminAudit.count({ where: { lead: { workspaceId: wid } } })
-      : Promise.resolve(0),
+
   ]);
+
+  const auditLeadIds = can("operations.view")
+    ? (await prisma.lead.findMany({ where: { workspaceId: wid }, select: { id: true }, take: 5000 })).map((row) => row.id)
+    : [];
+  const auditLeads = auditLeadIds.length ? await prisma.leadAdminAudit.count({ where: { leadId: { in: auditLeadIds } } }) : 0;
 
   const queues: QueueItem[] = [
     {
@@ -223,7 +226,7 @@ export default async function AdminCenterPage() {
                   <span
                     className={
                       queue.count
-                        ? "min-w-10 rounded-full bg-[#E2B02A]/15 px-3 py-1 text-center text-sm font-black text-[#8a6800]"
+                        ? "min-w-10 rounded-full bg-[#E2B02A]/15 px-3 py-1 text-center text-sm font-black text-[#070C18]"
                         : "min-w-10 rounded-full bg-slate-100 px-3 py-1 text-center text-sm font-black text-slate-500 dark:bg-slate-800"
                     }
                   >
