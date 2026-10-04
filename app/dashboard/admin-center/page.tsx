@@ -22,8 +22,8 @@ export default async function AdminCenterPage(){
   can("users.manage")?prisma.workspace.count({where:{id:wid,active:true}}):Promise.resolve(0),
  ]);
  const queues:QueueItem[]=[
-  {kind:"Marketplace",title:"Product & service listings",detail:"Submitted by permitted business owners and professionals.",count:listingPending,href:"/dashboard/listings",action:"Review listings"},
-  {kind:"People",title:"Professional profiles",detail:"Profiles waiting for Aslal review before publication.",count:professionalPending,href:"/dashboard/partners?tab=verification",action:"Review profiles"},
+  {kind:"Marketplace",title:"Product & service listings",detail:"Submitted by permitted business owners and professionals.",count:listingPending,href:"/dashboard/approvals",action:"Review listings"},
+  {kind:"People",title:"Professional profiles",detail:"Profiles waiting for Aslal review before publication.",count:professionalPending,href:"/dashboard/approvals",action:"Review profiles"},
   {kind:"Partners",title:"Partner verification",detail:"Registrations requiring verification or activation.",count:partnerPending,href:"/dashboard/partners",action:"Review partners"},
   {kind:"Finance",title:"Payout queue",detail:"Payout batches that still need operational handling.",count:payoutPending,href:"/dashboard/finance",action:"Open finance"},
   {kind:"Payments",title:"Failed payments",detail:"Payment failures that may interrupt a customer journey.",count:failedPayments,href:"/dashboard/orders",action:"Investigate"},
