@@ -1496,3 +1496,113 @@ html[data-theme="dark"] body{color-scheme:dark}
   .aslal-reveal{opacity:1;transform:none}
   .aslal-visual-placeholder.is-loading:after{animation:none}
 }
+
+
+/* Platform hero architecture — bounded columns, aligned visual system, responsive collapse. */
+.platform-hero{
+  position:relative;
+  background:
+    radial-gradient(circle at 78% 28%,rgba(226,176,42,.14),transparent 24%),
+    radial-gradient(circle at 18% 62%,rgba(15,62,138,.32),transparent 34%),
+    linear-gradient(135deg,#070C18 0%,#0F172A 56%,#070C18 100%);
+}
+.platform-hero-grid{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background-image:
+    linear-gradient(rgba(248,250,252,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(248,250,252,.055) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(circle at 70% 45%,black 0 32%,transparent 78%);
+}
+.platform-hero-visual{
+  position:relative;
+  min-width:0;
+  padding:24px;
+  border:1px solid rgba(248,250,252,.12);
+  border-radius:32px;
+  background:linear-gradient(145deg,rgba(15,23,42,.92),rgba(30,41,59,.72));
+  box-shadow:0 35px 100px rgba(7,12,24,.42),inset 0 1px 0 rgba(248,250,252,.06);
+  backdrop-filter:blur(20px);
+}
+.platform-hero-visual-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.platform-flow-map{
+  display:grid;
+  grid-template-columns:minmax(88px,.8fr) minmax(150px,1.2fr) minmax(88px,.8fr);
+  align-items:center;
+  gap:14px;
+  margin-top:24px;
+  min-height:270px;
+}
+.platform-flow-column{display:grid;gap:12px}
+.platform-flow-node{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:68px;
+  border:1px solid rgba(248,250,252,.1);
+  border-radius:18px;
+  background:rgba(248,250,252,.035);
+  color:#F8FAFC;
+  font:900 9px/1 ui-monospace,SFMono-Regular,monospace;
+  letter-spacing:.14em;
+}
+.platform-flow-node svg{color:#E2B02A;stroke:currentColor}
+.platform-flow-core{
+  position:relative;
+  display:grid;
+  justify-items:center;
+  gap:8px;
+  min-height:190px;
+  place-content:center;
+  border:1px solid rgba(226,176,42,.28);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(226,176,42,.12),rgba(15,23,42,.18) 55%,rgba(15,23,42,.75) 100%);
+  box-shadow:0 0 65px rgba(226,176,42,.10);
+  color:#F8FAFC;
+}
+.platform-flow-core:before,.platform-flow-core:after{
+  content:"";
+  position:absolute;
+  inset:12%;
+  border:1px solid rgba(226,176,42,.14);
+  border-radius:50%;
+}
+.platform-flow-core:after{inset:23%;border-color:rgba(248,250,252,.08)}
+.platform-core-ring{
+  display:grid;
+  place-items:center;
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  background:#0F3E8A;
+  border:1px solid rgba(226,176,42,.42);
+  color:#E2B02A;
+  box-shadow:0 0 28px rgba(226,176,42,.18);
+}
+.platform-flow-core strong{font-size:12px;letter-spacing:.12em}
+.platform-flow-core span{font-size:9px;color:rgba(248,250,252,.48);text-align:center}
+@media(max-width:900px){
+  .platform-hero .container-aslal{min-height:auto}
+  .platform-hero-visual{max-width:760px;margin-inline:auto;width:100%}
+}
+@media(max-width:560px){
+  .platform-hero{background:linear-gradient(160deg,#070C18,#0F172A)}
+  .platform-hero-visual{padding:16px;border-radius:24px}
+  .platform-flow-map{grid-template-columns:1fr;gap:10px;min-height:0}
+  .platform-flow-column{grid-template-columns:repeat(3,1fr);gap:7px}
+  .platform-flow-node{min-height:58px;flex-direction:column;gap:5px;border-radius:14px;font-size:7px}
+  .platform-flow-core{min-height:150px;border-radius:24px}
+}
+
+/* Keep intentional dark/gold controls readable even when nested inside a light card. */
+.site-shell :is(.bg-\[\#0F3E8A\],.bg-\[\#1E293B\],.bg-\[\#0F172A\],.bg-\[\#070C18\]) :is(.text-white,.text-white\/50,.text-white\/60,.text-white\/70,.text-white\/80),
+.site-shell :is(.bg-\[\#0F3E8A\],.bg-\[\#1E293B\],.bg-\[\#0F172A\],.bg-\[\#070C18\]) svg{
+  color:#F8FAFC!important;stroke:currentColor;
+}
+.site-shell :is(.bg-\[\#E2B02A\]) :is(.text-white,.text-slate-300,.text-slate-400,.text-slate-500){
+  color:#1E293B!important;
+}
