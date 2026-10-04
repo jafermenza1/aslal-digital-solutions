@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+const adminRoles=new Set(["ADMIN","SUPER_ADMIN"]);
+const validVideo=(value:unknown)=>{if(!value)return null;try{const u=new URL(String(value));if(!["http:","https:"].includes(u.protocol))return null;return u.toString().slice(0,1000);}catch{return null;}};
 
 const TYPES=["PRODUCT","SERVICE","ASSET","PROPERTY"] as const;
 const STATUSES=["DRAFT","PENDING_REVIEW","APPROVED","PUBLISHED","PAUSED","SOLD_OUT","EXPIRED","ARCHIVED","REJECTED"] as const;
@@ -30,7 +32,7 @@ function parse(body:any,current:any){
   requestQuote:body.requestQuote===undefined?current.requestQuote:Boolean(body.requestQuote),
   publicVisible:body.publicVisible===undefined?current.publicVisible:Boolean(body.publicVisible),
   featured:body.featured===undefined?current.featured:Boolean(body.featured),
-  metadata:body.metadata===undefined?current.metadata:(body.metadata&&typeof body.metadata==="object"?body.metadata:null),
+  metadata:body.metadata===undefined?current.metadata:{...(current.metadata&&typeof current.metadata==="object"?current.metadata:{}),...(body.metadata&&typeof body.metadata==="object"?body.metadata:{}),...(body.videoUrl!==undefined?{videoUrl:validVideo(body.videoUrl)}:{})},
   expiresAt:body.expiresAt===undefined?current.expiresAt:(body.expiresAt?new Date(body.expiresAt):null)
  };
 }
@@ -39,7 +41,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const {id}=await params;
  const current=await prisma.commercialListing.findUnique({where:{id}});
  if(!current)return NextResponse.json({error:"Commercial listing not found."},{status:404});
- const access=await authorizeWorkspacePermission("products.manage",current.workspaceId);
+ const access=await authorizeWorkspacePermission("listings.manage",current.workspaceId);
  if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
  const data=parse(body,current);
  if(data.workspaceId!==current.workspaceId)return NextResponse.json({error:"A listing cannot be moved between workspaces from this operation."},{status:400});
@@ -48,6 +50,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  if(data.supplierPartyId && !(await prisma.commercialParty.findFirst({where:{id:data.supplierPartyId,workspaceId:current.workspaceId,status:{not:"ARCHIVED"}},select:{id:true}})))return NextResponse.json({error:"The selected supplier does not belong to this workspace or is archived."},{status:400});
  if(data.professionalProfileId && !(await prisma.professionalProfile.findFirst({where:{id:data.professionalProfileId,workspaceId:current.workspaceId,status:{in:["PUBLISHED","PENDING_REVIEW"]}},select:{id:true}})))return NextResponse.json({error:"The selected professional profile is not available in this workspace."},{status:400});
  if(data.status==="PUBLISHED"&&!data.ownerPartyId)return NextResponse.json({error:"A listing cannot be published without an identified commercial owner."},{status:400});
+ if(!adminRoles.has(access.user.role)){data.status="PENDING_REVIEW";data.publicVisible=false;data.featured=false;}
  if(data.productId){
   const product=await prisma.product.findFirst({where:{id:data.productId,workspaceId:current.workspaceId},select:{id:true}});
   if(!product)return NextResponse.json({error:"The selected catalog item does not belong to this workspace."},{status:400});
@@ -66,7 +69,7 @@ export async function DELETE(request:Request,{params}:{params:Promise<{id:string
  const {id}=await params;
  const current=await prisma.commercialListing.findUnique({where:{id},select:{id:true,workspaceId:true,title:true,status:true}});
  if(!current)return NextResponse.json({error:"Commercial listing not found."},{status:404});
- const access=await authorizeWorkspacePermission("products.manage",current.workspaceId);
+ const access=await authorizeWorkspacePermission("listings.manage",current.workspaceId);
  if(!access)return NextResponse.json({error:"Workspace access denied."},{status:403});
  const [authorizations,matches,responses,registrations,appointments,disputes,agreements,leakage] = await Promise.all([
   prisma.commercialListingAuthorization.count({where:{listingId:id,workspaceId:current.workspaceId}}),
