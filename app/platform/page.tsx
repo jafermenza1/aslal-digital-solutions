@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowRight, Bot, Boxes, BrainCircuit, CircleDollarSign, Globe2, Handshake, MessageCircle, Network, QrCode, ShieldCheck, ShoppingBag, Target, Users, Zap } from "lucide-react";
+import { ArrowRight, Bot, BrainCircuit, CircleDollarSign, Globe2, Handshake, MessageCircle, Network, QrCode, ShieldCheck, ShoppingBag, Target, Users, Zap } from "lucide-react";
 import Link from "next/link";
 import { AslalInteractiveHero } from "@/components/AslalInteractiveHero";
 
