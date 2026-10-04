@@ -27,6 +27,7 @@ const ITEMS:Item[]=[
 {key:"overview",href:"/dashboard/admin-center",permission:"dashboard.view",icon:"home",group:"command",label:"Admin Center"},
 {key:"overview",href:"/dashboard",permission:"dashboard.view",icon:"home",group:"command"},
 {key:"overview",href:"/dashboard/workbench",permission:"dashboard.view",icon:"home",group:"command",label:"My Workbench"},
+{key:"overview",href:"/dashboard/approvals",permission:"listings.manage",icon:"box",group:"command",label:"Approvals"},
 {key:"insights",href:"/dashboard/reports",permission:"dashboard.view",icon:"chart",group:"command",label:"Reports"},
 {key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"command"},
 {key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"command"},
