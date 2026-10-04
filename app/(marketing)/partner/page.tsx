@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Building2, CircleDollarSign, Handshake, LineChart, Network, ShieldCheck, Store, Zap } from "lucide-react";
+import { InteractiveOrbit } from "@/components/InteractiveOrbit";
 export default function PartnerBusinessPage(){
  const benefits=[["01",Building2,"Put your business in a partner-ready system","Publish offers, define programs and let qualified partners represent your business with controlled commercial rules."],["02",Network,"Find the right growth relationships","Use affiliates, referral agents, resellers and service partners according to the capability your business actually needs."],["03",LineChart,"Measure contribution, not noise","Demand, attribution, deals, orders, revenue and eligible commissions remain connected for operational reporting."]];
  return <main className="min-h-screen overflow-hidden bg-[#070C18] text-white">
   <section className="relative overflow-hidden border-b border-white/10 bg-[radial-gradient(circle_at_75%_20%,rgba(226,176,42,.14),transparent_28%),radial-gradient(circle_at_15%_50%,rgba(15,62,138,.55),transparent_38%)] py-20 sm:py-28">
-   <div className="container-aslal relative">
+   <div className="container-aslal relative grid items-center gap-10 lg:grid-cols-[1.05fr_.95fr]">
     <div className="max-w-4xl"><span className="inline-flex items-center gap-2 font-mono text-[10px] font-black tracking-[.25em] text-[#E2B02A]"><Store size={15}/> BUSINESS PARTNER NETWORK</span><h1 className="mt-5 text-5xl font-black tracking-[-.055em] sm:text-7xl">Turn your business into a <span className="text-[#E2B02A]">partner-ready</span> growth engine.</h1><p className="mt-6 max-w-3xl text-lg leading-8 text-white/60">For Ethiopian business owners and entrepreneurs who want more reach without losing control of offers, customers, attribution, commercial terms or reporting.</p>
      <div className="mt-9 flex flex-wrap gap-3"><Link href="/contact?goal=Become%20a%20business%20partner" className="inline-flex items-center gap-2 rounded-xl bg-[#E2B02A] px-6 py-4 font-black text-[#070C18]">Talk to Aslal about partnership <ArrowRight size={17}/></Link><Link href="/growth-builder" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[.05] px-6 py-4 font-bold text-white">Build the system first <Zap size={17}/></Link></div>
     </div>
+    <div className="relative flex min-h-[330px] items-center justify-center lg:min-h-[430px]"><InteractiveOrbit compact /></div>
    </div>
   </section>
   <section className="bg-[#0F172A] py-20"><div className="container-aslal"><div className="grid gap-5 lg:grid-cols-3">{benefits.map(([n,I,t,d])=>{const Icon=I as typeof Building2;return <article key={String(n)} className="rounded-[1.8rem] border border-white/10 bg-white/[.035] p-7 transition hover:-translate-y-1 hover:border-[#E2B02A]/45"><div className="flex items-center justify-between"><span className="font-mono text-[10px] font-black tracking-widest text-[#E2B02A]">{String(n)}</span><Icon className="text-[#E2B02A]" size={22}/></div><h2 className="mt-8 text-xl font-black">{String(t)}</h2><p className="mt-3 text-sm leading-7 text-white/50">{String(d)}</p></article>})}</div></div></section>
