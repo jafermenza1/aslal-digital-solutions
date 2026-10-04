@@ -233,7 +233,7 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
     process.env.ASLAL_CONTACT_ADDRESS ? "Address: "+process.env.ASLAL_CONTACT_ADDRESS : "",
     process.env.SUPPORT_EMAIL ? "Email: "+process.env.SUPPORT_EMAIL : "",
     process.env.SUPPORT_PHONE ? "Phone: "+process.env.SUPPORT_PHONE : "",
-    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ? "Telegram: @"+String(process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME).replace(/^@/,"") : ""
+    (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME||process.env.TELEGRAM_BOT_USERNAME) ? "Telegram: @"+String(process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME||process.env.TELEGRAM_BOT_USERNAME).replace(/^@/,"") : ""
   ].filter(Boolean);
   const aslalContact=contactParts.length?contactParts.join("\n"):"Website: "+(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com");
   const leadOwner=await prisma.lead.findFirst({where:{id:leadId,workspaceId},select:{ownerEmail:true}});
