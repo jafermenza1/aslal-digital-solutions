@@ -56,7 +56,6 @@ export const DEFAULT_CONTACT_TEMPLATE = {
 
 
 const brandedHtml = (title: string, intro: string, ctaLabel: string, ctaUrl: string, footer = "{{location}} · {{phone}} · {{email}}") => `<!doctype html><html><body style="margin:0;background:#F8FAFC;font-family:Arial,Helvetica,sans-serif;color:#1E293B"><div style="max-width:680px;margin:0 auto;padding:28px 16px"><div style="background:#0F3E8A;border-radius:24px;padding:28px 30px;color:#F8FAFC"><div style="font-size:10px;letter-spacing:2px;font-weight:800;color:#E2B02A">ASLAL GROWTH OS</div><div style="margin-top:8px;font-size:25px;font-weight:800">Aslal Digital Solutions</div><div style="margin-top:24px;font-size:28px;line-height:1.2;font-weight:800">${title}</div><p style="margin:14px 0 0;color:#F8FAFC;font-size:16px;line-height:1.7">${intro}</p></div><div style="background:#F8FAFC;margin-top:14px;border-radius:24px;padding:28px 30px;box-shadow:0 10px 35px rgba(15,62,138,.08)"><div style="color:#0F3E8A;line-height:1.8">{{message}}</div><a href="${ctaUrl}" style="display:inline-block;margin-top:22px;background:#E2B02A;color:#1E293B;text-decoration:none;padding:14px 20px;border-radius:999px;font-weight:800">${ctaLabel}</a></div><div style="padding:20px 4px;color:#0F3E8A;font-size:12px;line-height:1.6">${footer}</div></div></body></html>`;
-
 export const CONTACT_CONFIRMATION_KEY = "contact_email_confirmation";
 const CONTACT_CONFIRMATION_TEMPLATE = {
   templateKey:CONTACT_CONFIRMATION_KEY,
@@ -67,6 +66,8 @@ const CONTACT_CONFIRMATION_TEMPLATE = {
   transactional:true,
   active:true,
 };
+
+
 
 export const CORE_EMAIL_TEMPLATES = [
   DEFAULT_CONTACT_TEMPLATE,
