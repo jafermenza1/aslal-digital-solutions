@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { requirePermission } from "@/lib/authorization";
+import type { Permission } from "@/lib/permissions";
 
-type Journey={title:string;description:string;roles:string[];steps:{label:string;href:string;permission:string}[]};
+type Journey={title:string;description:string;roles:string[];steps:{label:string;href:string;permission:Permission}[]};
 
 const journeys:Journey[]=[
  {title:"Demand → Sale",description:"A customer cannot find an offer, submits a Wanted request, and the team turns that demand into a matched response, quote and order.",roles:["Customer","Sales","Provider / Partner","Finance"],steps:[
