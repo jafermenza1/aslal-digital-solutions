@@ -2,7 +2,7 @@ export const localeCookie = "aslal_locale";
 
 export const copy = {
   en: {
-    commerce: { intents: { growth: "Get more customers", sell: "Sell online", automate: "Automate conversations", system: "Build a digital system" }, tellUs: "Tell us what you need", findSolution: "Find a solution", requestProduct: "Request a product", requestService: "Request a service", customNeed: "Tell us what you need", talkSpecialist: "Talk to a specialist", order: "Order", browseProducts: "Browse products", exploreServices: "Explore services", talkTelegram: "Talk to us on Telegram" },
+    commerce: { intents: { growth: "More customers", sell: "Better online sales", social: "Better social media", website: "Website", automate: "Automation", customerManagement: "Customer management", other: "Something else" }, tellUs: "Tell us what you need", findSolution: "Find a solution", requestProduct: "Request a product", requestService: "Request a service", customNeed: "Tell us what you need", talkSpecialist: "Talk to a specialist", order: "Order", browseProducts: "Browse products", exploreServices: "Explore services", talkTelegram: "Talk to us on Telegram" },
     language: "አማ",
     languageName: "Amharic",
     nav: { solutions: "Solutions", products: "Products", work: "Work", lab: "Automation Lab", contact: "Contact", about: "About", resources: "Resources" },
