@@ -11,6 +11,9 @@ type Listing={
  id:string;slug:string;title:string;listingType:"PRODUCT"|"SERVICE"|"ASSET"|"PROPERTY";
  category:string;description:string|null;location:string|null;askingPrice:string|null;
  currency:string;priceLabel:string|null;inspectionRequired:boolean;featured:boolean;
+ ownerParty:{name:string;type:string;status:string}|null;
+ supplierParty:{name:string;type:string;status:string}|null;
+ professionalProfile:{displayName:string;profession:string;verificationLevel:string;status:string}|null;
  product:{name:string;kind:string;shortDescription:string|null;imageUrl:string|null;startingPrice:string|null}|null;
 };
 
