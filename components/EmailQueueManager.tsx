@@ -85,5 +85,6 @@ export function EmailQueueManager({initial,workspaceId}:{initial:Row[];workspace
       {notice&&<div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm font-semibold">{notice}</div>}
       <div className="mt-5 flex flex-wrap gap-2"><button disabled={busy} onClick={()=>update("save")} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-black">Save draft</button><button disabled={busy} onClick={()=>update("send")} className="rounded-xl bg-[#0F3E8A] px-4 py-3 text-sm font-black text-white">Send now</button><button disabled={busy} onClick={()=>update("discard")} className="rounded-xl border border-red-200 px-4 py-3 text-sm font-black text-red-700">Discard</button></div></>:<div className="p-12 text-center text-slate-500">Select a message to inspect and edit.</div>}
     </section>
+  </div>
   </div>;
 }
