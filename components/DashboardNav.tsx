@@ -31,6 +31,7 @@ const ITEMS:Item[]=[
 {key:"overview",href:"/dashboard/approvals",permission:"listings.manage",icon:"box",group:"command",label:"Approvals"},
 {key:"insights",href:"/dashboard/reports",permission:"dashboard.view",icon:"chart",group:"command",label:"Reports"},
 {key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"command"},
+{key:"journey",href:"/dashboard/workflows",permission:"dashboard.view",icon:"journey",group:"command",label:"Cross-role Journeys"},
 {key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"command"},
 
 {key:"leads",href:"/dashboard/leads",permission:"leads.view",icon:"leads",group:"revenue"},
