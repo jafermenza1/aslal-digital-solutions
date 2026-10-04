@@ -199,6 +199,7 @@ async function ensurePublicConversation(workspaceId:string,leadId:string,chatId:
 async function routePublicMessageToHandoff(chatId:string,workspaceId:string,user:any,m:TelegramMessage){
   const cfg=await getTelegramChannelConfig(workspaceId); if(!cfg?.humanHandoffEnabled||!cfg.handoffChatId)return false;
   const session=await publicSession(workspaceId,user,chatId); const data=typeof session.state_data==="string"?JSON.parse(session.state_data||"{}"):(session.state_data||{});
+  const wasExisting=Boolean(session.lead_id||session.person_id);
   const leadId=await ensurePublicLead(workspaceId,user,chatId,data);
   const conversation=await ensurePublicConversation(workspaceId,leadId,chatId);
   await db.query("INSERT INTO conversation_messages (id,conversation_id,direction,status,sender_address,body,metadata) VALUES (?,?,?,?,?,?,?)",[crypto.randomUUID(),conversation.id,"INBOUND","RECEIVED",String(user?.id||chatId),clean(m.text).slice(0,10000),JSON.stringify({telegramChatId:chatId,messageId:m.message_id||null,publicHandoff:true})]);
@@ -235,6 +236,10 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
     process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ? "Telegram: @"+String(process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME).replace(/^@/,"") : ""
   ].filter(Boolean);
   const aslalContact=contactParts.length?contactParts.join("\n"):"Website: "+(process.env.NEXT_PUBLIC_SITE_URL||"https://aslaldigital.com");
+  const leadOwner=await prisma.lead.findFirst({where:{id:leadId,workspaceId},select:{ownerEmail:true}});
+  const ownerUser=leadOwner?.ownerEmail?await prisma.user.findUnique({where:{email:leadOwner.ownerEmail},select:{telegramUsername:true,telegramChatId:true}}).catch(()=>null):null;
+  const assignedTelegram=ownerUser?.telegramUsername?"@"+String(ownerUser.telegramUsername).replace(/^@/,""):"";
+  const directHandle="@aslaldigitals?direct";
   const customerContact=[
     "Your Telegram: "+username,
     "Telegram user ID: "+userId,
@@ -246,7 +251,8 @@ async function handoffPublic(chatId:string,workspaceId:string,user:any){
     const sentId=sent?.result?.message_id;
     await savePublicState(workspaceId,userId,"SUPPORT_REQUESTED",{...data,handoffAdminMessageId:sentId,publicChatId:chatId,leadId,conversationId:conversation.id});
   }
-  return tg("sendMessage",{chat_id:chatId,text:"A support request has been created. A member of Aslal sales will continue with you here.\n\nAslal sales contact:\n"+aslalContact+"\n\nYour reachable contact:\n"+customerContact,reply_markup:{keyboard:[[{text:"❌ Close menu"}]],resize_keyboard:true,is_persistent:true}});
+  const routingText=wasExisting&&assignedTelegram?"Assigned sales: "+assignedTelegram+"\nIf urgent, message "+directHandle:"If urgent, message "+directHandle+"\nA sales owner will be assigned and notified.";
+  return tg("sendMessage",{chat_id:chatId,text:"A support request has been created. A member of Aslal sales will continue with you here.\n\n"+routingText+"\n\nGeneral Aslal contact:\n"+aslalContact+"\n\nYour reachable contact:\n"+customerContact,reply_markup:{keyboard:[[{text:"❌ Close menu"}]],resize_keyboard:true,is_persistent:true}});
 }
 async function pricingResponse(chatId:string,workspaceId:string){
   if(await keywordResponse(chatId,workspaceId,"price"))return;
