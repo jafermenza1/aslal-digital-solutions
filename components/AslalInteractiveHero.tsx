@@ -6,6 +6,7 @@ import { ArrowRight, MessageCircle, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { publicCommerceIntents } from "@/lib/public-commerce-contract";
 import { HomeDemandConstellation, HomeSignalStrip } from "@/components/HomeDemandConstellation";
+import { InteractiveOrbit } from "@/components/InteractiveOrbit";
 
 const slides = [
   { title: "We implement, customize and connect digital systems for your Business.", subtitle: "Aslal your Growth Partner" },
