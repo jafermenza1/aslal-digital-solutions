@@ -8,6 +8,7 @@ import { TranslationStudio } from "@/components/TranslationStudio";
 import { WebsitePageStudio } from "@/components/WebsitePageStudio";
 import { WebsiteAssetStudio } from "@/components/WebsiteAssetStudio";
 import { CommercialWebStudio } from "@/components/CommercialWebStudio";
+import { WebsiteGrowthStudio } from "@/components/WebsiteGrowthStudio";
 import { getWebsiteSettings } from "@/lib/website-settings";
 import { getTranslationRows } from "@/lib/translation-registry";
 import { getWorkspaceForUser } from "@/lib/workspaces";
@@ -29,6 +30,7 @@ export default async function PublicContentPage(){
   <WebsitePageStudio />
   <WebsiteAssetStudio />
   <CommercialWebStudio />
+  <WebsiteGrowthStudio />
   <section className="mt-8"><div className="dashboard-hero-card"><div><span className="dashboard-kicker">TRANSLATIONS</span><h2>Language Content</h2><p>Translations have their own workspace, search, CSV workflow and save actions. Source website content remains separate and canonical.</p></div></div><div className="mt-5"><TranslationStudio initialRows={translations.map(x=>({...x,active:Number(x.active)}))}/></div></section>
   <section className="mt-8"><div className="dashboard-hero-card"><div><span className="dashboard-kicker">PAGE CONTENT</span><h2>Editable Web Content</h2><p>Edit the source-language page copy here. Translation changes do not modify the source content.</p></div></div><div className="mt-5"><PublicContentEditor initialItems={items.map(x=>({...x,font_size:Number(x.font_size),active:Number(x.active)}))} fonts={fonts}/></div></section>
  </main>
