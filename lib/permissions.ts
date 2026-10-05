@@ -84,7 +84,7 @@ export function defaultPermissionsForRole(role: UserRole) {
 const workspaceSets: Record<string, Permission[]> = {
   OWNER: [...sets.BUSINESS_OWNER],
   ADMIN: [...PERMISSIONS],
-  MANAGER: [...sets.SALES_MANAGER, "partners.manage", "products.manage", "content.manage", "email.manage", "telegram.manage", "email_templates.manage"],
+  MANAGER: [...sets.SALES_MANAGER, "partners.manage", "products.manage", "content.manage","content.view","content.edit","content.publish","content.brand.manage","content.navigation.manage","content.theme.manage","content.media.manage","content.translation.manage","content.seo.manage","content.package.manage","content.location.manage", "email.manage", "telegram.manage", "email_templates.manage"],
   SALES: [...sets.SALES_OPERATOR, "commerce.view", "commerce.manage", "operations.view"],
   FINANCE: [...sets.FINANCE],
   AUDITOR: [...sets.AUDITOR],
