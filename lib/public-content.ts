@@ -106,7 +106,8 @@ export async function ensurePublicContentTranslations(workspaceId=INTERNAL_WORKS
  }
 }
 
-export function contentHtml(map:ContentMap,key:string,fallback:string){const item=map[key];if(item?.richHtml?.trim())return item.richHtml;return escapeHtml(item?.value||fallback).replace(/\n/g,"<br />")}\nexport function contentValue(map:Record<string,{value:string;fontFamily:string;fontSize:number}>,key:string,fallback:string){return map[key]?.value||fallback;}
+export function contentHtml(map:ContentMap,key:string,fallback:string){const item=map[key];if(item?.richHtml?.trim())return item.richHtml;return escapeHtml(item?.value||fallback).replace(/\n/g,"<br />")}
+export function contentValue(map:Record<string,{value:string;fontFamily:string;fontSize:number}>,key:string,fallback:string){return map[key]?.value||fallback;}
 export function contentStyle(map:Record<string,{value:string;fontFamily:string;fontSize:number}>,key:string,fallbackSize=16){const item=map[key];return item?{fontFamily:item.fontFamily==="inherit"?undefined:item.fontFamily,fontSize:item.fontSize+"px"}:{fontSize:fallbackSize+"px"};}
 export async function ensurePublicContent(workspaceId=INTERNAL_WORKSPACE_ID){for(const item of PUBLIC_CONTENT) await db.query("INSERT INTO public_content (id,workspace_id,page_path,content_key,label,value,font_family,font_size) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE label=VALUES(label)",[randomUUID(),workspaceId,item.pagePath,item.key,item.label,item.defaultValue,item.fontFamily||"inherit",item.fontSize||16]);}
 function escapeHtml(value:string){return value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
