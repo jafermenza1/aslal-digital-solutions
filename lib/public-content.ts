@@ -2,9 +2,9 @@ import { cache } from "react";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2/promise";
 import { db } from "@/lib/db";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { localeCookie, normalizeLocale, supportedLocales, type Locale } from "@/lib/i18n";
-import { INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
+import { INTERNAL_WORKSPACE_ID, resolvePublicWorkspaceId } from "@/lib/workspaces";
 
 export const PUBLIC_FONT_OPTIONS = [
   { value: "inherit", label: "Site default" },
@@ -89,26 +89,24 @@ export type ContentMap=Record<string,{value:string;richHtml?:string;fontFamily:s
 
 type ContentRow=RowDataPacket&{page_path:string;content_key:string;label:string;value:string;rich_html:string|null;font_family:string;font_size:number;active:number};
 
-export const getPageContent=cache(async(pagePath:string, requestedLocale?:Locale)=>{
+export const getPageContent=cache(async(pagePath:string, requestedLocale?:Locale, workspaceId?:string)=>{
  const locale=normalizeLocale(requestedLocale || (await cookies()).get(localeCookie)?.value);
- const [rows]=await db.query<ContentRow[]>(`SELECT p.page_path,p.content_key,p.label,COALESCE(NULLIF(t.translated_text,''),p.value) AS value,CASE WHEN NULLIF(t.translated_text,'') IS NOT NULL THEN NULL ELSE p.rich_html END AS rich_html,p.font_family,p.font_size,p.active FROM public_content p LEFT JOIN translation_entries t ON t.workspace_id=? AND t.surface='SITE' AND t.locale=? AND t.translation_key=p.content_key AND t.active=1 WHERE p.page_path=? AND p.active=1`,[INTERNAL_WORKSPACE_ID,locale,pagePath]);
+ const requestHeaders=await headers();
+ const workspace=workspaceId || resolvePublicWorkspaceId(requestHeaders.get("host"));
+ const [rows]=await db.query<ContentRow[]>(`SELECT p.page_path,p.content_key,p.label,COALESCE(NULLIF(t.translated_text,''),p.value) AS value,CASE WHEN NULLIF(t.translated_text,'') IS NOT NULL THEN NULL ELSE p.rich_html END AS rich_html,p.font_family,p.font_size,p.active FROM public_content p LEFT JOIN translation_entries t ON t.workspace_id=? AND t.surface='SITE' AND t.locale=? AND t.translation_key=p.content_key AND t.active=1 WHERE p.workspace_id=? AND p.page_path=? AND p.active=1`,[workspace,locale,workspace,pagePath]);
  const map:Record<string,{value:string;richHtml?:string;fontFamily:string;fontSize:number}>={};
  for(const row of rows) map[row.content_key]={value:row.value,richHtml:row.rich_html||"",fontFamily:row.font_family,fontSize:Number(row.font_size)};
  return map;
 });
-export async function ensurePublicContentTranslations(){
+export async function ensurePublicContentTranslations(workspaceId=INTERNAL_WORKSPACE_ID){
  for(const item of PUBLIC_CONTENT){
   for(const locale of supportedLocales){
-   await db.query("INSERT INTO translation_entries (id,workspace_id,surface,locale,translation_key,label,original_text,translated_text) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE original_text=VALUES(original_text),label=VALUES(label)",[randomUUID(),INTERNAL_WORKSPACE_ID,"SITE",locale,item.key,item.label,item.defaultValue,locale==="en"?item.defaultValue:null]);
+   await db.query("INSERT INTO translation_entries (id,workspace_id,surface,locale,translation_key,label,original_text,translated_text) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE original_text=VALUES(original_text),label=VALUES(label)",[randomUUID(),workspaceId,"SITE",locale,item.key,item.label,item.defaultValue,locale==="en"?item.defaultValue:null]);
   }
  }
 }
 
 export function contentValue(map:Record<string,{value:string;fontFamily:string;fontSize:number}>,key:string,fallback:string){return map[key]?.value||fallback;}
 export function contentStyle(map:Record<string,{value:string;fontFamily:string;fontSize:number}>,key:string,fallbackSize=16){const item=map[key];return item?{fontFamily:item.fontFamily==="inherit"?undefined:item.fontFamily,fontSize:item.fontSize+"px"}:{fontSize:fallbackSize+"px"};}
-export async function ensurePublicContent(){for(const item of PUBLIC_CONTENT) await db.query("INSERT INTO public_content (id,page_path,content_key,label,value,font_family,font_size) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE label=VALUES(label)",[randomUUID(),item.pagePath,item.key,item.label,item.defaultValue,item.fontFamily||"inherit",item.fontSize||16]);}
-export function contentHtml(map:Record<string,{value:string;richHtml?:string;fontFamily:string;fontSize:number}>,key:string,fallback:string){
- const item=map[key]; if(item?.richHtml?.trim()) return item.richHtml;
- return escapeHtml(item?.value||fallback).replace(/\r?\n/g,"<br />");
-}
+export async function ensurePublicContent(workspaceId=INTERNAL_WORKSPACE_ID){for(const item of PUBLIC_CONTENT) await db.query("INSERT INTO public_content (id,workspace_id,page_path,content_key,label,value,font_family,font_size) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE label=VALUES(label)",[randomUUID(),workspaceId,item.pagePath,item.key,item.label,item.defaultValue,item.fontFamily||"inherit",item.fontSize||16]);}
 function escapeHtml(value:string){return value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
