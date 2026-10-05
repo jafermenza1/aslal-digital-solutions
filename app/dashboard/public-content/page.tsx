@@ -12,12 +12,14 @@ type Row=RowDataPacket&{id:string;page_path:string;content_key:string;label:stri
 export const dynamic="force-dynamic";
 export default async function PublicContentPage(){
  const user=await requirePermission("content.manage");
- await ensurePublicContent();
- await ensurePublicContentTranslations();
+ const workspace=await getWorkspaceForUser(user);
+ if(!workspace)throw new Error("Workspace not available.");
+ await ensurePublicContent(workspace.id);
+ await ensurePublicContentTranslations(workspace.id);
  const [items]=await db.query<Row[]>("SELECT id,page_path,content_key,label,value,rich_html,format,font_family,font_size,active,updated_by FROM public_content WHERE workspace_id=? ORDER BY page_path,content_key",[workspace.id]);
  const fonts=[{value:"inherit",label:"Site default"},{value:"Inter, ui-sans-serif, system-ui, sans-serif",label:"Inter / System"},{value:"Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",label:"Plus Jakarta Sans"},{value:"Noto Sans, ui-sans-serif, system-ui, sans-serif",label:"Noto Sans"},{value:"Georgia, serif",label:"Georgia"},{value:"Arial, sans-serif",label:"Arial"},{value:"Tahoma, sans-serif",label:"Tahoma"}];
- const settings=await getWebsiteSettings(INTERNAL_WORKSPACE_ID);
- const translations=await getTranslationRows(INTERNAL_WORKSPACE_ID);
+ const settings=await getWebsiteSettings(workspace.id);
+ const translations=await getTranslationRows(workspace.id);
  return <main className="dashboard-home">
   <section className="dashboard-hero-card"><div><span className="dashboard-kicker">WEBSITE STUDIO</span><h2>Website Content & Configuration</h2><p>Manage website pages, brand, navigation, appearance, packages, locations and search metadata separately from language translation work.</p></div></section>
   <div className="mt-5"><WebsiteStudio initialSettings={settings}/></div>
