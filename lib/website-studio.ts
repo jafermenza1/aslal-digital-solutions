@@ -19,7 +19,7 @@ export async function saveDraft(workspaceId:string,slug:string,title:string,valu
  return getPage(workspaceId,slug);
 }
 export async function publishPage(workspaceId:string,slug:string,actor:string){
- const page=await getPage(workspaceId,slug);if(!page)throw new Error("PAGE_NOT_FOUND");
+ const page=await getPage(workspaceId,slug);if(!page)throw new Error("PAGE_NOT_FOUND");if(!["APPROVED","PUBLISHED"].includes(String(page.status)))throw new Error("PAGE_NOT_APPROVED");
  const version=Number(page.draft_version||1),now=new Date();
  await db.query("UPDATE website_pages SET published_json=draft_json,published_version=?,status='PUBLISHED',published_at=?,published_by=?,lock_version=lock_version+1,updated_by=? WHERE id=? AND workspace_id=?",[version,now,actor,actor,page.id,workspaceId]);
  await db.query("INSERT INTO website_page_revisions (id,workspace_id,page_id,version,state,content_json,change_summary,created_by) VALUES (?,?,?,?,?,?,?,?)",[randomUUID(),workspaceId,page.id,version,"PUBLISHED",page.draft_json||JSON.stringify({blocks:[]}),"Published",actor]);
