@@ -1,13 +1,12 @@
 "use client";
-import {useEffect,useMemo,useState} from "react";
+import {useCallback,useEffect,useState} from "react";
 type Block={id:string;type:string;props:Record<string,any>};
 type Page={id:string;slug:string;title:string;status:string;draft_json:string;draft_version:number;published_version:number|null;lock_version:number};
 const defaults=(type:string):Block=>({id:crypto.randomUUID(),type,props:type==="hero"?{eyebrow:"",title:"New heading",body:"",imageUrl:""}:type==="text"?{heading:"Section heading",body:"Write the section content here."}:type==="image"?{url:"",alt:""}:type==="cta"?{label:"Get started",href:"/contact"}:{}});
 export function WebsitePageStudio(){
  const [pages,setPages]=useState<Page[]>([]),[slug,setSlug]=useState("/"),[page,setPage]=useState<Page|null>(null),[blocks,setBlocks]=useState<Block[]>([]),[notice,setNotice]=useState("");
- const load=async(s=slug)=>{const r=await fetch("/api/admin/website-pages?slug="+encodeURIComponent(s));const d=await r.json();if(r.ok){setPage(d.page);setBlocks(d.page?.draft_json?JSON.parse(d.page.draft_json).blocks||[]:[])}};
- useEffect(()=>{fetch("/api/admin/website-pages").then(r=>r.json()).then(d=>{setPages(d.pages||[]);if(d.pages?.[0]){setSlug(d.pages[0].slug);void load(d.pages[0].slug)}})},[]);
- const selected=useMemo(()=>pages.find(p=>p.slug===slug),[pages,slug]);
+ const load=useCallback(async(s:string)=>{const r=await fetch("/api/admin/website-pages?slug="+encodeURIComponent(s));const d=await r.json();if(r.ok){setPage(d.page);setBlocks(d.page?.draft_json?JSON.parse(d.page.draft_json).blocks||[]:[])}},[]);
+ useEffect(()=>{fetch("/api/admin/website-pages").then(r=>r.json()).then(d=>{setPages(d.pages||[]);if(d.pages?.[0]){setSlug(d.pages[0].slug);void load(d.pages[0].slug)}})},[load]);
  const add=(type:string)=>setBlocks(b=>[...b,defaults(type)]);
  const patch=(id:string,props:Record<string,any>)=>setBlocks(b=>b.map(x=>x.id===id?{...x,props:{...x.props,...props}}:x));
  const save=async()=>{if(!page)return;setNotice("Saving draft…");const r=await fetch("/api/admin/website-pages",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"save",slug:page.slug,title:page.title,draft:{blocks},lockVersion:page.lock_version,changeSummary:"Website Studio draft edit"})});const d=await r.json();setNotice(r.ok?"Draft saved.":"Could not save: "+(d.error||"unknown error"));if(r.ok){setPage(d.page);setPages(x=>x.map(p=>p.slug===slug?d.page:p))}};
