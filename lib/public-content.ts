@@ -93,7 +93,7 @@ export const getPageContent=cache(async(pagePath:string, requestedLocale?:Locale
  const locale=normalizeLocale(requestedLocale || (await cookies()).get(localeCookie)?.value);
  const requestHeaders=await headers();
  const workspace=workspaceId || resolvePublicWorkspaceId(requestHeaders.get("host"));
- const [rows]=await db.query<ContentRow[]>(`SELECT p.page_path,p.content_key,p.label,COALESCE(NULLIF(t.translated_text,''),p.value) AS value,CASE WHEN NULLIF(t.translated_text,'') IS NOT NULL THEN NULL ELSE p.rich_html END AS rich_html,p.font_family,p.font_size,p.active FROM public_content p LEFT JOIN translation_entries t ON t.workspace_id=? AND t.surface='SITE' AND t.locale=? AND t.translation_key=p.content_key AND t.active=1 WHERE p.workspace_id=? AND p.page_path=? AND p.active=1`,[workspace,locale,workspace,pagePath]);
+ const [rows]=await db.query<ContentRow[]>(`SELECT p.page_path,p.content_key,p.label,COALESCE(NULLIF(t.translated_text,''),COALESCE(p.published_value,p.value)) AS value,CASE WHEN NULLIF(t.translated_text,'') IS NOT NULL THEN NULL ELSE COALESCE(p.published_rich_html,p.rich_html) END AS rich_html,p.font_family,p.font_size,p.active FROM public_content p LEFT JOIN translation_entries t ON t.workspace_id=? AND t.surface='SITE' AND t.locale=? AND t.translation_key=p.content_key AND t.active=1 WHERE p.workspace_id=? AND p.page_path=? AND p.active=1`,[workspace,locale,workspace,pagePath]);
  const map:Record<string,{value:string;richHtml?:string;fontFamily:string;fontSize:number}>={};
  for(const row of rows) map[row.content_key]={value:row.value,richHtml:row.rich_html||"",fontFamily:row.font_family,fontSize:Number(row.font_size)};
  return map;
