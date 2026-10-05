@@ -1,0 +1,5 @@
+import {randomUUID} from "node:crypto";import {db} from "@/lib/db";
+export type GrowthStage="VIEW"|"CTA"|"LEAD"|"COMMERCIAL_REQUEST"|"QUOTE"|"ORDER"|"REVENUE";
+export async function recordWebsiteGrowthEvent(input:{workspaceId:string;visitorId?:string|null;contentKey?:string|null;pagePath?:string|null;ctaKey?:string|null;stage:GrowthStage;leadId?:string|null;commercialRequestId?:string|null;quoteId?:string|null;orderId?:string|null;revenueAmount?:number|null;currency?:string|null;metadata?:Record<string,unknown>}){
+ await db.query("INSERT INTO website_growth_events (id,workspace_id,visitor_id,content_key,page_path,cta_key,stage,lead_id,commercial_request_id,quote_id,order_id,revenue_amount,currency,metadata_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[randomUUID(),input.workspaceId,input.visitorId||null,input.contentKey||null,input.pagePath||null,input.ctaKey||null,input.stage,input.leadId||null,input.commercialRequestId||null,input.quoteId||null,input.orderId||null,input.revenueAmount??null,input.currency||null,JSON.stringify(input.metadata||{})]);
+}
