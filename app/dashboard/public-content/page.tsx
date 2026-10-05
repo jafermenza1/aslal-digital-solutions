@@ -7,14 +7,14 @@ import { WebsiteStudio } from "@/components/WebsiteStudio";
 import { TranslationStudio } from "@/components/TranslationStudio";
 import { getWebsiteSettings } from "@/lib/website-settings";
 import { getTranslationRows } from "@/lib/translation-registry";
-import { INTERNAL_WORKSPACE_ID } from "@/lib/workspaces";
+import { getWorkspaceForUser } from "@/lib/workspaces";
 type Row=RowDataPacket&{id:string;page_path:string;content_key:string;label:string;value:string;rich_html:string|null;format:string;font_family:string;font_size:number;active:number;updated_by:string|null};
 export const dynamic="force-dynamic";
 export default async function PublicContentPage(){
  const user=await requirePermission("content.manage");
  await ensurePublicContent();
  await ensurePublicContentTranslations();
- const [items]=await db.query<Row[]>("SELECT id,page_path,content_key,label,value,rich_html,format,font_family,font_size,active,updated_by FROM public_content ORDER BY page_path,content_key");
+ const [items]=await db.query<Row[]>("SELECT id,page_path,content_key,label,value,rich_html,format,font_family,font_size,active,updated_by FROM public_content WHERE workspace_id=? ORDER BY page_path,content_key",[workspace.id]);
  const fonts=[{value:"inherit",label:"Site default"},{value:"Inter, ui-sans-serif, system-ui, sans-serif",label:"Inter / System"},{value:"Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",label:"Plus Jakarta Sans"},{value:"Noto Sans, ui-sans-serif, system-ui, sans-serif",label:"Noto Sans"},{value:"Georgia, serif",label:"Georgia"},{value:"Arial, sans-serif",label:"Arial"},{value:"Tahoma, sans-serif",label:"Tahoma"}];
  const settings=await getWebsiteSettings(INTERNAL_WORKSPACE_ID);
  const translations=await getTranslationRows(INTERNAL_WORKSPACE_ID);
