@@ -1,0 +1,16 @@
+"use client";
+import {useMemo,useState} from "react";
+type Translation={id:string;surface:string;locale:string;translation_key:string;label:string;original_text:string;translated_text:string|null;active:number};
+export function TranslationStudio({initialRows}:{initialRows:Translation[]}){
+ const [rows,setRows]=useState(initialRows),[surface,setSurface]=useState("SITE"),[locale,setLocale]=useState("am"),[query,setQuery]=useState(""),[notice,setNotice]=useState("");
+ const filtered=useMemo(()=>rows.filter(r=>r.surface===surface&&r.locale===locale&&(!query||((r.label+" "+r.translation_key+" "+r.original_text).toLowerCase().includes(query.toLowerCase())))),[rows,surface,locale,query]);
+ const updateRow=(id:string,patch:Partial<Translation>)=>setRows(v=>v.map(r=>r.id===id?{...r,...patch}:r));
+ async function saveTranslation(r:Translation){setNotice("Saving translation...");const res=await fetch("/api/admin/translations",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:r.id,translatedText:r.translated_text||"",active:Boolean(r.active)})});setNotice(res.ok?"Translation saved.":"Could not save translation.");}
+ async function importCsv(file:File){setNotice("Importing CSV...");const res=await fetch("/api/admin/translations/csv",{method:"POST",headers:{"Content-Type":"text/csv"},body:await file.text()});const data=await res.json().catch(()=>({}));if(!res.ok){setNotice(data.error||"CSV import failed.");return;}const refreshed=await fetch("/api/admin/translations").then(r=>r.json()).catch(()=>({}));setRows(refreshed.items||[]);setNotice("CSV imported.");}
+ return <section className="website-studio studio-panel">
+  <div className="studio-translation-head"><div><span className="dashboard-kicker">LANGUAGE MANAGEMENT</span><h2>Translation Studio</h2><p>Translations are managed independently from website content. Source text remains canonical; translated text can be reviewed and published separately.</p></div><div className="studio-actions"><a href="/api/admin/translations/csv">Export CSV</a><label>Import CSV<input type="file" accept=".csv,text/csv" hidden onChange={e=>e.target.files?.[0]&&importCsv(e.target.files[0])}/></label></div></div>
+  <div className="studio-filters"><select value={surface} onChange={e=>setSurface(e.target.value)}><option value="SITE">Website</option><option value="APP">Application</option></select><select value={locale} onChange={e=>setLocale(e.target.value)}>{["en","am","ar","om"].map(x=><option key={x}>{x}</option>)}</select><input placeholder="Search labels or source text" value={query} onChange={e=>setQuery(e.target.value)}/></div>
+  <div className="studio-translation-list">{filtered.map(r=><div className="studio-translation-row" key={r.id}><div><b>{r.label}</b><small>{r.translation_key}</small><p>{r.original_text}</p></div><div><textarea rows={3} value={r.translated_text||""} onChange={e=>updateRow(r.id,{translated_text:e.target.value})} placeholder="Enter translation"/><button type="button" onClick={()=>saveTranslation(r)}>Save translation</button></div></div>)}{filtered.length===0&&<p className="studio-hint">No translation entries match the selected language and search.</p>}</div>
+  {notice&&<div className="studio-notice">{notice}</div>}
+ </section>;
+}
