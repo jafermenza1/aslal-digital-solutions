@@ -13,6 +13,18 @@ export const PERMISSIONS = [
   "products.manage",
   "listings.manage",
   "content.manage",
+  "content.view",
+  "content.edit",
+  "content.publish",
+  "content.delete",
+  "content.brand.manage",
+  "content.navigation.manage",
+  "content.theme.manage",
+  "content.media.manage",
+  "content.translation.manage",
+  "content.seo.manage",
+  "content.package.manage",
+  "content.location.manage",
   "email.view",
   "email.manage",
   "telegram.view",
@@ -37,7 +49,7 @@ const sets: Record<UserRole, Permission[]> = {
   ADMIN: [...PERMISSIONS],
   BUSINESS_OWNER: [
     "dashboard.view","leads.view","leads.create","leads.edit","leads.admin","customers.view",
-    "conversations.view","conversations.send","conversations.manage","products.manage","listings.manage","content.manage",
+    "conversations.view","conversations.send","conversations.manage","products.manage","listings.manage","content.manage","content.view","content.edit","content.publish","content.brand.manage","content.navigation.manage","content.theme.manage","content.media.manage","content.translation.manage","content.seo.manage","content.package.manage","content.location.manage",
     "email.view","email.manage","telegram.view","telegram.manage","email_templates.manage","users.manage","partners.manage","insights.view","operations.view","commerce.view","commerce.manage",
     "commissions.manage","payouts.manage"
   ],
@@ -50,18 +62,18 @@ const sets: Record<UserRole, Permission[]> = {
     "conversations.view","conversations.send"
   ],
   MARKETING_OPERATOR: [
-    "dashboard.view","leads.view","customers.view","products.manage","listings.manage",
+    "dashboard.view","leads.view","customers.view","products.manage","listings.manage","content.view","content.edit","content.media.manage","content.seo.manage",
     "email.view","email.manage","telegram.view","telegram.manage","email_templates.manage","insights.view"
   ],
   PARTNER_MANAGER: [
-    "dashboard.view","leads.view","customers.view","partners.manage","insights.view"
+    "dashboard.view","leads.view","customers.view","partners.manage","content.view","insights.view"
   ],
   PARTNER: ["dashboard.view","partner.portal.view"],
   FINANCE: [
-    "dashboard.view","customers.view","insights.view","operations.view","commerce.view","commerce.manage",
+    "dashboard.view","customers.view","content.view","insights.view","operations.view","commerce.view","commerce.manage",
     "commissions.manage","payouts.manage"
   ],
-  AUDITOR: ["dashboard.view","leads.view","customers.view","insights.view","operations.view","commerce.view"],
+  AUDITOR: ["dashboard.view","leads.view","customers.view","content.view","insights.view","operations.view","commerce.view"],
   CLIENT: ["dashboard.view","customers.view","insights.view"],
 };
 
