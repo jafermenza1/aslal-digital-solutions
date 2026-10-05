@@ -1,8 +1,8 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useCallback,useEffect,useState} from "react";
 export function WebsiteAssetStudio(){
  const [media,setMedia]=useState<any[]>([]),[nav,setNav]=useState<any[]>([]),[location,setLocation]=useState("header"),[notice,setNotice]=useState("");
- const load=async()=>{const [m,n]=await Promise.all([fetch("/api/admin/website-media").then(r=>r.json()),fetch("/api/admin/website-navigation").then(r=>r.json())]);setMedia(m.items||[]);setNav(n.items||[])};useEffect(()=>{void load()},[]);
+ const load=useCallback(async()=>{const [m,n]=await Promise.all([fetch("/api/admin/website-media").then(r=>r.json()),fetch("/api/admin/website-navigation").then(r=>r.json())]);setMedia(m.items||[]);setNav(n.items||[])},[]);useEffect(()=>{void load()},[load]);
  const addMedia=async()=>{const url=prompt("Media URL (YouTube/Facebook/TikTok/HTTP image or video URL)");if(!url)return;const r=await fetch("/api/admin/website-media",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({url,mediaType:/youtube|youtu\\.be|facebook|tiktok/i.test(url)?"EMBED":"IMAGE",provider:/youtube|youtu\\.be/i.test(url)?"youtube":/facebook/i.test(url)?"facebook":/tiktok/i.test(url)?"tiktok":"url"})});setNotice(r.ok?"Media added.":"Media could not be added.");if(r.ok)void load()};
  const current=nav.find(x=>x.location===location);const items=current?.items||[];
  const saveNav=async()=>{const r=await fetch("/api/admin/website-navigation",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify({location,items})});setNotice(r.ok?"Navigation saved.":"Navigation save failed.");if(r.ok)void load()};
