@@ -6,6 +6,7 @@ import { PublicContentEditor } from "@/components/PublicContentEditor";
 import { WebsiteStudio } from "@/components/WebsiteStudio";
 import { TranslationStudio } from "@/components/TranslationStudio";
 import { WebsitePageStudio } from "@/components/WebsitePageStudio";
+import { WebsiteAssetStudio } from "@/components/WebsiteAssetStudio";
 import { getWebsiteSettings } from "@/lib/website-settings";
 import { getTranslationRows } from "@/lib/translation-registry";
 import { getWorkspaceForUser } from "@/lib/workspaces";
@@ -25,6 +26,7 @@ export default async function PublicContentPage(){
   <section className="dashboard-hero-card"><div><span className="dashboard-kicker">WEBSITE STUDIO</span><h2>Website Content & Configuration</h2><p>Manage website pages, brand, navigation, appearance, packages, locations and search metadata separately from language translation work.</p></div></section>
   <div className="mt-5"><WebsiteStudio initialSettings={settings}/></div>
   <WebsitePageStudio />
+  <WebsiteAssetStudio />
   <section className="mt-8"><div className="dashboard-hero-card"><div><span className="dashboard-kicker">TRANSLATIONS</span><h2>Language Content</h2><p>Translations have their own workspace, search, CSV workflow and save actions. Source website content remains separate and canonical.</p></div></div><div className="mt-5"><TranslationStudio initialRows={translations.map(x=>({...x,active:Number(x.active)}))}/></div></section>
   <section className="mt-8"><div className="dashboard-hero-card"><div><span className="dashboard-kicker">PAGE CONTENT</span><h2>Editable Web Content</h2><p>Edit the source-language page copy here. Translation changes do not modify the source content.</p></div></div><div className="mt-5"><PublicContentEditor initialItems={items.map(x=>({...x,font_size:Number(x.font_size),active:Number(x.active)}))} fonts={fonts}/></div></section>
  </main>
