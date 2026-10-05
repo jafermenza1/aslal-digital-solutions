@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { evaluateCommercialMatches } from "@/lib/commercial-matching";
+import { recordWebsiteGrowthEvent } from "@/lib/website-growth";
 
 const s=(v:unknown,n=190)=>typeof v==="string"?v.trim().slice(0,n):"";
 const n=(v:unknown)=>v==null||v===""?null:Number(v);
@@ -40,6 +41,10 @@ export async function POST(request:Request){
    exchangeStatus="PUBLISHED";
    try{const matching=await evaluateCommercialMatches({workspaceId:workspace.id,requestId:result.commercialRequest.id,limit:100});matchCount=matching.matches.length;exchangeStatus=matching.request.status}catch{}
   }
+  try {
+   const ca=(body as Record<string,unknown>).contentAttribution;
+   if(ca&&typeof ca==="object") { const x=ca as Record<string,unknown>; await recordWebsiteGrowthEvent({workspaceId:workspace.id,contentKey:s(x.contentKey,250)||null,pagePath:s(x.pagePath,250)||null,ctaKey:s(x.ctaKey,190)||null,stage:"COMMERCIAL_REQUEST",leadId:result.lead.id,commercialRequestId:result.commercialRequest.id}); }
+  } catch(error) { console.error("[website-growth] commercial request event failed",error); }
   return NextResponse.json({ok:true,requestId:result.commercialRequest.id,leadId:result.lead.id,status:exchangeStatus,matchCount},{status:201});
  }catch(error){
   console.error("[commercial-request] POST failed",error);
