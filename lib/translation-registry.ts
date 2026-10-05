@@ -28,6 +28,6 @@ export async function ensureTranslationDictionary(workspaceId=INTERNAL_WORKSPACE
 
 export async function getTranslationRows(workspaceId=INTERNAL_WORKSPACE_ID){
   await ensureTranslationDictionary(workspaceId);
-  const [rows]=await db.query<any[]>("SELECT t.id,t.surface,t.locale,t.translation_key,t.label,t.original_text,t.translated_text,t.active,t.review_status,t.reviewed_by,t.reviewed_at,t.updated_by,t.updated_at,CASE WHEN t.surface="SITE" THEN p.value ELSE t.original_text END AS current_source_text FROM translation_entries t LEFT JOIN public_content p ON p.workspace_id=t.workspace_id AND p.content_key=t.translation_key WHERE t.workspace_id=? ORDER BY t.surface,t.locale,t.translation_key",[workspaceId]);
+  const [rows]=await db.query<any[]>("SELECT t.id,t.surface,t.locale,t.translation_key,t.label,t.original_text,t.translated_text,t.active,t.review_status,t.reviewed_by,t.reviewed_at,t.updated_by,t.updated_at,CASE WHEN t.surface="SITE" THEN COALESCE(p.published_value,p.value) ELSE t.original_text END AS current_source_text FROM translation_entries t LEFT JOIN public_content p ON p.workspace_id=t.workspace_id AND p.content_key=t.translation_key WHERE t.workspace_id=? ORDER BY t.surface,t.locale,t.translation_key",[workspaceId]);
   return rows;
 }
