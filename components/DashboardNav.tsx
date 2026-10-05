@@ -24,10 +24,14 @@ store:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10h16l
 } as const;
 
 const ITEMS:Item[]=[
+{key:"overview",href:"/dashboard/admin-center",permission:"dashboard.view",icon:"home",group:"command",label:"Admin Center"},
 {key:"overview",href:"/dashboard",permission:"dashboard.view",icon:"home",group:"command"},
+{key:"overview",href:"/dashboard/business-cockpit",permission:"dashboard.view",icon:"home",group:"command",label:"Business Cockpit"},
 {key:"overview",href:"/dashboard/workbench",permission:"dashboard.view",icon:"home",group:"command",label:"My Workbench"},
-{key:"insights",href:"/dashboard/reports",permission:"dashboard.view",icon:"chart",group:"command",label:"Reports Center"},
+{key:"overview",href:"/dashboard/approvals",permission:"listings.manage",icon:"box",group:"command",label:"Approvals"},
+{key:"insights",href:"/dashboard/reports",permission:"dashboard.view",icon:"chart",group:"command",label:"Reports"},
 {key:"journey",href:"/dashboard/journey",permission:"dashboard.view",icon:"journey",group:"command"},
+{key:"journey",href:"/dashboard/workflows",permission:"dashboard.view",icon:"journey",group:"command",label:"Cross-role Journeys"},
 {key:"insights",href:"/dashboard/insights",permission:"insights.view",icon:"chart",group:"command"},
 
 {key:"leads",href:"/dashboard/leads",permission:"leads.view",icon:"leads",group:"revenue"},
@@ -38,14 +42,15 @@ const ITEMS:Item[]=[
 {key:"emailTemplates",href:"/dashboard/email",permission:"email.view",icon:"mail",group:"revenue",label:"Email Operations"},
 {key:"telegramSales",href:"/dashboard/telegram",permission:"telegram.view",icon:"message",group:"revenue",label:"Telegram Sales"},
 
-{key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"growth",label:"Partners & Commissions"},
+{key:"partners",href:"/dashboard/partners",permission:"partners.manage",icon:"partner",group:"growth",label:"Partners"},
+{key:"partners",href:"/dashboard/reseller-supplier",permission:"products.manage",icon:"store",group:"growth",label:"Suppliers & Resellers"},
 {key:"partners",href:"/dashboard/partners?tab=engine",permission:"partners.manage",icon:"store",group:"growth",label:"Partner Marketplace"},
 {key:"partners",href:"/dashboard/partners/network",permission:"partners.manage",icon:"partner",group:"growth",label:"Partner Network"},
 {key:"partners",href:"/dashboard/partner-settings",permission:"partners.manage",icon:"partner",group:"growth",nested:true,label:"Partner Registration Settings"},
 {key:"partners",href:"/dashboard/partner-sales-assets",permission:"partners.manage",icon:"store",group:"growth",nested:true,label:"Partner Sales Assets"},
 
 {key:"products",href:"/dashboard/products",permission:"products.manage",icon:"box",group:"commerce",label:"Products & Services"},
-{key:"products",href:"/dashboard/listings",permission:"listings.manage",icon:"store",group:"commerce",label:"Commercial Listings"},
+{key:"products",href:"/dashboard/listings",permission:"listings.manage",icon:"store",group:"commerce",label:"Marketplace"},
 {key:"operations",href:"/dashboard/operations",permission:"operations.view",icon:"ops",group:"commerce"},
 {key:"operations",href:"/dashboard/finance",permission:"commissions.manage",icon:"ops",group:"commerce",label:"Finance & Payouts"},
 

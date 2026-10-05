@@ -1,0 +1,35 @@
+import Link from "next/link";
+import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { requirePermission } from "@/lib/authorization";
+import type { Permission } from "@/lib/permissions";
+
+type Journey={title:string;description:string;roles:string[];steps:{label:string;href:string;permission:Permission}[]};
+
+const journeys:Journey[]=[
+ {title:"Demand → Sale",description:"A customer cannot find an offer, submits a Wanted request, and the team turns that demand into a matched response, quote and order.",roles:["Customer","Sales","Provider / Partner","Finance"],steps:[
+  {label:"Demand / Wanted",href:"/wanted",permission:"dashboard.view"},{label:"Demand Workbench",href:"/dashboard/listings",permission:"products.manage"},{label:"Leads & follow-up",href:"/dashboard/leads",permission:"leads.view"},{label:"Quotes",href:"/dashboard/quotes",permission:"commerce.view"},{label:"Orders & Sales",href:"/dashboard/orders",permission:"commerce.view"},{label:"Finance",href:"/dashboard/finance",permission:"commissions.manage"}]},
+ {title:"Listing → Customer",description:"A business creates a product or service, submits it for review, publishes it, and converts customer interest into a commercial request or order.",roles:["Business Owner","Marketing","Admin","Sales"],steps:[
+  {label:"Products & Services",href:"/dashboard/products",permission:"products.manage"},{label:"Review / publish",href:"/dashboard/approvals",permission:"listings.manage"},{label:"Public Marketplace",href:"/marketplace",permission:"dashboard.view"},{label:"Leads / demand",href:"/dashboard/leads",permission:"leads.view"},{label:"Orders",href:"/dashboard/orders",permission:"commerce.view"}]},
+ {title:"Partner → Commission → Payout",description:"A partner becomes eligible, shares an approved offer, creates attributable demand or sales, and the financial team processes the resulting commission and payout.",roles:["Partner","Partner Manager","Finance"],steps:[
+  {label:"Partner portal",href:"/dashboard/partner",permission:"partner.portal.view"},{label:"Partners",href:"/dashboard/partners",permission:"partners.manage"},{label:"Orders / attribution",href:"/dashboard/orders",permission:"commerce.view"},{label:"Finance & Payouts",href:"/dashboard/finance",permission:"commissions.manage"}]},
+ {title:"Supplier → Reseller → Fulfillment",description:"A supplier provides an offer, an authorized reseller distributes it, the customer orders, and the commercial result flows into settlement.",roles:["Supplier","Reseller","Sales","Finance"],steps:[
+  {label:"Suppliers & Resellers",href:"/dashboard/reseller-supplier",permission:"products.manage"},{label:"Marketplace / offers",href:"/dashboard/listings",permission:"listings.manage"},{label:"Orders & Sales",href:"/dashboard/orders",permission:"commerce.view"},{label:"Finance",href:"/dashboard/finance",permission:"commissions.manage"}]}
+];
+
+export default async function CrossRoleJourneysPage(){
+ await requirePermission("dashboard.view");
+ const access=await authorizeWorkspacePermission("dashboard.view");
+ if(!access)return null;
+ const permissions=new Set(access.user.permissions||[]);
+ return <main className="min-h-full bg-[var(--ui-canvas)] py-8"><div className="container-aslal">
+  <header><div className="text-xs font-black uppercase tracking-[.2em] text-[var(--ui-accent)]">G10 / Cross-role journeys</div><h1 className="mt-2 text-3xl font-black tracking-tight">Follow the work across roles</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">The customer or commercial outcome is the journey. Each role opens only the part of the journey it is permitted to operate, while the underlying record remains canonical.</p>
+   <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 dark:border-white/10 dark:bg-slate-900 dark:text-white/60"><span className="text-[var(--ui-accent)]">Active business</span> {access.workspace.name}<span className="text-slate-300">·</span>{access.user.workspaceRole||"Member"}<span className="text-slate-300">·</span>permissions refresh when business context changes</div>
+  </header>
+  <section className="mt-7 grid gap-5 xl:grid-cols-2">{journeys.map(j=><article key={j.title} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900">
+   <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><div><h2 className="text-xl font-black">{j.title}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{j.description}</p></div><div className="flex max-w-[230px] flex-wrap gap-1.5">{j.roles.map(r=><span key={r} className="rounded-full bg-[var(--ui-canvas)] px-2.5 py-1 text-[10px] font-black text-slate-500">{r}</span>)}</div></div>
+   <div className="mt-6 flex flex-wrap items-center gap-2">{j.steps.map((s,i)=>{const allowed=permissions.has(s.permission);return <div key={s.href} className="flex items-center gap-2">{allowed?<Link href={s.href} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black text-slate-700 transition hover:border-[var(--ui-accent)] hover:bg-white dark:border-white/10 dark:bg-white/[.03] dark:text-white">{s.label}</Link>:<span title="Not available in your current workspace role" className="rounded-xl border border-dashed border-slate-200 px-3 py-2 text-xs font-bold text-slate-300 dark:border-white/10 dark:text-white/20">{s.label}</span>}{i<j.steps.length-1&&<span className="text-slate-300" aria-hidden="true">→</span>}</div>})}</div>
+   <div className="mt-5 border-t border-slate-100 pt-4 text-xs text-slate-400 dark:border-white/5"><strong className="text-slate-600 dark:text-white/60">Handoff rule:</strong> finish the record in the current role, then the next permitted role continues from that same canonical record. No re-entry or duplicate record is required.</div>
+  </article>)}</section>
+  <section className="mt-6 grid gap-3 sm:grid-cols-3"><Link href="/dashboard/workbench" className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900"><div className="text-xs font-black uppercase tracking-wider text-slate-400">My role</div><div className="mt-1 font-black">Open My Workbench →</div></Link><Link href="/dashboard/workspaces" className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900"><div className="text-xs font-black uppercase tracking-wider text-slate-400">G9 context</div><div className="mt-1 font-black">Manage workspaces & membership →</div></Link><Link href="/dashboard/journey" className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900"><div className="text-xs font-black uppercase tracking-wider text-slate-400">Evidence</div><div className="mt-1 font-black">Inspect customer journey evidence →</div></Link></section>
+ </div></main>;
+}
