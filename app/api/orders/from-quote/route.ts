@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
+import { recordWebsiteGrowthEvent } from "@/lib/website-growth";
 import { requireSameWorkspace } from "@/lib/workspace-boundary";
 import { resolveAffiliateAttributionForLead } from "@/lib/affiliate-engine";
 
@@ -125,6 +126,7 @@ export async function POST(request: Request) {
       return created;
     });
 
+    try { const ca=body.contentAttribution; if(ca&&typeof ca==="object") { const x=ca as Record<string,unknown>; await recordWebsiteGrowthEvent({workspaceId:access.workspace.id,contentKey:typeof x.contentKey==="string"?x.contentKey:null,pagePath:typeof x.pagePath==="string"?x.pagePath:null,ctaKey:typeof x.ctaKey==="string"?x.ctaKey:null,stage:"ORDER",orderId:order.id,quoteId:order.quoteId||null,revenueAmount:Number(order.total),currency:order.currency}); } } catch(error) { console.error("[website-growth] order event failed",error); }
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to create order";

@@ -25,7 +25,12 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     if (user) {
       if (!user.active) return null;
       const storedWorkspaceId = (await cookies()).get("aslal_workspace_id")?.value || "";
-      const membership = user.workspaceUsers.find(m => !storedWorkspaceId || m.workspace.id === storedWorkspaceId) || user.workspaceUsers[0] || null;
+      // Aslal Internal is the canonical default workspace. A missing or stale
+      // workspace cookie must never silently select an arbitrary business workspace.
+      const membership = user.workspaceUsers.find(m => storedWorkspaceId && m.workspace.id === storedWorkspaceId)
+        || user.workspaceUsers.find(m => m.workspace.id === "00000000-0000-0000-0000-000000000001")
+        || user.workspaceUsers[0]
+        || null;
       const workspaceId = membership?.workspace.id || null;
       const workspaceName = membership?.workspace.name || null;
       const workspaceRole = membership?.role || null;
