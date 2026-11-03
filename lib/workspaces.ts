@@ -39,6 +39,21 @@ export async function getWorkspaceForUser(user: CurrentUser, workspaceId?: strin
     [user.id === "legacy-admin" ? null : user.id, requested]
   );
   if (rows[0]) return rows[0] as WorkspaceContext;
+
+  // A stale/invalid persisted selection falls back to the protected
+  // Aslal Internal workspace. An explicitly supplied workspace ID remains
+  // strict so callers cannot use the fallback to bypass authorization.
+  if (!workspaceId && requested !== INTERNAL_WORKSPACE_ID) {
+    const [internalRows] = await db.query<any[]>(
+      `SELECT w.id,w.name,w.slug,w.client_type
+         FROM workspaces w
+         JOIN workspace_users wu ON wu.workspace_id=w.id
+        WHERE wu.user_id=? AND w.id=? AND w.active=1 AND wu.status='ACTIVE'
+        LIMIT 1`,
+      [user.id === "legacy-admin" ? null : user.id, INTERNAL_WORKSPACE_ID]
+    );
+    if (internalRows[0]) return internalRows[0] as WorkspaceContext;
+  }
   if (user.role === "SUPER_ADMIN" || user.role === "ADMIN") {
     const [admins] = await db.query<any[]>(
       `SELECT id,name,slug,client_type FROM workspaces WHERE id=? AND active=1 LIMIT 1`,

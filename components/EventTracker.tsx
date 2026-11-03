@@ -20,6 +20,7 @@ export function EventTracker({ eventName, productSlug }: { eventName: string; pr
       }),
       keepalive: true,
     }).catch(() => undefined);
+    fetch("/api/website-growth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({stage:/CLICK|CTA|SUBMIT|REQUEST/i.test(eventName)?"CTA":"VIEW",pagePath:window.location.pathname,ctaKey:/CLICK|CTA|SUBMIT|REQUEST/i.test(eventName)?eventName:null,contentKey:productSlug?`product:${productSlug}`:null,metadata:{eventName}}),keepalive:true}).catch(()=>undefined);
   }, [eventName, productSlug]);
 
   return null;

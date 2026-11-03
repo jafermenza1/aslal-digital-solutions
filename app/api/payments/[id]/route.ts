@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { recordWebsiteGrowthEvent } from "@/lib/website-growth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
@@ -251,6 +252,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return result;
     });
 
+    if (nextStatus === "CONFIRMED") { try { await recordWebsiteGrowthEvent({workspaceId:workspace.id,stage:"REVENUE",orderId:updated.orderId,revenueAmount:Number(updated.amount),currency:updated.currency,metadata:{paymentId:updated.id}}); } catch(error) { console.error("[website-growth] revenue event failed",error); } }
     return NextResponse.json({ payment: updated });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to update payment";

@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { authorizeWorkspacePermission } from "@/lib/workspaces";
 import { requireSameWorkspace } from "@/lib/workspace-boundary";
+import { recordWebsiteGrowthEvent } from "@/lib/website-growth";
 
 function quoteNumber() {
   return `QT-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${randomUUID().slice(0,8).toUpperCase()}`;
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
       await tx.negotiationEvent.create({ data: { id: randomUUID(), quoteId: created.id, type: "CREATED", actor: access.user.email, snapshot: { id: created.id, quoteNumber: created.quoteNumber, status: created.status, currency: created.currency, subtotal: String(created.subtotal), discount: String(created.discount), total: String(created.total), version: created.version } } });
       return created;
     });
+    try { const ca=body.contentAttribution; if(ca&&typeof ca==="object") { const x=ca as Record<string,unknown>; await recordWebsiteGrowthEvent({workspaceId:access.workspace.id,contentKey:typeof x.contentKey==="string"?x.contentKey:null,pagePath:typeof x.pagePath==="string"?x.pagePath:null,ctaKey:typeof x.ctaKey==="string"?x.ctaKey:null,stage:"QUOTE",quoteId:quote.id}); } } catch(error) { console.error("[website-growth] quote event failed",error); }
     return NextResponse.json({ quote }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to create quote";

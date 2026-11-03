@@ -11,6 +11,7 @@ import type { RowDataPacket } from "mysql2";
 import { resolvePublicWorkspaceId } from "@/lib/workspaces";
 import type { AttributionInput } from "@/lib/attribution";
 import { applyLeadAffiliateAttribution } from "@/lib/affiliate-engine";
+import { recordWebsiteGrowthEvent } from "@/lib/website-growth";
 
 type VisitorRow = RowDataPacket & {
   first_source: string | null;
@@ -257,6 +258,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    try {
+      const ca=body.contentAttribution&&typeof body.contentAttribution==="object"?body.contentAttribution:null;
+      if(ca) await recordWebsiteGrowthEvent({workspaceId,visitorId,contentKey:typeof ca.contentKey==="string"?ca.contentKey:null,pagePath:typeof ca.pagePath==="string"?ca.pagePath:null,ctaKey:typeof ca.ctaKey==="string"?ca.ctaKey:null,stage:"LEAD",leadId});
+    } catch(error) { console.error("WEBSITE_GROWTH_LEAD_EVENT_ERROR",error); }
     return NextResponse.json({ ok: true, leadId, autoReply, confirmationEmail });
   } catch (error) {
     console.error("LEAD_CREATE_ERROR", error);

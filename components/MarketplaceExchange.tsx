@@ -10,7 +10,7 @@ import {
 type Listing={
  id:string;slug:string;title:string;listingType:"PRODUCT"|"SERVICE"|"ASSET"|"PROPERTY";
  category:string;description:string|null;location:string|null;askingPrice:string|null;
- currency:string;priceLabel:string|null;inspectionRequired:boolean;featured:boolean;
+ currency:string;priceLabel:string|null;inspectionRequired:boolean;featured:boolean;presentation?:{heroImageUrl?:string;promoVideoUrl?:string;headline?:string};
  ownerParty:{name:string;type:string;status:string}|null;
  supplierParty:{name:string;type:string;status:string}|null;
  professionalProfile:{displayName:string;profession:string;verificationLevel:string;status:string}|null;
@@ -94,7 +94,7 @@ export function MarketplaceExchange({listings}:{listings:Listing[]}){
     <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
      {visible.map(x=>{
       const Icon=categoryIcon(x);
-      const image=x.product?.imageUrl;
+      const image=x.presentation?.heroImageUrl||x.product?.imageUrl;
       return <Link key={x.id} href={"/marketplace/listings/"+x.slug} className="marketplace-card group overflow-hidden rounded-[1.8rem] border border-white/10 bg-[#0F172A]">
        <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#0F3E8A] via-[#0F172A] to-[#070C18]">
         {image?<img src={image} alt="" className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/>:<div className="absolute inset-0 grid place-items-center"><div className="grid h-20 w-20 place-items-center rounded-3xl border border-[#E2B02A]/25 bg-[#E2B02A]/10 shadow-[0_0_55px_rgba(226,176,42,.08)]"><Icon className="text-[#E2B02A]" size={32}/></div></div>}

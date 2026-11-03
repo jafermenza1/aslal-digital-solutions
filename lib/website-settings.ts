@@ -32,11 +32,11 @@ export async function getWebsiteSettings(workspaceId=INTERNAL_WORKSPACE_ID):Prom
   const row=rows[0];
   if(!row){
     const id=randomUUID();
-    await db.query("INSERT INTO website_settings (id,workspace_id,site_name,header_json,footer_json,theme_json,service_packages_json) VALUES (?,?,?,?,?,?,?)",
+    await db.query("INSERT INTO website_settings (id,workspace_id,site_name,header_json,footer_json,theme_json,service_packages_json,location_json,contact_json) VALUES (?,?,?,?,?,?,?,?,?)",
       [id,workspaceId,"Aslal Digital Solutions",JSON.stringify(DEFAULT_HEADER),JSON.stringify(DEFAULT_FOOTER),JSON.stringify(DEFAULT_THEME),JSON.stringify(DEFAULT_SERVICE_PACKAGES),JSON.stringify(DEFAULT_LOCATION),JSON.stringify(DEFAULT_CONTACT)]);
     return {id,workspaceId,siteName:"Aslal Digital Solutions",logoLightUrl:null,logoDarkUrl:null,faviconLightUrl:null,faviconDarkUrl:null,headerEnabled:true,footerEnabled:true,header:DEFAULT_HEADER,footer:DEFAULT_FOOTER,theme:DEFAULT_THEME,servicePackages:DEFAULT_SERVICE_PACKAGES,location:DEFAULT_LOCATION,contact:DEFAULT_CONTACT};
   }
-  return {id:row.id,workspaceId:row.workspace_id,siteName:row.site_name,logoLightUrl:row.logo_light_url,logoDarkUrl:row.logo_dark_url,
+  return {id:row.id,workspaceId,siteName:row.site_name,logoLightUrl:row.logo_light_url,logoDarkUrl:row.logo_dark_url,
     faviconLightUrl:row.favicon_light_url,faviconDarkUrl:row.favicon_dark_url,headerEnabled:Boolean(row.header_enabled),footerEnabled:Boolean(row.footer_enabled),
     header:parseJson(row.header_json,DEFAULT_HEADER),footer:parseJson(row.footer_json,DEFAULT_FOOTER),theme:parseJson(row.theme_json,DEFAULT_THEME),servicePackages:parseJson(row.service_packages_json,DEFAULT_SERVICE_PACKAGES),location:parseJson(row.location_json,DEFAULT_LOCATION),contact:parseJson(row.contact_json,DEFAULT_CONTACT)};
 }
